@@ -1,0 +1,6 @@
+materials/
+.vscode/
+temp/
+.claude/settings.local.json
+/build/
+/build.exe

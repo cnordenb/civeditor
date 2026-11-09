@@ -1,0 +1,18 @@
+#ifndef DAT_TESTS_H
+#define DAT_TESTS_H
+
+#include <stdbool.h>
+
+bool test_an_unchanged_dat_file_is_written_back_byte_for_byte(void);
+bool test_an_added_effect_is_written_as_the_game_holds_it(void);
+bool test_an_added_tech_is_written_as_the_game_holds_it(void);
+bool test_a_bonus_without_techs_is_built_from_its_changes(void);
+bool test_a_building_takes_the_look_of_its_architectures_civ(void);
+bool test_a_monk_takes_the_look_of_its_monk_skin(void);
+bool test_a_hero_trains_at_the_castle(void);
+bool test_a_unit_patch_changes_its_civs_unit(void);
+bool test_only_the_tech_of_a_unit_the_civ_lacks_is_disabled(void);
+bool test_only_a_tech_the_civ_lacks_is_disabled(void);
+bool test_a_civ_keeps_its_villagers_in_the_dat_file(void);
+
+#endif

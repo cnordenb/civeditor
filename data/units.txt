@@ -1,0 +1,146 @@
+V	0	Longbowman	0	35	0	40	35	6	0	0	5	0.96	2	263	360
+V	1	Throwing Axeman	55	0	0	25	60	7	0	0	5	1	2	275	363
+V	2	Huskarl	75	0	0	35	60	10	0	6	0	1.05	2	446	365
+V	3	Teutonic Knight	85	0	0	30	90	14	7	2	0	0.8	2	276	364
+V	4	Samurai	45	0	0	30	70	10	1	1	0	1	1.9	262	366
+V	5	Chu Ko Nu	0	40	0	35	45	8	0	0	4	0.96	3	268	362
+V	6	Cataphract	70	0	0	75	110	9	2	1	0	1.35	1.8	267	361
+V	7	Mameluke	55	0	0	85	80	8	0	0	3	1.4	2	269	368
+V	8	War Elephant	170	0	0	85	450	15	1	2	0	0.8	2	274	367
+V	9	Janissary	60	0	0	55	35	17	1	0	7	0.96	3.45	271	369
+V	10	Berserk	65	0	0	20	54	12	1	1	0	1.05	2	399	398
+V	11	Mangudai	0	55	0	65	60	6	0	0	4	1.4	2.1	273	371
+V	12	Woad Raider	70	0	0	25	70	11	0	1	0	1.17	2	277	370
+V	13	Conquistador	75	0	0	60	55	16	2	1	6	1.3	2.9	58	60
+V	14	Jaguar Warrior	60	0	0	30	65	15	1	2	0	1	2	431	432
+V	15	Plumed Archer	0	55	0	55	50	5	0	1	4	1.2	1.9	26	27
+V	16	Tarkan	60	0	0	60	100	8	1	3	0	1.4	1.9	1	2
+V	17	War Wagon	0	200	0	60	150	9	0	2	4	1.2	2.5	449	450
+V	18	Genoese Crossbowman	0	45	0	40	45	6	1	0	4	0.96	2	467	468
+V	19	Ghulam	30	0	0	45	60	9	0	3	0	1.15	2	839	840
+V	20	Kamayuk	70	0	0	30	70	7	1	0	1	1	2	508	509
+V	21	Magyar Huszar	35	0	0	45	80	10	0	2	0	1.5	1.8	471	472
+V	22	Boyar	60	0	0	70	100	12	4	2	0	1.3	1.9	503	504
+V	23	Organ Gun	0	80	0	70	50	6	2	4	7	0.85	3.45	562	563
+V	24	Shotel Warrior	50	0	0	30	45	16	0	0	0	1.2	2	568	569
+V	25	Gbeto	50	0	0	40	40	10	0	0	5	1.25	2	566	567
+V	26	Camel Archer	0	50	0	60	55	7	0	1	4	1.4	2	564	565
+V	27	Ballista Elephant	100	0	0	80	250	9	0	3	5	0.8	2.5	614	615
+V	28	Karambit Warrior	25	0	0	15	30	7	0	1	0	1.2	2	616	617
+V	29	Arambai	0	75	0	60	60	12	0	1	5	1.3	2	618	619
+V	30	Rattan Archer	0	50	0	45	35	6	0	4	4	1.1	2	620	621
+V	31	Konnik	60	0	0	70	100	12	2	2	0	1.35	2.4	677	678
+V	32	Keshik	60	0	0	40	120	9	1	2	0	1.4	1.9	679	680
+V	33	Kipchak	0	60	0	35	40	4	0	0	4	1.4	2.2	681	682
+V	34	Leitis	70	0	0	50	100	13	1	1	0	1.4	1.9	683	684
+V	35	Coustillier	55	0	0	55	115	8	2	2	0	1.35	1.9	750	751
+V	36	Serjeant	55	0	0	25	50	5	2	1	0	0.95	2	752	753
+V	37	Obuch	55	0	0	20	80	8	2	2	0	0.9	2	778	779
+V	38	Hussite Wagon	0	110	0	80	160	10	0	7	6	0.8	3.45	780	781
+V	45	Centurion	75	0	0	85	110	13	2	3	0	1.35	1.9	881	882
+V	78	Chakram Thrower	65	0	0	30	40	3	1	0	5	1.15	2	829	830
+V	79	Urumi Swordsman	65	0	0	20	55	9	1	0	0	1.1	2	825	826
+V	80	Ratha	0	60	0	60	100	5	3	1	4	1.3	2	827	828
+V	81	Composite Bowman	0	35	0	45	40	4	1	0	4	0.96	2	917	918
+V	82	Monaspa	60	0	0	45	70	12	3	2	0	1.4	1.8	919	920
+V	83	White Feather Guard	60	0	0	15	95	7	0	2	0	0.95	2	1063	1064
+V	84	Fire Archer	0	45	0	45	35	5	0	0	5	0.96	3.5	1073	1074
+V	85	Tiger Cavalry	60	0	0	80	110	11	0	4	0	1.35	1.9	1035	1036
+V	86	Iron Pagoda	80	0	0	55	115	12	1	3	0	1.4	2.15	990	991
+V	87	Liao Dao	40	0	0	40	75	9	3	1	0	1	2.4	1001	1002
+V	88	Kona	65	0	0	40	125	9	0	3	0	1.55	2	1375	1376
+V	89	Bolas Rider	0	50	0	55	55	5	0	1	4	1.5	2	1377	1378
+V	90	Blackwood Archer	0	40	0	45	20	4	0	0	5	1.1	1.5	1388	1389
+V	91	Ibirapema Warrior	30	0	0	60	80	8	2	1	0	1	2	1390	1391
+V	92	Guecha Warrior	0	50	0	60	55	6	0	3	3	1.15	3	1363	1364
+V	93	Temple Guard	70	0	0	45	100	11	1	1	0	0.95	2	1400	1401
+V	94	Hearth Troop	0	80	0	35	75	9	1	4	0	0.9	2	1461	1462
+V	95	Jarl	75	0	0	55	65	9	2	1	4	1.35	2	1471	1472
+V	96	Jomsviking	65	0	0	15	70	8	2	2	0	0.96	1.8	1481	1482
+V	97	Immortal	-	-	-	-	-	-	-	-	-	-	-	1114	1115
+V	98	Strategos	-	-	-	-	-	-	-	-	-	-	-	1124	1125
+V	99	Hippeus	-	-	-	-	-	-	-	-	-	-	-	1134	1135
+V	100	Companion Cavalry	-	-	-	-	-	-	-	-	-	-	-	1288	1289
+V	101	Rhomphaia Warrior	-	-	-	-	-	-	-	-	-	-	-	1300	1301
+V	102	Pattiyodha Longbowman	-	-	-	-	-	-	-	-	-	-	-	1325	1326
+C	39	Crusader Knight	-	-	-	-	90	16	2	2	-	-	-	-	-
+C	41	Saboteur	0	0	50	50	-	40	-	-	-	-	-	-	-
+C	46	Apukispay	50	0	0	85	70	9	1	0	-	1.15	-	-	-
+C	51	Hetaireia	70	0	0	45	80	9	0	5	-	1.4	-	-	-
+C	52	Gendarme	95	0	0	85	75	10	5	5	-	1.3	-	-	-
+C	53	Cuahchiqueh	40	0	0	30	80	6	1	-1	-	1.1	0.9	-	-
+C	54	Ritterbruder	80	0	0	75	125	11	6	1	-	1.3	-	-	-
+C	55	Kazak	0	65	0	55	80	5	1	0	5	1.35	-	-	-
+C	56	Szlachcic	75	0	0	60	115	10	4	1	-	-	-	-	-
+C	57	Cuirassier	70	0	0	35	50	16	-2	2	-	1.55	-	-	-
+C	58	Rajput	70	0	0	70	95	9	0	1	-	1.52	-	-	-
+C	59	Seljuk Archer	0	50	0	70	50	7	-2	0	4	1.4	-	-	-
+C	60	Numidian Javelinman	0	80	0	30	65	5	0	3	-	-	-	-	-
+C	61	Sosso Guard	55	0	0	5	60	6	0	1	-	1.1	-	-	-
+C	62	Swiss Pikeman	40	0	0	50	80	5	1	1	2	0.9	-	-	-
+C	63	Headhunter	0	0	0	75	60	7	1	0	-	1.33	-	-	-
+C	64	Teulu	65	0	0	40	70	10	0	1	-	0.95	-	-	-
+C	65	Maillotin	90	0	0	10	40	20	0	3	-	0.9	4	-	-
+C	66	Hashashin	25	0	0	85	85	12	1	1	-	1.45	-	-	-
+C	67	Highlander	75	0	0	35	60	9	1	1	-	0.95	-	-	-
+C	68	Stradiot	75	0	0	55	80	9	0	0	1	1.4	-	-	-
+C	69	Ahosi	45	0	0	15	45	15	0	0	0	1.25	-	-	-
+C	70	Landsknecht	-	-	-	-	45	12	1	0	-	1.02	-	-	-
+C	71	Clibinarii	95	0	0	75	140	15	2	2	-	1.25	-	-	-
+C	72	Silahtar	0	40	0	70	60	6	1	0	-	1.25	-	-	-
+C	73	Jaridah	50	0	0	35	60	11	1	0	-	1.48	-	-	-
+C	74	Wolf Warrior	85	0	0	50	125	13	3	0	-	1.3	-	-	-
+C	76	Castellan	65	0	0	90	55	13	0	0	-	-	-	-	-
+C	77	Wind Warrior	55	0	0	35	55	8	0	1	-	1.15	-	-	-
+C	103	Qizilbash Warrior	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	104	War Dog	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	105	Imperial Legionary	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	106	Imperial Centurion	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	107	Norse Warrior	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	108	Eastern Swordsman	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	109	Heavy Pikeman	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	110	Bandit	100	0	0	0	-	-	-	-	-	-	-	-	-
+C	111	Priest	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	112	Pagan Priest	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	113	Furious the Monkey Boy	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	114	Alfred the Alpaca	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	115	Cobra Car	200	0	0	200	-	-	-	-	-	-	-	-	-
+C	116	Sharkatzor	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	117	War Penguin	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	118	Xolotl Warrior	60	0	0	75	100	10	2	2	0	1.35	1.8	-	-
+C	119	Ninja	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	120	Flamethrower	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	121	Photonman	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	122	Amazon Warrior	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	123	Amazon Archer	-	-	-	-	-	-	-	-	-	-	-	-	-
+C	124	Iroquois Warrior	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1954	Cao Cao	500	0	0	500	475	14	3	3	0	1.3	2	-	-
+H	1966	Liu Bei	500	0	0	500	425	15	3	3	0	0.9	2	-	-
+H	1978	Sun Jian	500	0	0	500	400	15	4	4	0	1.55	2	-	-
+H	1071	Abraha Elephant	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	169	Aethelflaed	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	777	Attila the Hun	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1070	Babur	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	429	Barbarossa	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1165	Bayinnaung	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	824	El Cid (Cavalry)	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	198	El Cid (Infantry)	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	439	Francesco Sforza	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1157	Gajah Mada	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1269	Girgen Khan	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1265	Ivaylo	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1715	Jadwiga	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1713	Jan Žižka	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	2637	Lautaro	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1178	Le Loi	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1034	Musa	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1074	Pachacuti	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	929	Saladin	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1035	Sundjata	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1822	Tamar	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1266	Tzar Konstantin	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1727	Ulrich Von Jungingen	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	193	Vlad Dracula	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1281	Vytautas	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1690	Warwolf Trebuchet	-	-	-	-	-	-	-	-	-	-	-	-	-
+H	1066	Yodit	-	-	-	-	-	-	-	-	-	-	-	-	-

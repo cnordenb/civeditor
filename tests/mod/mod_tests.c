@@ -1,0 +1,297 @@
+#include "mod_tests.h"
+
+#include <string.h>
+
+#include "../../src/civlist/civ_list.h"
+#include "../../src/core/check.h"
+#include "../../src/forge/forge.h"
+#include "../../src/mod/mod_strings.h"
+#include "../../src/techtree/tech_tree.h"
+#include "../../src/unique/unique_aim.h"
+
+enum { BRITONS_SLOT = 1, BRITONS_NAME_ID = 10271 };
+
+static const char VANILLA[] = "120201 \"Khitans\"\r\n120200 \"Jurchens\"\r\n120150 \"Britons\"\r\n";
+static const char NAME_LINE[] = "10271 \"Testonia\"\n";
+
+static CivDesign design;
+static Catalog catalog;
+static ModStrings strings;
+static ForgeResult result;
+
+static ModCiv named_civ(void)
+{
+    ModCiv civ;
+
+    civ_design_reset(&design);
+    (void)CHECK(civ_design_set_text(&design, TEXT_FIELD_NAME, "Testonia"));
+    civ.design = &design;
+    civ.catalog = &catalog;
+    civ.slot = BRITONS_SLOT;
+    civ.name_sid = BRITONS_NAME_ID;
+    civ.hero_skipped = false;
+    return civ;
+}
+
+bool test_the_name_is_written_under_the_replaced_civs_name_id(void)
+{
+    ModCiv civ = named_civ();
+
+    if (!CHECK(mod_strings_write(&strings, &civ, VANILLA))) {
+        return false;
+    }
+    return strncmp(strings.text, NAME_LINE, strlen(NAME_LINE)) == 0;
+}
+
+bool test_the_civ_descriptions_are_written_in_id_order(void)
+{
+    ModCiv civ = named_civ();
+    const char *jurchens;
+    const char *khitans;
+
+    if (!CHECK(mod_strings_write(&strings, &civ, VANILLA))) {
+        return false;
+    }
+    jurchens = strstr(strings.text, "\n120200 ");
+    khitans = strstr(strings.text, "\n120201 ");
+    return (jurchens != NULL) && (khitans != NULL) && (jurchens < khitans);
+}
+
+bool test_the_mod_folder_name_is_made_from_the_civ_name(void)
+{
+    char prefix[FORGE_PREFIX_CAPACITY];
+
+    if (!CHECK(forge_prefix("\xC3\x86sir Kings 2!", prefix, sizeof prefix))) {
+        return false;
+    }
+    return strcmp(prefix, "_sir_kings_2_") == 0;
+}
+
+bool test_a_mod_is_not_built_from_an_unfinished_civ(void)
+{
+    ForgeJob job;
+
+    civ_design_reset(&design);
+    (void)CHECK(civ_design_set_text(&design, TEXT_FIELD_NAME, "Testonia"));
+    job.design = &design;
+    job.catalog = &catalog;
+    job.game_folder = L".";
+    job.mods_folder = L".";
+    (void)forge_build(&job, &result);
+    return strstr(result.problem, "not finished") != NULL;
+}
+
+enum {
+    THROWING_AXEMAN = 281,
+    ELITE_THROWING_AXEMAN = 531,
+    LONGBOWMAN = 8,
+    ELITE_LONGBOWMAN = 530,
+    ADD_ATTRIBUTE = 4,
+    NO_CLASS = -1,
+    RANGE = 12
+};
+
+static const float ONE_MORE = 1.0F;
+
+bool test_a_unique_tech_is_aimed_at_the_civs_own_unique_unit(void)
+{
+    UniqueSwap swap = { { THROWING_AXEMAN, ELITE_THROWING_AXEMAN }, { LONGBOWMAN, ELITE_LONGBOWMAN } };
+    DatChange change = { ADD_ATTRIBUTE, THROWING_AXEMAN, NO_CLASS, RANGE, 0.0F };
+
+    change.d = ONE_MORE;
+    return (unique_aim(&swap, &change) == UNIQUE_SWAP) && (change.a == LONGBOWMAN);
+}
+
+enum { CASTLE_TECH = 11, CASTLE_TECH_SID = 44008 };
+
+static const char CASTLE_TECH_LINE[] = "\n44008 \"Testing Axes\"\n";
+
+bool test_a_unique_techs_name_is_written_under_its_slots_string_id(void)
+{
+    ModCiv civ = named_civ();
+    bool written;
+
+    catalog.appearance[0].kind = APPEARANCE_CIV;
+    catalog.appearance[0].id = BRITONS_SLOT;
+    catalog.appearance[0].string_ids[CIV_STRING_CASTLE_TECH] = CASTLE_TECH_SID;
+    catalog.appearance[0].string_ids[CIV_STRING_IMPERIAL_TECH] = CATALOG_MISSING;
+    catalog.appearance_count = 1;
+    catalog.techs[0].tier = TECH_TIER_CASTLE;
+    catalog.techs[0].id = CASTLE_TECH;
+    catalog.tech_count = 1;
+    (void)CHECK(civ_design_pick_tech(&design, TECH_TIER_CASTLE, CASTLE_TECH));
+    (void)CHECK(civ_design_set_text(&design, TEXT_FIELD_CASTLE_TECH_NAME, "Testing Axes"));
+    written = CHECK(mod_strings_write(&strings, &civ, VANILLA)) && (strstr(strings.text, CASTLE_TECH_LINE) != NULL);
+    catalog.appearance_count = 0;
+    catalog.tech_count = 0;
+    return written;
+}
+
+enum { UNIT_SID = 69802 };
+
+static const char UNIT_LINE[] = "\n69802 \"Testbowman\"\n";
+
+bool test_a_unique_units_name_is_written_under_the_string_id_of_its_slot(void)
+{
+    ModCiv civ = named_civ();
+    bool written;
+
+    catalog.appearance[0].kind = APPEARANCE_CIV;
+    catalog.appearance[0].id = BRITONS_SLOT;
+    catalog.appearance[0].string_ids[CIV_STRING_UNIT] = UNIT_SID;
+    catalog.appearance_count = 1;
+    (void)CHECK(civ_design_pick_unit(&design, UNIT_ORIGIN_VANILLA, 0));
+    (void)CHECK(civ_design_set_text(&design, TEXT_FIELD_UNIT_NAME, "Testbowman"));
+    written = CHECK(mod_strings_write(&strings, &civ, VANILLA)) && (strstr(strings.text, UNIT_LINE) != NULL);
+    catalog.appearance_count = 0;
+    return written;
+}
+
+enum { LIU_BEI = 1966, HERO_SID = 44500 };
+
+static const char HERO_LINE[] = "\n44500 \"Testhero\"\n";
+
+static bool write_hero_strings(bool hero_skipped)
+{
+    ModCiv civ = named_civ();
+    bool written;
+
+    civ.hero_skipped = hero_skipped;
+    catalog.appearance[0].kind = APPEARANCE_CIV;
+    catalog.appearance[0].id = BRITONS_SLOT;
+    catalog.appearance[0].string_ids[CIV_STRING_HERO] = HERO_SID;
+    catalog.appearance_count = 1;
+    (void)CHECK(civ_design_pick_hero(&design, LIU_BEI));
+    (void)CHECK(civ_design_set_text(&design, TEXT_FIELD_HERO_NAME, "Testhero"));
+    written = CHECK(mod_strings_write(&strings, &civ, VANILLA));
+    catalog.appearance_count = 0;
+    return written;
+}
+
+bool test_a_heros_name_is_written_under_the_string_id_of_its_slot(void)
+{
+    return write_hero_strings(false) && (strstr(strings.text, HERO_LINE) != NULL);
+}
+
+bool test_a_skipped_heros_name_is_not_written(void)
+{
+    return write_hero_strings(true) && (strstr(strings.text, HERO_LINE) == NULL);
+}
+
+enum { LIST_SLOT = 1 };
+
+static const char CIV_LIST[] = "{\"civilization_list\":[{\"unique_unit_id\":8,\"unique_unit_line\":-276},"
+                               "{\"unique_unit_id\":725,\"unique_unit_line\":-267}]}";
+static const char TWO_LONGBOWMEN[] = "{\"civilization_list\":[{\"unique_unit_id\":8,\"unique_unit_line\":-276},"
+                                     "{\"unique_unit_id\":8,\"unique_unit_line\":-276}]}";
+
+static JsonDocument civ_list;
+static CivListOutput written_list;
+
+static bool parsed(const char *text)
+{
+    civ_list.length = (int)strlen(text);
+    return CHECK(text_copy(civ_list.text, sizeof civ_list.text, text)) && CHECK(json_parse(&civ_list));
+}
+
+static bool written_is(const char *expected)
+{
+    return (written_list.length == strlen(expected)) && (memcmp(written_list.text, expected, written_list.length) == 0);
+}
+
+static bool list_written_as(const char *list, const CivListEntry *entry, const char *expected)
+{
+    return parsed(list) && CHECK(civ_list_write(&civ_list, entry, &written_list)) && written_is(expected);
+}
+
+bool test_the_civ_list_names_the_civs_own_unique_unit(void)
+{
+    CivListEntry entry = { LIST_SLOT, LONGBOWMAN, CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP, false, CIV_LIST_KEEP,
+                           CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP };
+
+    return list_written_as(CIV_LIST, &entry, TWO_LONGBOWMEN);
+}
+
+enum { UNLISTED_UNIT = 9, UNLISTED_ICON = 7, UNLISTED_NAME = 5200, UNLISTED_DESCRIPTION = 26200 };
+
+static const char LIST_WITH_TEXTS[] = "{\"civilization_list\":[{},{\"unique_unit_id\":725,"
+                                      "\"unique_unit_image_paths\":[\"/resources/uniticons/110_50730.png\"],"
+                                      "\"unique_unit_string_ids\":[{\"name\":5667,\"description\":26667}]}]}";
+static const char UNLISTED_UNIT_SHOWN[] = "{\"civilization_list\":[{},{\"unique_unit_id\":9,"
+                                          "\"unique_unit_image_paths\":[\"/resources/uniticons/007_50730.png\"],"
+                                          "\"unique_unit_string_ids\":[{\"name\":5200,\"description\":26200}]}]}";
+
+bool test_a_unique_unit_missing_from_the_civ_list_takes_its_own_icon_and_texts(void)
+{
+    CivListEntry entry = { LIST_SLOT, UNLISTED_UNIT, CIV_LIST_KEEP, CIV_LIST_KEEP, UNLISTED_ICON, false, UNLISTED_NAME,
+                           UNLISTED_DESCRIPTION, CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP };
+
+    return list_written_as(LIST_WITH_TEXTS, &entry, UNLISTED_UNIT_SHOWN);
+}
+
+enum { OWN_DESCRIPTION_SID = 990101 };
+
+static const char DESCRIBED_LIST[] = "{\"civilization_list\":[{},{\"tech_tree_description_string_id\":120150}]}";
+static const char OWN_DESCRIPTION[] = "{\"civilization_list\":[{},{\"tech_tree_description_string_id\":990101}]}";
+
+bool test_the_civ_list_points_at_the_civs_own_description(void)
+{
+    CivListEntry entry = { LIST_SLOT,     CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP,      false,
+                           CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP, OWN_DESCRIPTION_SID };
+
+    return list_written_as(DESCRIBED_LIST, &entry, OWN_DESCRIPTION);
+}
+
+enum { STABLE = 101, KEEP = 235, BARRACKS_NODE = 12, VILLAGER = 83, NOTHING_TICKED = -1 };
+
+static const char OPEN_TREE[] = "{\"civ_techs_buildings\":[{\"Use Type\":\"Building\",\"Node ID\":101,"
+                                "\"Node Status\":\"ResearchedCompleted\"}],\"civ_techs_units\":[]}";
+static const char LOCKED_TREE[] = "{\"civ_techs_buildings\":[{\"Use Type\":\"Building\",\"Node ID\":101,"
+                                  "\"Node Status\":\"NotAvailable\"}],\"civ_techs_units\":[]}";
+static const char VILLAGER_TREE[] = "{\"civ_techs_buildings\":[],\"civ_techs_units\":[{\"Use Type\":\"Unit\","
+                                    "\"Node ID\":83,\"Node Status\":\"ResearchedCompleted\"}]}";
+static const char KEEP_TREE[] = "{\"civ_techs_buildings\":[{\"Use Type\":\"Building\",\"Node ID\":235,"
+                                "\"Node Status\":\"ResearchRequired\"}],\"civ_techs_units\":[]}";
+
+static bool tree_written_as(const char *tree, int ticked, const char *expected)
+{
+    TechTreeJob job = { &civ_list, &design, &catalog };
+
+    civ_design_reset(&design);
+    if (ticked != NOTHING_TICKED) {
+        (void)CHECK(civ_design_toggle_tree(&design, TREE_BUILDINGS, ticked));
+    }
+    catalog.tree[0].kind = TREE_BUILDINGS;
+    catalog.tree[0].id = STABLE;
+    catalog.tree[1].kind = TREE_UNITS;
+    catalog.tree[1].id = VILLAGER;
+    catalog.tree[2].kind = TREE_BUILDINGS;
+    catalog.tree[2].id = KEEP;
+    catalog.tree_count = 3;
+    return parsed(tree) && CHECK(tech_tree_write(&job, &written_list)) && written_is(expected);
+}
+
+bool test_a_building_the_civ_lacks_is_not_available_in_its_tech_tree(void)
+{
+    return tree_written_as(OPEN_TREE, BARRACKS_NODE, LOCKED_TREE);
+}
+
+bool test_a_building_the_civ_has_is_available_in_its_tech_tree(void)
+{
+    return tree_written_as(LOCKED_TREE, STABLE, OPEN_TREE);
+}
+
+bool test_a_civ_with_an_empty_tree_keeps_the_games_tech_tree(void)
+{
+    return tree_written_as(OPEN_TREE, NOTHING_TICKED, OPEN_TREE);
+}
+
+bool test_a_civ_keeps_its_villagers_in_its_tech_tree(void)
+{
+    return tree_written_as(VILLAGER_TREE, BARRACKS_NODE, VILLAGER_TREE);
+}
+
+bool test_a_building_the_civ_has_keeps_the_research_it_needs_in_its_tech_tree(void)
+{
+    return tree_written_as(KEEP_TREE, KEEP, KEEP_TREE);
+}

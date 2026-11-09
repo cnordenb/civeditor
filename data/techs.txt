@@ -1,0 +1,120 @@
+castle	0	Atlatl	Skirmishers +1 attack, +1 range	400	0	0	350	40	460
+castle	1	Kasbah	team Castles work 25% faster	250	0	0	250	40	578
+castle	2	Yeomen	+1 foot archer and skirmisher range, +2 tower attack	0	750	0	450	60	3
+castle	3	Stirrups	Cavalry attack 33% faster	400	0	0	200	35	685
+castle	4	Burgundian Vineyards	Farmers slowly generate gold	400	0	0	300	45	754
+castle	5	Manipur Cavalry	Cavalry +4 attack vs. Ranged Soldiers	300	0	0	300	40	627
+castle	6	Greek Fire	Fire ships +1 range, Bombard Towers and Dromons increased blast radius	250	0	0	300	40	464
+castle	7	Stronghold	Castles, Kreposts and Towers fire 33% faster, heal allied infantry	250	0	0	200	30	482
+castle	8	Great Wall	Walls and towers +30% HP	0	400	200	0	40	462
+castle	9	Steppe Husbandry	Light Cavalry, Steppe Lancers and Cavalry Archers trained 100% faster	200	300	0	0	40	689
+castle	10	Royal Heirs	Unique Unit and Camels receive -3 damage from Mounted Units	300	0	0	300	40	574
+castle	11	Bearded Axe	Unique Unit +2 range	-	-	-	-	-	83
+castle	12	Anarchy	create Unique Unit at Barracks	450	0	0	250	40	16
+castle	13	Marauders	create Unique Unit at Stables	0	300	0	200	40	483
+castle	14	Andean Sling	Skirmishers and Slingers no minimum range, Slingers +1 attack	200	0	0	300	40	516
+castle	15	Grand Trunk Road	All gold income 10% faster, Market trading fee 10%	250	200	0	0	40	506
+castle	16	Pavise	Archer-line, Condottiero, and Unique Unit +1/+1 armor	-	-	-	-	-	494
+castle	17	Yasama	Towers shoot extra arrows	300	300	0	0	40	484
+castle	18	Tusk Swords	Melee elephant units +3 attack	0	300	0	450	40	622
+castle	19	Eupseong	Watch Towers, Guard Towers, and Keeps +2 range	300	300	0	0	40	486
+castle	20	Hill Forts	Town Centers +3 range	250	0	0	250	40	691
+castle	21	Corvinian Army	Unique Unit gold cost converted to food/wood cost	200	0	0	300	40	514
+castle	22	Thalassocracy	upgrades Docks to Harbors, which fire arrows	300	0	0	300	40	624
+castle	23	Tigui	Town Centers fire arrows when ungarrisoned	200	300	0	0	40	576
+castle	24	Hul'che Javelineers	Skirmishers throw a second projectile	300	0	0	300	40	485
+castle	25	Nomads	lost houses do not decrease population headroom	0	300	0	150	40	487
+castle	26	Kamandaran	Archer-line gold cost replaced by wood cost	400	0	0	300	40	488
+castle	27	Carrack	Ships +1/+1 armor	-	-	-	-	-	572
+castle	28	Madrasah	Monks return 50 gold when killed	-	-	-	-	-	490
+castle	29	First Crusade	Town Centers spawn Unique Units; units resist conversion	400	0	0	300	60	756
+castle	30	Orthodoxy	Monk units +3/+3P armor	-	-	-	-	-	512
+castle	31	Inquisition	Monks and Missionaries convert faster; Missionaries +1 range	100	0	0	300	40	492
+castle	32	Silk Armor	Light Cavalry, Steppe Lancers and Cavalry Archers +1/+1P armor	0	400	0	300	40	687
+castle	33	Ironclad	Siege units extra melee armor	0	400	0	350	60	489
+castle	34	Sipahi	Cavalry Archers +20 HP	350	0	0	150	60	491
+castle	35	Chatras	Elephant units +100 HP	250	0	0	250	40	628
+castle	36	Chieftains	Infantry deal bonus damage to cavalry	600	0	0	450	40	463
+castle	37	Szlachta Privileges	Knight-line costs -60% gold	500	0	0	300	45	782
+castle	38	Wagenburg Tactics	Gunpowder units move 10% faster	300	0	0	300	45	784
+castle	44	Medical Corps	Elephant units regenerate 30 HP per minute	300	0	0	200	45	831
+castle	45	Paiks	Unique Unit and elephant units attack 20% faster	0	375	0	275	45	833
+castle	46	Kshatriyas	Military units cost -25% food	500	0	0	450	45	835
+castle	47	Detinets	40% of Castle/Tower stone cost replaced with wood	0	400	0	200	40	455
+castle	48	Zealotry	Camel units +20 hit points	-	-	-	-	-	9
+castle	49	Ballistas	Scorpions and Ballista Elephants fire 33% faster, Galleys +2 attack	0	400	0	300	45	883
+castle	50	Bimaristan	Monk units automatically heal multiple nearby units	0	300	0	200	50	28
+castle	51	Cilician Fleet	Demolition Ships +20% blast radius; Galley-line and Dromons +1 range	0	350	0	300	45	922
+castle	52	Svan Towers	Defensive buildings +2 attack; towers fire piercing arrows	300	0	0	200	45	923
+castle	54	Silk Road	Trade units cost -50%	250	0	0	250	60	499
+castle	55	Coiled Serpent Array	Spearman-line and Unique Unit gain HP when near each other	350	0	0	300	40	1070
+castle	56	Red Cliffs Tactics	Demolition Ships and Fire Archers deal fire damage to ships and buildings	400	0	0	250	40	1080
+castle	57	Tuntian	Soldiers passively produce food	250	300	0	0	40	1061
+castle	58	Fortified Bastions	Fortifications regenerate 500 HP per minute	350	250	0	0	40	996
+castle	59	Lamellar Armor	Infantry and Skirmishers reflect 25% melee damage back to the attacker	450	0	0	300	45	1006
+castle	60	Malon	Bolas Riders, Slingers and Skirmishers deal pass through damage	300	0	0	350	40	1379
+castle	61	Caciques	Champi Warriors and Slingers attack +25% faster	400	0	0	200	45	1392
+castle	62	Herbalism	Archer-line and Champi Warriors move +15% faster	300	0	0	350	40	1365
+castle	63	Circumnavigation	Reveals the map; Ships train 33% faster	250	150	0	0	40	1404
+castle	64	Ordonnance Companies	Mounted Crossbowmen cost -40% gold	400	0	0	250	40	1496
+castle	65	Clerical Recruitment	Monks +1 conversion range; train +33% faster	350	0	0	200	35	1491
+castle	66	Vendel Legacy	Knight-line deals trample damage	500	0	0	300	35	1473
+castle	67	Hamask	Infantry deal more damage as they lose HP	250	0	0	450	35	1484
+castle	68	Ambuscade	create Unique Unit at Archery Ranges	0	300	0	200	40	483
+castle	69	Wooden Castles	Castles become Wooden Forts costing 300 stone + 500 wood	0	400	0	200	40	-
+imperial	0	Garland Wars	Infantry +4 attack	450	0	0	750	60	24
+imperial	1	Maghrebi Camels	Camel units regenerate	700	0	0	300	40	579
+imperial	2	Warwolf	Trebuchet units do blast damage	0	800	0	400	40	461
+imperial	3	Bagains	Militia-line gains +5 armor	900	0	0	450	40	686
+imperial	4	Flemish Revolution	Upgrades all existing Villagers to Flemish Militia	200	0	0	150	10	755
+imperial	5	Howdah	Elephant units +1/+1P armor	400	300	0	0	40	626
+imperial	6	Logistica	Unique Unit causes trample damage	800	0	0	600	50	61
+imperial	7	Furor Celtica	Siege Workshop units +40% HP	750	0	0	450	50	5
+imperial	8	Rocketry	Scorpions, Rocket Carts and Lou Chuans +25% attack	1100	0	0	900	60	52
+imperial	9	Elite Mercenaries	team receives 5 free Elite Unique Units per castle	650	0	0	400	40	690
+imperial	10	Torsion Engines	increases blast radius of Siege Workshop units	1000	0	0	600	40	575
+imperial	11	Chivalry	Stables work 40% faster	0	600	0	500	40	493
+imperial	12	Perfusion	Barracks work 100% faster	0	400	0	600	40	457
+imperial	13	Atheism	+100 years to enemy and neutral Relic/Wonder victories; their relic income -50%	500	300	0	0	60	21
+imperial	14	Fabric Shields	Shock Infantry, Slingers, Unique Unit +1/+2 armor	600	0	0	600	40	517
+imperial	15	Shatagni	Hand Cannoneers +2 range	500	0	0	650	40	507
+imperial	16	Pirotechnia	Hand Cannoneers deal +15% pass through damage and are more accurate	650	0	0	500	50	902
+imperial	17	Kataparuto	Trebuchet units fire and pack faster	0	550	0	300	60	59
+imperial	18	Double Crossbow	Scorpion and Ballista units fire two projectiles	700	0	0	400	40	623
+imperial	19	Shinkichon	Rocket Carts and Turtle Ships +1 range, fire additional rockets	1100	0	0	800	60	445
+imperial	20	Tower Shields	Spearmen and Skirmishers +2P armor	500	0	0	200	40	692
+imperial	21	Recurve Bow	Cavalry Archers +1 range, +1 attack	0	600	0	400	40	515
+imperial	22	Forced Levy	Militia-line gold cost replaced by food cost	850	0	0	500	40	625
+imperial	23	Farimba	Cavalry +5 attack	650	0	0	400	40	577
+imperial	24	El Dorado	Shock Infantry have +40 hit points	750	0	0	450	70	4
+imperial	25	Drill	Siege Workshop units move 50% faster	0	500	0	450	60	6
+imperial	26	Citadels	Castles and Kreposts fire Bullets, receive -25% bonus damage	0	600	0	300	50	7
+imperial	27	Arquebus	Gunpowder units more accurate	700	0	0	400	40	573
+imperial	28	Counterweights	Trebuchet units and Mangonel-line +15% attack	650	0	0	500	50	454
+imperial	29	Hauberk	Knights +1/+2P armor	700	0	0	600	45	757
+imperial	30	Druzhina	Infantry damage adjacent units	900	0	0	500	40	513
+imperial	31	Supremacy	Villagers stronger in combat	400	0	0	250	60	440
+imperial	32	Timurid Siegecraft	Trebuchet units +2 range	0	500	0	400	50	688
+imperial	33	Crenellations	+3 range Castles garrisoned infantry fire arrows	600	0	400	0	60	11
+imperial	34	Artillery	+2 range Bombard Towers, Bombard Cannons, Cannon Galleons	600	0	0	650	40	10
+imperial	35	Paper Money	Lumberjacks slowly generate gold in addition to wood	550	200	0	0	60	629
+imperial	36	Bogsveigar	Foot Archers and Unique ships +1 attack	650	0	0	500	40	49
+imperial	37	Lechitic Legacy	Light Cavalry deals trample damage	750	0	0	550	60	783
+imperial	38	Hussite Reforms	Monks and Monastery upgrades gold replaced by food	500	0	0	450	45	785
+imperial	44	Wootz Steel	Infantry and cavalry attacks ignore armor	650	0	0	550	60	832
+imperial	45	Mahayana	Villagers and monk units take 10% less population space	0	800	0	650	60	834
+imperial	46	Frontier Guards	Camel units and Elephant Archers +4 melee armor	800	0	0	700	60	836
+imperial	47	Comitatenses	Militia-line, Knight-line, and Unique Unit train 50% faster with charge attack	700	0	0	800	60	884
+imperial	48	Fereters	Infantry except Spearmen +30 HP, Warrior Priests +100% heal speed	550	0	0	400	45	921
+imperial	49	Aznauri Cavalry	Cavalry units take 15% less population space	550	0	0	250	45	924
+imperial	54	Bolt Magazine	Archer-line, Lou Chuans, and War Chariots fire additional projectiles	650	0	0	750	40	1069
+imperial	55	Sitting Tiger	Trebuchet units fire additional projectiles	0	600	0	300	40	1081
+imperial	56	Ming Guang Armor	Mounted units +4 melee armor	600	0	0	450	65	1062
+imperial	57	Thunderclap Bombs	Rocket Carts, Grenadiers detonate when defeated	900	0	0	600	50	997
+imperial	58	Ordo Cavalry	Cavalry regenerates HP in combat	600	0	0	300	45	1007
+imperial	59	Butalmapu	Team: Castle Unique Units and Bolas Riders cost -15%	500	0	0	450	45	1380
+imperial	60	Curare	Foot Archers and Fortifications deal poison damage	650	0	0	600	45	1393
+imperial	61	Huaracas	Slingers +1 range; train +50% faster	0	450	0	350	45	1366
+imperial	62	Shield Wall	Infantry gain additional armor when massed	525	0	0	475	45	1464
+imperial	63	Gothikon	Varangian Guards throw axes periodically	475	0	0	400	50	1474
+imperial	64	Northmen's Fury	Mangonel-line and Catapult Galleons +1 range; Siege Weapons and Siege Warships +40% attack vs buildings	0	950	0	900	40	1483

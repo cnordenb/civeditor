@@ -1,0 +1,106 @@
+# Rules
+
+Rule 0: All commits must be made by humans. AI agents may not commit, per policy stated in CONTRIBUTING.md.
+
+Rule 1: The intended UI and behaviour of civbuilder is defined by REQUIREMENTS.md.
+
+Rule 2: Only the chief developer (Carl Nordenbrink @cnordenb) may modify REQUIREMENTS.md. To others and to AI
+agents, REQUIREMENTS.md is read-only.
+
+Rule 3: Must be as easy as possible for humans to maintain with as few steps as possible.
+
+Rule 4: Must have tests to ensure the project still works every push.
+
+Rule 5: Maximum number of tests is 100. Rule 4 can be overlooked for the sake of keeping this rule. However, a new test
+may replace an old test if deemed more valuable.
+
+Rule 6: Tests will be documented, without excess clutter, text or story-telling, in TESTS.md.
+
+Rule 7: Must keep up-to-date MAINTAINER.md which explains pedagogically for humans how to maintain the project.
+
+Rule 8: MAINTAINER.md should be beginner-friendly, stick to the essential stuff (don't clutter it with unnecessary
+details), and have a table of contents. The steps of the most common maintenance task should always be the first
+chapter. Never insert content to before that guide.
+
+Rule 9: The project's terms are defined in TERMINOLOGY.md, one term a line of at most 120 characters, each line using
+only terms defined above it.
+
+Rule 10: No comments allowed in the code.
+
+Rule 11: No function may exceed 60 LOC. This applies to code.
+
+Rule 12: No LOC may exceed 120 characters. This applies to code.
+
+Rule 13: No file may exceed 400 LOC. This applies to code.
+
+Rule 14: No folder may exceed 7 files. Root may exceptionally contain up to 8 files. This rule does not apply to
+documentation/DEVLOG/. A human may flout this rule but an AI agent may not unless explicitly approved by a human to do so.
+
+Rule 15: No two files in this project may have identical file name. This rule does not apply to "SKILL.md".
+
+Rule 16: Document development and changes in DEVLOG.
+
+Rule 17: DEVLOG should never refer to any person(s), actor(s) or AI agent(s). Everything is described passively:
+something was decided, something was discovered, a question was posed. Never "the chief developer asked" or the like.
+Blame is already automatically logged with commits for designated responsibility, there is no need to mention anyone in
+DEVLOG. Obvious exceptions that this rule does not apply to: conceptual general actors ("the user"), a file name and not
+a person ("MAINTAINER.md").
+
+Rule 18: DEVLOG may not exceed 1000 lines. DEVLOG parts will be DEVLOG1.md, DEVLOG2.md, etc.
+
+Rule 19: Every DEVLOG file needs a table of contents at the start from which the reader can jump to any day.
+
+Rule 20: A DEVLOG entry is always a day (titled date (YYYY-MM-DD)). The entry may have sub-sections timestamped with
+hh:mm:ss.
+
+Rule 21: Every new addition to DEVLOG entry must be timestamped with date if it is the first addition of the day and time
+hh:mm:ss if first addition of current minute.
+
+Rule 22: When splitting up the DEVLOG and starting a new DEVLOG file, a day entry may never be broken up. If 1000 lines
+is reached, current day entry is moved in its entirety to a new file. Exceptionally, if the first part contains fewer than two days, a day may take up several files. Make sure to note the continuation in end and beginning of concerned files.
+
+Rule 23: DECISIONS.md must list the decisions made in DEVLOG and refer to the date and time (if available) in the
+relevant DEVLOG where each was made.
+
+Rule 24: A test makes one check and tests one thing only. A test is written only to cover a requirement or to catch
+again a bug that was found before (a regression test); no test is written for its own sake.
+
+Rule 25: The following is not considered code (contingent on rules 10-13): *.md, *.json, *.txt
+
+Rule 26: The code follows the rules of "The Power of 10: Rules for Developing Safety-Critical Code" (Gerard J.
+Holzmann, P10).
+
+Rule 27: The design follows "Head First Design Patterns" (Eric Freeman and Elisabeth Robson).
+
+Rule 28: The code follows "Clean Code" (Robert C. Martin).
+
+Rule 29: The code is C (C11), and its only dependency is the Win32 API. No other language, framework or dependency is
+used; in particular no Python, JavaScript, CSS or HTML. Data and documents (Rule 25) are not code.
+
+Rule 30: An AI agent deletes nothing on the disk: no file or directory, by any command. A deletion that is needed is
+listed in DELETION_REQUESTS.md for a human to perform. Objects in the code, such as those that DeleteObject and
+DestroyWindow free, are not files and may be freed.
+
+Rules 31 to 36 are derived from Uncle Bob mode (https://github.com/unclebob/ub-mode), as far as they fit C and Rules 0
+and 30.
+
+Rule 31: One decision lives in one place. Two functions whose normalised forms are 80% alike or more (the dryer of
+ub-mode) are made one.
+
+Rule 32: Every function's CRAP score is below 10: CRAP = CC² × (1 − coverage)³ + CC, where CC is the function's
+cyclomatic complexity and coverage the share of its branches that the tests run (the crapper of ub-mode).
+
+Rule 33: A change of behaviour starts with a test that fails for the reason expected; then the smallest change that
+makes it pass is made. A test that would still pass if every function returned nothing is no test. Where an honest test
+is impractical, none is written, and the log says so.
+
+Rule 34: Every mutant of the code that the tests run is killed by a test: an operator swapped (+ and -, < and <=, ==
+and !=, && and ||), a ! or a unary - taken away, true and false or 0 and 1 swapped (the mutator of ub-mode). Code that
+nothing runs is taken out of the source.
+
+Rule 35: The shape of the data comes before the logic: the domain is held in structures that make illegal states
+impossible, data is checked where it enters, and the logic is kept in functions without side effects where it can be.
+The compiler is never silenced.
+
+Rule 36: The cause of a fault is fixed. A guard that only hides a crash is not a fix. A structure is changed only with
+its behaviour pinned by tests before and shown unchanged after.

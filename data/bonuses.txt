@@ -1,0 +1,394 @@
+0	cost	-50% [wood]	Town Centers cost -50% wood starting in the Castle Age	381
+1	combat	Range	Foot archers (except skirmishers) +1 range in Castle and Imperial Age (+2 total)	382,403
+2	economy	+25%	Shepherds work 25% faster	383
+3	cost	Discount	Castles cost -15% in Castle, -25% in Imperial Age	325,330
+4	combat	+20% HP	Mounted units +20% hit points starting in Feudal Age	290
+5	economy	+15% [workrate]	Foragers work 15% faster	524
+6	research	Loom	Loom can be researched instantly	343
+7	economy	+15 Carry, +20% [food]	Hunters carry +15 meat; hunt contains +20% more meat	402
+8	general	+10 Pop Space	+10 population in Imperial Age	406
+9	combat	Extra Building Damage	Infantry +1 attack vs. buildings per age (starting from Feudal Age)	327,328,329
+10	cost	Infantry Discount	Infantry cost -15% in Dark, -20% in Feudal, -25% in Castle, -30% in Imperial Age	344,731,732,733
+11	monk	×2 Range	Monks double healing range	347
+12	building	-	Towers garrison 2x units; Town Centers garrison +10	336,353
+13	cost	40% OFF	Farms cost -40%	314
+14	combat	+1 [armor] per age	Infantry and Mounted Units +1/+2 melee armor in Castle/Imperial Age	334,335
+15	cost	-50%	Economic drop-off buildings cost -50%	340
+16	naval	-	Fishing Ships 2x hit points; work rate +5% Dark, +10% Feudal, +15% Castle, +20% Imperial Age	306,422,423,424
+17	speed	+33% [reload]	Infantry attack 33% faster starting in Feudal Age	341
+18	economy	-	Start with +3 villagers, -50 wood, -200 food; Town Centers support 15 population and +7 LOS	302,226,425
+19	naval	+50% [heart]	Demolition ships +50% hit points	396
+20	cost	Research	Technologies cost -5% Feudal, -10% Castle, -15% Imperial Age	304,350,351,352
+21	building	[plus][heart]	Buildings +10% HP Dark, +20% Feudal, +30% Castle, +40% Imperial Age	283,417,418,419
+22	naval	+25% [reload]	Fire ships attack 25% faster	397
+23	cost	-25%	Camel Riders, Skirmishers, Pikemen, Halberdiers cost -25%	284
+25	general	×2 [heart]	Town Center, Dock 2x hit points	342,349
+26	general	+ Work Rate	Town Center, Dock work rate +5% Dark, +10% Feudal, +15% Castle, +20% Imperial Age	409
+27	cost	-	Market costs -100 wood; market trade cost only 5%	355
+28	naval	-	Transport Ships 2x hit points, +20 carry capacity	337
+29	naval	+25% [reload]	Galleys attack 25% faster	404
+30	combat	+25% [heart]	Camel units +25% hit points	312
+31	combat	+25% [heart]	Gunpowder units +25% hit points	301
+32	economy	+20% [workrate]	Gold miners work 20% faster	300
+33	combat	+1 [pierce_armor]	Scout Cavalry, Light Cavalry, Hussar +1 pierce armor	452
+34	naval	Warship discount	Warships cost -15% Feudal Age, -15% Castle Age, -20% Imperial Age	395,501,502
+35	combat	+20% [heart]	Infantry +20% hit points starting in Feudal Age	416
+36	speed	+25% [reload]	Cavalry archers fire 25% faster	394
+37	speed	+40% [workrate]	Hunters work 40% faster	389
+38	combat	Hit Points	Light Cavalry, Hussars, Steppe Lancers +20/30% hit points in Castle/Imperial Age	286,287,288,388
+39	speed	Movement Speed	Infantry moves +5/10/15/20% faster in Dark/Feudal/Castle/Imperial Age	393,898,899,900
+40	economy	+15% [workrate]	Lumberjacks work 15% faster	385
+41	speed	+25% [reload]	Siege units fire 25% faster	386
+42	general	-	Can steal sheep, and sheep within one unit's LoS cannot be stolen	405
+43	unlock	UNLOCK	Missionaries can be trained in monasteries	84
+45	monk	+5 [heart]	+5 Monk hit points for each Monastery technology	29,30,31,32,33,36,38,40,41,66,456
+46	economy	+1 / −50 [food]	Start with +1 villager, but -50 food	554,227
+47	cost	Cost Discount	Cavalry Archers cost -10% Castle, -20% Imperial Age	458,459
+48	cost	-50% [wood]	Ranged Soldiers and Infantry cost -50% wood	390
+49	cost	FREE	Archer armor upgrades free	451
+50	unlock	UNLOCK	Can train Turtle Ships in docks	447,448
+52	unlock	-20%	Gunpowder units cost -20%	-
+53	unlock	UPGRADE	Can upgrade Heavy Camel Riders to Imperial Camel Riders	521
+54	speed	+10% [workrate]	Fishermen work 10% faster	-
+55	combat	Pierce Armor	Stable units +1P armor in Castle and Imperial Age (+2 total)	-
+56	cost	Cost Discount	Villagers cost -8% Dark, -13% Feudal, -18% Castle, -23% Imperial Age	496,497,498,553
+57	cost	Food Cost Discount	Military units cost -10, 15, 20, 25% food in Dark, Feudal, Castle, Imperial	152,153,154,155
+58	cost	-15% [stone]	Buildings cost -15% stone	519,158
+59	building	10 Pop	Houses support 10 population	495
+60	research	UPGRADES	Villagers affected by Blacksmith upgrades starting in the Castle Age	474,475,476,477,478,479
+62	general	-	Villagers kill wolves with 1 strike	69
+63	cost	-15%	Scout Cavalry, Light Cavalry, Hussar cost -15%	473
+64	cost	-15%	Siege Workshop units 15% cheaper	511
+65	cost	-20% [gold]	All units cost -20% gold	559
+66	economy	+[wood]	Foragers generate a trickle of wood (33%)	453
+67	naval	Hit Points	Ships +10% HP Feudal, +15% Castle, +20% Imperial Age	560,1398,1399
+68	unlock	UNLOCK	Can build Feitoria in Imperial Age	570
+69	unlock	UNLOCK	Can build Caravels in docks	596,597
+70	speed	+18% [reload]	Foot archers fire 18% faster	607
+71	economy	+100 Each	Receive +100 gold, +100 food when advancing to the next age	587,588,589
+72	unlock	FREE	Pikeman upgrade free	590
+73	cost	-15% [wood]	Buildings cost -15% wood	595,156
+74	combat	Pierce Armor	Barracks units +1 pierce armor per age (starting from Feudal Age)	591,592,593
+75	economy	+10% [gold]	Villagers drop off 10% more gold	594
+76	speed	Movement Speed	Villagers move 5% faster in Dark Age, 10% faster in Feudal Age	584,600
+77	naval	+10% [speed]	Ships move 10% faster	585
+78	cost	Cost Discount	Stable units cost -15% in Castle, -20% in Imperial Age	586,613
+79	speed	+10% [speed]	Melee elephant units move 10% faster	672
+80	general	Villagers Garrison	Villagers can garrison in Houses	657
+81	research	-	No buildings required to advance to the next age or to unlock other buildings	-
+82	speed	66% Faster	Advance to the next age 66% faster	634
+83	cost	Cost Discount	Elephant units cost -25% Castle, -35% in Imperial Age	662,663
+84	cost	-33% / +200%	Fish Traps cost -33% and provide +200% food	635,637
+85	combat	+1/+1 Armor	Foot Archers and Condottieri +1 melee/+1 pierce armor	901
+86	economy	FREE	Lumber Camp upgrades free	645
+87	combat	Attack	Infantry +1 attack per age (starting in the Feudal Age)	646,647,648
+88	monk	-50%	Monastery technologies cost -50%	649
+89	general	-	Enemy positions are revealed at the start of the game	665
+90	general	+20% [heart]	Foot-Archers and Skirmishers +20% HP	632
+91	unlock	FREE	Militia-line upgrades free	693
+92	cost	-50% [stone]	Town Centers cost -50% stone starting in the Castle Age	694
+93	unlock	UNLOCK	Can build Krepost	695
+94	general	+50%	Livestock animals last +50% longer	704
+95	combat	+25% [attack]	Units deal +25% damage when fighting from higher elevation	696
+96	cost	FREE	Thumb Ring, Parthian Tactics free	698
+97	speed	Movement Speed	Mounted units 5% faster each age (starting in Feudal Age)	711,727,728
+98	economy	+1 TC	Additional Town Center can be built in the Feudal Age	709,723,724
+99	unlock	UNLOCK	Siege Workshop and Battering Ram available in the Feudal Age; Capped Ram upgrade available in Castle Age	295,705,706
+100	economy	+100 [food]	Receive +100 food per Town Center	697
+101	speed	+10% [speed]	Spearmen and Skirmishers move 10% faster	710
+102	combat	+1 [attack] per Relic	Each garrisoned relic gives +1 attack to Knights and Unique Unit (maximum +4)	699,700,701,702
+103	unlock	UNLOCK	Cavalier upgrade available in Castle Age	-
+104	combat	+25% Attack	Gunpowder units +25% attack	769
+105	cost	-40%	Economic upgrades cost -40% food and available one age earlier	-
+106	speed	50% / 100%	Fortifications built 50%, Town Centers built 100% faster	770
+107	combat	-33%	Soldiers receive 33% less bonus damage	771
+108	economy	+125%	Farm upgrades provide +125% additional food	772
+109	unlock	UNLOCK	Can build Donjon	775
+110	economy	Upgrades Free	Farm Upgrades Free (Requires Mill)	-
+111	cost	FREE	Blacksmith attack upgrades are free	-
+112	cost	FREE	Arson and Gambesons are free	-
+113	cost	FREE	Town Watch and Town Patrol are free	-
+114	cost	FREE	Murder Holes and Herbal Medicine are free	-
+115	cost	FREE	Chemistry is free	-
+116	cost	FREE	Light Cavalry-line upgrades are free	-
+117	cost	FREE	Wheelbarrow and Hand Cart are free and instant	-
+118	cost	FREE	Tower upgrades are free	-
+119	cost	FREE	Conscription is free	-
+120	economy	+15% [workrate]	Farmers work 15% faster	-
+121	cost	-15%	-15% age up cost	-
+122	naval	-15%	-15% fishing ship cost	-
+123	naval	-33%	Dock and university techs cost -33%	-
+124	cost	-33%	Imperial cost -33%	-
+125	cost	FREE [gold]	Blacksmith upgrades cost no gold	-
+126	speed	+18% [reload]	Gunpowder fire 18% faster	-
+127	speed	+30% [workrate]	Builders 30% faster	-
+128	speed	+11% Faster	Military units created 11% faster	-
+129	research	+3 Carry	Villagers carry +3	-
+130	combat	+35% Accuracy	Trebuchets +35% accuracy	-
+131	economy	-	No houses, -100 wood	-
+132	economy	Resources	Resources last 15% longer	-
+133	cost	Cost Discount	Foot archers and skirmishers cost -10% Feudal, -20% Castle, -30% Imperial Age	-
+134	economy	+[food] Trickle	Lumberjacks generate food in addition to wood	1071
+135	economy	+20% [workrate]	Stone miners work 20% faster	-
+136	research	-	Eco upgrades no wood and faster	-
+137	cost	-50% [food]	-50% food blacksmith+siege techs	-
+138	cost	-50%	-50% cost stable techs	-
+139	economy	+2 Sheep	New Town Centers spawn 2 sheep starting in the Castle Age	299,303,305,310
+140	building	-	Wonders don't cost wood and provide +50 to population limit (max 1)	-
+141	research	+3 [heart]	Villagers +3 HP for eco tech	-
+142	speed	HP Regeneration	Villagers regenerate 10 HP/min in Feudal, 15 in Castle, 20 in Imperial Age	792,809,810,811
+143	speed	2× Build Speed	Military buildings built 100% faster	-
+144	general	+5 Population	Drop site buildings provide +5 population	-
+145	research	Instant	Ballistics researched instantly	-
+146	cost	Free Upgrades	Archer-line upgrades free	-
+147	cost	FREE	Skirmisher-line upgrades are free	-
+148	cost	FREE	Camel-line upgrades are free	-
+149	cost	FREE	Infantry armor upgrades are free	-
+150	cost	FREE	Cavalry armor upgrades are free	-
+151	cost	FREE	Archer attack upgrades are free	-
+152	cost	FREE	Redemption is free	-
+153	cost	FREE	Squires is free	-
+154	cost	FREE	Eagle Warrior upgrades are free	-
+155	cost	FREE	Battle Elephant upgrades are free	-
+156	cost	FREE	Sanctity and Fervor are free	-
+157	cost	FREE	Atonement and Illumination are free	-
+158	cost	FREE	Theocracy and Block Printing are free	-
+159	cost	FREE	Hoardings and Fortified Wall are free	-
+160	cost	FREE	Masonry and Architecture are free	-
+162	cost	FREE	Sappers and Stone Cutting are free	-
+163	cost	FREE	The Galleon upgrade is free	-
+165	naval	FREE	The Fast Fire Ship upgrade is free	-
+166	naval	FREE	The Heavy Demolition Ship upgrade is free	-
+167	cost	FREE	Gillnets is free	-
+168	naval	FREE	The War Galley upgrade is free	-
+169	cost	FREE	The Heavy Cavalry Archer upgrade is free	-
+170	cost	FREE	Ram-line upgrades are free	-
+171	economy	+20% [workrate]	Trade 20% faster	-
+172	combat	-	Squires affects archers	-
+173	speed	-	Shock Infantry speed bonus	-
+178	monk	66% Faster	Monks train 66% faster	-
+179	speed	50% Faster	Trebuchets train 50% faster	-
+180	speed	25% Faster	Cav archers train 25% faster	-
+181	speed	3× Faster	Petards train 200% faster	-
+182	combat	+8 [pierce_armor]	Petards +8 pierce armor	-
+183	cost	FREE	Bloodlines is free and researched instantly	-
+184	naval	+1 [range]	Galleys +1 range	-
+185	economy	+100 Each	Receive +100 wood and +100 stone when advancing to the next Age	-
+186	economy	+400 [food]	Receive +400 food upon reaching the Castle Age	-
+187	economy	+350 [stone]	Receive +350 stone upon reaching the Castle Age	-
+188	economy	+250 [wood]	Receive +250 wood upon reaching the Feudal Age	-
+189	economy	+500 [gold]	Receive 500 gold upon reaching Imperial Age	-
+190	monk	-	Monks with relics tank	-
+191	naval	×2 [heart]	Petards, Demolition Ships, Flaming Camels and Grenadiers have 2x hit points	-
+192	research	+2 Villagers	Town Centers spawn 2 villagers when the next Age is reached	847,848,849
+194	building	+2000 [heart]	Castles and Kreposts +2000 HP	-
+195	cost	FREE	Blacksmith upgrades are free one age later	-
+196	cost	-75 [wood]	Barracks cost -75 wood	-
+197	cost	-75 [wood]	Stables cost -75 wood	-
+198	cost	-75 [wood]	Archery Ranges cost -75 wood	-
+199	cost	-100 [wood]	Monasteries cost -100 wood	-
+200	cost	-100 [wood]	Siege Workshops cost -100 wood	-
+201	cost	-50 [wood]	Military buildings cost -50 wood	-
+202	cost	-100 [wood]	Blacksmith and University cost -100 wood	-
+203	combat	-	Infantry gain +1 bonus attack vs. Villagers per age starting in Feudal Age	-
+204	naval	+15 Carry	Fishermen and Fishing Ships carry +15	844
+205	naval	+1 Attack	Galleys +1 attack	-
+206	combat	-	Steppe Lancers +attack vs vils	-
+207	combat	+33% [reload]	Steppe Lancers attack +33%	-
+208	speed	+25% [reload]	Elephants +25% attack speed	-
+209	unlock	UNLOCK	Stone Walls available in Dark Age	-
+210	research	+50 Each Resource	Receive +50 of each resource when advancing to the next Age	-
+212	speed	+20% [reload]	Camels +20% attack speed	-
+213	unlock	-	Mangonels cut trees	-
+214	cost	-50% [wood]	Siege Towers cost -50% wood starting in the Feudal Age	-
+215	general	+Garrison	Rams, Siege Towers +garrison	-
+216	building	+15 Pop	Towers provide +15 population	-
+217	speed	+20% [speed]	Gunpowder +20% speed	-
+219	monk	+20% [speed]	Monks +20% speed	-
+220	combat	+2 [attack] vs Skirms	Melee Cavalry gain +2 bonus damage vs Skirmishers	877
+221	unlock	1 Age Earlier	Spearman- and Militia-line upgrades (except Man-at-Arms) available one age earlier	-
+222	economy	-	Cows from mills	-
+223	unlock	-	Start with a Horse Scout on Nomad starts	238,241,242
+224	general	×2 [heart]	Siege Towers x2 HP	-
+225	speed	2× Training Speed	Siege Towers train 100% faster	-
+226	cost	-33% [wood]	Siege units cost -33% wood	876
+227	naval	Ballistics	Cannon Galleons benefit from Ballistics	-
+228	naval	Villager Damage	Warships have bonus attack vs. Villagers	-
+230	speed	+50% [workrate]	Town Centers work 50% faster in the Imperial Age	-
+231	cost	-25%	Feudal cost -25%	-
+232	speed	50% Faster	Spearmen and Skirms train 50% faster	-
+233	general	+25% [heart]	Spearmen +25% HP	-
+234	cost	FREE [gold]	Market techs cost no gold	-
+235	general	2× Duration	Trees last 100% longer	-
+236	economy	+30% Duration	Stone resources last 30% longer	-
+237	economy	+30% Duration	Gold resources last 30% longer	-
+238	economy	+35% [food]	Berries contain +35% food	-
+239	research	-	Can upgrade Fortified Walls to City Walls in Imperial Age	-
+240	economy	+35% [food]	Fish contain +35% food	-
+241	monk	2× Healing	Garrisoned units heal at a faster rate	-
+242	speed	2× [workrate]	repair 100% faster	-
+243	combat	+1 [attack] vs Infantry	Skirmishers +1 vs infantry	-
+244	combat	+1 [attack]	ARRG units +1 attack	-
+246	combat	Pierce Armor	Siege weapons +1 pierce armor in Castle and Imperial Age (+2 total)	-
+247	unlock	UNLOCK	Parthian Tactics can be researched in the Castle Age	-
+248	cost	-25%	Castle Age cost -25%	-
+249	combat	+1 [attack]	Cavalry +1 attack	-
+250	combat	+Bonus Damage	Forging, Iron Casting, Blast Furnace add +1 damage vs. buildings	-
+251	combat	+3 [pierce_armor]	buildings +3 pierce armor	-
+252	unlock	Movement Speed	Foot Archers move +5% faster in Feudal, +10% in Castle, +15% in Imperial Age	-
+253	general	+1 vs Vils	foot archers +1 vs vils	-
+254	combat	Bonus vs. Camels	Gunpowder units have bonus attack vs. Camels	-
+255	combat	Bonus vs. Stone	Shock Infantry have bonus attack vs. stone defenses	-
+256	combat	Bonus vs. Stone	Scout Cavalry line have bonus attack vs. stone defenses	-
+257	speed	+5% [workrate]	All villagers work 5% faster	887
+258	research	+1 Carry	Villagers carry +1 per Town Center technology	-
+259	economy	10× HP	Farms 10x HP	-
+260	combat	+2 vs Cavalry	Militia-line +2 vs cav	-
+261	research	FREE	Elite steppe lancer free	-
+262	combat	+2 [pierce_armor]	Steppe Lancers +2P armor	-
+263	combat	+[attack] vs Buildings	Castles have bonus attack vs. buildings	-
+264	speed	+10% [workrate]	Villagers work 10% faster in the Imperial Age	-
+265	general	Can Garrison	Outposts can garrison units	-
+266	combat	+10 [pierce_armor]	Builders/Repairers +10P armor	-
+267	building	50 Pop	Castles and Kreposts support 50 population	-
+268	combat	+1 [attack] vs. Rams	Bombard Towers have bonus attack vs. Rams	-
+269	combat	Extra Damage	Towers deal extra damage to Cavalry	-
+271	speed	50% Faster	Scorpions train 50% faster	-
+272	speed	+25% [reload]	TCs fire 25% faster	-
+273	cost	-50% [gold]	Trebuchets -50% gold	-
+274	general	Larger Blast Radius	Explosive units have increased blast radius	-
+275	combat	+[attack] vs. Buildings	Gunpowder units have bonus attack vs. buildings	-
+276	combat	+1 [pierce_armor]	Shock Infantry +1P armor	-
+277	combat	+1 [attack]	Gunpowder units +1 attack per University tech	-
+278	research	+3% [heart]	Buildings +3% HP per University technology	-
+279	monk	+1 Monk	Each Monastery technology spawns a free Monk	-
+281	economy	+[gold] Trickle	Stone Miners generate gold in addition to stone	805,806,807
+282	unlock	UPGRADE	Winged Hussar replaces Hussar	789,791
+283	unlock	UNLOCK	Chemistry and Hand Cannoneer available in Castle Age	-
+284	combat	+25%	Spearmen deals +25% bonus damage	802
+285	research	Research Benefits Villagers	Fervor and Sanctity affects villagers	803,804
+286	unlock	UPGRADE	Can upgrade Bombard Cannons to Houfnice	-
+287	unlock	UNLOCK	Can build Caravanseri in Imperial Age	518
+288	combat	+1/+1 Armor	Gunpowder units +1/+1P armor	520
+289	economy	+200 [wood]	Receive +200 wood when advancing to the next age	851,852,853
+290	cost	-50%	Barracks technologies cost -50%	-
+291	speed	+25% [reload]	Skirmishers and Elephant Archers attack 25% faster	845
+292	combat	-	Elephant units receive 25% less bonus damage and are more resistant to conversion	846
+293	naval	Regenerate HP [heartplus]	Ships regenerate 15 HP per minute	850
+294	economy	+2 Bushes	Start with 2 Forage Bushes	857
+295	economy	Generate Food	Can garrison Mills with livestock to produce food	856
+296	combat	Increased Bonus Damage	Mounted units deal +20% bonus damage Feudal, +30% Castle, +40% Imperial Age	854,859,874
+300	unlock	UNLOCK	Can recruit Camel Scouts in Feudal Age	-
+301	economy	+20 [gold]	Gain 20 gold for each technology researched	186,323,324,326
+302	naval	+Armor	Ships receive additional armor from Blacksmith upgrades	888
+303	combat	+1/+1 Armor	Elephant units +1/+1P armor	640
+304	monk	+3/+3 Armor	Monk units +3/+3P armor	870
+305	combat	2× Effect	Infantry receives double effect from Blacksmith armor upgrades	889,890,891
+306	cost	-50% [gold]	Scorpions cost -50% gold	892
+308	unlock	UPGRADE	Can upgrade Heavy Scorpions to Imperial Scorpions	-
+309	unlock	UPGRADE	Can upgrade Elite Battle Elephants to Royal Battle Elephants	-
+310	unlock	UPGRADE	Can upgrade Elite Steppe Lancers to Royal Lancers	-
+311	combat	+2 [attack] vs Archers	Cavalry Archers +2 attack vs. Archers (except skirmishers)	190
+312	cost	-	Wood and mining upgrades are 40% more effective, economic drop-off buildings cost -25%	958,960,961,962,963,964,965,966
+313	monk	Free Relic	First religious building receives a free relic	949,957
+315	naval	+1 Projectile	Galley-line and Dromons fire an additional projectile	959
+316	unlock	UNLOCK	Fortified church replaces monastery	930
+318	unlock	FREE	Start with a Mule Cart	925
+319	speed	+10% [workrate]	Religious buildings provide Villagers in an 8 tile radius with +10% work rate	934
+320	cost	-15% Damage	Units and buildings receive -15% damage when fighting from higher elevation	926
+321	speed	HP Regeneration	Mounted units regenerate 2/8/14 HP per minute, in the Feudal, Castle, Imperial Age	937,938,939
+322	unlock	UNLOCK	Flaming Camels available in Siege Workshops in Imperial Age	703
+325	speed	[attack] Speed	Husbandry also increases mounted unit attack speed	-
+326	economy	10% [stone]	Trade yields stone	-
+328	general	-	Cavalry Archers have a chance to dodge incoming projectiles	-
+329	unlock	No Mills	Farmers don't require Mills/Town Centers to drop off food	654
+330	unlock	2x2 Farms	Farms are 2×2 tiles (half standard size)	-
+332	unlock	UNLOCK	Knights available in Feudal Age with 30HP	-
+334	speed	Movement Speed	Fire Lancers and Fire Ships move +5/10% faster in Castle/Imperial Age	983,984
+335	cost	-25%	Archery Unit technologies at the Archery Range and Blacksmith cost -25%	1067
+336	naval	Movement Speed	Siege Weapons and Siege Warships move +10/15% faster in Castle/Imperial Age	1068,1072
+339	economy	+55 [food]	Military production buildings, Docks, Castles and Kreposts provide +55 food	-
+340	combat	HP Regeneration	Infantry regenerates 10/15/30 HP per minute in Feudal/Castle/Imperial Age	1085,1086,1087
+341	combat	+2 [attack]	Jian Swordsmen and Hei Guang Cavalry +2 attack in Imperial Age	1076
+342	naval	FREE	Careening and Dry Dock are free	1079
+345	cost	+1 Villager	Receive one free Villager for each economic upgrade researched	1039,1040,1041,1042,1043,1044,1045,1046,1047,1048,1049,1050,1051,1054
+346	general	+[heart] Increase	Hei Guang Cavalry and Xianbei Raider +20/30% HP in Castle/Imperial Age	1056,1057,1058,1059
+347	cost	-25%	Traction Trebuchets and Lou Chuans cost -25%	1060
+350	economy	No Decay	Meat of hunted and livestock animals doesn't decay	993
+351	speed	+20% [reload]	Mounted units and Fire Lancers attack +20% faster starting in Feudal Age	994
+352	unlock	UNLOCK	Siege Engineers available in Castle Age	-
+353	cost	-	Siege and Fortification upgrades cost -75% wood and research +100% faster	995
+354	combat	-50%	Units receive -50% friendly fire damage	1009
+356	unlock	-	Pastures replace Farms and Mill upgrades	-
+357	economy	+10% [food]	Shepherds and Herders generate +10% additional food	-
+358	combat	2× Effect	Melee attack upgrade effects are doubled	998,999,1000
+359	speed	+15% Faster	Skirmishers, Spearman- and Scout Cavalry-line train and upgrade +15% faster	1011
+360	unlock	UNLOCK	Heavy Cavalry Archer upgrade available in Castle Age and costs -50%	1004
+362	unlock	UNLOCK	Dragon Ships replace the Fire Ship line	1010
+363	cost	-50% [gold]	Age advancement costs 50% less Gold	1367
+364	combat	Armor	Archery Range Units and Champi Warriors gain +1/2/3 melee armor per age	1369,1370,1371
+365	cost	FREE	Caravan and Guilds are free	1374
+366	monk	+50% Faith Rate	Monks regain faith 50% faster	1372
+367	building	-	Settlements cost 33% less and heal nearby units	1368
+368	economy	+25% [food]	Foragers drop off +25% food	1381
+369	combat	[heart] Bonus	Spearmen, Slingers, and Skirmishers gain +5/10/15 HP per age	1383,1384,1385
+370	building	-	Enemy Castles are revealed on the map	1386
+371	building	UNLOCK	Skirmishers and Spearmen can train at Settlements	1382,1405,1406,1407
+372	general	+25 Each Resource	Start with +25 of each resource; gain +25 more per age-up	1394,1408
+373	cost	-50% [food]	Barracks and Archery Range upgrades cost 50% less Food	1397
+374	building	Garrison	Villagers can garrison in Settlements	1395
+375	cost	15% Refund	Fallen units return 15% of their cost	1396
+376	building	+10 Pop Space	Team: Towers and Castles provide +10 population space	1403
+377	combat	+3 [gold]	Mounted Units generate +3 gold when defeating military units	62
+400	building	+50% [heart]	City Walls: Fortified Walls and Gates +50% HP (requires Fortified Wall + Imperial Age)	-
+401	combat	-	Infantry and Cavalry blacksmith upgrades also affect building damage	-
+404	cost	FREE	Mining Camp technologies are free	-
+405	unlock	UNLOCK	Unlock the Bolas Rider (Mapuche mounted skirmisher, Archery Range, Castle Age)	1377,1378
+406	unlock	UNLOCK	Unlock the Xianbei Raider (Wei mounted archer, Archery Range, Castle Age)	1037
+407	unlock	UNLOCK	Unlock the Grenadier (Jurchen gunpowder infantry, Archery Range, Castle Age)	992
+408	unlock	UNLOCK	Unlock the Jian Swordsman (Wu infantry, Barracks, Castle Age)	1075
+409	unlock	UNLOCK	Unlock the Temple Guard (Muisca infantry, Barracks, Castle Age)	1400,1401
+410	unlock	UNLOCK	Unlock the Ibirapema Warrior (Tupi infantry, Barracks, Castle Age)	1390,1391
+411	unlock	UNLOCK	Unlock the War Chariot (Shu ranged chariot, Siege Workshop, Castle Age)	1065
+412	unlock	UNLOCK	Unlock the Mounted Trebuchet (Khitan siege unit, Siege Workshop, Imperial Age)	1005
+413	unlock	UNLOCK	Unlock the Shrivamsha Rider (Gurjara light cavalry, Stable, Castle Age)	842,843
+414	unlock	UNLOCK	Unlock the Warrior Priest (Armenian monk unit, Monastery, Castle Age)	948
+415	unlock	UNLOCK	Unlock the Thirisadai (Dravidian warship, Dock, Imperial Age)	841
+416	unlock	UNLOCK	Unlock the Legionary (Roman upgrade of the Militia line, requires Long Swordsman)	885,895
+417	unlock	UNLOCK	Unlock the Savar (Persian upgrade of the Knight line, requires Cavalier)	526,527
+418	economy	+10% [food]	Villagers drop off +10% food	-
+419	economy	+10% [wood]	Villagers drop off +10% wood	-
+420	economy	+10% [stone]	Villagers drop off +10% stone	-
+421	naval	+10% [food]	Fishing Ships drop off +10% food	-
+422	naval	+5% [food]	Villagers and Fishing Ships drop off +5% food	-
+423	cost	-75 [wood]	Archery Ranges and Stables cost -75 wood	664
+424	economy	+50 [food]	Start with +50 food	-
+425	economy	+50 [wood]	Start with +50 wood	-
+426	economy	+50 [stone]	Start with +50 stone	-
+427	economy	+50 [gold]	Start with +50 gold	-
+428	unlock	UNLOCK	Unlock the Flemish Militia (Burgundian infantry, Barracks, Feudal Age)	773
+429	economy	+35 [food] +10 [stone]	Mills, Lumber Camps and Mining Camps provide +35 food and +10 stone when built	1465
+430	cost	-5% [food]	Foot Soldiers cost -5% per Town Center or Castle controlled (maximum -20%)	1469
+431	research	x2 arrows	Towers and Castles fire +100% base arrows starting in the Castle Age	1493
+432	naval	+20% HP	Longships and Catapult Galleons +20% HP	1470
+433	naval	+[gold]	Shepherding, fishing, and hunting also generate gold	1475
+434	general	+50%	Bloodlines and Caravan effects +50%	1489,1490
+435	economy	+25% ATK	Varangian Guards attack +25% faster and generate +50% gold	1478,1488
+436	naval	+15% ATK	Longships and Catapult Galleons attack +15% faster	1479
+437	naval	+5% [food]	Fishing Ships and Villagers drop off +5% food	1494
+438	cost	25% loot	Loot 25% of the resource cost of each destroyed building	1485
+439	cost	-66% [gold]	Barracks and Siege Workshop upgrades cost -66% gold	1492
+440	naval	+10% speed	Varangian Guards and Longships move +10% faster	1486
+441	combat	Shared Armor	Infantry armor upgrades also apply to cavalry	1271,1272,1273
+442	combat	+1P / +30%	Siege Weapons +1 pierce armor and +30% damage vs. buildings	-
+443	speed	+50%	Stable technologies research 50% faster	-
+444	speed	HP Regeneration	Skirmishers regenerate 5 HP per minute in Feudal Age, 10 in Castle Age	1293,1294
+445	economy	+[food]	Villagers gathering stone slowly generate food	-
+451	unlock	UNLOCK	Unlock the Phalangite (Macedonian infantry, Barracks, Castle Age)	-
+454	unlock	UNLOCK	Unlock the Sannāhya (Puru elephant, Stable, Castle Age)	-
+455	unlock	UNLOCK	Unlock the Hoplite (Greek infantry, Barracks, Castle Age)	-
+456	unlock	UNLOCK	Unlock the Scythian Horse Archer (replaces the Cavalry Archer line, Archery Range, Castle Age)	-
+457	combat	+15% ATK	Palintonon replaces the Trebuchet (Chronicles), +15% attack	-
+458	building	Any Elevation	All buildings except Town Centers can be built on any elevation	-
+459	economy	+15%	Castles and towers make nearby Lumberjacks and Miners work 15% faster	-
+460	building	Wooden	Wooden Castles: Castles cost 300 stone + 500 wood and build in 175 s, with 3000 HP	-

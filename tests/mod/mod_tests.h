@@ -1,0 +1,24 @@
+#ifndef MOD_TESTS_H
+#define MOD_TESTS_H
+
+#include <stdbool.h>
+
+bool test_the_name_is_written_under_the_replaced_civs_name_id(void);
+bool test_the_civ_descriptions_are_written_in_id_order(void);
+bool test_the_mod_folder_name_is_made_from_the_civ_name(void);
+bool test_a_mod_is_not_built_from_an_unfinished_civ(void);
+bool test_a_unique_tech_is_aimed_at_the_civs_own_unique_unit(void);
+bool test_a_unique_techs_name_is_written_under_its_slots_string_id(void);
+bool test_a_unique_units_name_is_written_under_the_string_id_of_its_slot(void);
+bool test_a_heros_name_is_written_under_the_string_id_of_its_slot(void);
+bool test_a_skipped_heros_name_is_not_written(void);
+bool test_the_civ_list_names_the_civs_own_unique_unit(void);
+bool test_a_unique_unit_missing_from_the_civ_list_takes_its_own_icon_and_texts(void);
+bool test_the_civ_list_points_at_the_civs_own_description(void);
+bool test_a_building_the_civ_lacks_is_not_available_in_its_tech_tree(void);
+bool test_a_building_the_civ_has_is_available_in_its_tech_tree(void);
+bool test_a_civ_with_an_empty_tree_keeps_the_games_tech_tree(void);
+bool test_a_civ_keeps_its_villagers_in_its_tech_tree(void);
+bool test_a_building_the_civ_has_keeps_the_research_it_needs_in_its_tech_tree(void);
+
+#endif

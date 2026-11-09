@@ -1,0 +1,281 @@
+#include "win_parts.h"
+
+#include <commdlg.h>
+#include <wchar.h>
+
+#include "../core/check.h"
+#include "../core/text.h"
+#include "../forge/forge.h"
+#include "../mod/mod_places.h"
+#include "../persist/civ_file.h"
+
+enum { FOLDER_TRIES = 3, NAME_LIMIT = 96, MESSAGE_CAPACITY = 2048 };
+
+static const wchar_t FILTER[] = L"Civ files (*.civbuilder.json)\0*.civbuilder.json;*.json\0All files (*.*)\0*.*\0";
+static const wchar_t DATA_FOLDERS[FOLDER_TRIES][8] = { L"data", L"..\\data", L"" };
+static const wchar_t TITLE[] = L"civbuilder";
+
+static CivDesign opened;
+static wchar_t chosen_path[FILE_PATH_CAPACITY];
+static ForgeResult built;
+static char message[MESSAGE_CAPACITY];
+static wchar_t wide_message[MESSAGE_CAPACITY];
+
+bool dialogs_widen(const char *text, wchar_t *wide, int capacity)
+{
+    if (!CHECK(text != NULL) || !CHECK((wide != NULL) && (capacity > 0))) {
+        return false;
+    }
+    wide[0] = L'\0';
+    return MultiByteToWideChar(CP_UTF8, 0, text, -1, wide, capacity) > 0;
+}
+
+bool dialogs_narrow(const wchar_t *wide, char *text, int capacity)
+{
+    if (!CHECK(wide != NULL) || !CHECK((text != NULL) && (capacity > 0))) {
+        return false;
+    }
+    text[0] = '\0';
+    return WideCharToMultiByte(CP_UTF8, 0, wide, -1, text, capacity, NULL, NULL) > 0;
+}
+
+void dialogs_status(AppState *app, const char *text)
+{
+    wchar_t status[STATUS_CAPACITY];
+
+    if (!CHECK(app != NULL) || !CHECK(text != NULL)) {
+        return;
+    }
+    if (dialogs_widen(text, status, STATUS_CAPACITY)) {
+        (void)SetWindowTextW(app->controls[CONTROL_STATUS], status);
+    }
+}
+
+static bool exe_folder(wchar_t *folder, DWORD capacity)
+{
+    DWORD length;
+    DWORD index;
+
+    if (!CHECK(folder != NULL) || !CHECK(capacity > 1U)) {
+        return false;
+    }
+    length = GetModuleFileNameW(NULL, folder, capacity);
+    if ((length == 0U) || (length >= capacity)) {
+        return false;
+    }
+    for (index = length; (index > 0U) && (index < (DWORD)FILE_PATH_CAPACITY); --index) {
+        if (folder[index - 1U] == L'\\') {
+            folder[index - 1U] = L'\0';
+            return true;
+        }
+    }
+    return false;
+}
+
+bool dialogs_load_catalog(AppState *app)
+{
+    wchar_t folder[FILE_PATH_CAPACITY];
+    wchar_t data[FILE_PATH_CAPACITY];
+    int attempt;
+
+    if (!CHECK(app != NULL) || !CHECK(app->window != NULL) || !exe_folder(folder, FILE_PATH_CAPACITY)) {
+        return false;
+    }
+    for (attempt = 0; (attempt < FOLDER_TRIES) && (DATA_FOLDERS[attempt][0] != L'\0'); ++attempt) {
+        if (file_join_path(data, FILE_PATH_CAPACITY, folder, DATA_FOLDERS[attempt]) &&
+            catalog_load(&app->catalog, data)) {
+            app->catalog_loaded = true;
+            return true;
+        }
+    }
+    app->catalog_loaded = catalog_load(&app->catalog, L"data");
+    return app->catalog_loaded;
+}
+
+static void suggest_name(const AppState *app)
+{
+    char name[NAME_LIMIT] = "";
+
+    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
+        return;
+    }
+    (void)text_copy_span(name, sizeof name, civ_design_text(&app->history.present, TEXT_FIELD_NAME), NAME_LIMIT / 2);
+    (void)text_append(name, sizeof name, (name[0] != '\0') ? ".civbuilder.json" : "civbuilder_civ.civbuilder.json");
+    if (!dialogs_widen(name, chosen_path, FILE_PATH_CAPACITY)) {
+        chosen_path[0] = L'\0';
+    }
+}
+
+static OPENFILENAMEW file_dialog(const AppState *app)
+{
+    OPENFILENAMEW dialog = { 0 };
+
+    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
+        return dialog;
+    }
+    dialog.lStructSize = sizeof dialog;
+    dialog.hwndOwner = app->window;
+    dialog.lpstrFilter = FILTER;
+    dialog.lpstrFile = chosen_path;
+    dialog.nMaxFile = FILE_PATH_CAPACITY;
+    dialog.lpstrDefExt = L"civbuilder.json";
+    return dialog;
+}
+
+bool dialogs_save(AppState *app)
+{
+    OPENFILENAMEW dialog;
+
+    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
+        return false;
+    }
+    suggest_name(app);
+    dialog = file_dialog(app);
+    dialog.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+    if (!GetSaveFileNameW(&dialog)) {
+        dialogs_status(app, "The civ was not saved.");
+        return false;
+    }
+    if (!civ_file_save(&app->history.present, chosen_path)) {
+        (void)MessageBoxW(app->window, L"The civ file could not be written there.", TITLE, MB_OK | MB_ICONERROR);
+        return false;
+    }
+    (void)wcsncpy(app->file_path, chosen_path, FILE_PATH_CAPACITY - 1);
+    app->unsaved = false;
+    dialogs_status(app, "The civ was saved.");
+    return true;
+}
+
+bool dialogs_open(AppState *app)
+{
+    OPENFILENAMEW dialog;
+
+    if (!CHECK(app != NULL) || !CHECK(app->window != NULL) || !dialogs_may_discard(app)) {
+        return false;
+    }
+    chosen_path[0] = L'\0';
+    dialog = file_dialog(app);
+    dialog.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+    if (!GetOpenFileNameW(&dialog)) {
+        return false;
+    }
+    if (!civ_file_load(&opened, chosen_path)) {
+        (void)MessageBoxW(app->window, L"That file is not a civ file civbuilder can read.", TITLE,
+                          MB_OK | MB_ICONERROR);
+        return false;
+    }
+    (void)history_replace(&app->history, &opened);
+    (void)wcsncpy(app->file_path, chosen_path, FILE_PATH_CAPACITY - 1);
+    app->unsaved = false;
+    sync_all(app);
+    dialogs_status(app, "The civ file was opened.");
+    return true;
+}
+
+static void tell(const AppState *app, UINT icon)
+{
+    if (!CHECK(app != NULL) || !dialogs_widen(message, wide_message, MESSAGE_CAPACITY)) {
+        return;
+    }
+    (void)MessageBoxW(app->window, wide_message, TITLE, MB_OK | icon);
+}
+
+static void describe_build(const char *prefix)
+{
+    const RecipeReport *report = &built.recipe;
+    const size_t room = sizeof message;
+
+    if (!CHECK(prefix != NULL) || !CHECK(report->bonuses_built >= 0)) {
+        return;
+    }
+    (void)(text_copy(message, room, "The mod was built as ") && text_append(message, room, prefix) &&
+           text_append(message, room, "-data and ") && text_append(message, room, prefix) &&
+           text_append(message, room, "-ui in the game's mods folder.\n\nCiv bonuses built: ") &&
+           text_append_number(message, room, report->bonuses_built) && text_append(message, room, " of ") &&
+           text_append_number(message, room, report->bonuses_built + report->bonuses_skipped) &&
+           text_append(message, room, (report->bonuses_skipped > 0) ? "; the others are not built yet." : ".") &&
+           text_append(message, room, (report->team_bonuses_skipped > 0) ? "\nThe team bonus is not built yet." : "") &&
+           text_append(message, room, report->unit_skipped ? "\nOnly the game's own unique units are built." : "") &&
+           text_append(message, room, (report->unique_techs_skipped > 0) ? "\nA unique tech is not built yet." : "") &&
+           text_append(message, room, report->tree_overflowed ? "\nThe tech tree needed too many changes." : "") &&
+           text_append(message, room, report->hero_skipped ? "\nThe hero is not built: the civ lacks its unit." : "") &&
+           text_append(message, room, "\n\nTurn on the UI mod in the game's mod manager, then pick the data mod "
+                                      "in the lobby."));
+}
+
+static bool may_build_into(const AppState *app, const wchar_t *mods)
+{
+    char folder[FILE_PATH_CAPACITY];
+
+    if (!CHECK(app != NULL) || !CHECK(mods != NULL) || !dialogs_narrow(mods, folder, FILE_PATH_CAPACITY)) {
+        return false;
+    }
+    if (!text_copy(message, sizeof message, "Build the mod into this folder?\n\n") ||
+        !text_append(message, sizeof message, folder) ||
+        !text_append(message, sizeof message, "\n\nAn earlier build of a civ with the same name is replaced.") ||
+        !dialogs_widen(message, wide_message, MESSAGE_CAPACITY)) {
+        return false;
+    }
+    return MessageBoxW(app->window, wide_message, TITLE, MB_OKCANCEL | MB_ICONQUESTION) == IDOK;
+}
+
+bool dialogs_build(AppState *app)
+{
+    static wchar_t game[FILE_PATH_CAPACITY];
+    static wchar_t mods[FILE_PATH_CAPACITY];
+    char prefix[FORGE_PREFIX_CAPACITY];
+    ForgeJob job;
+    HCURSOR previous;
+    bool done;
+
+    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
+        return false;
+    }
+    if (!app->catalog_loaded || !mod_find_game_folder(game, FILE_PATH_CAPACITY) ||
+        !mod_find_local_mods(mods, FILE_PATH_CAPACITY) ||
+        !forge_prefix(app->history.present.texts[TEXT_FIELD_NAME], prefix, sizeof prefix)) {
+        (void)text_copy(message, sizeof message, "A mod cannot be built: the data folder, the game or its mods "
+                                                 "folder was not found on this computer.");
+        tell(app, MB_ICONERROR);
+        return false;
+    }
+    if (!may_build_into(app, mods)) {
+        dialogs_status(app, "No mod was built.");
+        return false;
+    }
+    job.design = &app->history.present;
+    job.catalog = &app->catalog;
+    job.game_folder = game;
+    job.mods_folder = mods;
+    previous = SetCursor(LoadCursorW(NULL, IDC_WAIT));
+    done = forge_build(&job, &built);
+    (void)SetCursor(previous);
+    if (!done) {
+        (void)text_copy(message, sizeof message, built.problem);
+        tell(app, MB_ICONERROR);
+        dialogs_status(app, "No mod was built.");
+        return false;
+    }
+    describe_build(prefix);
+    dialogs_status(app, "The mod was built.");
+    tell(app, MB_ICONINFORMATION);
+    return true;
+}
+
+bool dialogs_may_discard(AppState *app)
+{
+    int answer;
+
+    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
+        return false;
+    }
+    if (!app->unsaved) {
+        return true;
+    }
+    answer = MessageBoxW(app->window, L"The civ has changes that are not saved. Save them first?", TITLE,
+                         MB_YESNOCANCEL | MB_ICONQUESTION);
+    if (answer == IDYES) {
+        return dialogs_save(app);
+    }
+    return answer == IDNO;
+}

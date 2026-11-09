@@ -1,0 +1,384 @@
+#include "win_parts.h"
+
+#include "../core/check.h"
+
+enum {
+    TEXT_POINTS = 11,
+    TITLE_POINTS = 16,
+    POINTS_PER_INCH = 72,
+    DROP_HEIGHT = 320,
+    BOX_SIZE = 18,
+    BOX_INSET = 4,
+    BOX_LINE = 2,
+    FOCUS_LINE = 3,
+    RING_LIMIT = 4 * BOX_SIZE,
+    TEXT_INSET = 8,
+    CHECK_KNEE_DIVISOR = 2,
+    CLASS_WIDTH = 16,
+    ROW_TEXT_CAPACITY = 512,
+    CREATION_COUNT = CONTROL_COUNT
+};
+
+static const wchar_t CLASSES[WIDGET_KIND_COUNT][CLASS_WIDTH] = {
+    L"STATIC", L"EDIT", L"EDIT", L"COMBOBOX", L"LISTBOX", L"LISTBOX", L"BUTTON", L"EDIT"
+};
+
+static const DWORD STYLES[WIDGET_KIND_COUNT] = {
+    SS_LEFT | SS_NOPREFIX,
+    WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL,
+    WS_BORDER | WS_TABSTOP | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN,
+    WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | CBS_HASSTRINGS,
+    WS_BORDER | WS_TABSTOP | WS_VSCROLL | LBS_NOTIFY | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT,
+    WS_BORDER | WS_TABSTOP | WS_VSCROLL | LBS_NOTIFY | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT |
+        LBS_MULTIPLESEL,
+    WS_TABSTOP | BS_PUSHBUTTON,
+    WS_BORDER | WS_TABSTOP | WS_VSCROLL | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL
+};
+
+static ControlId creation_order(int position)
+{
+    if (!CHECK(position >= 0) || !CHECK(position < CREATION_COUNT)) {
+        return CONTROL_TITLE;
+    }
+    if (position < 3) {
+        return (ControlId)position;
+    }
+    if (position < CREATION_COUNT - 3) {
+        return (ControlId)(position + 3);
+    }
+    return (ControlId)(position - (CREATION_COUNT - 6));
+}
+
+typedef struct {
+    const wchar_t *kind;
+    DWORD style;
+    int identifier;
+} ChildSpec;
+
+static HWND create_child(AppState *app, ChildSpec child)
+{
+    if (!CHECK(app != NULL) || !CHECK(child.kind != NULL)) {
+        return NULL;
+    }
+    return CreateWindowExW(0, child.kind, L"", WS_CHILD | child.style, 0, 0, 0, 0, app->window,
+                           (HMENU)(INT_PTR)child.identifier, app->instance, NULL);
+}
+
+static bool create_control(AppState *app, ControlId control)
+{
+    ControlSpec spec = layout_spec(control);
+    ChildSpec child = { L"STATIC", SS_LEFT | SS_NOPREFIX, 0 };
+    wchar_t label[LAYOUT_LABEL_WIDTH];
+
+    if (!CHECK(app != NULL) || !dialogs_widen(spec.label, label, LAYOUT_LABEL_WIDTH)) {
+        return false;
+    }
+    if (layout_has_label(control)) {
+        child.identifier = LABEL_ID_BASE + (int)control;
+        app->labels[control] = create_child(app, child);
+        if (!CHECK(app->labels[control] != NULL)) {
+            return false;
+        }
+        (void)SetWindowTextW(app->labels[control], label);
+    }
+    child.kind = CLASSES[spec.kind];
+    child.style = STYLES[spec.kind];
+    child.identifier = CONTROL_ID_BASE + (int)control;
+    app->controls[control] = create_child(app, child);
+    if (!CHECK(app->controls[control] != NULL)) {
+        return false;
+    }
+    if (spec.kind == WIDGET_BUTTON) {
+        (void)SetWindowTextW(app->controls[control], label);
+    }
+    return true;
+}
+
+static void apply_fonts(AppState *app)
+{
+    int control;
+
+    if (!CHECK(app != NULL) || !CHECK(app->font != NULL)) {
+        return;
+    }
+    for (control = 0; control < CONTROL_COUNT; ++control) {
+        HFONT font = (control == (int)CONTROL_TITLE) ? app->title_font : app->font;
+        (void)SendMessageW(app->controls[control], WM_SETFONT, (WPARAM)font, TRUE);
+        if (app->labels[control] != NULL) {
+            (void)SendMessageW(app->labels[control], WM_SETFONT, (WPARAM)app->font, TRUE);
+        }
+        if (layout_spec((ControlId)control).kind == WIDGET_CHOICE) {
+            (void)SendMessageW(app->controls[control], CB_SETITEMHEIGHT, (WPARAM)-1,
+                               (LPARAM)(controls_row_height(app) - (2 * BOX_INSET)));
+        }
+    }
+}
+
+static HFONT make_font(int dpi, int points, int weight)
+{
+    if (!CHECK(dpi > 0) || !CHECK(points > 0)) {
+        return NULL;
+    }
+    return CreateFontW(-MulDiv(points, dpi, POINTS_PER_INCH), 0, 0, 0, weight, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                       OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+}
+
+static COLORREF color_of(const AppState *app, ColorRole role)
+{
+    Rgb color = palette_color(role);
+
+    if (!CHECK(app != NULL) || !CHECK(role < COLOR_ROLE_COUNT)) {
+        return RGB(0, 0, 0);
+    }
+    if (!app->high_contrast) {
+        return RGB(color.red, color.green, color.blue);
+    }
+    if ((role == COLOR_ROLE_CHOSEN) || (role == COLOR_ROLE_FOCUS)) {
+        return GetSysColor(COLOR_HIGHLIGHT);
+    }
+    if (role == COLOR_ROLE_CHOSEN_INK) {
+        return GetSysColor(COLOR_HIGHLIGHTTEXT);
+    }
+    return GetSysColor(((role == COLOR_ROLE_PAPER) || (role == COLOR_ROLE_FIELD)) ? COLOR_WINDOW : COLOR_WINDOWTEXT);
+}
+
+static void replace_brush(HBRUSH *brush, COLORREF color)
+{
+    if (!CHECK(brush != NULL) || !CHECK(color != CLR_INVALID)) {
+        return;
+    }
+    if (*brush != NULL) {
+        (void)DeleteObject(*brush);
+    }
+    *brush = CreateSolidBrush(color);
+}
+
+void controls_refresh_style(AppState *app)
+{
+    HIGHCONTRASTW contrast;
+    HDC screen;
+
+    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
+        return;
+    }
+    contrast.cbSize = sizeof contrast;
+    app->high_contrast = (SystemParametersInfoW(SPI_GETHIGHCONTRAST, sizeof contrast, &contrast, 0) != 0) &&
+                         ((contrast.dwFlags & HCF_HIGHCONTRASTON) != 0);
+    screen = GetDC(app->window);
+    app->dpi = (screen != NULL) ? GetDeviceCaps(screen, LOGPIXELSY) : LAYOUT_BASE_DPI;
+    if (screen != NULL) {
+        (void)ReleaseDC(app->window, screen);
+    }
+    if (app->font == NULL) {
+        app->font = make_font(app->dpi, TEXT_POINTS, FW_NORMAL);
+        app->title_font = make_font(app->dpi, TITLE_POINTS, FW_SEMIBOLD);
+    }
+    replace_brush(&app->paper_brush, color_of(app, COLOR_ROLE_PAPER));
+    replace_brush(&app->field_brush, color_of(app, COLOR_ROLE_FIELD));
+    replace_brush(&app->chosen_brush, color_of(app, COLOR_ROLE_CHOSEN));
+    apply_fonts(app);
+}
+
+bool controls_create(AppState *app)
+{
+    int position;
+
+    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
+        return false;
+    }
+    for (position = 0; position < CREATION_COUNT; ++position) {
+        if (!create_control(app, creation_order(position))) {
+            return false;
+        }
+    }
+    controls_refresh_style(app);
+    return true;
+}
+
+int controls_row_height(const AppState *app)
+{
+    if (!CHECK(app != NULL) || !CHECK(app->dpi > 0)) {
+        return LAYOUT_ROW_HEIGHT;
+    }
+    return MulDiv(LAYOUT_ROW_HEIGHT, app->dpi, LAYOUT_BASE_DPI);
+}
+
+static void move_to(const AppState *app, HWND window, Box box)
+{
+    if (!CHECK(app != NULL) || !CHECK(window != NULL)) {
+        return;
+    }
+    (void)MoveWindow(window, MulDiv(box.left, app->dpi, LAYOUT_BASE_DPI), MulDiv(box.top, app->dpi, LAYOUT_BASE_DPI),
+                     MulDiv(box.width, app->dpi, LAYOUT_BASE_DPI),
+                     MulDiv(box.height, app->dpi, LAYOUT_BASE_DPI), TRUE);
+}
+
+void controls_place(AppState *app)
+{
+    RECT client;
+    int width;
+    int height;
+    int control;
+
+    if (!CHECK(app != NULL) || !CHECK(app->dpi > 0) || (GetClientRect(app->window, &client) == 0)) {
+        return;
+    }
+    width = MulDiv(client.right - client.left, LAYOUT_BASE_DPI, app->dpi);
+    height = MulDiv(client.bottom - client.top, LAYOUT_BASE_DPI, app->dpi);
+    width = (width < LAYOUT_MIN_WIDTH) ? LAYOUT_MIN_WIDTH : width;
+    height = (height < LAYOUT_MIN_HEIGHT) ? LAYOUT_MIN_HEIGHT : height;
+    for (control = 0; control < CONTROL_COUNT; ++control) {
+        Box box = layout_box((ControlId)control, width, height);
+        box.height += (layout_spec((ControlId)control).kind == WIDGET_CHOICE) ? DROP_HEIGHT : 0;
+        move_to(app, app->controls[control], box);
+        if (app->labels[control] != NULL) {
+            move_to(app, app->labels[control], layout_label_box((ControlId)control, width, height));
+        }
+    }
+}
+
+void controls_show_step(AppState *app)
+{
+    int control;
+    int show;
+
+    if (!CHECK(app != NULL) || !CHECK(app->step < STEP_COUNT)) {
+        return;
+    }
+    for (control = 0; control < CONTROL_COUNT; ++control) {
+        show = layout_shows((ControlId)control, app->step) ? SW_SHOW : SW_HIDE;
+        (void)ShowWindow(app->controls[control], show);
+        if (app->labels[control] != NULL) {
+            (void)ShowWindow(app->labels[control], show);
+        }
+    }
+}
+
+HBRUSH controls_color(const AppState *app, HDC context, HWND control)
+{
+    int identifier;
+    bool field;
+
+    if (!CHECK(app != NULL) || !CHECK(context != NULL)) {
+        return NULL;
+    }
+    identifier = GetDlgCtrlID(control) - CONTROL_ID_BASE;
+    field = (identifier >= 0) && (identifier < CONTROL_COUNT) && layout_is_focusable((ControlId)identifier);
+    (void)SetTextColor(context, color_of(app, (control == app->controls[CONTROL_HELP]) ? COLOR_ROLE_MUTED
+                                                                                         : COLOR_ROLE_INK));
+    (void)SetBkColor(context, color_of(app, field ? COLOR_ROLE_FIELD : COLOR_ROLE_PAPER));
+    return field ? app->field_brush : app->paper_brush;
+}
+
+static int scaled(const AppState *app, int units)
+{
+    if (!CHECK(app != NULL) || !CHECK(app->dpi > 0)) {
+        return units;
+    }
+    return MulDiv(units, app->dpi, LAYOUT_BASE_DPI);
+}
+
+static void frame_rect(HDC context, RECT area, COLORREF color, int thickness)
+{
+    HBRUSH brush;
+    int ring;
+
+    if (!CHECK(context != NULL) || !CHECK(thickness > 0)) {
+        return;
+    }
+    brush = CreateSolidBrush(color);
+    if (brush == NULL) {
+        return;
+    }
+    for (ring = 0; (ring < thickness) && (ring < RING_LIMIT); ++ring) {
+        (void)FrameRect(context, &area, brush);
+        (void)InflateRect(&area, -1, -1);
+    }
+    (void)DeleteObject(brush);
+}
+
+static void draw_check(HDC context, RECT box, COLORREF color, int width)
+{
+    int across = box.right - box.left;
+    int down = box.bottom - box.top;
+    HPEN pen = CreatePen(PS_SOLID, width, color);
+    HGDIOBJ previous;
+
+    if (!CHECK(context != NULL) || !CHECK((across > 0) && (down > 0)) || (pen == NULL)) {
+        return;
+    }
+    previous = SelectObject(context, pen);
+    (void)MoveToEx(context, box.left, box.top + (down / CHECK_KNEE_DIVISOR), NULL);
+    (void)LineTo(context, box.left + (across / CHECK_KNEE_DIVISOR), box.bottom);
+    (void)LineTo(context, box.right, box.top);
+    (void)SelectObject(context, previous);
+    (void)DeleteObject(pen);
+}
+
+static RECT check_box(const AppState *app, RECT row)
+{
+    RECT box;
+    int size = scaled(app, BOX_SIZE);
+
+    if (!CHECK(app != NULL) || !CHECK(size > 0)) {
+        return row;
+    }
+    box.left = row.left + scaled(app, TEXT_INSET);
+    box.top = ((row.top + row.bottom) - size) / 2;
+    box.right = box.left + size;
+    box.bottom = box.top + size;
+    return box;
+}
+
+static bool item_text(const DRAWITEMSTRUCT *item, wchar_t *text, int capacity)
+{
+    bool combo = (item->CtlType == ODT_COMBOBOX);
+    LRESULT length;
+
+    if (!CHECK(item != NULL) || !CHECK(capacity > 0)) {
+        return false;
+    }
+    text[0] = L'\0';
+    length = SendMessageW(item->hwndItem, combo ? CB_GETLBTEXTLEN : LB_GETTEXTLEN, item->itemID, 0);
+    if ((length < 0) || (length >= capacity)) {
+        return false;
+    }
+    return SendMessageW(item->hwndItem, combo ? CB_GETLBTEXT : LB_GETTEXT, item->itemID, (LPARAM)text) >= 0;
+}
+
+void controls_draw_item(const AppState *app, const DRAWITEMSTRUCT *item)
+{
+    wchar_t text[ROW_TEXT_CAPACITY];
+    bool chosen;
+    bool checklist;
+    RECT area;
+
+    if (!CHECK(app != NULL) || !CHECK(item != NULL) || (item->itemID == (UINT)-1)) {
+        return;
+    }
+    chosen = ((item->itemState & ODS_SELECTED) != 0) && ((item->itemState & ODS_COMBOBOXEDIT) == 0);
+    checklist = ((int)item->CtlID >= CONTROL_ID_BASE) && ((int)item->CtlID < CONTROL_ID_BASE + CONTROL_COUNT) &&
+                (layout_spec((ControlId)((int)item->CtlID - CONTROL_ID_BASE)).kind == WIDGET_CHECKLIST);
+    (void)FillRect(item->hDC, &item->rcItem, chosen ? app->chosen_brush : app->field_brush);
+    area = item->rcItem;
+    area.left += scaled(app, TEXT_INSET);
+    if (checklist) {
+        RECT box = check_box(app, item->rcItem);
+        frame_rect(item->hDC, box, color_of(app, chosen ? COLOR_ROLE_CHOSEN_INK : COLOR_ROLE_INK),
+                   scaled(app, BOX_LINE));
+        (void)InflateRect(&box, -scaled(app, BOX_INSET), -scaled(app, BOX_INSET));
+        if (chosen) {
+            draw_check(item->hDC, box, color_of(app, COLOR_ROLE_CHOSEN_INK), scaled(app, BOX_LINE));
+        }
+        area.left = check_box(app, item->rcItem).right + scaled(app, TEXT_INSET);
+    }
+    (void)SetBkMode(item->hDC, TRANSPARENT);
+    (void)SetTextColor(item->hDC, color_of(app, chosen ? COLOR_ROLE_CHOSEN_INK : COLOR_ROLE_INK));
+    if (item_text(item, text, ROW_TEXT_CAPACITY)) {
+        (void)DrawTextW(item->hDC, text, -1, &area, DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX);
+    }
+    if ((item->itemState & ODS_FOCUS) != 0) {
+        frame_rect(item->hDC, item->rcItem, color_of(app, chosen ? COLOR_ROLE_CHOSEN_INK : COLOR_ROLE_FOCUS),
+                   scaled(app, FOCUS_LINE));
+    }
+}
