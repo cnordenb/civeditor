@@ -15,10 +15,8 @@ typedef struct {
 } JsonWriter;
 
 void json_writer_start(JsonWriter *writer);
-void json_begin_object(JsonWriter *writer, const char *key);
-void json_end_object(JsonWriter *writer);
-void json_begin_array(JsonWriter *writer, const char *key);
-void json_end_array(JsonWriter *writer);
+void json_begin(JsonWriter *writer, const char *key, char bracket);
+void json_end(JsonWriter *writer, char bracket);
 void json_write_string(JsonWriter *writer, const char *key, const char *value);
 void json_write_number(JsonWriter *writer, const char *key, long value);
 void json_write_bool(JsonWriter *writer, const char *key, bool value);

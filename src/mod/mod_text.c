@@ -72,7 +72,7 @@ static const char *bonus_text(const ModCiv *civ, int pick)
     }
     design = civ->design;
     catalog = civ->catalog;
-    found = catalog_find_bonus(catalog, design->bonuses[pick].id);
+    found = catalog_find_bonus(catalog, false, design->bonuses[pick].id);
     return (found == CATALOG_MISSING) ? "" : catalog->bonuses[found].description;
 }
 
@@ -90,7 +90,7 @@ static const char *team_text(const ModCiv *civ)
     if (design->team_bonus_count == 0) {
         return "";
     }
-    found = catalog_find_team_bonus(catalog, design->team_bonuses[0].id);
+    found = catalog_find_bonus(catalog, true, design->team_bonuses[0].id);
     return (found == CATALOG_MISSING) ? "" : catalog->team_bonuses[found].description;
 }
 

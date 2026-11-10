@@ -77,7 +77,7 @@ static void plan_bonuses(const RecipeRun *run)
     design = input->design;
     catalog = input->catalog;
     for (pick = 0; (pick < design->bonus_count) && (pick < CIV_BONUS_CAPACITY); ++pick) {
-        found = catalog_find_bonus(catalog, design->bonuses[pick].id);
+        found = catalog_find_bonus(catalog, false, design->bonuses[pick].id);
         if ((found == CATALOG_MISSING) || (catalog->bonuses[found].effects.count == 0)) {
             fine = (found != CATALOG_MISSING) && (bonus_build_civ(&build, design->bonuses[pick].id) > 0);
             report->bonuses_built += fine ? 1 : 0;
@@ -148,7 +148,7 @@ static int team_source(const RecipeInput *input)
     }
     design = input->design;
     catalog = input->catalog;
-    found = (design->team_bonus_count > 0) ? catalog_find_team_bonus(catalog, design->team_bonuses[0].id)
+    found = (design->team_bonus_count > 0) ? catalog_find_bonus(catalog, true, design->team_bonuses[0].id)
                                            : CATALOG_MISSING;
     entry = (found == CATALOG_MISSING) ? NULL : &catalog->team_bonuses[found];
     return ((entry == NULL) || (entry->effects.count == 0)) ? DAT_NO_ID : entry->effects.values[0];

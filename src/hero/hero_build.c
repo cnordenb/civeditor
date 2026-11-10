@@ -148,9 +148,7 @@ static bool put_cost(DatEdit *edit, size_t at, const DatTechCost *cost)
     dat_sink_i16(&sink, cost->type);
     dat_sink_i16(&sink, cost->amount);
     dat_sink_i16(&sink, cost->flag);
-    patch.at = at;
-    patch.width = sink.length;
-    return CHECK(sink.fine) && dat_edit_patch(edit, &patch);
+    return dat_edit_patch_sunk(edit, at, &patch, &sink);
 }
 
 static bool train_at_castle(const DatTarget *target, const Hero *hero)

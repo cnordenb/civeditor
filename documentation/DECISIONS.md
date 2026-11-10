@@ -21,11 +21,41 @@ an earlier one, the earlier one is named after it, with its own link.
   30). Its dryer, crapper and mutator may be written in C; until they are, Rule 34 is kept by breaking the code by
   hand.
   [2026-11-09 10:06:18](DEVLOG/DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100)
+- **The crapper measures Rule 32.** `build\crapper.exe`, written in C in `tools/crap/`, scores every function:
+  complexity is 1 and one more for each `if`, `for`, `while`, `case`, `&&`, `||` and `?`, the branches of `CHECK`
+  among them; coverage is the share of branches that gcov, which comes with gcc, saw taken at least once by the
+  tests, or of lines for a function without branches; a function outside the test program counts as not run.
+  `build.exe` makes the crapper and does not run it until no function is at 10 or above.
+  [2026-11-10 04:22:28](DEVLOG/DEVLOG3.md#042228-the-crapper-in-c-and-369-functions-at-crap-10-or-above)
+- **The dryer measures Rule 31.** `build\dryer.exe`, written in C in `tools/dry/`, takes a function's shape as the
+  set of its runs of four tokens, in which a call keeps its name and every other name and literal loses it, and
+  ranks two functions by the runs they share among all runs of either. It compares functions of 4 lines and 20
+  tokens or more, the tests among them, and reports pairs at 0.8 or above. `build.exe` makes it and does not run
+  it until no pair is left.
+  [2026-11-10 04:27:23](DEVLOG/DEVLOG3.md#042723-the-dryer-in-c-and-62-pairs-of-functions-alike)
+- **The mutator measures Rule 34.** `build\mutator.exe`, written in C in `tools/mutate/`, makes each mutant of the
+  lines of `src/` that the tests run, one operator or constant changed, links the test program with it and runs the
+  tests, twelve at a time, each ended after 30 seconds. `>` and `>=` are swapped besides the swaps Rule 34 names.
+  Replaced: mutation by hand.
+  [2026-11-10 04:37:03](DEVLOG/DEVLOG3.md#043703-the-mutator-in-c-tried-on-one-folder)
+- **The mutator leaves the window out.** It runs the tests with `nowindow`, which ends the accessibility tests before
+  those of the real window, and makes no mutant of `src/win/`: twelve test programs at once wait on one another in
+  Windows' accessibility interfaces, and a mutant of the window could open a dialog.
+  [2026-11-10 06:27:55](DEVLOG/DEVLOG3.md#062755-the-mutator-mended-after-the-tests-of-the-window-slowed-it)
+- **Pictures are documents.** A `.png` is not code in any language (Rule 29), so the test of what the project holds
+  lets it pass, as it does `.md`, `.txt` and `.json`.
+  [2026-11-10 04:21:27](DEVLOG/DEVLOG3.md#042127-the-instructions-in-a-folder-of-their-own-pictures-as-documents-and-a-night-stopped-by-the-usage-limit)
+- **One change at a time.** The work is not split into streams side by side: the usage limit ended two such
+  attempts before any change was finished.
+  [2026-11-10 04:21:27](DEVLOG/DEVLOG3.md#042127-the-instructions-in-a-folder-of-their-own-pictures-as-documents-and-a-night-stopped-by-the-usage-limit)
 - **The settings deny what the rules forbid.** `.claude/settings.json` denies commits, pushes, merges, rebases,
   cherry-picks and pull requests, the commands that delete, and every edit of `REQUIREMENTS.md`.
   [2026-11-09 10:06:18](DEVLOG/DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100)
 - **No workflow runs the tests.** `.github/` holds none; the tests are run by hand before a push (Rule 4).
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
+- **A day moves whole to a new part.** The day 2026-11-10 was moved from `DEVLOG2.md` to `DEVLOG3.md` before part 2
+  reached 1 000 lines (Rules 18 and 22).
+  [2026-11-10 05:09:30](DEVLOG/DEVLOG3.md#050930-a-test-that-drives-the-real-window-and-the-logs-third-part)
 - **A day may go on in the next part.** When a part holds fewer than two days, its day goes on in the next part,
   and each notes it, as 2026-11-09 goes on from `DEVLOG1.md` in `DEVLOG2.md` (Rule 22).
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
@@ -87,6 +117,14 @@ an earlier one, the earlier one is named after it, with its own link.
   44, a visible label for every input, and the colors of Windows in high contrast.
   [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
   [2026-11-09 10:08:11](DEVLOG/DEVLOG2.md#100811-a-checklist-of-wcag-22-for-requirement-4)
+- **A drawn mark is checked with the text's contrast.** The frame of a box, the check and the focus frame are drawn
+  only in pairs of colors of `palette.c`, which the test of contrast holds at 7:1; so 1.4.11 is ticked by that test.
+  3.2.3 is ticked by the test that the list of steps, Back and Next are on every step.
+  [2026-11-10 05:01:56](DEVLOG/DEVLOG3.md#050156-two-boxes-of-the-accessibility-checklist-ticked-48-of-86)
+- **A box of the checklist may be ticked by reading.** "Read" stands beside "Test" and "Code": every text the
+  window can show was read on a named day against what the criterion asks of words. A command has one name in the
+  menu and on its button, and a label says what its control is for without the label before it.
+  [2026-11-10 05:03:39](DEVLOG/DEVLOG3.md#050339-the-windows-texts-read-against-the-checklist-55-of-86)
 - **The window's title names the civ and the step** (Requirement 3, WCAG 2.2 SC 2.4.2), as "Testonia - Step 2 of
   9: Tech tree - civbuilder", with "A new civ" before the civ has a name.
   [2026-11-09 10:27:22](DEVLOG/DEVLOG2.md#102722-a-windows-title-that-names-the-civ-and-the-step-and-the-base-civ-tried-in-the-window)
@@ -171,6 +209,10 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
 - **One step builds and tests.** `build.exe`, made from `tools/build/`, compiles what changed, links and runs the
   tests. [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
+- **One list of the folders of code, one rule for what the tests hold.** `source_list_collect_all` and
+  `source_in_tests` in `tools/build/source_list.c` say them for the build program and the crapper alike; the test
+  program holds the files of `tools/crap/` whose names begin with `crap_`.
+  [2026-11-10 04:22:28](DEVLOG/DEVLOG3.md#042228-the-crapper-in-c-and-369-functions-at-crap-10-or-above)
 - **Wide paths.** Every path is a wide string, since the user's folder may hold letters outside ASCII.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
 - **Civ files as the original writes them.** `empireforge_v2` is written; it and `civbuilder_v1` are read.
@@ -194,6 +236,33 @@ an earlier one, the earlier one is named after it, with its own link.
 - **Classic controls.** No manifest, since it is XML; the controls keep the classic look of Windows.
   [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
+- **The window moves the focus on when a control asks it to.** A field of several lines keeps the Tab key and asks
+  its parent to move the focus; `move_focus` in `app_window.c` answers, so no control traps the keyboard (WCAG 2.2
+  SC 2.1.2).
+  [2026-11-10 05:37:00](DEVLOG/DEVLOG3.md#053700-a-keyboard-trap-found-by-a-test-and-mended-71-of-86)
+- **The language is told to Windows in C.** `app_open` sets the process's preferred language for its texts to
+  `en-US`, in place of a resource of the program, which is not C (WCAG 2.2 SC 3.1.1, Rule 29).
+  [2026-11-10 05:43:36](DEVLOG/DEVLOG3.md#054336-windows-told-that-the-window-speaks-english-72-of-86)
+- **Help is a line in the status line.** F1 and the menu Help put the help of the control in focus there, from
+  `HELP_TEXTS` in `control_help.c`, one text for each control; nothing opens and nothing appears by itself (WCAG
+  2.2 SC 3.3.5, 3.2.6, 1.4.13).
+  [2026-11-10 05:48:07](DEVLOG/DEVLOG3.md#054807-help-for-every-control-77-of-86)
+- **The status line is a live region.** It is marked polite for assistive technology, and every change of its text
+  raises Windows' event for a changed live region, so a status message is read without the focus moving (WCAG 2.2
+  SC 4.1.3). The window's program and the tests link the same libraries, named once.
+  [2026-11-10 05:51:35](DEVLOG/DEVLOG3.md#055135-status-messages-told-to-a-screen-reader-78-of-86)
+- **One scale for the display and the text size.** The window's scale is the display's dots an inch times the text
+  size of Windows' accessibility settings, 100% to 225% (`layout_text_dpi`, `assist_dpi`); fonts, layout and the
+  smallest window follow it (WCAG 2.2 SC 1.4.4).
+  [2026-11-10 05:56:10](DEVLOG/DEVLOG3.md#055610-the-text-size-of-windows-followed-and-the-accessibility-suite-in-two-groups)
+- **A glossary explains the game's words and the catalog's shortened forms.** Glossary in the menu Help lists them
+  with their meanings, from `GLOSSARY` in `control_help.c`; the catalog's texts stay as the original has them
+  (WCAG 2.2 SC 3.1.3, 3.1.4). The names of the game's units, buildings and techs are taken as proper names.
+  [2026-11-10 06:00:59](DEVLOG/DEVLOG3.md#060059-a-glossary-of-the-games-words-and-of-the-catalogs-shortened-forms-80-of-86)
+- **The window draws the focus frame itself.** A solid frame in the focus color, two pixels thick at 100% and
+  scaled, is painted on the window's paper around the control in focus, and painted anew when the focus moves
+  (WCAG 2.2 SC 2.4.7, 2.4.13).
+  [2026-11-10 06:09:12](DEVLOG/DEVLOG3.md#060912-a-solid-focus-frame-drawn-by-the-window-82-of-86)
 - **A checklist keeps its place.** After a command, only the rows whose tick changed are set again, and the list's
   top row is kept.
   [2026-11-09 10:06:34](DEVLOG/DEVLOG2.md#100634-a-list-that-keeps-its-place-a-check-in-a-ticked-box-and-no-next-on-the-last-step)
@@ -263,10 +332,12 @@ an earlier one, the earlier one is named after it, with its own link.
   game's own `CivTechTrees` files into the last two columns of `tree.txt`; the civs are bits of one 64-bit number.
   [2026-11-09 10:07:36](DEVLOG/DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first)
 - **The data mod holds the civ's tech tree file,** the game's `CivTechTrees\<name>.json` of the replaced civ with each
-  node of `tree.txt` set to the design: `NotAvailable` when the civ does not keep it, `ResearchedCompleted` when the
-  design has it and the replaced civ had not; a node the design has keeps any other status, such as
-  `ResearchRequired`. Nodes `tree.txt` does not hold stay as they were. Replaced: `NotAvailable` for every node the
-  design lacks.
+  node of `tree.txt` set to the design: `NotAvailable` when the civ does not keep it; when the design has it and the
+  replaced civ had not, the status most civs of the game give it, `ResearchRequired` for 13 nodes and
+  `ResearchedCompleted` for the rest, from the last column of `tree.txt`; a node the design has keeps any other
+  status. Nodes `tree.txt` does not hold stay as they were. Replaced: `ResearchedCompleted` for every node the
+  replaced civ lacked, and before that `NotAvailable` for every node the design lacks.
+  [2026-11-10 06:12:47](DEVLOG/DEVLOG3.md#061247-a-node-the-replaced-civ-lacked-takes-the-status-most-civs-give-it)
   [2026-11-09 10:18:41](DEVLOG/DEVLOG2.md#101841-a-tech-tree-screen-that-shows-the-designs-tree-and-all-71-tests-listed)
   [2026-11-09 10:40:46](DEVLOG/DEVLOG2.md#104046-one-rule-for-what-a-civ-keeps-in-the-dat-file-and-the-tech-tree-file-alike)
 - **What a civ keeps is decided in one place,** `civ_design_tree_keeps` in `civ_design.c`: the whole tree when the
@@ -286,12 +357,24 @@ an earlier one, the earlier one is named after it, with its own link.
   (Rules 33 and 34).
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
   [2026-11-09 10:06:18](DEVLOG/DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100)
-- **No test of drawing or scrolling.** Bugs 1 and 2 are in `src/win/`, which the tests do not run; an honest test
-  of them would need a window, so none is written (Rule 33).
+- **Scrolling and drawing are tested in the real window.** Bug 1 is caught again by a test that scrolls and ticks
+  the list; Bug 2 by a test that has the window draw a ticked row into a picture in memory and looks for the check
+  in its box. Replaced: no test of drawing or scrolling; then: scrolling has a test, drawing has none.
+  [2026-11-10 06:54:15](DEVLOG/DEVLOG3.md#065415-a-test-that-catches-bug-2-again-and-the-program-started)
+  [2026-11-10 05:16:33](DEVLOG/DEVLOG3.md#051633-a-test-that-catches-bug-1-again)
   [2026-11-09 10:06:34](DEVLOG/DEVLOG2.md#100634-a-list-that-keeps-its-place-a-check-in-a-ticked-box-and-no-next-on-the-last-step)
 - **The test of the log reads every part,** while `DEVLOG<n>.md` exists, and lets a part begin with the day the
   part before it ended with only when that part holds fewer than two days.
   [2026-11-09 10:06:18](DEVLOG/DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100)
+- **The real window is tested without being shown.** `app_open` makes the window and its controls; a test drives
+  it by messages and asks Windows what the keyboard would do, and never takes the keyboard or the mouse. The test
+  program holds `src/win/` and links the libraries the window needs. Replaced: the tests do not run `src/win/`.
+  [2026-11-10 05:09:30](DEVLOG/DEVLOG3.md#050930-a-test-that-drives-the-real-window-and-the-logs-third-part)
+- **What a screen reader is told is asked of Windows.** A test asks Windows' accessibility interface (MSAA) for the
+  name of each control, as a screen reader does; the code is compiled with `COBJMACROS` so that such a call keeps
+  one level of dereferencing, and the test holds the id of `IAccessible` itself, since the compiler's library gives
+  a wrong one.
+  [2026-11-10 05:21:07](DEVLOG/DEVLOG3.md#052107-the-names-a-screen-reader-is-told-asked-of-windows-66-of-86)
 - **The layout is tested without a window.** The accessibility tests measure `layout.c` and `palette.c` at the
   smallest window, 960 by 560, so they run in the build without Win32.
   [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
@@ -310,7 +393,9 @@ an earlier one, the earlier one is named after it, with its own link.
 
 - **repo_template's documents, without its setup.** `.claude/skills/project-setup` is not copied: the project is set
   up. [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
-- **`sitrep.md` stays in the main folder,** as Rule 14 now allows.
+- **The instructions, the answers and the sitrep are in `sitrep&instructions/`,** with the pictures of the trial,
+  a folder of 7 files. Replaced: `sitrep.md` stays in the main folder, as Rule 14 allowed.
+  [2026-11-10 04:21:27](DEVLOG/DEVLOG3.md#042127-the-instructions-in-a-folder-of-their-own-pictures-as-documents-and-a-night-stopped-by-the-usage-limit)
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
 - **The checklist of accessibility is `.github/ACCESSIBILITY.md`,** repo_template's file of that name, since
   `documentation/` holds the 7 files that Rule 14 allows and Rule 15 allows one file of a name.

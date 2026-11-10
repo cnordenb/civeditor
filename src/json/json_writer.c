@@ -103,7 +103,7 @@ static void start_item(JsonWriter *writer, const char *key)
     }
 }
 
-static void open_container(JsonWriter *writer, const char *key, char bracket)
+void json_begin(JsonWriter *writer, const char *key, char bracket)
 {
     if (!CHECK(writer != NULL) || !CHECK((bracket == '{') || (bracket == '['))) {
         return;
@@ -120,7 +120,7 @@ static void open_container(JsonWriter *writer, const char *key, char bracket)
     ++writer->depth;
 }
 
-static void close_container(JsonWriter *writer, char bracket)
+void json_end(JsonWriter *writer, char bracket)
 {
     if (!CHECK(writer != NULL) || !CHECK(writer->depth > 0)) {
         if (writer != NULL) {
@@ -144,38 +144,6 @@ void json_writer_start(JsonWriter *writer)
     writer->depth = 0;
     writer->failed = false;
     writer->data[0] = '\0';
-}
-
-void json_begin_object(JsonWriter *writer, const char *key)
-{
-    if (!CHECK(writer != NULL) || !CHECK(writer->depth < JSON_WRITER_DEPTH)) {
-        return;
-    }
-    open_container(writer, key, '{');
-}
-
-void json_end_object(JsonWriter *writer)
-{
-    if (!CHECK(writer != NULL) || !CHECK(writer->depth > 0)) {
-        return;
-    }
-    close_container(writer, '}');
-}
-
-void json_begin_array(JsonWriter *writer, const char *key)
-{
-    if (!CHECK(writer != NULL) || !CHECK(writer->depth < JSON_WRITER_DEPTH)) {
-        return;
-    }
-    open_container(writer, key, '[');
-}
-
-void json_end_array(JsonWriter *writer)
-{
-    if (!CHECK(writer != NULL) || !CHECK(writer->depth > 0)) {
-        return;
-    }
-    close_container(writer, ']');
 }
 
 void json_write_string(JsonWriter *writer, const char *key, const char *value)

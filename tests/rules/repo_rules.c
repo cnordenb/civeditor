@@ -9,13 +9,13 @@
 enum {
     FOLDER_FILE_LIMIT = 7,
     ROOT_FILE_LIMIT = 8,
-    ALLOWED_SUFFIX_COUNT = 8,
+    ALLOWED_SUFFIX_COUNT = 9,
     SUFFIX_WIDTH = 16,
     NAME_CAPACITY = 128
 };
 
 static const char ALLOWED_SUFFIXES[ALLOWED_SUFFIX_COUNT][SUFFIX_WIDTH] = {
-    ".c", ".h", ".md", ".txt", ".json", "LICENSE", ".gitignore", ".gitattributes"
+    ".c", ".h", ".md", ".txt", ".json", ".png", "LICENSE", ".gitignore", ".gitattributes"
 };
 
 static RepoFiles files;
@@ -205,7 +205,7 @@ bool repo_placeholders_are_filled(void)
         return false;
     }
     for (index = 0; (index < files.count) && (index < REPO_FILE_CAPACITY); ++index) {
-        if (!repo_path_has_suffix(files.paths[index], ".md") || text_equal(files.paths[index], "instructions.md")) {
+        if (!repo_path_has_suffix(files.paths[index], ".md")) {
             continue;
         }
         if (document_has_placeholder(files.paths[index])) {

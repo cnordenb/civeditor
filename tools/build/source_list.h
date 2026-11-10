@@ -20,6 +20,9 @@ typedef struct {
 } SourceList;
 
 bool source_list_collect(SourceList *list, const char *root, const char *extension);
+bool source_list_collect_all(SourceList *list, const char *extension);
+bool source_in_tests(const char *path);
+const char *source_test_libraries(void);
 long long source_list_newest(const SourceList *list);
 long long source_file_modified(const char *path);
 

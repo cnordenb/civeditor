@@ -59,20 +59,24 @@ static const Binding BINDINGS[CONTROL_COUNT] = {
 
 static const char TREE_KIND_NAMES[TREE_KIND_COUNT][KIND_NAME_WIDTH] = { "Unit: ", "Building: ", "Tech: " };
 
+static const Binding *binding_of(ControlId control)
+{
+    static const Binding NONE = { SOURCE_NONE, NO, NO, NO };
+
+    if (!CHECK((int)control >= 0) || !CHECK(control < CONTROL_COUNT)) {
+        return &NONE;
+    }
+    return &BINDINGS[control];
+}
+
 int binding_text_field(ControlId control)
 {
-    if (!CHECK((int)control >= 0) || !CHECK(control < CONTROL_COUNT)) {
-        return BINDING_NO_FIELD;
-    }
-    return BINDINGS[control].text_field;
+    return binding_of(control)->text_field;
 }
 
 ListSource binding_source(ControlId control)
 {
-    if (!CHECK((int)control >= 0) || !CHECK(control < CONTROL_COUNT)) {
-        return SOURCE_NONE;
-    }
-    return BINDINGS[control].source;
+    return binding_of(control)->source;
 }
 
 static int source_size(const Catalog *catalog, ListSource source)
@@ -147,6 +151,15 @@ static bool item_matches(const Catalog *catalog, ListItem item, const ListQuery 
     return text_contains_folded(row.text, query->filter);
 }
 
+static void add_row(ListModel *model, int item)
+{
+    if (!CHECK(model != NULL) || !CHECK(model->count >= 0) || (model->count >= LIST_ROW_CAPACITY)) {
+        return;
+    }
+    model->items[model->count] = item;
+    ++model->count;
+}
+
 bool list_model_fill(ListModel *model, const Catalog *catalog, const ListQuery *query)
 {
     ListItem item;
@@ -159,13 +172,11 @@ bool list_model_fill(ListModel *model, const Catalog *catalog, const ListQuery *
     item.control = query->control;
     size = source_size(catalog, BINDINGS[query->control].source);
     if (BINDINGS[query->control].source == SOURCE_HERO) {
-        model->items[0] = LIST_NO_ITEM;
-        model->count = 1;
+        add_row(model, LIST_NO_ITEM);
     }
     for (item.item = 0; (item.item < size) && (item.item < LIST_ROW_CAPACITY); ++item.item) {
-        if (item_belongs(catalog, item) && item_matches(catalog, item, query) && (model->count < LIST_ROW_CAPACITY)) {
-            model->items[model->count] = item.item;
-            ++model->count;
+        if (item_belongs(catalog, item) && item_matches(catalog, item, query)) {
+            add_row(model, item.item);
         }
     }
     return true;

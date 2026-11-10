@@ -1,3 +1,98 @@
+# Sitrep, 2026-11-10 07:03
+
+Nothing is committed and nothing is deleted. `build.exe` runs the analyzer, which finds nothing, and 100 tests (54
+functional, 22 accessibility, 24 maintainability): all pass. The task is not finished: see "Not done".
+
+## What happened in the night
+
+- **The usage limit took most of it.** At 22:30 the remaining work was started as six parallel streams in private
+  copies of the tree. The 5-hour usage limit was reached at 22:35, and again at 23:24 after it reset at 23:10.
+  Nothing could run until 04:10. The streams were then stopped, as you ordered, and the work went on alone, one
+  change at a time. The streams left nothing worth keeping.
+- Everything below was done between 04:11 and 07:03. The log of it is the day 2026-11-10 in
+  `documentation/DEVLOG/DEVLOG3.md`, a new part.
+
+## What is new
+
+1. **The three tools of ub-mode exist, in C,** built by `build.exe` and run by hand after it:
+   - `build\crapper.exe` (Rule 32, with gcc's own gcov): 323 of 964 functions are at CRAP 10 or above, about 200 of
+     them not run by any test. The worst is `describe_build` in `dialogs.c`, at 552. `build\crap.txt` lists them all.
+   - `build\dryer.exe` (Rule 31): 66 pairs of functions are 80% alike or more, most of them wholly, such as the six
+     `catalog_find_...` functions. `build\dry.txt` lists the pairs from 60%.
+   - `build\mutator.exe src/<folder>/` (Rule 34), twelve mutants at a time: on all of `src/` but `src/win/`, in 20
+     minutes, 4372 mutants, 2334 killed, 2018 survived, and 2547 more places on lines that the tests without
+     a window do not run (877 in `src/forge/`). It runs the tests without those of the real window, which are
+     slow when twelve run at once.
+   - So Rules 31, 32 and 34 are measured now, and none of them holds.
+2. **The real window is tested, without being shown.** `app_open` makes it; Tests 61 to 71 and 74 to 76 drive it by
+   messages and ask Windows what the keyboard and a screen reader would get. They never take the keyboard or the mouse.
+3. **A bug found and mended: the Tab key was trapped** in the fields of several lines (Description, and the
+   description of the unique unit). Test 68 found it; the window now moves the focus on.
+4. **Bugs 1 and 2 of your trial have tests** (Tests 64 and 75): a ticked row leaves the list where it was
+   scrolled, and it is drawn with a check, not a filled box.
+5. **Every control has help:** F1, or Help in the menu, says in the status line what the control in focus is for.
+   The status line is told to a screen reader as it changes (a polite live region). The text and the layout
+   follow the text size of Windows' accessibility settings, as well as the display's scale. Glossary in the menu
+   Help explains the game's words and the catalog's shortened forms (HP, LOS, vs. and the like). The control in
+   focus has a solid frame of two pixels, drawn by the window.
+6. **The accessibility checklist has 82 of 86 ticked,** up from 46: most by the new tests, seven by a reading
+   of all 144 texts of the window, two because they are about markup. The menu's "Previous step" became "Back", and
+   two labels were made to stand alone ("Description of the unique unit", "The selected unit").
+7. **Question 8 of 10:51 is carried out as proposed:** in the tech tree file, a node the replaced civ lacked
+   takes the status most civs give it; 13 nodes, such as the Hand Cannoneer and the Keep, are written as still to be
+   researched. Question 9 is answered another way: the glossary explains the shortened forms.
+8. The test of what the project holds lets the pictures of the trial pass (`.png` counts as a document), and
+   the paths of the moved files are mended in `AGENTS.md`, `MAINTAINER.md` and `TESTS.md`.
+
+## Not done
+
+- **The original's features that were missing are still missing:** the 22 civ bonuses that Build skips, the Royal
+  tiers, a bonus's multiplier, custom unique units, language and voices, the hero's description, flags and
+  overrides. Of the nine questions of 10:51 below, only 8 was carried out as proposed; 5 (the six civs with gaps)
+  and 7 (reflow) were not.
+- **Bugs 4 to 6 are still untried in the game,** and their mending was not read again.
+- No function was brought below CRAP 10, no pair of alike functions was made one, and no surviving mutant was
+  killed on purpose: the tools measure, and what they found is still to be mended.
+- 4 boxes of the checklist are unticked: reflow in a narrow window (1.4.10) and, with it, the text size at 200% on
+  a small screen (1.4.4); the look of blocks of text (1.4.8); and the reading level of the catalog's 394
+  descriptions (3.1.5).
+- No screen reader was tried, and the window was not tried by hand after the changes.
+
+## Questions to answer now
+
+The nine questions of 10:51 below are still open. New, each with a proposal:
+
+1. **Pictures in Rule 25.** Proposal: add `*.png` to Rule 25, as its test now allows it.
+2. **Rule 5 against Rules 32 and 34.** All 100 tests are used, each of one check; 323 functions are at CRAP
+   10 or above and 2018 mutants survive. Proposal: say which gives way.
+3. **Checks as branches.** The crapper counts the branches of `CHECK`, and the mutator mutates them; with P10's two
+   checks and doubled loop bound a small function has a complexity of 9, and such mutants cannot be killed while
+   the checks hold. Proposal: keep counting them in the crapper, split functions, and let the mutator list mutants
+   "of a check or a bound" apart.
+4. **A gate.** Proposal: `build.exe` runs the crapper and the dryer and fails on them from the day each finds
+   nothing.
+5. **Parallel work.** One usage period carried about fourteen minutes of ten pieces of work at once. Proposal: one
+   change at a time, unless you know the limit allows more.
+6. **"Read" as evidence.** Seven boxes are ticked because every text was read on 2026-11-10. Proposal: that counts
+   until a test can take its place.
+7. **A window in the tests.** The tests make a real window, hidden; on a machine without a desktop they would fail.
+   Proposal: keep it, since the tests are run by hand before a push.
+8. **Small functions alike by their form.** Many of the 66 pairs are thin functions of two checks and one call,
+   such as `json_begin_object` and `json_begin_array`. Proposal: say whether those are one decision in two places.
+
+## How to test what is new
+
+1. `build.exe`, then `build\crapper.exe`, `build\dryer.exe` and `build\mutator.exe src/base/` (half a minute).
+   Do not build while the mutator runs.
+2. In `build\civbuilder.exe`: on "Identity", put the cursor in "Description" and press Tab: the focus must move
+   on, and Shift+Tab must move it back. The control in focus should have a dark frame around it; press F1 and read
+   the status line; open Help, Glossary. The menu Go says "Next" and "Back". On "Unique unit" the labels read
+   "Description of the unique unit" and "The selected unit".
+3. With Narrator on, each control should be read with its label, and a ticked row as selected; Test 64 and Test
+   65 say that Windows reports it so.
+4. In the game: everything under "In the game" of 10:51 below still waits.
+---
+
 # Sitrep, 2026-11-09 10:51
 
 Nothing is committed and nothing is deleted; the work is in the working tree for review. The answers in

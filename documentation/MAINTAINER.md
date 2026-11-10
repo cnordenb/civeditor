@@ -50,7 +50,7 @@ only by handing a `Command` to `history_do`, so that every change can be undone.
 | `src/json/` | Writing JSON (`json_writer.c`), reading it (`json_reader.c`, `json_string.c`), and changing values in a JSON text while the rest stays byte for byte as it was (`json_patch.c`). |
 | `src/persist/` | Civ files: `civ_file_write.c` writes `empireforge_v2`, `civ_file_read.c` reads it and `civbuilder_v1`. |
 | `src/data/` | Reading tab-separated text (`tsv.c`), the catalog in `data/` (`catalog.c`) and finding in it (`catalog_lookup.c`). |
-| `src/view/` | What the window shows, without Win32: the nine steps (`wizard.c`), where each control goes (`layout.c`), the colors (`palette.c`). |
+| `src/view/` | What the window shows, without Win32: the nine steps (`wizard.c`), where each control goes (`layout.c`), the help of each control and the glossary (`control_help.c`), the colors (`palette.c`). |
 | `src/present/` | What each control shows and what picking in it changes (`binding.c`), the review (`summary.c`), the text beside a list and the window's title (`details.c`). |
 | `src/pack/` | Unpacking raw deflate (`inflate.c`, `huffman.c`) and packing in stored blocks (`deflate_store.c`). `inflate.h` holds the tables of deflate's codes. |
 | `src/deflate/` | Compressing the mod's dat file with deflate (`deflate.c`), writing the bits with `bit_writer.c`. |
@@ -63,17 +63,19 @@ only by handing a `Command` to `history_do`, so that every change can be undone.
 | `src/hero/` | Making the civ's hero: finding its unit, training it at the Castle and making it available in the Imperial Age (`hero_build.c`). |
 | `src/civlist/` | The civ list, `civilizations.json`: finding a slot's entry and writing it anew with the civ's unique techs, unique unit and description id (`civ_list.c`). |
 | `src/techtree/` | The civ's tech tree file, `CivTechTrees\<name>.json`: the game's file with each node of the catalog set to what the design has (`tech_tree.c`), read and written by `tech_tree_file.c`. |
-| `src/win/` | The only Win32 code: `winmain.c` starts it, `app_window.c` is the window, `controls.c` makes and draws controls, `sync.c` keeps them in step with the design, `dialogs.c` opens and saves files and builds the mod. `win_parts.h` holds what they share. |
+| `src/win/` | The only Win32 code: `winmain.c` starts it, `app_window.c` is the window, `controls.c` makes and draws controls, `assist.c` holds what the window does for accessibility (the text size of Windows, the focus frame, help in the status line, the status line marked for screen readers), `sync.c` keeps them in step with the design, `dialogs.c` opens and saves files and builds the mod. `win_parts.h` holds what they share. |
 | `data/` | The catalog, seven tab-separated text files; see [The catalog files](#the-catalog-files). |
 | `tests/` | The test runner (`runner.c`) and the tests, by kind; see [Tests](#tests). |
-| `tools/build/` | The build program. |
+| `tools/build/` | The build program. `source_list.c` says which folders hold code and which files make the test program. |
+| `tools/mutate/` | The mutator, `build\mutator.exe`: every mutant of `src/` that the tests do not catch (Rule 34). `mutant_sites.c` finds the places to change, `mutation_run.c` builds and runs one mutant, `mutator.c` shares the work among twelve workers and reports. |
+| `tools/dry/` | The dryer, `build\dryer.exe`: every two functions that are 80% alike or more (Rule 31). `dry_shape.c` takes a function's shape and ranks two shapes, `dryer.c` compares and reports. |
+| `tools/crap/` | The crapper, `build\crapper.exe`: the CRAP score of every function (Rule 32). `cover_build.c` builds and runs the tests with coverage, `crap_cover.c` reads gcov, `crap_score.c` counts complexity and scores, `crapper.c` reports. |
 | `documentation/` | This guide, `RULES.md`, `REQUIREMENTS.md`, `TESTS.md`, `DECISIONS.md`, `TERMINOLOGY.md`, `DELETION_REQUESTS.md`, and the development log in `DEVLOG/`. |
 | `README.md` | Introduces the project. |
 | `LICENSE` | The GPL-3.0, under which anyone may use the project. |
 | `AGENTS.md` | What an AI agent must know before it changes anything here: what to read first, what it must never do, and when a change is done. |
 | `CLAUDE.md` | The same for Claude Code, which reads this file by itself. It loads `AGENTS.md` and `RULES.md`. |
-| `instructions.md` | The task civbuilder was made for, and its limits: C and Win32 only, P10, no deletions. |
-| `sitrep.md` | The questions put to the chief developer on 2026-11-09, and how to test the project as it was then. |
+| `sitrep&instructions/` | `instructions.md`, the task civbuilder was made for and its limits (C and Win32 only, P10, no deletions); `instructions_2.md`, the answers to the first questions and the trial in the game, with its four pictures; `sitrep.md`, the questions put to the chief developer and how to test the project. |
 | `.claude/settings.json` | What Claude Code is refused here: committing, pushing, deleting files and changing `REQUIREMENTS.md`. |
 | `.claude/skills/` | Step-by-step procedures for AI agents, one folder each, such as how to write the development log. |
 | `.github/` | What GitHub shows contributors: how to contribute, report a bug or a security hole, the pull request form, and the WCAG 2.2 checklist of Requirement 4 (`ACCESSIBILITY.md`). |
@@ -141,8 +143,10 @@ into the same field join one change (`command_joins`), so one undo takes back a 
 1. **Name it.** Add a `CONTROL_...` to `ControlId` in `src/view/layout.h`, before `CONTROL_COUNT`.
 2. **Place it.** Add its line to `SPECS` in `layout.c`, in the same place: its step, kind, column, height and label.
    The accessibility tests then check that it is labelled, large enough, and does not overlap another.
-3. **Bind it.** Add its line to `BINDINGS` in `src/present/binding.c`: the text field, choice or list it shows.
-4. **Build and test**, then look at the step in `build\civbuilder.exe`.
+3. **Explain it.** Add its help to `HELP_TEXTS` in `src/view/control_help.c`, at the same place: one or two plain
+   sentences, which F1 shows in the status line. A test fails if a control one acts on has none.
+4. **Bind it.** Add its line to `BINDINGS` in `src/present/binding.c`: the text field, choice or list it shows.
+5. **Build and test**, then look at the step in `build\civbuilder.exe`.
 
 ### The catalog files
 
@@ -157,7 +161,7 @@ program looks for `data` next to itself, one folder up, and in the folder it was
 | `team_bonuses.txt` | id, description, the game's effect that makes it | `0	Relics generate +33% gold	488` |
 | `units.txt` | role (`V` the game's own, `C` custom, `H` hero), id, name, food, wood, stone, gold, hit points, attack, melee armor, pierce armor, range, speed, reload, make-available tech, elite tech | `V	0	Longbowman	0	35	0	40	35	6	0	0	5	0.96	2	263	360` |
 | `techs.txt` | tier (`castle`, `imperial`), id, name, description, food, wood, stone, gold, time, the game's tech it is copied from | `castle	2	Yeomen	...	0	750	0	450	60	3` |
-| `tree.txt` | kind (`unit`, `building`, `tech`), id, name, age, building, parent, lane, whether it is a universal, regional or unique node, the slots of the civs that have it in the game | `unit	185	Slinger	3	87	-	4	regional	21,58,57,59` |
+| `tree.txt` | kind (`unit`, `building`, `tech`), id, name, age, building, parent, lane, whether it is a universal, regional or unique node, the slots of the civs that have it in the game, and `required` or `completed`: the status most civs of the game give it | `unit	185	Slinger	3	87	-	4	regional	21,58,57,59` |
 | `bonus_effects.txt` | kind (`civ`, `team`), bonus id, entry, the techs it needs, then a change: type, a, b, c, d; or kind `unit`, bonus id, unit, the field's place in the unit, its type (`u8`, `i16`, `f32`), its value | `civ	55	0	102	4	-1	12	8	769.0`, `unit	330	50	29	f32	1.0` |
 
 Ids of `civ` in `appearance.txt` are the game's civ numbers, its slots: 1 is the Britons. A civ file counts the civ of
@@ -245,7 +249,8 @@ are changed with `json_patch.c`: each change replaces one value, and every other
 The game draws its tech tree screen from `CivTechTrees\<name>.json`, not from the dat file. The data mod's copy is
 the game's file of the replaced civ, `<name>` being its `tech_tree_name` in `civilizations.json`, such as `BRITONS`.
 Each node of it that `tree.txt` holds is set to the design (`tech_tree_write` in `tech_tree.c`): `NotAvailable` when
-the design lacks it, `ResearchedCompleted` when the design has it and the replaced civ had not; the other nodes, such
+the design lacks it; when the design has it and the replaced civ had not, `ResearchRequired` if the node's line in
+`tree.txt` ends in `required`, as for the Keep or the Hand Cannoneer, else `ResearchedCompleted`; the other nodes, such
 as the unique ones, stay as they were. A node the design has keeps the game's status, so a Keep still needs its
 research. Nodes are matched by their `Use Type` and `Node ID` together, since an id such as 875 is both a unit and a
 tech.
@@ -335,6 +340,14 @@ and its tech tree in `tests/mod/` and of base civs in `tests/base/`), then the a
 them as they run. No test needs the game: the tests of the data file build a small one in memory, and those of the
 tech tree a small tree. [TESTS.md](TESTS.md) lists every test by that number. A test is a `case` in the `switch` of
 its suite, such as `functional_suite.c`; a suite's groups, such as `run_base_test`, keep each `switch` within 60 lines.
+The tests of the tools, such as the crapper's, are the group `run_tool_test` of `maintainability_suite.c`.
+
+The test program also holds `src/win/`, so a test can drive the real window: `tests/accessibility/window_tests.c` calls
+`app_open` (`app_window.c`), which makes the window and its controls without showing it, sends it the commands of the
+menu, asks Windows for the Tab order, and destroys it; `draw_tests.c` has the window draw a row into a picture in
+memory and reads the picture. Such a test must never show the window, send keys or move the
+mouse, and must not open a dialog. The libraries the window needs are named once, in `source_test_libraries`
+(`tools/build/source_list.c`).
 
 There may be at most 100 tests. When you add, change or remove one, update `TESTS.md`.
 
@@ -349,7 +362,21 @@ There may be at most 100 tests. When you add, change or remove one, update `TEST
 - A change of behaviour starts with a test that fails, and then the smallest change that makes it pass (Rule 33).
 - Each test must catch a broken line of the code it guards (Rule 34). To see that it does, swap one operator in that
   code, such as `<` for `<=`, `&&` for `||` or `==` for `!=`, run `build.exe quick`, see the test fail, and undo the
-  swap. No tool does this yet.
+  swap. `build\mutator.exe src/model/` does it for every operator and constant of a folder or a file of `src/`, after
+  `build.exe`: it prints the mutants that survived and writes all of them to `build\mutants.txt`, each with `K`
+  (killed), `S` (survived), `N` (did not compile), `T` (ended after 30 seconds) or `U` (on a line no test runs).
+  Without a folder it takes all of `src/`, which takes long. Do not build while it runs. It leaves `src/win/` out and
+  runs the tests without those of the real window (`build\tests.exe nowindow`), which are slow when many run at once;
+  check a change of `src/win/` by breaking it by hand and running `build.exe quick`.
+- Keep each function's CRAP score below 10 (Rule 32). After `build.exe`, run `build\crapper.exe`: it builds the tests
+  once more with coverage in `build\cover\`, runs them, prints every function at 10 or above and writes all of them
+  to `build\crap.txt`, the worst first, as `score  CC complexity  covered taken of branches  file:line  function`.
+  To bring a function down, split it into smaller ones or have a test run the branches it misses. Many functions
+  are still above 10; do not add to them.
+- Do not write a function twice (Rule 31). After `build.exe`, run `build\dryer.exe`: it prints every two functions
+  that are 80% alike or more, as `rank  file:lines function  file:lines function`, and writes those at 60% or more
+  to `build\dry.txt`. Names do not count, only what is called and how the code is built. Make one function of the
+  two, with what differs as an argument. Pairs are still listed; do not add to them.
 - Only C and the Win32 API. Nothing is deleted; list it in `DELETION_REQUESTS.md`.
 - `REQUIREMENTS.md` defines what the project does, and only the chief developer may change it.
 - Record what you change, and why, in the last part of `documentation/DEVLOG/`, under the day's date, and list any

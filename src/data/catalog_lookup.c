@@ -51,30 +51,20 @@ int catalog_find_look(const Catalog *catalog, AppearanceKind kind, int id)
     return CATALOG_MISSING;
 }
 
-int catalog_find_bonus(const Catalog *catalog, int bonus_id)
+int catalog_find_bonus(const Catalog *catalog, bool team, int bonus_id)
 {
+    const BonusEntry *entries;
+    int count;
     int index;
 
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->bonus_count <= CATALOG_BONUS_CAPACITY)) {
+    if (!CHECK(catalog != NULL) || !CHECK(catalog->bonus_count <= CATALOG_BONUS_CAPACITY) ||
+        !CHECK(catalog->team_bonus_count <= CATALOG_TEAM_BONUS_CAPACITY)) {
         return CATALOG_MISSING;
     }
-    for (index = 0; (index < catalog->bonus_count) && (index < CATALOG_BONUS_CAPACITY); ++index) {
-        if (catalog->bonuses[index].id == bonus_id) {
-            return index;
-        }
-    }
-    return CATALOG_MISSING;
-}
-
-int catalog_find_team_bonus(const Catalog *catalog, int bonus_id)
-{
-    int index;
-
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->team_bonus_count <= CATALOG_TEAM_BONUS_CAPACITY)) {
-        return CATALOG_MISSING;
-    }
-    for (index = 0; (index < catalog->team_bonus_count) && (index < CATALOG_TEAM_BONUS_CAPACITY); ++index) {
-        if (catalog->team_bonuses[index].id == bonus_id) {
+    entries = team ? catalog->team_bonuses : catalog->bonuses;
+    count = team ? catalog->team_bonus_count : catalog->bonus_count;
+    for (index = 0; (index < count) && (index < CATALOG_BONUS_CAPACITY); ++index) {
+        if (entries[index].id == bonus_id) {
             return index;
         }
     }

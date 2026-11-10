@@ -11,8 +11,7 @@ Rule 3: Must be as easy as possible for humans to maintain with as few steps as 
 
 Rule 4: Must have tests to ensure the project still works every push.
 
-Rule 5: Maximum number of tests is 100. Rule 4 can be overlooked for the sake of keeping this rule. However, a new test
-may replace an old test if deemed more valuable.
+Rule 5: A test may test one thing and one thing only. A test must serve one of the following purposes: requirement coverage, regression testing for previously found bugs.
 
 Rule 6: Tests will be documented, without excess clutter, text or story-telling, in TESTS.md.
 
@@ -65,14 +64,14 @@ relevant DEVLOG where each was made.
 Rule 24: A test makes one check and tests one thing only. A test is written only to cover a requirement or to catch
 again a bug that was found before (a regression test); no test is written for its own sake.
 
-Rule 25: The following is not considered code (contingent on rules 10-13): *.md, *.json, *.txt
+Rule 25: The following is not considered code (contingent on rules 10-13): *.md, *.json, *.txt, *.png
 
 Rule 26: The code follows the rules of "The Power of 10: Rules for Developing Safety-Critical Code" (Gerard J.
-Holzmann, P10).
+Holzmann, P10) unless doing so contradicts ub-mode.
 
-Rule 27: The design follows "Head First Design Patterns" (Eric Freeman and Elisabeth Robson).
+Rule 27: The design follows "Head First Design Patterns" (Eric Freeman and Elisabeth Robson) unless doing so contradicts ub-mode.
 
-Rule 28: The code follows "Clean Code" (Robert C. Martin).
+Rule 28: The code follows "Clean Code" (Robert C. Martin) unless doing so contradicts ub-mode.
 
 Rule 29: The code is C (C11), and its only dependency is the Win32 API. No other language, framework or dependency is
 used; in particular no Python, JavaScript, CSS or HTML. Data and documents (Rule 25) are not code.

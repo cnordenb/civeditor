@@ -102,12 +102,23 @@ static void run_category(int category, TestTally *tally)
     }
 }
 
-int main(void)
+static bool window_left_out;
+
+bool test_window_is_left_out(void)
+{
+    if (!CHECK(CATEGORY_COUNT > 0) || !CHECK(LINE_CAPACITY > 0)) {
+        return false;
+    }
+    return window_left_out;
+}
+
+int main(int argc, char *argv[])
 {
     TestTally tally = { 0, 0 };
     char summary[LINE_CAPACITY] = "";
     int category;
 
+    window_left_out = (argc > 1) && text_equal(argv[1], "nowindow");
     for (category = 0; category < CATEGORY_COUNT; ++category) {
         run_category(category, &tally);
     }

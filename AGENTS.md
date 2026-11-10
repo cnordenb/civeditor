@@ -3,9 +3,12 @@
 civbuilder: designs a new civilization for Age of Empires II: Definitive Edition and builds it into a mod, in C with
 the Win32 API.
 
-- Stack: C11, the Win32 API, gcc from MinGW-w64; nothing else (`instructions.md`)
+- Stack: C11, the Win32 API, gcc from MinGW-w64; nothing else (`sitrep&instructions/instructions.md`)
 - Build the build program once: `gcc -o build.exe tools/build/*.c src/core/*.c`
 - Build and run the tests: `build.exe` (with the static analyzer) or `build.exe quick`
+- Measure Rule 32 after a build: `build\crapper.exe` lists every function at CRAP 10 or above (`build\crap.txt`)
+- Measure Rule 31 after a build: `build\dryer.exe` lists every two functions 80% alike or more (`build\dry.txt`)
+- Measure Rule 34 after a build: `build\mutator.exe src/<folder>/` lists the mutants that survive (`build\mutants.txt`)
 
 ## Read before changing anything
 
@@ -15,7 +18,7 @@ the Win32 API.
 4. The newest part of `documentation/DEVLOG/`: what was done last, what was left undone, and the open questions.
 5. `documentation/DECISIONS.md`: what has been decided. Do not reopen a decision without a new reason.
 6. `documentation/MAINTAINER.md`, when the change touches code: how the code works.
-7. `instructions.md`: P10, Head First Design Patterns and Clean Code are followed, and only C and Win32 are used.
+7. `sitrep&instructions/instructions.md`: P10, Head First Design Patterns and Clean Code are followed, and only C and Win32 are used.
 
 ## Never
 

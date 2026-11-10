@@ -114,7 +114,7 @@ static void add_bonuses(DetailText *detail, const CivDesign *design, const Catal
     add_number(detail, design->bonus_count);
     add(detail, " of 24 chosen.\r\n");
     for (pick = 0; (pick < design->bonus_count) && (pick < CIV_BONUS_CAPACITY); ++pick) {
-        found = catalog_find_bonus(catalog, design->bonuses[pick].id);
+        found = catalog_find_bonus(catalog, false, design->bonuses[pick].id);
         add(detail, "\r\n- ");
         add(detail, (found == CATALOG_MISSING) ? "a bonus not in the catalog" : catalog->bonuses[found].description);
     }
@@ -128,7 +128,7 @@ static void add_team_bonus(DetailText *detail, const CivDesign *design, const Ca
         return;
     }
     if (design->team_bonus_count > 0) {
-        found = catalog_find_team_bonus(catalog, design->team_bonuses[0].id);
+        found = catalog_find_bonus(catalog, true, design->team_bonuses[0].id);
     }
     add(detail, (found == CATALOG_MISSING) ? "No team bonus is selected yet."
                                            : catalog->team_bonuses[found].description);

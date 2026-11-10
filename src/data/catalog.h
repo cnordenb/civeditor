@@ -123,6 +123,7 @@ typedef struct {
     int parent;
     int lane;
     bool universal;
+    bool needs_research;
     uint64_t civs;
 } TreeEntry;
 
@@ -196,8 +197,7 @@ const char *catalog_category_name(BonusCategory category);
 const char *catalog_appearance_name(const Catalog *catalog, AppearanceKind kind, int id);
 int catalog_string_id(const Catalog *catalog, int slot, CivString kind);
 int catalog_find_look(const Catalog *catalog, AppearanceKind kind, int id);
-int catalog_find_bonus(const Catalog *catalog, int bonus_id);
-int catalog_find_team_bonus(const Catalog *catalog, int bonus_id);
+int catalog_find_bonus(const Catalog *catalog, bool team, int bonus_id);
 int catalog_find_unit(const Catalog *catalog, UnitRole role, int unit_id);
 int catalog_find_tech(const Catalog *catalog, TechTier tier, int tech_id);
 int catalog_find_tree(const Catalog *catalog, TreeKind kind, int node_id);

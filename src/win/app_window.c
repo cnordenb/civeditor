@@ -6,7 +6,7 @@
 
 enum {
     MESSAGE_LIMIT = 2147483647,
-    FIXED_KEY_COUNT = 8,
+    FIXED_KEY_COUNT = 9,
     KEY_COUNT = FIXED_KEY_COUNT + STEP_COUNT,
     START_WIDTH = 1200,
     START_HEIGHT = 760,
@@ -26,7 +26,8 @@ static const ACCEL FIXED_KEYS[FIXED_KEY_COUNT] = {
     { FCONTROL | FVIRTKEY, 'Z', ACTION_ID_BASE + ACTION_UNDO },
     { FCONTROL | FVIRTKEY, 'Y', ACTION_ID_BASE + ACTION_REDO },
     { FCONTROL | FSHIFT | FVIRTKEY, 'Z', ACTION_ID_BASE + ACTION_REDO },
-    { FCONTROL | FVIRTKEY, 'B', ACTION_ID_BASE + ACTION_BUILD }
+    { FCONTROL | FVIRTKEY, 'B', ACTION_ID_BASE + ACTION_BUILD },
+    { FVIRTKEY, VK_F1, ACTION_ID_BASE + ACTION_HELP }
 };
 
 static HACCEL make_accelerators(void)
@@ -67,8 +68,8 @@ static HMENU make_go_menu(void)
     if (!CHECK(go != NULL) || !CHECK(STEP_COUNT > 0)) {
         return go;
     }
-    add_item(go, ACTION_NEXT, L"&Next step\tCtrl+Page Down");
-    add_item(go, ACTION_BACK, L"&Previous step\tCtrl+Page Up");
+    add_item(go, ACTION_NEXT, L"&Next\tCtrl+Page Down");
+    add_item(go, ACTION_BACK, L"&Back\tCtrl+Page Up");
     (void)AppendMenuW(go, MF_SEPARATOR, 0, NULL);
     for (step = 0; step < STEP_COUNT; ++step) {
         text[0] = '&';
@@ -91,8 +92,9 @@ static HMENU make_menu(void)
     HMENU file = CreatePopupMenu();
     HMENU edit = CreatePopupMenu();
     HMENU go = make_go_menu();
+    HMENU help = CreatePopupMenu();
 
-    if (!CHECK(bar != NULL) || !CHECK((file != NULL) && (edit != NULL) && (go != NULL))) {
+    if (!CHECK(bar != NULL) || !CHECK((file != NULL) && (edit != NULL) && (go != NULL) && (help != NULL))) {
         return bar;
     }
     add_item(file, ACTION_OPEN, L"&Open civ file...\tCtrl+O");
@@ -105,6 +107,9 @@ static HMENU make_menu(void)
     (void)AppendMenuW(bar, MF_POPUP, (UINT_PTR)file, L"&File");
     (void)AppendMenuW(bar, MF_POPUP, (UINT_PTR)edit, L"&Edit");
     (void)AppendMenuW(bar, MF_POPUP, (UINT_PTR)go, L"&Go");
+    add_item(help, ACTION_HELP, L"&Help for this control\tF1");
+    add_item(help, ACTION_GLOSSARY, L"&Glossary...");
+    (void)AppendMenuW(bar, MF_POPUP, (UINT_PTR)help, L"&Help");
     return bar;
 }
 
@@ -138,7 +143,7 @@ static void go_to_step(WizardStep step, bool focus)
 
 static void move_in_history(bool undo)
 {
-    bool moved = undo ? history_undo(&app.history) : history_redo(&app.history);
+    bool moved = history_step(&app.history, undo);
 
     if (!CHECK(app.window != NULL) || !CHECK(app.history.past.count <= HISTORY_DEPTH) || !moved) {
         dialogs_status(&app, undo ? "There is nothing to undo." : "There is nothing to redo.");
@@ -156,10 +161,10 @@ static void run_action(int action)
     }
     switch (action) {
     case ACTION_NEXT:
-        go_to_step(wizard_next(app.step), true);
+        go_to_step(wizard_move(app.step, 1), true);
         break;
     case ACTION_BACK:
-        go_to_step(wizard_previous(app.step), true);
+        go_to_step(wizard_move(app.step, -1), true);
         break;
     case ACTION_SAVE:
         (void)dialogs_save(&app);
@@ -176,6 +181,12 @@ static void run_action(int action)
         break;
     case ACTION_EXIT:
         (void)PostMessageW(app.window, WM_CLOSE, 0, 0);
+        break;
+    case ACTION_HELP:
+        assist_show_help(&app);
+        break;
+    case ACTION_GLOSSARY:
+        dialogs_glossary(&app);
         break;
     default:
         go_to_step((WizardStep)(action - ACTION_FIRST_STEP), true);
@@ -213,6 +224,7 @@ static void on_command(WPARAM wparam, LPARAM lparam)
     if (!CHECK(identifier >= 0) || !CHECK(code >= 0)) {
         return;
     }
+    assist_follow_focus(&app);
     if ((lparam == 0) && (identifier >= ACTION_ID_BASE) && (identifier < ACTION_ID_BASE + ACTION_COUNT)) {
         run_action(identifier - ACTION_ID_BASE);
     } else if ((control >= 0) && (control < CONTROL_COUNT) && (code == BN_CLICKED) &&
@@ -267,6 +279,7 @@ static LRESULT paint_background(HWND window, HDC context)
         return 0;
     }
     (void)FillRect(context, &client, app.paper_brush);
+    assist_draw_focus(&app, context);
     return 1;
 }
 
@@ -315,6 +328,9 @@ static LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM wpara
         controls_refresh_style(&app);
         (void)InvalidateRect(window, NULL, TRUE);
         return 0;
+    case WM_NEXTDLGCTL:
+        assist_move_focus(&app, wparam, lparam);
+        return 0;
     case WM_CLOSE:
         if (dialogs_may_discard(&app)) {
             (void)DestroyWindow(window);
@@ -341,7 +357,7 @@ static bool register_class(HINSTANCE instance)
     window_class.hCursor = LoadCursorW(NULL, IDC_ARROW);
     window_class.hIcon = LoadIconW(NULL, IDI_APPLICATION);
     window_class.lpszClassName = CLASS_NAME;
-    return RegisterClassExW(&window_class) != 0;
+    return (RegisterClassExW(&window_class) != 0) || (GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
 }
 
 static int run_messages(void)
@@ -368,23 +384,27 @@ static int run_messages(void)
     return 0;
 }
 
-int app_run(HINSTANCE instance, int show)
+HWND app_open(HINSTANCE instance)
 {
-    HDC screen = GetDC(NULL);
-
     if (!CHECK(instance != NULL) || !register_class(instance)) {
-        return 1;
+        return NULL;
     }
     app.instance = instance;
-    app.dpi = (screen != NULL) ? GetDeviceCaps(screen, LOGPIXELSY) : LAYOUT_BASE_DPI;
-    (void)ReleaseDC(NULL, screen);
+    (void)SetProcessPreferredUILanguages(MUI_LANGUAGE_NAME, L"en-US\0", NULL);
+    (void)CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+    app.dpi = assist_dpi(NULL);
     app.bonus_category = LIST_ALL_CATEGORIES;
     history_start(&app.history);
     app.accelerators = make_accelerators();
     app.window = CreateWindowExW(WINDOW_EXTRA_STYLE, CLASS_NAME, L"civbuilder", WINDOW_STYLE, CW_USEDEFAULT,
                                  CW_USEDEFAULT, MulDiv(START_WIDTH, app.dpi, LAYOUT_BASE_DPI),
                                  MulDiv(START_HEIGHT, app.dpi, LAYOUT_BASE_DPI), NULL, make_menu(), instance, NULL);
-    if (!CHECK(app.window != NULL)) {
+    return app.window;
+}
+
+int app_run(HINSTANCE instance, int show)
+{
+    if (!CHECK(instance != NULL) || !CHECK(app_open(instance) != NULL)) {
         return 1;
     }
     (void)ShowWindow(app.window, show);

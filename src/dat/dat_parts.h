@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "dat_edit.h"
 #include "dat_map.h"
 
 enum {
@@ -42,6 +43,7 @@ bool dat_cursor_skip_text(DatCursor *cursor);
 bool dat_cursor_text(DatCursor *cursor, char *text, size_t capacity);
 
 DatSink dat_sink_over(unsigned char *bytes, size_t capacity, size_t length);
+bool dat_edit_patch_sunk(DatEdit *edit, size_t at, DatPatch *patch, const DatSink *sink);
 void dat_sink_u8(DatSink *sink, int value);
 void dat_sink_i16(DatSink *sink, int value);
 void dat_sink_i32(DatSink *sink, long value);

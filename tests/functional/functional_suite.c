@@ -219,6 +219,9 @@ static TestOutcome run_base_test(int index)
     case 14:
         return test_outcome_of("a civ keeps its villagers in the dat file",
                                test_a_civ_keeps_its_villagers_in_the_dat_file());
+    case 15:
+        return test_outcome_of("a building the replaced civ lacked takes the status most civs give it",
+                               test_a_building_the_replaced_civ_lacked_takes_its_usual_status());
     default:
         return test_outcome_missing();
     }

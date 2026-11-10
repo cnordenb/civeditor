@@ -46,8 +46,8 @@ static const ControlSpec SPECS[CONTROL_COUNT] = {
     { STEP_TEAM_BONUS, WIDGET_TEXT, PLACE_RIGHT, STRETCH, "The selected team bonus" },
     { STEP_UNIQUE_UNIT, WIDGET_LIST, PLACE_LEFT, STRETCH, "Units" },
     { STEP_UNIQUE_UNIT, WIDGET_LINE, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Name of the unique unit" },
-    { STEP_UNIQUE_UNIT, WIDGET_PARAGRAPH, PLACE_RIGHT, PARAGRAPH_HEIGHT, "Its description" },
-    { STEP_UNIQUE_UNIT, WIDGET_TEXT, PLACE_RIGHT, STRETCH, "Its base unit" },
+    { STEP_UNIQUE_UNIT, WIDGET_PARAGRAPH, PLACE_RIGHT, PARAGRAPH_HEIGHT, "Description of the unique unit" },
+    { STEP_UNIQUE_UNIT, WIDGET_TEXT, PLACE_RIGHT, STRETCH, "The selected unit" },
     { STEP_CASTLE_TECH, WIDGET_LIST, PLACE_LEFT, STRETCH, "Castle techs" },
     { STEP_CASTLE_TECH, WIDGET_LINE, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Name of the castle tech" },
     { STEP_CASTLE_TECH, WIDGET_TEXT, PLACE_RIGHT, STRETCH, "What it does" },
@@ -76,8 +76,8 @@ bool layout_shows(ControlId control, WizardStep step)
     if (!CHECK((int)control >= 0) || !CHECK(control < CONTROL_COUNT) || (step >= STEP_COUNT)) {
         return false;
     }
-    if (((control == CONTROL_NEXT) && (wizard_next(step) == step)) ||
-        ((control == CONTROL_BACK) && (wizard_previous(step) == step))) {
+    if (((control == CONTROL_NEXT) && (wizard_move(step, 1) == step)) ||
+        ((control == CONTROL_BACK) && (wizard_move(step, -1) == step))) {
         return false;
     }
     return (SPECS[control].step == STEP_COUNT) || (SPECS[control].step == step);
@@ -273,4 +273,22 @@ Box layout_label_box(ControlId control, int width, int height)
     column = column_of(control, width, height);
     return box_of(column.left, slot_top(control, column, stretch_height(control, column)), column.width,
                   LABEL_HEIGHT);
+}
+
+enum { TEXT_PERCENT_LEAST = 100, TEXT_PERCENT_MOST = 225 };
+
+int layout_text_dpi(int dpi, int text_percent)
+{
+    int percent = text_percent;
+
+    if (!CHECK(dpi > 0) || !CHECK(TEXT_PERCENT_MOST > TEXT_PERCENT_LEAST)) {
+        return LAYOUT_BASE_DPI;
+    }
+    if (percent < TEXT_PERCENT_LEAST) {
+        percent = TEXT_PERCENT_LEAST;
+    }
+    if (percent > TEXT_PERCENT_MOST) {
+        percent = TEXT_PERCENT_MOST;
+    }
+    return (dpi * percent) / TEXT_PERCENT_LEAST;
 }

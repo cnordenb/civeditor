@@ -286,13 +286,13 @@ static bool write_info(const ForgeRun *run, const char *folder, const char *titl
         return false;
     }
     json_writer_start(&info);
-    json_begin_object(&info, NULL);
+    json_begin(&info, NULL, '{');
     json_write_string(&info, "Title", title);
     json_write_number(&info, "CacheStatus", 0);
     json_write_string(&info, "Description", "");
     json_write_string(&info, "Author", "");
     json_write_string(&info, "builder_version", "1.0.0");
-    json_end_object(&info);
+    json_end(&info, '}');
     return json_writer_succeeded(&info) && mods_file(run, folder, L"info.json", path) &&
            file_write_all(path, info.data, info.length);
 }

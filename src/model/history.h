@@ -25,9 +25,6 @@ typedef struct {
 void history_start(History *history);
 bool history_do(History *history, const Command *command);
 bool history_replace(History *history, const CivDesign *design);
-bool history_undo(History *history);
-bool history_redo(History *history);
-bool history_can_undo(const History *history);
-bool history_can_redo(const History *history);
+bool history_step(History *history, bool back);
 
 #endif

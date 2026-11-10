@@ -89,7 +89,7 @@ static void add_bonuses(SummaryText *summary, const CivDesign *design, const Cat
     add_number(summary, " of ", CIV_BONUS_CAPACITY);
     add(summary, NEW_LINE);
     for (pick = 0; (pick < design->bonus_count) && (pick < CIV_BONUS_CAPACITY); ++pick) {
-        found = catalog_find_bonus(catalog, design->bonuses[pick].id);
+        found = catalog_find_bonus(catalog, false, design->bonuses[pick].id);
         add(summary, "- ");
         if (found == CATALOG_MISSING) {
             add_number(summary, "bonus #", design->bonuses[pick].id);
@@ -98,7 +98,7 @@ static void add_bonuses(SummaryText *summary, const CivDesign *design, const Cat
         }
         add(summary, NEW_LINE);
     }
-    found = (design->team_bonus_count > 0) ? catalog_find_team_bonus(catalog, design->team_bonuses[0].id)
+    found = (design->team_bonus_count > 0) ? catalog_find_bonus(catalog, true, design->team_bonuses[0].id)
                                            : CATALOG_MISSING;
     add_line(summary, "Team bonus: ", (found == CATALOG_MISSING) ? "" : catalog->team_bonuses[found].description);
 }

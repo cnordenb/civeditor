@@ -19,7 +19,8 @@ enum {
     FIRST_LOOK_UNIT_FIELD = 4,
     BASE_BONUS_FIELD = 3,
     TREE_REGION_FIELD = 7,
-    TREE_CIVS_FIELD = 8
+    TREE_CIVS_FIELD = 8,
+    TREE_STATUS_FIELD = 9
 };
 
 typedef enum {
@@ -47,6 +48,7 @@ static const char APPEARANCE_NAMES[APPEARANCE_KIND_COUNT][NAME_WIDTH] = {
 };
 static const char TREE_NAMES[TREE_KIND_COUNT][NAME_WIDTH] = { "unit", "building", "tech" };
 static const char REGION_NAMES[1][NAME_WIDTH] = { "universal" };
+static const char STATUS_NAMES[1][NAME_WIDTH] = { "required" };
 static const char CHANGE_KINDS[CHANGE_KIND_COUNT][NAME_WIDTH] = { "civ", "team", "unit" };
 static const char FIELD_TYPES[UNIT_FIELD_TYPE_COUNT][NAME_WIDTH] = { "u8", "i16", "f32" };
 
@@ -231,6 +233,7 @@ static bool add_tree_node(Catalog *catalog)
     entry.parent = tsv_number(&record, 5);
     entry.lane = tsv_number(&record, 6);
     entry.universal = (field_index(TREE_REGION_FIELD, REGION_NAMES, 1) == 0);
+    entry.needs_research = (field_index(TREE_STATUS_FIELD, STATUS_NAMES, 1) == 0);
     entry.civs = tsv_bits(&record, TREE_CIVS_FIELD);
     if (!CHECK(entry.id != TSV_MISSING) || !tsv_text(&record, 2, entry.name, sizeof entry.name)) {
         return false;

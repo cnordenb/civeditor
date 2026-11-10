@@ -20,5 +20,6 @@ bool test_a_building_the_civ_has_is_available_in_its_tech_tree(void);
 bool test_a_civ_with_an_empty_tree_keeps_the_games_tech_tree(void);
 bool test_a_civ_keeps_its_villagers_in_its_tech_tree(void);
 bool test_a_building_the_civ_has_keeps_the_research_it_needs_in_its_tech_tree(void);
+bool test_a_building_the_replaced_civ_lacked_takes_its_usual_status(void);
 
 #endif

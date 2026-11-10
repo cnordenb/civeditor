@@ -28,6 +28,8 @@ typedef enum {
     ACTION_REDO,
     ACTION_BUILD,
     ACTION_EXIT,
+    ACTION_HELP,
+    ACTION_GLOSSARY,
     ACTION_FIRST_STEP,
     ACTION_COUNT = ACTION_FIRST_STEP + STEP_COUNT
 } Action;
@@ -35,6 +37,7 @@ typedef enum {
 typedef struct {
     HINSTANCE instance;
     HWND window;
+    HWND framed;
     HWND controls[CONTROL_COUNT];
     HWND labels[CONTROL_COUNT];
     HFONT font;
@@ -64,6 +67,13 @@ void controls_draw_item(const AppState *app, const DRAWITEMSTRUCT *item);
 int controls_row_height(const AppState *app);
 void controls_refresh_style(AppState *app);
 
+void assist_mark_live(HWND status);
+int assist_dpi(HWND window);
+void assist_move_focus(AppState *app, WPARAM wparam, LPARAM lparam);
+void assist_show_help(AppState *app);
+void assist_follow_focus(AppState *app);
+void assist_draw_focus(const AppState *app, HDC context);
+
 void sync_all(AppState *app);
 void sync_model(AppState *app);
 void sync_list(AppState *app, ControlId control);
@@ -78,7 +88,9 @@ bool dialogs_open(AppState *app);
 bool dialogs_load_catalog(AppState *app);
 bool dialogs_may_discard(AppState *app);
 bool dialogs_build(AppState *app);
+void dialogs_glossary(AppState *app);
 
+HWND app_open(HINSTANCE instance);
 int app_run(HINSTANCE instance, int show);
 
 #endif

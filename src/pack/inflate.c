@@ -328,7 +328,7 @@ static bool inflate_block(Inflater *z, unsigned int type)
     case BLOCK_STORED:
         return inflate_stored(z);
     case BLOCK_FIXED:
-        return huffman_build_fixed_literals(&literal_code) && huffman_build_fixed_distances(&distance_code) &&
+        return huffman_build_fixed(&literal_code, true) && huffman_build_fixed(&distance_code, false) &&
                inflate_codes(z);
     case BLOCK_DYNAMIC:
         return build_dynamic_codes(z) && inflate_codes(z);

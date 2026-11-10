@@ -8,3 +8,6 @@
 7. The mod is two folders, `<name>-data` and `<name>-ui`.
 8. The mod replaces one civ of the game.
 9. Build says what it could not build.
+10. CRAP score for all code must be lower than 10.
+11. DRY score for all code must be lower than 0.8.
+12. Mutator must be run after every change.

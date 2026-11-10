@@ -26,7 +26,8 @@ mod.
    At first it is Generic: every unit, building and tech that all civs of the game share, and nothing else.
 4. **Make a civ.** Go through the steps with the mouse or the keyboard: Tab moves between the controls, the arrow
    keys pick in a list, and Space ticks or unticks in a list of bonuses or of the tech tree. Ctrl+Page Down and
-   Ctrl+Page Up go to the next and the previous step, Ctrl+1 to Ctrl+9 to a step. Ctrl+Z undoes a change, Ctrl+Y
+   Ctrl+Page Up go to the next and the previous step, Ctrl+1 to Ctrl+9 to a step. F1 says in the status line what the control in focus is
+   for, and Glossary in the menu Help explains the game's words and shortened forms. Ctrl+Z undoes a change, Ctrl+Y
    redoes it. Every command is also in the menu (Alt).
 5. **Save it.** Save the civ as a `.civbuilder.json` file with Ctrl+S, or open one saved before with Ctrl+O. A civ
    without a name is offered the name `civbuilder_civ`. The last step shows what the civ still needs before a mod

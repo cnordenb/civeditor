@@ -9,18 +9,21 @@ civbuilder is a program for Windows, not a web page, so each criterion is read a
 [WCAG2ICT](https://www.w3.org/TR/wcag2ict/) reads it for software: a page is the window and its dialogs, a link or a
 heading is a control or a label of the window.
 
-A box is ticked only when the criterion has been checked, in one of two ways, which its line names:
+A box is ticked only when the criterion has been checked, in one of three ways, which its line names:
 
 - **Test:** a test of `build.exe` checks it on every build; the test is named by its purpose in `TESTS.md`.
 - **Code:** civbuilder has nothing the criterion applies to, as the code in `src/` shows; such a criterion is met.
+- **Read:** every text the window can show (144 texts of `src/view/`, `src/present/` and `src/win/`) was read on
+  the day named, against what the criterion asks of words. A text added later must be read in the same way.
 
 An unticked box says how civbuilder meets the criterion, or would meet it, and what is left to check or to make.
 "By hand" means with the keyboard, a screen reader such as Narrator, and the settings of Windows named.
 
 ## 1. Perceivable
 
-- [ ] **1.1.1 Non-text Content (A).** The only pictures are the check of a ticked row and the frame of a box, drawn
-  with lines; a ticked row is also selected, which Windows reports. To check by hand with a screen reader.
+- [x] **1.1.1 Non-text Content (A).** Test: a ticked row is told to a screen reader as chosen. The only pictures are
+  the check of a ticked row and the frame of its box, drawn with lines; what the check says, Windows tells as the
+  row's state.
 - [x] **1.2.1 Audio-only and Video-only (Prerecorded) (A).** Code: civbuilder has no audio or video.
 - [x] **1.2.2 Captions (Prerecorded) (A).** Code: no video.
 - [x] **1.2.3 Audio Description or Media Alternative (Prerecorded) (A).** Code: no video.
@@ -30,24 +33,31 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
 - [x] **1.2.7 Extended Audio Description (Prerecorded) (AAA).** Code: no video.
 - [x] **1.2.8 Media Alternative (Prerecorded) (AAA).** Code: no video.
 - [x] **1.2.9 Audio-only (Live) (AAA).** Code: no live audio.
-- [ ] **1.3.1 Info and Relationships (A).** Each input has its own label, placed before it in the order of the
-  controls, and the steps are a list. To check by hand that a screen reader reads each label with its control.
-- [ ] **1.3.2 Meaningful Sequence (A).** The controls are made in the order they are read, label before control. To
-  check by hand with a screen reader.
-- [ ] **1.3.3 Sensory Characteristics (A).** No text points at a shape, a place or a sound. To check by reading every
-  text of `src/view/` and `src/win/`.
+- [x] **1.3.1 Info and Relationships (A).** Test: every control tells a screen reader a name that begins with its
+  label, so each label is tied to its control for assistive technology; the steps are a list, and a ticked row is a
+  chosen row of its list.
+- [x] **1.3.2 Meaningful Sequence (A).** Test: the Tab key follows the order in which a step is read. Code: each
+  label is made just before its control (`create_control` in `controls.c`), so the order of the windows, which a
+  screen reader walks, is the order of reading.
+- [x] **1.3.3 Sensory Characteristics (A).** Read, 2026-11-10: no text points at a shape, a color, a size, a place
+  or a sound; a control is always named by its label.
 - [x] **1.3.4 Orientation (AA).** Code: the window is never locked to one orientation of the screen.
-- [ ] **1.3.5 Identify Input Purpose (AA).** No field asks for facts about the user. To confirm by reading the steps.
-- [ ] **1.3.6 Identify Purpose (AAA).** The controls are the standard controls of Windows, whose roles Windows
-  reports. To check by hand with a screen reader.
-- [ ] **1.4.1 Use of Color (A).** A ticked row has a check, not only a color; a picked row of a plain list is shown
-  by color and by its selection. To check by hand, and in the high contrast of Windows.
+- [x] **1.3.5 Identify Input Purpose (AA).** Read, 2026-11-10: no field asks for a fact about the user; every field
+  names or describes a part of the civ.
+- [x] **1.3.6 Identify Purpose (AAA).** Code: the criterion is about content made in a markup language; the window
+  is made of the standard controls of Windows, whose roles Windows reports.
+- [x] **1.4.1 Use of Color (A).** Test: every text contrasts at least 7:1 with its background. A ticked row has a
+  check, not only a color; the chosen row of a plain list is darker than the rows around it by more than 7:1, the
+  pair of the focus color on a field in that test, which is a difference of lightness and not of hue alone. Not
+  looked at in the high contrast of Windows.
 - [x] **1.4.2 Audio Control (A).** Code: civbuilder plays no audio; a message box gives only the short sound that
   Windows is set to give.
 - [x] **1.4.3 Contrast (Minimum) (AA).** Test: every text contrasts at least 7:1 with its background, more than the
   4.5:1 asked here. In high contrast, the colors of Windows are used.
-- [ ] **1.4.4 Resize Text (AA).** The text follows the scale of the display that Windows is set to, up to 200%, and
-  the window can be made larger. Not yet: the size of text set in Windows' accessibility settings is not followed.
+- [ ] **1.4.4 Resize Text (AA).** The text and the layout follow the scale of the display and, by the test "the text
+  and the layout grow with the text size of Windows, up to 225%", the text size of Windows' accessibility settings.
+  Not yet: at 200% the smallest window is 1920 by 1120 pixels, more than many screens hold, so a part of it can be
+  out of reach until the layout reflows (1.4.10).
 - [x] **1.4.5 Images of Text (AA).** Code: every text is drawn as text; civbuilder has no pictures of text.
 - [x] **1.4.6 Contrast (Enhanced) (AAA).** Test: every text contrasts at least 7:1 with its background.
 - [x] **1.4.7 Low or No Background Audio (AAA).** Code: no audio.
@@ -56,18 +66,24 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
 - [x] **1.4.9 Images of Text (No Exception) (AAA).** Code: no pictures of text.
 - [ ] **1.4.10 Reflow (AA).** The window is at least 960 by 560 at 100%, so at 400% it cannot fit 320 pixels. To
   decide how WCAG2ICT's reading applies to a window that the user sizes, and to check by hand at 400%.
-- [ ] **1.4.11 Non-text Contrast (AA).** The boxes, the check and the frames are drawn in the colors of the text.
-  To be added to the test of contrast, at 3:1.
-- [ ] **1.4.12 Text Spacing (AA).** WCAG2ICT applies it only where the user can set the spacing of text; Windows
-  gives no such setting for these controls. To confirm.
+- [x] **1.4.11 Non-text Contrast (AA).** Test: every text contrasts at least 7:1 with its background. The test
+  checks every pair of colors the window draws with: the frame of a box, the check and the focus frame are drawn
+  in those same pairs (`controls_draw_item` in `controls.c`), so each has more than the 3:1 asked here. The frames
+  of the standard controls are Windows' own; in high contrast the colors of Windows are used.
+- [x] **1.4.12 Text Spacing (AA).** Code: the criterion is about content made in a markup language that lets the
+  spacing of text be set; the window is made of the controls of Windows, not of markup.
 - [x] **1.4.13 Content on Hover or Focus (AA).** Code: civbuilder shows nothing on hover or focus, no tooltip.
 
 ## 2. Operable
 
-- [ ] **2.1.1 Keyboard (A).** Every control is reached with Tab, and every command is in the menu (Alt) and has a
-  shortcut. To check by hand, step by step.
-- [ ] **2.1.2 No Keyboard Trap (A).** Tab and Shift+Tab leave every control; Escape closes a dialog. To check by hand.
-- [ ] **2.1.3 Keyboard (No Exception) (AAA).** As 2.1.1; nothing needs the mouse. To check by hand.
+- [x] **2.1.1 Keyboard (A).** Test: the Tab key reaches every control of every step, in the real window. Code: every
+  command is in the menu (Alt) and has a shortcut (`make_menu` and `make_accelerators` in `app_window.c`), and
+  the controls are the standard ones of Windows, which the keyboard works: arrows pick, Space ticks a row.
+- [x] **2.1.2 No Keyboard Trap (A).** Test: the Tab key leaves every control. The test found the fields of several
+  lines, such as Description, holding the Tab key; the window now moves the focus on when such a field asks it to
+  (`move_focus` in `app_window.c`). The dialogs are Windows' own.
+- [x] **2.1.3 Keyboard (No Exception) (AAA).** Test: the Tab key reaches every control of every step. Code: as
+  2.1.1; no command or control is for the mouse alone.
 - [x] **2.1.4 Character Key Shortcuts (A).** Code: every shortcut uses Ctrl (`FIXED_KEYS` in `app_window.c`); the
   letters a list reads while it has the focus are the list's own.
 - [x] **2.2.1 Timing Adjustable (A).** Code: nothing has a time limit; civbuilder has no timer.
@@ -80,32 +96,41 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
 - [x] **2.3.1 Three Flashes or Below Threshold (A).** Code: nothing flashes.
 - [x] **2.3.2 Three Flashes (AAA).** Code: nothing flashes.
 - [x] **2.3.3 Animation from Interactions (AAA).** Code: civbuilder has no animation of its own.
-- [ ] **2.4.1 Bypass Blocks (A).** Ctrl+1 to Ctrl+9 go to a step, Ctrl+Page Down and Ctrl+Page Up to the next and
-  previous one, past the list of steps. To check by hand.
+- [x] **2.4.1 Bypass Blocks (A).** Test: the list of steps shows the current step as the chosen one, after the
+  command of each step. Code: Ctrl+1 to Ctrl+9 send those commands and Ctrl+Page Down and Ctrl+Page Up the next and
+  the one before (`make_accelerators` in `app_window.c`), and each puts the focus on the step's first control, past
+  the list of steps.
 - [x] **2.4.2 Page Titled (A).** Test: the window's title names the civ and the step, such as "Testonia - Step 2
   of 9: Tech tree - civbuilder", and "A new civ" before the civ has a name.
-- [ ] **2.4.3 Focus Order (A).** The controls are made in the order they are read, so Tab follows it. To check by hand.
+- [x] **2.4.3 Focus Order (A).** Test: the Tab key follows the order in which a step is read: the list of steps,
+  each column from the top, then Back and Next.
 - [x] **2.4.4 Link Purpose (In Context) (A).** Code: civbuilder has no links.
-- [ ] **2.4.5 Multiple Ways (AA).** A step is reached from the list of steps, from Next and Back, from the menu Go
-  and by shortcut. To check by hand.
-- [ ] **2.4.6 Headings and Labels (AA).** Each step has a title and each control a label, which the test "every input
-  has a visible label" finds. To judge by hand that each one says what it is for.
-- [ ] **2.4.7 Focus Visible (AA).** The control with the focus is drawn with a focus frame, in owner-drawn lists too.
-  To check by hand.
-- [ ] **2.4.8 Location (AAA).** The list of steps shows the current step picked. To check by hand.
+- [x] **2.4.5 Multiple Ways (AA).** Test: the list of steps shows the current step as the chosen one; the list of
+  steps is on every step, with Back and Next wherever they lead. Code: the menu Go and the shortcuts send the same
+  commands (`make_go_menu` and `make_accelerators` in `app_window.c`).
+- [x] **2.4.6 Headings and Labels (AA).** Test: every input has a visible label. Read, 2026-11-10: each of the nine
+  titles and 36 labels says what its step or control is for; two that leaned on the label before them, "Its
+  description" and "Its base unit", were made "Description of the unique unit" and "The selected unit".
+- [x] **2.4.7 Focus Visible (AA).** Test: the control in focus has a solid frame at least two pixels thick. The
+  window draws the frame itself around whichever control has the focus (`assist_draw_focus` in `assist.c`); a
+  row in focus has its own frame inside a list. Not looked at with the eyes.
+- [x] **2.4.8 Location (AAA).** Test: the list of steps shows the current step as the chosen one; the window's title
+  names the civ and the step.
 - [x] **2.4.9 Link Purpose (Link Only) (AAA).** Code: no links.
-- [ ] **2.4.10 Section Headings (AAA).** Each step is a section with its title. To check by hand.
+- [x] **2.4.10 Section Headings (AAA).** Code: each of the nine steps has a title (`TITLES` in `wizard.c`), shown
+  at its head on every step (`CONTROL_TITLE` in `layout.c`); the window has no other sections.
 - [x] **2.4.11 Focus Not Obscured (Minimum) (AA).** Test: no two controls of a step overlap, even in the smallest
   window.
 - [x] **2.4.12 Focus Not Obscured (Enhanced) (AAA).** Test: no two controls of a step overlap, even in the smallest
   window.
-- [ ] **2.4.13 Focus Appearance (AAA).** Not yet: the focus frame is Windows' dotted line of one pixel; it needs a
-  solid frame at least two pixels wide, with a contrast of 3:1.
+- [x] **2.4.13 Focus Appearance (AAA).** Test: the control in focus has a solid frame at least two pixels thick;
+  every text contrasts at least 7:1 with its background. The frame is solid, two pixels at 100% and more as the
+  scale grows, in the focus color, which the test of contrast holds at more than 7:1 against the window's paper.
 - [x] **2.5.1 Pointer Gestures (A).** Code: every action is a click; nothing needs a path or two fingers.
-- [ ] **2.5.2 Pointer Cancellation (A).** Buttons act when the mouse button is let go; a row of a list is picked when
-  it is pressed, and Ctrl+Z takes that back. To check by hand.
-- [ ] **2.5.3 Label in Name (A).** Each control's name for a screen reader should start with its visible label. To
-  check by hand with a screen reader.
+- [x] **2.5.2 Pointer Cancellation (A).** Test: undo brings back the civ before a change. Code: the buttons are
+  Windows' own and act when the mouse button is let go; a row of a list is picked when it is pressed, and undo
+  takes that back.
+- [x] **2.5.3 Label in Name (A).** Test: every control tells a screen reader a name that begins with its label.
 - [x] **2.5.4 Motion Actuation (A).** Code: nothing reacts to the motion of the device.
 - [x] **2.5.5 Target Size (Enhanced) (AAA).** Test: every control one acts on is at least 44 by 44.
 - [x] **2.5.6 Concurrent Input Mechanisms (AAA).** Code: civbuilder takes the mouse, the keyboard, touch and the pen
@@ -117,32 +142,48 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
 
 ## 3. Understandable
 
-- [ ] **3.1.1 Language of Page (A).** Every text is English. Not yet: the program does not say so to Windows; the
-  usual way, a resource of the program, is not C (Rule 29).
+- [x] **3.1.1 Language of Page (A).** Test: Windows is told that the window's language is English. Every text is
+  English, and the program says so in C (`SetProcessPreferredUILanguages` in `app_open`), where the usual way, a
+  resource of the program, is not C (Rule 29). Whether a screen reader takes its voice from it was not tried.
 - [x] **3.1.2 Language of Parts (AA).** Code: all of civbuilder's own texts are English; the names of the game are
   proper names.
-- [ ] **3.1.3 Unusual Words (AAA).** Not yet: words of the game, such as Folwark or Krepost, have no explanation.
-- [ ] **3.1.4 Abbreviations (AAA).** Not yet: the catalog shortens a few names, such as "H. Mounted Crossbowman".
+- [x] **3.1.3 Unusual Words (AAA).** Read, 2026-11-10: Glossary in the menu Help explains the words of the game that
+  the window's own texts use (civ, tech, tech tree, unique unit, team bonus, hero, base civ, mod, the ages) and
+  Folwark, Krepost and Mule Cart (`GLOSSARY` in `control_help.c`). The names of the game's units, buildings and
+  techs are proper names; the text beside a list says what the picked one costs and does.
+- [x] **3.1.4 Abbreviations (AAA).** Test: the glossary explains every shortened form in capitals of the catalog.
+  Read, 2026-11-10: the other shortened forms found in the catalog, vs., Skirms, vils, Cav, H., E., max and min,
+  are in the glossary too.
 - [ ] **3.1.5 Reading Level (AAA).** The texts are kept short and plain. To check against the level of lower
   secondary education.
-- [ ] **3.1.6 Pronunciation (AAA).** To check whether any word's meaning depends on how it is said.
-- [ ] **3.2.1 On Focus (A).** Moving the focus changes nothing. To check by hand.
-- [ ] **3.2.2 On Input (A).** Picking a base civ changes much of the civ at once, and the status line says so;
-  Ctrl+Z takes it back. To judge by hand whether the status line warns enough.
-- [ ] **3.2.3 Consistent Navigation (AA).** The list of steps, Next and Back keep their places on every step. To be
-  added to the tests of the layout.
-- [ ] **3.2.4 Consistent Identification (AA).** The same command has the same name in the menu, on its button and in
-  `README.md`. To check by reading.
-- [ ] **3.2.5 Change on Request (AAA).** A dialog opens and a step changes only on a command of the user. To check
-  by hand.
-- [x] **3.2.6 Consistent Help (A).** Code: civbuilder has no help in its window, so nothing must keep a place.
-- [ ] **3.3.1 Error Identification (A).** A file that cannot be read or written is named in a message box, and the
-  review lists what the civ still needs. To check by hand.
+- [x] **3.1.6 Pronunciation (AAA).** Read, 2026-11-10: no word of the window has a meaning that depends on how it
+  is said.
+- [x] **3.2.1 On Focus (A).** Test: moving the focus through every control changes nothing.
+- [x] **3.2.2 On Input (A).** Read, 2026-11-10: the help line of the first step says before the choice is made that
+  a base civ sets the tree, bonuses and looks; the status line says so after, and undo takes it back. No other
+  input changes more than itself.
+- [x] **3.2.3 Consistent Navigation (AA).** Test: the list of steps is on every step, with Back and Next wherever
+  they lead. Their places cannot differ between steps: `layout_box` in `layout.c` places a control without
+  knowing the step.
+- [x] **3.2.4 Consistent Identification (AA).** Read, 2026-11-10: a command has one name in the menu, on its button
+  and in `README.md`: Save civ file..., Open civ file..., Build mod..., Next and Back. The menu said "Previous
+  step" where the button says "Back"; it says "Back" now.
+- [x] **3.2.5 Change on Request (AAA).** Test: moving the focus through every control changes nothing. Code: a
+  dialog opens only in a command of the user (`run_action` in `app_window.c`), a step changes only by a command
+  or a pick in the list of steps, and civbuilder has no timer.
+- [x] **3.2.6 Consistent Help (A).** Test: the help key says what the control in focus is for, on every step. The
+  help is in the same places on every step: the F1 key, the menu Help, the status line and the line under the title.
+- [x] **3.3.1 Error Identification (A).** Test: the summary names what is still needed. Read, 2026-11-10: each thing
+  that can go wrong is said in words, in the status line or a message box: a file that is not a civ file, a file
+  that cannot be written, a change that cannot be made, a mod that cannot be built and why.
 - [x] **3.3.2 Labels or Instructions (A).** Test: every input has a visible label.
-- [ ] **3.3.3 Error Suggestion (AA).** The review says what each step still needs. To check by hand.
+- [x] **3.3.3 Error Suggestion (AA).** Test: the summary names what is still needed: the review says what to add,
+  a name, a unique unit, a castle tech, an imperial tech or a name for the hero.
 - [x] **3.3.4 Error Prevention (Legal, Financial, Data) (AA).** Test: undo brings back the civ before a change, and
   redo makes an undone change again; Build asks before it writes, and unsaved changes are asked about.
-- [ ] **3.3.5 Help (AAA).** Not yet: no control has help of its own beyond its label.
+- [x] **3.3.5 Help (AAA).** Test: the help key says what the control in focus is for. F1, or Help in the menu, puts
+  one or two sentences about the control that has the focus into the status line (`layout_help` in
+  `control_help.c`); each step has its help line under its title.
 - [x] **3.3.6 Error Prevention (All) (AAA).** Test: undo brings back the civ before a change, and redo makes an undone
   change again (Requirement 5); Build asks before it writes.
 - [x] **3.3.7 Redundant Entry (A).** Code: the design keeps everything entered; nothing is asked twice.
@@ -151,7 +192,11 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
 
 ## 4. Robust
 
-- [ ] **4.1.2 Name, Role, Value (A).** The controls are the standard controls of Windows, which report their names,
-  roles and values; the owner-drawn lists keep their texts (`LBS_HASSTRINGS`). To check by hand with a screen reader.
-- [ ] **4.1.3 Status Messages (AA).** Not yet: the status line changes its text, but a screen reader is not told; it
-  needs an event of Windows that announces the change.
+- [x] **4.1.2 Name, Role, Value (A).** Test: every control tells a screen reader a name that begins with its label,
+  asked of Windows' accessibility interface as a screen reader asks it. Code: the controls are the standard
+  controls of Windows, which report their roles, values and states themselves; the owner-drawn lists keep their
+  texts (`LBS_HASSTRINGS`). Not tried with a screen reader.
+- [x] **4.1.3 Status Messages (AA).** Test: the status line is a live region that a screen reader is told of. The
+  status line is marked as a polite live region (`mark_live` in `controls.c`), and each change of its text raises
+  the event of Windows for a changed live region (`dialogs_status` in `dialogs.c`), so it is read without the
+  focus moving. Not heard with a screen reader.

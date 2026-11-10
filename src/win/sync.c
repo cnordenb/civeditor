@@ -81,12 +81,28 @@ static void tick_rows(AppState *app, ControlId control)
     (void)InvalidateRect(list, NULL, FALSE);
 }
 
+static int first_chosen_row(const AppState *app, ControlId control)
+{
+    ListItem item;
+    int row;
+
+    if (!CHECK(app != NULL) || !CHECK(control < CONTROL_COUNT)) {
+        return -1;
+    }
+    item.control = control;
+    for (row = 0; (row < app->lists[control].count) && (row < LIST_ROW_CAPACITY); ++row) {
+        item.item = app->lists[control].items[row];
+        if (list_item_is_chosen(&app->catalog, &app->history.present, item)) {
+            return row;
+        }
+    }
+    return -1;
+}
+
 static void select_rows(AppState *app, ControlId control)
 {
     WidgetKind kind = layout_spec(control).kind;
-    ListItem item;
-    int row;
-    int chosen_row = -1;
+    int chosen_row;
 
     if (!CHECK(app != NULL) || !CHECK(app->lists[control].count <= LIST_ROW_CAPACITY)) {
         return;
@@ -95,13 +111,7 @@ static void select_rows(AppState *app, ControlId control)
         tick_rows(app, control);
         return;
     }
-    item.control = control;
-    for (row = 0; (row < app->lists[control].count) && (row < LIST_ROW_CAPACITY); ++row) {
-        item.item = app->lists[control].items[row];
-        if (list_item_is_chosen(&app->catalog, &app->history.present, item)) {
-            chosen_row = (chosen_row < 0) ? row : chosen_row;
-        }
-    }
+    chosen_row = first_chosen_row(app, control);
     if (kind == WIDGET_LIST) {
         (void)SendMessageW(app->controls[control], LB_SETCURSEL, (WPARAM)chosen_row, 0);
     } else if (kind == WIDGET_CHOICE) {
@@ -241,17 +251,29 @@ static void sync_choices(AppState *app, bool refill)
     }
 }
 
-void sync_all(AppState *app)
+static void sync_from_design(AppState *app, bool refill)
 {
     if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
         return;
     }
     app->syncing = true;
     sync_texts(app);
-    fill_categories(app);
-    sync_choices(app, true);
+    if (refill) {
+        fill_categories(app);
+    }
+    sync_choices(app, refill);
     app->syncing = false;
     sync_details(app);
+}
+
+void sync_all(AppState *app)
+{
+    sync_from_design(app, true);
+}
+
+void sync_model(AppState *app)
+{
+    sync_from_design(app, false);
 }
 
 static void apply(AppState *app, const Command *command)
@@ -371,16 +393,4 @@ void sync_on_notify(AppState *app, int control, int code)
     } else if ((kind == WIDGET_LIST) && (code == LBN_SELCHANGE) && (control != (int)CONTROL_STEPS)) {
         on_pick(app, (ControlId)control, (int)SendMessageW(app->controls[control], LB_GETCURSEL, 0, 0));
     }
-}
-
-void sync_model(AppState *app)
-{
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return;
-    }
-    app->syncing = true;
-    sync_texts(app);
-    sync_choices(app, false);
-    app->syncing = false;
-    sync_details(app);
 }

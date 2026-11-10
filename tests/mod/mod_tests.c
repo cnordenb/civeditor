@@ -295,3 +295,16 @@ bool test_a_building_the_civ_has_keeps_the_research_it_needs_in_its_tech_tree(vo
 {
     return tree_written_as(KEEP_TREE, KEEP, KEEP_TREE);
 }
+
+static const char LOCKED_KEEP_TREE[] = "{\"civ_techs_buildings\":[{\"Use Type\":\"Building\",\"Node ID\":235,"
+                                       "\"Node Status\":\"NotAvailable\"}],\"civ_techs_units\":[]}";
+
+bool test_a_building_the_replaced_civ_lacked_takes_its_usual_status(void)
+{
+    bool written;
+
+    catalog.tree[2].needs_research = true;
+    written = tree_written_as(LOCKED_KEEP_TREE, KEEP, KEEP_TREE);
+    catalog.tree[2].needs_research = false;
+    return written;
+}

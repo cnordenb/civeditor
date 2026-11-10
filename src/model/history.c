@@ -75,38 +75,20 @@ bool history_replace(History *history, const CivDesign *design)
     return true;
 }
 
-bool history_undo(History *history)
+bool history_step(History *history, bool back)
 {
-    if (!CHECK(history != NULL) || !CHECK(history->past.count <= HISTORY_DEPTH) || (history->past.count <= 0)) {
-        return false;
-    }
-    stack_push(&history->future, &history->present);
-    history->joinable = false;
-    return stack_pop(&history->past, &history->present);
-}
+    DesignStack *from;
+    DesignStack *to;
 
-bool history_redo(History *history)
-{
-    if (!CHECK(history != NULL) || !CHECK(history->future.count <= HISTORY_DEPTH) || (history->future.count <= 0)) {
-        return false;
-    }
-    stack_push(&history->past, &history->present);
-    history->joinable = false;
-    return stack_pop(&history->future, &history->present);
-}
-
-bool history_can_undo(const History *history)
-{
     if (!CHECK(history != NULL) || !CHECK(history->past.count <= HISTORY_DEPTH)) {
         return false;
     }
-    return history->past.count > 0;
-}
-
-bool history_can_redo(const History *history)
-{
-    if (!CHECK(history != NULL) || !CHECK(history->future.count <= HISTORY_DEPTH)) {
+    from = back ? &history->past : &history->future;
+    to = back ? &history->future : &history->past;
+    if (from->count <= 0) {
         return false;
     }
-    return history->future.count > 0;
+    stack_push(to, &history->present);
+    history->joinable = false;
+    return stack_pop(from, &history->present);
 }

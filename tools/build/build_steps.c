@@ -8,15 +8,16 @@
 #include "../../src/core/text.h"
 #include "source_list.h"
 
-enum { COMMAND_CAPACITY = 4096, ROOT_COUNT = 3, ROOT_WIDTH = 16 };
+enum { COMMAND_CAPACITY = 4096 };
 
 typedef enum {
     PROGRAM_APPLICATION,
     PROGRAM_TESTS,
-    PROGRAM_BUILD_TOOL
+    PROGRAM_BUILD_TOOL,
+    PROGRAM_CRAPPER,
+    PROGRAM_DRYER,
+    PROGRAM_MUTATOR
 } ProgramKind;
-
-static const char SOURCE_ROOTS[ROOT_COUNT][ROOT_WIDTH] = { "src", "tests", "tools/build" };
 
 static const char WARNING_FLAGS[] =
     "-std=c11 -pedantic-errors -Wall -Wextra -Werror -Wconversion -Wsign-conversion -Wshadow -Wcast-qual "
@@ -25,7 +26,7 @@ static const char WARNING_FLAGS[] =
     "-Wformat=2 -Wnull-dereference -Wdouble-promotion -Wvla -Wfloat-equal -Wredundant-decls "
     "-Wjump-misses-init -Wlogical-op -Wduplicated-cond -Wduplicated-branches -Winit-self -Wunused-macros "
     "-Wbad-function-cast -Wnested-externs -Walloca -Wstack-usage=65536 -Wframe-larger-than=65536 "
-    "-DUNICODE -D_UNICODE -pipe -O1 -g";
+    "-DUNICODE -D_UNICODE -DCOBJMACROS -pipe -O1 -g";
 
 static const char ANALYZER_FLAGS[] = " -fanalyzer";
 
@@ -97,31 +98,6 @@ bool build_prepare_folders(BuildMode mode)
     return make_folder("build") && make_folder(object_folder(mode));
 }
 
-static bool collect_all(SourceList *list, const char *extension)
-{
-    static SourceList part;
-    int root;
-    int index;
-
-    if (!CHECK(list != NULL) || !CHECK(extension != NULL)) {
-        return false;
-    }
-    list->count = 0;
-    for (root = 0; root < ROOT_COUNT; ++root) {
-        if (!source_list_collect(&part, SOURCE_ROOTS[root], extension)) {
-            return false;
-        }
-        for (index = 0; (index < part.count) && (index < SOURCE_LIST_CAPACITY); ++index) {
-            if (!CHECK(list->count < SOURCE_LIST_CAPACITY)) {
-                return false;
-            }
-            list->files[list->count] = part.files[index];
-            ++list->count;
-        }
-    }
-    return true;
-}
-
 static bool compile_one(const SourceFile *source, BuildMode mode, long long newest_header)
 {
     char object[SOURCE_PATH_CAPACITY];
@@ -151,7 +127,7 @@ bool build_compile_sources(BuildMode mode)
     long long newest_header;
     int index;
 
-    if (!collect_all(&sources, ".c") || !collect_all(&headers, ".h")) {
+    if (!source_list_collect_all(&sources, ".c") || !source_list_collect_all(&headers, ".h")) {
         return false;
     }
     newest_header = source_list_newest(&headers);
@@ -166,6 +142,15 @@ bool build_compile_sources(BuildMode mode)
     return true;
 }
 
+static bool shared_by_tools(const char *path)
+{
+    if (!CHECK(path != NULL) || !CHECK(path[0] != '\0')) {
+        return false;
+    }
+    return text_starts_with(path, "src/core/") || text_starts_with(path, "tests/scan/") ||
+           text_equal(path, "tools/build/source_list.c");
+}
+
 static bool belongs_to(ProgramKind program, const char *path)
 {
     if (!CHECK(path != NULL) || !CHECK(path[0] != '\0')) {
@@ -175,10 +160,16 @@ static bool belongs_to(ProgramKind program, const char *path)
     case PROGRAM_APPLICATION:
         return text_starts_with(path, "src/");
     case PROGRAM_TESTS:
-        return (text_starts_with(path, "src/") && !text_starts_with(path, "src/win/")) ||
-               text_starts_with(path, "tests/");
+        return source_in_tests(path);
     case PROGRAM_BUILD_TOOL:
         return text_starts_with(path, "tools/build/") || text_starts_with(path, "src/core/");
+    case PROGRAM_CRAPPER:
+        return text_starts_with(path, "tools/crap/") || shared_by_tools(path);
+    case PROGRAM_DRYER:
+        return text_starts_with(path, "tools/dry/") || shared_by_tools(path);
+    case PROGRAM_MUTATOR:
+        return text_starts_with(path, "tools/mutate/") || text_equal(path, "tools/crap/crap_cover.c") ||
+               text_equal(path, "tools/crap/cover_build.c") || shared_by_tools(path);
     default:
         return false;
     }
@@ -201,7 +192,8 @@ static bool write_object_list(FILE *list_file, ProgramKind program, BuildMode mo
             return false;
         }
     }
-    return true;
+    return ((program != PROGRAM_TESTS) && (program != PROGRAM_APPLICATION)) ||
+           (fputs(source_test_libraries(), list_file) >= 0);
 }
 
 static bool write_response_file(const char *path, ProgramKind program, BuildMode mode)
@@ -234,11 +226,13 @@ bool build_link_programs(BuildMode mode)
         return false;
     }
     return link_program(PROGRAM_APPLICATION, mode, "build/application.rsp",
-                        "gcc -g -mwindows -municode -o build/civbuilder.exe @build/application.rsp "
-                        "-lgdi32 -lcomdlg32 -lshell32 -ladvapi32") &&
+                        "gcc -g -mwindows -municode -o build/civbuilder.exe @build/application.rsp") &&
            link_program(PROGRAM_TESTS, mode, "build/tests.rsp", "gcc -g -o build/tests.exe @build/tests.rsp") &&
            link_program(PROGRAM_BUILD_TOOL, mode, "build/build_tool.rsp",
-                        "gcc -g -o build/build_check.exe @build/build_tool.rsp");
+                        "gcc -g -o build/build_check.exe @build/build_tool.rsp") &&
+           link_program(PROGRAM_CRAPPER, mode, "build/crapper.rsp", "gcc -g -o build/crapper.exe @build/crapper.rsp") &&
+           link_program(PROGRAM_DRYER, mode, "build/dryer.rsp", "gcc -g -o build/dryer.exe @build/dryer.rsp") &&
+           link_program(PROGRAM_MUTATOR, mode, "build/mutator.rsp", "gcc -g -o build/mutator.exe @build/mutator.rsp");
 }
 
 bool build_run_tests(void)

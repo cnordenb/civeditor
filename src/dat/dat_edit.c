@@ -80,18 +80,23 @@ bool dat_edit_patch_u8(DatEdit *edit, size_t at, int value)
     return dat_edit_patch(edit, &patch);
 }
 
+bool dat_edit_patch_sunk(DatEdit *edit, size_t at, DatPatch *patch, const DatSink *sink)
+{
+    if (!CHECK(edit != NULL) || !CHECK(patch != NULL) || !CHECK(sink != NULL) || !CHECK(sink->fine)) {
+        return false;
+    }
+    patch->at = at;
+    patch->width = sink->length;
+    return dat_edit_patch(edit, patch);
+}
+
 bool dat_edit_patch_i16(DatEdit *edit, size_t at, int value)
 {
     DatPatch patch = { 0U, 0U, { 0U } };
     DatSink sink = dat_sink_over(patch.bytes, sizeof patch.bytes, 0U);
 
-    if (!CHECK(edit != NULL) || !CHECK(sink.fine)) {
-        return false;
-    }
     dat_sink_i16(&sink, value);
-    patch.at = at;
-    patch.width = sink.length;
-    return CHECK(sink.fine) && dat_edit_patch(edit, &patch);
+    return dat_edit_patch_sunk(edit, at, &patch, &sink);
 }
 
 bool dat_edit_patch_i32(DatEdit *edit, size_t at, long value)
@@ -99,13 +104,8 @@ bool dat_edit_patch_i32(DatEdit *edit, size_t at, long value)
     DatPatch patch = { 0U, 0U, { 0U } };
     DatSink sink = dat_sink_over(patch.bytes, sizeof patch.bytes, 0U);
 
-    if (!CHECK(edit != NULL) || !CHECK(sink.fine)) {
-        return false;
-    }
     dat_sink_i32(&sink, value);
-    patch.at = at;
-    patch.width = sink.length;
-    return CHECK(sink.fine) && dat_edit_patch(edit, &patch);
+    return dat_edit_patch_sunk(edit, at, &patch, &sink);
 }
 
 bool dat_edit_patch_f32(DatEdit *edit, size_t at, float value)
@@ -113,13 +113,8 @@ bool dat_edit_patch_f32(DatEdit *edit, size_t at, float value)
     DatPatch patch = { 0U, 0U, { 0U } };
     DatSink sink = dat_sink_over(patch.bytes, sizeof patch.bytes, 0U);
 
-    if (!CHECK(edit != NULL) || !CHECK(sink.fine)) {
-        return false;
-    }
     dat_sink_f32(&sink, value);
-    patch.at = at;
-    patch.width = sink.length;
-    return CHECK(sink.fine) && dat_edit_patch(edit, &patch);
+    return dat_edit_patch_sunk(edit, at, &patch, &sink);
 }
 
 int dat_edit_add_effect(DatEdit *edit, const char *name)

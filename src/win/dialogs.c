@@ -9,7 +9,7 @@
 #include "../mod/mod_places.h"
 #include "../persist/civ_file.h"
 
-enum { FOLDER_TRIES = 3, NAME_LIMIT = 96, MESSAGE_CAPACITY = 2048 };
+enum { FOLDER_TRIES = 3, NAME_LIMIT = 96, MESSAGE_CAPACITY = 2048, LIVE_REGION_CHANGED = 0x8019 };
 
 static const wchar_t FILTER[] = L"Civ files (*.civbuilder.json)\0*.civbuilder.json;*.json\0All files (*.*)\0*.*\0";
 static const wchar_t DATA_FOLDERS[FOLDER_TRIES][8] = { L"data", L"..\\data", L"" };
@@ -48,6 +48,7 @@ void dialogs_status(AppState *app, const char *text)
     }
     if (dialogs_widen(text, status, STATUS_CAPACITY)) {
         (void)SetWindowTextW(app->controls[CONTROL_STATUS], status);
+        NotifyWinEvent(LIVE_REGION_CHANGED, app->controls[CONTROL_STATUS], OBJID_CLIENT, CHILDID_SELF);
     }
 }
 
@@ -278,4 +279,27 @@ bool dialogs_may_discard(AppState *app)
         return dialogs_save(app);
     }
     return answer == IDNO;
+}
+
+void dialogs_glossary(AppState *app)
+{
+    static char text[WIDE_TEXT_CAPACITY];
+    static wchar_t wide[WIDE_TEXT_CAPACITY];
+    GlossaryEntry entry;
+    int index;
+
+    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
+        return;
+    }
+    text[0] = '\0';
+    for (index = 0; index < LAYOUT_GLOSSARY_COUNT; ++index) {
+        entry = layout_glossary(index);
+        (void)text_append(text, sizeof text, entry.word);
+        (void)text_append(text, sizeof text, ": ");
+        (void)text_append(text, sizeof text, entry.meaning);
+        (void)text_append(text, sizeof text, "\n");
+    }
+    if (dialogs_widen(text, wide, WIDE_TEXT_CAPACITY)) {
+        (void)MessageBoxW(app->window, wide, L"Glossary", MB_OK | MB_ICONINFORMATION);
+    }
 }

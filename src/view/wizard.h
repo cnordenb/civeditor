@@ -22,8 +22,7 @@ enum { STEP_TITLE_WIDTH = 24, STEP_HELP_WIDTH = 128 };
 
 const char *wizard_title(WizardStep step);
 const char *wizard_help(WizardStep step);
-WizardStep wizard_next(WizardStep step);
-WizardStep wizard_previous(WizardStep step);
+WizardStep wizard_move(WizardStep step, int by);
 bool wizard_step_is_done(const CivDesign *design, WizardStep step);
 
 #endif

@@ -7,14 +7,9 @@ enum { ID_LIMIT = 100000, ALWAYS_KEPT_COUNT = 6 };
 
 static const int ALWAYS_KEPT[ALWAYS_KEPT_COUNT] = { 83, 109, 621, 68, 562, 584 };
 
-static bool valid_text_field(TextField field)
+static bool in_range(int value, int count)
 {
-    return CHECK((int)field >= 0) && CHECK((int)field < (int)TEXT_FIELD_COUNT);
-}
-
-static bool valid_tree_kind(TreeKind kind)
-{
-    return CHECK((int)kind >= 0) && CHECK((int)kind < (int)TREE_KIND_COUNT);
+    return CHECK(value >= 0) && CHECK(value < count);
 }
 
 void civ_design_reset(CivDesign *design)
@@ -72,7 +67,7 @@ int civ_text_capacity(TextField field)
 
 bool civ_design_set_text(CivDesign *design, TextField field, const char *text)
 {
-    if (!CHECK(design != NULL) || !CHECK(text != NULL) || !valid_text_field(field)) {
+    if (!CHECK(design != NULL) || !CHECK(text != NULL) || !in_range((int)field, TEXT_FIELD_COUNT)) {
         return false;
     }
     return text_copy(design->texts[field], (size_t)civ_text_capacity(field), text);
@@ -198,7 +193,7 @@ bool civ_design_toggle_tree(CivDesign *design, TreeKind kind, int node_id)
     int position;
     IdSet *set;
 
-    if (!CHECK(design != NULL) || !valid_tree_kind(kind) || !CHECK((node_id >= 0) && (node_id < ID_LIMIT))) {
+    if (!CHECK(design != NULL) || !in_range((int)kind, TREE_KIND_COUNT) || !in_range(node_id, ID_LIMIT)) {
         return false;
     }
     set = &design->tree[kind];
@@ -218,7 +213,7 @@ bool civ_design_toggle_tree(CivDesign *design, TreeKind kind, int node_id)
 
 bool civ_design_tree_has(const CivDesign *design, TreeKind kind, int node_id)
 {
-    if (!CHECK(design != NULL) || !CHECK(node_id >= 0) || !valid_tree_kind(kind)) {
+    if (!CHECK(design != NULL) || !CHECK(node_id >= 0) || !in_range((int)kind, TREE_KIND_COUNT)) {
         return false;
     }
     return find_in_set(&design->tree[kind], node_id) >= 0;
@@ -289,7 +284,7 @@ bool civ_design_tree_keeps(const CivDesign *design, TreeKind kind, int node_id)
 {
     int index;
 
-    if (!CHECK(design != NULL) || !valid_tree_kind(kind)) {
+    if (!CHECK(design != NULL) || !in_range((int)kind, TREE_KIND_COUNT)) {
         return false;
     }
     if (civ_design_tree_is_empty(design) || civ_design_tree_has(design, kind, node_id)) {

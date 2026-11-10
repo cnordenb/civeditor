@@ -119,40 +119,32 @@ bool text_append_number(char *destination, size_t capacity, long value)
     return text_append(destination, capacity, (value < 0) ? digits : &digits[1]);
 }
 
-bool text_equal(const char *left, const char *right)
+static bool matches(const char *text, const char *other, bool whole)
 {
     size_t index;
 
-    if (!CHECK(left != NULL) || !CHECK(right != NULL)) {
+    if (!CHECK(text != NULL) || !CHECK(other != NULL)) {
         return false;
     }
     for (index = 0U; index < (size_t)TEXT_SCAN_LIMIT; ++index) {
-        if (left[index] != right[index]) {
-            return false;
+        if (other[index] == '\0') {
+            return !whole || (text[index] == '\0');
         }
-        if (left[index] == '\0') {
-            return true;
+        if (text[index] != other[index]) {
+            return false;
         }
     }
     return false;
 }
 
+bool text_equal(const char *left, const char *right)
+{
+    return matches(left, right, true);
+}
+
 bool text_starts_with(const char *text, const char *prefix)
 {
-    size_t index;
-
-    if (!CHECK(text != NULL) || !CHECK(prefix != NULL)) {
-        return false;
-    }
-    for (index = 0U; index < (size_t)TEXT_SCAN_LIMIT; ++index) {
-        if (prefix[index] == '\0') {
-            return true;
-        }
-        if (text[index] != prefix[index]) {
-            return false;
-        }
-    }
-    return false;
+    return matches(text, prefix, false);
 }
 
 static char fold_case(char letter)

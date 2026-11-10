@@ -11,7 +11,10 @@ enum {
     LAYOUT_MIN_HEIGHT = 560,
     LAYOUT_TARGET_SIZE = 44,
     LAYOUT_ROW_HEIGHT = 44,
-    LAYOUT_BASE_DPI = 96
+    LAYOUT_BASE_DPI = 96,
+    LAYOUT_HELP_WIDTH = 112,
+    LAYOUT_GLOSSARY_COUNT = 30,
+    LAYOUT_WORD_WIDTH = 16
 };
 
 typedef enum {
@@ -94,6 +97,11 @@ typedef struct {
     char label[LAYOUT_LABEL_WIDTH];
 } ControlSpec;
 
+typedef struct {
+    char word[LAYOUT_WORD_WIDTH];
+    char meaning[LAYOUT_HELP_WIDTH];
+} GlossaryEntry;
+
 ControlSpec layout_spec(ControlId control);
 bool layout_shows(ControlId control, WizardStep step);
 bool layout_is_focusable(ControlId control);
@@ -101,5 +109,8 @@ bool layout_has_label(ControlId control);
 Box layout_box(ControlId control, int width, int height);
 Box layout_label_box(ControlId control, int width, int height);
 bool layout_boxes_overlap(Box first, Box second);
+const char *layout_help(ControlId control);
+int layout_text_dpi(int dpi, int text_percent);
+GlossaryEntry layout_glossary(int index);
 
 #endif

@@ -62,3 +62,11 @@ check - a condition the code asserts with CHECK, as P10 rule 5 asks; a failed ch
 build program - build.exe, made from tools/build/, which compiles, links and runs the tests in one step
 analyzed build - the build that also runs the static analyzer of gcc: build.exe
 quick build - the build without the static analyzer: build.exe quick
+complexity - one more than the branches of a function: each if, for, while, case, &&, || and ?
+CRAP score - complexity squared times the cube of the share of branches no test takes, plus complexity (Rule 32)
+crapper - build\crapper.exe, made from tools/crap/, which works out the CRAP score of every function
+shape - the runs of four tokens of a function, in which every name but that of a call counts as the same
+dryer - build\dryer.exe, made from tools/dry/, which finds every two functions whose shapes are 80% alike or more
+mutant - the code with one operator or constant changed, which a test should catch (Rule 34)
+mutator - build\mutator.exe, made from tools/mutate/, which makes each mutant of src/ and runs the tests on it
+glossary - the words of the game and the shortened forms of the catalog with their meanings, in the menu Help

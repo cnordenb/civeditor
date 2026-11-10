@@ -15,7 +15,6 @@ typedef struct {
 } HuffmanCode;
 
 bool huffman_build(HuffmanCode *code, const short *length, int symbols);
-bool huffman_build_fixed_literals(HuffmanCode *code);
-bool huffman_build_fixed_distances(HuffmanCode *code);
+bool huffman_build_fixed(HuffmanCode *code, bool literals);
 
 #endif

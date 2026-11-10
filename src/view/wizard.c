@@ -8,7 +8,7 @@ static const char TITLES[STEP_COUNT][STEP_TITLE_WIDTH] = {
 };
 
 static const char HELP[STEP_COUNT][STEP_HELP_WIDTH] = {
-    "Name the civ, give it a tagline and a story, and choose how it looks and sounds.",
+    "Choose a base civ first: it sets the tree, bonuses and looks. Then name and describe the civ.",
     "Select the units, buildings and techs the civ may have. Space selects the focused one.",
     "Select up to 24 bonuses. Type to filter them, or choose a category.",
     "Select the one bonus the civ gives to itself and its allies.",
@@ -19,36 +19,29 @@ static const char HELP[STEP_COUNT][STEP_HELP_WIDTH] = {
     "Check the civ, then save it as a civ file or build it into a mod."
 };
 
+static bool is_step(WizardStep step)
+{
+    return CHECK((int)step >= 0) && CHECK(step < STEP_COUNT);
+}
+
 const char *wizard_title(WizardStep step)
 {
-    if (!CHECK((int)step >= 0) || !CHECK(step < STEP_COUNT)) {
-        return "";
-    }
-    return TITLES[step];
+    return is_step(step) ? TITLES[step] : "";
 }
 
 const char *wizard_help(WizardStep step)
 {
-    if (!CHECK((int)step >= 0) || !CHECK(step < STEP_COUNT)) {
-        return "";
-    }
-    return HELP[step];
+    return is_step(step) ? HELP[step] : "";
 }
 
-WizardStep wizard_next(WizardStep step)
+WizardStep wizard_move(WizardStep step, int by)
 {
-    if (!CHECK((int)step >= 0) || !CHECK(step < STEP_COUNT)) {
-        return STEP_IDENTITY;
-    }
-    return (step == STEP_REVIEW) ? STEP_REVIEW : (WizardStep)(step + 1);
-}
+    int target = (int)step + by;
 
-WizardStep wizard_previous(WizardStep step)
-{
-    if (!CHECK((int)step >= 0) || !CHECK(step < STEP_COUNT)) {
+    if (!is_step(step) || !CHECK((by == 1) || (by == -1))) {
         return STEP_IDENTITY;
     }
-    return (step == STEP_IDENTITY) ? STEP_IDENTITY : (WizardStep)(step - 1);
+    return ((target < 0) || (target >= STEP_COUNT)) ? step : (WizardStep)target;
 }
 
 static bool tree_is_chosen(const CivDesign *design)

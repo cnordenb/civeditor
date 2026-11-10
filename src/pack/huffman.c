@@ -78,30 +78,18 @@ static short fixed_length(int symbol)
     return (symbol < FIXED_SEVEN_START) ? FIXED_SHORT_BITS : FIXED_MIDDLE_BITS;
 }
 
-bool huffman_build_fixed_literals(HuffmanCode *code)
+bool huffman_build_fixed(HuffmanCode *code, bool literals)
 {
+    int limit = literals ? HUFFMAN_SYMBOL_LIMIT : HUFFMAN_DISTANCE_LIMIT;
     int symbol;
 
-    if (!CHECK(code != NULL)) {
+    if (!CHECK(code != NULL) || !CHECK(limit <= HUFFMAN_SYMBOL_LIMIT)) {
         return false;
     }
-    for (symbol = 0; symbol < HUFFMAN_SYMBOL_LIMIT; ++symbol) {
-        fixed_lengths[symbol] = fixed_length(symbol);
+    for (symbol = 0; (symbol < limit) && (symbol < HUFFMAN_SYMBOL_LIMIT); ++symbol) {
+        fixed_lengths[symbol] = literals ? fixed_length(symbol) : FIXED_DISTANCE_BITS;
     }
-    return huffman_build(code, fixed_lengths, HUFFMAN_SYMBOL_LIMIT) &&
-           CHECK(code->count[FIXED_SHORT_BITS] == FIXED_SHORT_COUNT);
-}
-
-bool huffman_build_fixed_distances(HuffmanCode *code)
-{
-    int symbol;
-
-    if (!CHECK(code != NULL)) {
-        return false;
-    }
-    for (symbol = 0; symbol < HUFFMAN_DISTANCE_LIMIT; ++symbol) {
-        fixed_lengths[symbol] = FIXED_DISTANCE_BITS;
-    }
-    return huffman_build(code, fixed_lengths, HUFFMAN_DISTANCE_LIMIT) &&
-           CHECK(code->count[FIXED_DISTANCE_BITS] == HUFFMAN_DISTANCE_LIMIT);
+    return huffman_build(code, fixed_lengths, limit) &&
+           CHECK(code->count[literals ? FIXED_SHORT_BITS : FIXED_DISTANCE_BITS] ==
+                 (literals ? FIXED_SHORT_COUNT : HUFFMAN_DISTANCE_LIMIT));
 }

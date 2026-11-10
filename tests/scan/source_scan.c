@@ -245,3 +245,18 @@ bool source_scan(ScannedSource *source, const char *path)
     measure_lines(source);
     return source_find_functions(source);
 }
+
+bool source_span_is(const char *text, int start, int stop, const char *word)
+{
+    int index;
+
+    if (!CHECK(text != NULL) || !CHECK(word != NULL) || (stop - start >= SCAN_NAME_CAPACITY) || (stop < start)) {
+        return false;
+    }
+    for (index = 0; (index < SCAN_NAME_CAPACITY) && (index < stop - start); ++index) {
+        if ((word[index] == '\0') || (text[start + index] != word[index])) {
+            return false;
+        }
+    }
+    return word[stop - start] == '\0';
+}

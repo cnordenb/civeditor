@@ -39,26 +39,33 @@ static int node_kind(const JsonDocument *tree, int node)
 static void set_status(const TechTreeJob *job, int node)
 {
     const JsonDocument *tree;
+    const Catalog *catalog;
     int kind;
     int status;
+    int entry;
     TextNumber id;
 
-    if (!CHECK(job != NULL) || !CHECK(job->tree != NULL)) {
+    if (!CHECK(job != NULL) || !CHECK(job->tree != NULL) || !CHECK(job->catalog != NULL)) {
         return;
     }
     tree = job->tree;
+    catalog = job->catalog;
     kind = node_kind(tree, node);
     id = json_number(tree, json_member(tree, node, "Node ID"));
     status = json_member(tree, node, "Node Status");
-    if ((kind == JSON_NONE) || !id.valid || (status == JSON_NONE) ||
-        (catalog_find_tree(job->catalog, (TreeKind)kind, (int)id.value) == CATALOG_MISSING)) {
+    if ((kind == JSON_NONE) || !id.valid || (status == JSON_NONE)) {
+        return;
+    }
+    entry = catalog_find_tree(catalog, (TreeKind)kind, (int)id.value);
+    if (entry == CATALOG_MISSING) {
         return;
     }
     if (!civ_design_tree_keeps(job->design, (TreeKind)kind, (int)id.value)) {
         json_patch_replace(&patch, status, "\"NotAvailable\"");
     } else if (civ_design_tree_has(job->design, (TreeKind)kind, (int)id.value) &&
                string_is(tree, status, "NotAvailable")) {
-        json_patch_replace(&patch, status, "\"ResearchedCompleted\"");
+        json_patch_replace(&patch, status,
+                           catalog->tree[entry].needs_research ? "\"ResearchRequired\"" : "\"ResearchedCompleted\"");
     }
 }
 

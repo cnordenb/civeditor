@@ -3,8 +3,8 @@
 - [2026-11-09](#2026-11-09)
 
 Part 2 of the development log. It follows [part 1](DEVLOG1.md), and the day 2026-11-09 goes on here from
-[its start in part 1](DEVLOG1.md#2026-11-09), as Rule 22 allows when a part holds fewer than two days. The decisions
-made in the log are listed in [DECISIONS.md](../DECISIONS.md).
+[its start in part 1](DEVLOG1.md#2026-11-09), as Rule 22 allows when a part holds fewer than two days. It goes on in
+[part 3](DEVLOG3.md). The decisions made in the log are listed in [DECISIONS.md](../DECISIONS.md).
 
 ## 2026-11-09
 

@@ -8,5 +8,22 @@ bool test_every_input_has_a_visible_label(void);
 bool test_every_target_is_44_by_44(void);
 bool test_no_two_controls_of_a_step_overlap(void);
 bool test_the_window_title_names_the_civ_and_the_step(void);
+bool test_the_steps_and_their_buttons_are_on_every_step(void);
+bool test_tab_reaches_every_control_of_every_step(void);
+bool test_the_list_of_steps_shows_the_current_step(void);
+bool test_tab_follows_the_reading_order(void);
+bool test_a_ticked_row_leaves_the_list_where_it_was(void);
+bool test_every_control_is_named_by_its_label(void);
+bool test_a_ticked_row_is_told_as_chosen(void);
+bool test_moving_the_focus_changes_nothing(void);
+bool test_the_tab_key_leaves_every_control(void);
+bool test_windows_is_told_the_language_is_english(void);
+bool test_help_is_given_for_the_control_in_focus(void);
+bool test_the_status_line_is_told_to_a_screen_reader(void);
+bool test_the_layout_grows_with_the_text_size_of_windows(void);
+bool test_the_glossary_explains_every_short_form(void);
+bool test_the_control_in_focus_has_a_solid_frame(void);
+bool test_a_ticked_row_is_drawn_with_a_check(void);
+bool test_an_undone_choice_shows_the_designs_value_again(void);
 
 #endif

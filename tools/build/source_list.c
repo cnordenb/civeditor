@@ -5,7 +5,9 @@
 #include "../../src/core/check.h"
 #include "../../src/core/text.h"
 
-enum { FOLDER_ENTRY_LIMIT = 4096, FILE_TIME_HIGH_SHIFT = 32, EXTENSION_CAPACITY = 16 };
+enum { FOLDER_ENTRY_LIMIT = 4096, FILE_TIME_HIGH_SHIFT = 32, EXTENSION_CAPACITY = 16, ROOT_COUNT = 3, ROOT_WIDTH = 8 };
+
+static const char SOURCE_ROOTS[ROOT_COUNT][ROOT_WIDTH] = { "src", "tests", "tools" };
 
 typedef struct {
     char pending[SOURCE_FOLDER_CAPACITY][SOURCE_PATH_CAPACITY];
@@ -146,6 +148,52 @@ bool source_list_collect(SourceList *list, const char *root, const char *extensi
         }
     }
     return true;
+}
+
+bool source_list_collect_all(SourceList *list, const char *extension)
+{
+    static SourceList part;
+    int root;
+    int index;
+
+    if (!CHECK(list != NULL) || !CHECK(extension != NULL)) {
+        return false;
+    }
+    list->count = 0;
+    for (root = 0; root < ROOT_COUNT; ++root) {
+        if (!source_list_collect(&part, SOURCE_ROOTS[root], extension)) {
+            return false;
+        }
+        for (index = 0; (index < part.count) && (index < SOURCE_LIST_CAPACITY); ++index) {
+            if (!CHECK(list->count < SOURCE_LIST_CAPACITY)) {
+                return false;
+            }
+            list->files[list->count] = part.files[index];
+            ++list->count;
+        }
+    }
+    return true;
+}
+
+bool source_in_tests(const char *path)
+{
+    if (!CHECK(path != NULL) || !CHECK(path[0] != '\0')) {
+        return false;
+    }
+    return text_starts_with(path, "src/") || text_starts_with(path, "tests/") ||
+           text_starts_with(path, "tools/crap/crap_") || text_starts_with(path, "tools/dry/dry_") ||
+           text_starts_with(path, "tools/mutate/mutant_");
+}
+
+const char *source_test_libraries(void)
+{
+    static const char LIBRARIES[] = "-lgdi32\n-lcomdlg32\n-lshell32\n-ladvapi32\n"
+                                    "-loleacc\n-lole32\n-loleaut32\n";
+
+    if (!CHECK(sizeof LIBRARIES > 1U) || !CHECK(LIBRARIES[0] == '-')) {
+        return "";
+    }
+    return LIBRARIES;
 }
 
 long long source_list_newest(const SourceList *list)

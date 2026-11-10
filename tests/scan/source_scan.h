@@ -39,5 +39,6 @@ bool source_is_word_letter(char letter);
 bool source_line_is_blank(const ScannedSource *source, int line);
 int source_line_length(const ScannedSource *source, int line);
 int source_count_word(const ScannedSource *source, int start, int end, const char *word);
+bool source_span_is(const char *text, int start, int stop, const char *word);
 
 #endif
