@@ -1,7 +1,7 @@
 # Requirements
 1. The civ is saved and opened as `civbuilder_civ` by default unless user names it.
 2. The mod goes into the local mods folder.
-3. Civ Builder is WCAG 2.2 AAA compliant.
+3. Civ Builder is WCAG 2.2 AA compliant.
 4. ACCESSIBILITY.md will contain a checklist, when all items in that checklist are evaluated as true, Civ Builder is considered WCAG 2.2 AAA compliant.
 5. Undo and redo always work (Ctrl+Z, Ctrl+Y).
 6. A civ has at most 24 civ bonuses.
