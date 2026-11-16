@@ -13,7 +13,7 @@ Rule 4: Must have tests to ensure the project still works every push.
 
 Rule 5: A test may test one thing and one thing only. A test must serve one of the following purposes: requirement coverage, regression testing for previously found bugs.
 
-Rule 6: Tests will be documented, without excess clutter, text or story-telling, in TESTS.md.
+Rule 6: Tests will be documented, without excess clutter, text or story-telling, in TESTS.md. Every test must refer to either a requirement, a rule, or a past bug. If it cannot do so, it cannot be considered compliant with rule 5.
 
 Rule 7: Must keep up-to-date MAINTAINER.md which explains pedagogically for humans how to maintain the project.
 
