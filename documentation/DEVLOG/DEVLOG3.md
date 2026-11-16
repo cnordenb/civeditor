@@ -2,8 +2,8 @@
 
 - [2026-11-10](#2026-11-10)
 
-Part 3 of the development log. It follows [part 2](DEVLOG2.md). The decisions made in the log are listed in
-[DECISIONS.md](../DECISIONS.md).
+Part 3 of the development log. It follows [part 2](DEVLOG2.md) and goes on in [part 4](DEVLOG4.md). The decisions
+made in the log are listed in [DECISIONS.md](../DECISIONS.md).
 
 ## 2026-11-10
 

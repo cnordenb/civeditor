@@ -57,11 +57,7 @@ static int called_name_end(const ScannedSource *source, int index, int end)
     if (!CHECK(source != NULL) || !CHECK(index < end)) {
         return -1;
     }
-    for (cursor = index; (cursor < end) && (cursor < SCAN_TEXT_CAPACITY); ++cursor) {
-        if (!source_is_word_letter(source->cleaned[cursor])) {
-            break;
-        }
-    }
+    cursor = source_word_end(source->cleaned, index, end);
     return ((cursor < end) && (source->cleaned[cursor] == '(')) ? cursor : -1;
 }
 
@@ -76,28 +72,38 @@ static bool add_edge(CallGraph *graph, int caller, int callee)
     return true;
 }
 
-static bool add_calls_of(CallGraph *graph, const ScannedSource *source, const ScannedFunction *function)
+static bool starts_word(const ScannedSource *source, int index)
+{
+    if (!CHECK(source != NULL) || !CHECK(index >= 0)) {
+        return false;
+    }
+    return ((index == 0) || !source_is_word_letter(source->cleaned[index - 1])) &&
+           source_is_word_letter(source->cleaned[index]);
+}
+
+static int callee_at(const CallGraph *graph, const ScannedSource *source, int index, int end)
 {
     char name[SCAN_NAME_CAPACITY];
+    int name_end = called_name_end(source, index, end);
+
+    if (!CHECK(graph != NULL) || (name_end < 0) || ((name_end - index) >= SCAN_NAME_CAPACITY)) {
+        return -1;
+    }
+    (void)text_copy_span(name, sizeof name, &source->cleaned[index], (size_t)(name_end - index));
+    return find_function(graph, name);
+}
+
+static bool add_calls_of(CallGraph *graph, const ScannedSource *source, const ScannedFunction *function)
+{
     int caller = find_function(graph, function->name);
     int index;
-    int name_end;
     int callee;
 
     if (!CHECK(function != NULL) || (caller < 0)) {
         return true;
     }
     for (index = function->body_start; (index < function->body_end) && (index < SCAN_TEXT_CAPACITY); ++index) {
-        if (((index > 0) && source_is_word_letter(source->cleaned[index - 1])) ||
-            !source_is_word_letter(source->cleaned[index])) {
-            continue;
-        }
-        name_end = called_name_end(source, index, function->body_end);
-        if ((name_end < 0) || ((name_end - index) >= SCAN_NAME_CAPACITY)) {
-            continue;
-        }
-        (void)text_copy_span(name, sizeof name, &source->cleaned[index], (size_t)(name_end - index));
-        callee = find_function(graph, name);
+        callee = starts_word(source, index) ? callee_at(graph, source, index, function->body_end) : -1;
         if ((callee >= 0) && !add_edge(graph, caller, callee)) {
             return false;
         }
@@ -142,14 +148,13 @@ static bool remove_finished(const CallGraph *graph)
     return changed;
 }
 
-bool call_graph_find_cycle(const CallGraph *graph, char *culprit, size_t capacity)
+static void count_open_calls(const CallGraph *graph)
 {
     int node;
     int edge;
-    int round;
 
-    if (!CHECK(graph != NULL) || !CHECK(culprit != NULL)) {
-        return false;
+    if (!CHECK(graph != NULL) || !CHECK(graph->edge_count <= GRAPH_EDGE_CAPACITY)) {
+        return;
     }
     for (node = 0; (node < graph->function_count) && (node < GRAPH_FUNCTION_CAPACITY); ++node) {
         removed[node] = false;
@@ -158,6 +163,17 @@ bool call_graph_find_cycle(const CallGraph *graph, char *culprit, size_t capacit
     for (edge = 0; (edge < graph->edge_count) && (edge < GRAPH_EDGE_CAPACITY); ++edge) {
         ++open_calls[graph->callers[edge]];
     }
+}
+
+bool call_graph_find_cycle(const CallGraph *graph, char *culprit, size_t capacity)
+{
+    int node;
+    int round;
+
+    if (!CHECK(graph != NULL) || !CHECK(culprit != NULL)) {
+        return false;
+    }
+    count_open_calls(graph);
     for (round = 0; (round < GRAPH_FUNCTION_CAPACITY) && remove_finished(graph); ++round) {
         culprit[0] = '\0';
     }

@@ -1,0 +1,18 @@
+#ifndef HISTORY_TESTS_H
+#define HISTORY_TESTS_H
+
+#include <stdbool.h>
+
+bool test_a_new_design_has_nothing_to_undo(void);
+bool test_a_new_design_has_nothing_to_redo(void);
+bool test_an_undo_that_fails_leaves_nothing_to_redo(void);
+bool test_a_change_that_is_made_is_reported_as_made(void);
+bool test_a_change_after_an_undo_leaves_nothing_to_redo(void);
+bool test_undo_goes_back_as_many_changes_as_the_history_holds(void);
+bool test_undo_past_the_depth_brings_back_the_change_before(void);
+bool test_a_design_put_in_place_of_another_can_be_undone(void);
+bool test_a_design_put_in_place_of_another_leaves_nothing_to_redo(void);
+bool test_a_change_after_typing_is_undone_by_itself(void);
+bool test_typing_after_an_undo_is_a_change_of_its_own(void);
+
+#endif

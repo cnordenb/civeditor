@@ -192,15 +192,22 @@ typedef struct {
     int base_count;
 } Catalog;
 
+typedef enum {
+    CATALOG_UNITS,
+    CATALOG_TECHS,
+    CATALOG_TREE,
+    CATALOG_APPEARANCES,
+    CATALOG_BASES,
+    CATALOG_TABLE_COUNT
+} CatalogTable;
+
 bool catalog_load(Catalog *catalog, const wchar_t *folder);
 const char *catalog_category_name(BonusCategory category);
 const char *catalog_appearance_name(const Catalog *catalog, AppearanceKind kind, int id);
 int catalog_string_id(const Catalog *catalog, int slot, CivString kind);
 int catalog_find_look(const Catalog *catalog, AppearanceKind kind, int id);
 int catalog_find_bonus(const Catalog *catalog, bool team, int bonus_id);
-int catalog_find_unit(const Catalog *catalog, UnitRole role, int unit_id);
-int catalog_find_tech(const Catalog *catalog, TechTier tier, int tech_id);
-int catalog_find_tree(const Catalog *catalog, TreeKind kind, int node_id);
+int catalog_find(const Catalog *catalog, CatalogTable table, int kind, int id);
 int catalog_find_base(const Catalog *catalog, int base_id);
 
 #endif

@@ -100,16 +100,18 @@ static bool map_civs(DatCursor *cursor, DatMap *map)
     return cursor->fine;
 }
 
+static bool read_tech_count(DatCursor *cursor, DatMap *map)
+{
+    map->tech_count_at = cursor->at;
+    map->tech_count = dat_cursor_i16(cursor);
+    return CHECK(map->tech_count >= 0) && CHECK(map->tech_count <= DAT_TECH_CAPACITY);
+}
+
 static bool map_techs(DatCursor *cursor, DatMap *map)
 {
     int tech;
 
-    if (!CHECK(cursor != NULL) || !CHECK(map != NULL)) {
-        return false;
-    }
-    map->tech_count_at = cursor->at;
-    map->tech_count = dat_cursor_i16(cursor);
-    if (!CHECK(map->tech_count >= 0) || !CHECK(map->tech_count <= DAT_TECH_CAPACITY)) {
+    if (!CHECK(cursor != NULL) || !CHECK(map != NULL) || !read_tech_count(cursor, map)) {
         return false;
     }
     for (tech = 0; (tech < map->tech_count) && (tech < DAT_TECH_CAPACITY) && cursor->fine; ++tech) {
@@ -178,6 +180,22 @@ static bool skip_tech_tree(DatCursor *cursor)
            CHECK(skip_tree_nodes(cursor, TREE_RESEARCH, research_count));
 }
 
+static bool map_head(DatCursor *cursor)
+{
+    return CHECK(map_version(cursor)) && CHECK(dat_skip_head(cursor));
+}
+
+static bool map_tech_tables(DatCursor *cursor, DatMap *map)
+{
+    return CHECK(map_techs(cursor, map)) && CHECK(skip_tech_tree(cursor));
+}
+
+static bool map_tables(DatCursor *cursor, DatMap *map)
+{
+    return CHECK(map_effects(cursor, map)) && CHECK(dat_skip_unit_headers(cursor)) && CHECK(map_civs(cursor, map)) &&
+           map_tech_tables(cursor, map);
+}
+
 bool dat_map_read(const unsigned char *data, size_t size, DatMap *map)
 {
     DatBytes dat;
@@ -191,10 +209,13 @@ bool dat_map_read(const unsigned char *data, size_t size, DatMap *map)
     map->effect_count = 0;
     map->civ_count = 0;
     map->tech_count = 0;
-    return dat_cursor_start(&cursor, &dat, 0U) && CHECK(map_version(&cursor)) && CHECK(dat_skip_head(&cursor)) &&
-           CHECK(map_effects(&cursor, map)) && CHECK(dat_skip_unit_headers(&cursor)) &&
-           CHECK(map_civs(&cursor, map)) && CHECK(map_techs(&cursor, map)) && CHECK(skip_tech_tree(&cursor)) &&
+    return dat_cursor_start(&cursor, &dat, 0U) && map_head(&cursor) && map_tables(&cursor, map) &&
            CHECK(cursor.at == size);
+}
+
+bool dat_map_has_civ(const DatMap *map, int civ)
+{
+    return CHECK(map != NULL) && CHECK(civ >= 0) && CHECK(civ < map->civ_count) && CHECK(civ < DAT_CIV_CAPACITY);
 }
 
 bool dat_civ_read(const DatBytes *dat, size_t at, DatCiv *civ)
@@ -217,38 +238,60 @@ bool dat_civ_read(const DatBytes *dat, size_t at, DatCiv *civ)
     return cursor.fine;
 }
 
+static void skip_units_before(DatCursor *cursor, DatCursor *slots, int unit_id)
+{
+    int unit;
+
+    if (!CHECK(cursor != NULL) || !CHECK(slots != NULL)) {
+        return;
+    }
+    for (unit = 0; (unit < unit_id) && (unit < DAT_COUNT_LIMIT) && cursor->fine; ++unit) {
+        if (dat_cursor_i32(slots) != 0L) {
+            (void)dat_skip_unit(cursor);
+        }
+    }
+}
+
 bool dat_find_unit(const DatBytes *dat, size_t civ_at, int unit_id, size_t *unit_at)
 {
     DatCursor cursor;
     DatCursor slots;
-    long present;
     int unit_count;
-    int unit;
 
-    if (!CHECK(dat != NULL) || !CHECK(unit_at != NULL) || (unit_id < 0) || !dat_cursor_start(&cursor, dat, civ_at)) {
+    if (!CHECK(dat != NULL) || !CHECK(unit_at != NULL) || !dat_cursor_start(&cursor, dat, civ_at)) {
         return false;
     }
     unit_count = dat_skip_civ_head(&cursor);
+    if ((unit_id < 0) || (unit_id >= unit_count)) {
+        return false;
+    }
     slots = cursor;
     (void)dat_cursor_skip_items(&cursor, unit_count, DAT_POINTER_SIZE);
-    for (unit = 0; (unit < unit_count) && (unit < DAT_COUNT_LIMIT) && cursor.fine; ++unit) {
-        present = dat_cursor_i32(&slots);
-        if (unit == unit_id) {
-            *unit_at = cursor.at;
-            return (present != 0L) && cursor.fine;
-        }
-        if (present != 0L) {
-            (void)dat_skip_unit(&cursor);
+    skip_units_before(&cursor, &slots, unit_id);
+    *unit_at = cursor.at;
+    return (dat_cursor_i32(&slots) != 0L) && cursor.fine;
+}
+
+static void place_units(DatUnitList *list, DatCursor *cursor, DatCursor slots)
+{
+    int unit;
+
+    if (!CHECK(list != NULL) || !CHECK(cursor != NULL)) {
+        return;
+    }
+    for (unit = 0; (unit < list->count) && (unit < DAT_UNIT_CAPACITY) && cursor->fine; ++unit) {
+        list->at[unit] = 0U;
+        if (dat_cursor_i32(&slots) != 0L) {
+            list->at[unit] = cursor->at;
+            (void)dat_skip_unit(cursor);
         }
     }
-    return false;
 }
 
 bool dat_list_units(const DatBytes *dat, size_t civ_at, DatUnitList *list)
 {
     DatCursor cursor;
     DatCursor slots;
-    int unit;
 
     if (!CHECK(dat != NULL) || !CHECK(list != NULL) || !dat_cursor_start(&cursor, dat, civ_at)) {
         return false;
@@ -260,13 +303,7 @@ bool dat_list_units(const DatBytes *dat, size_t civ_at, DatUnitList *list)
     }
     slots = cursor;
     (void)dat_cursor_skip_items(&cursor, list->count, DAT_POINTER_SIZE);
-    for (unit = 0; (unit < list->count) && (unit < DAT_UNIT_CAPACITY) && cursor.fine; ++unit) {
-        list->at[unit] = 0U;
-        if (dat_cursor_i32(&slots) != 0L) {
-            list->at[unit] = cursor.at;
-            (void)dat_skip_unit(&cursor);
-        }
-    }
+    place_units(list, &cursor, slots);
     return cursor.fine;
 }
 

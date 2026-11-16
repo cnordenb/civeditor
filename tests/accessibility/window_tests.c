@@ -30,26 +30,7 @@ typedef enum {
 
 static void go_to(HWND window, int step)
 {
-    if (!CHECK(window != NULL) || !CHECK(step < STEP_COUNT)) {
-        return;
-    }
-    (void)SendMessageW(window, WM_COMMAND, (WPARAM)(ACTION_ID_BASE + ACTION_FIRST_STEP + step), 0);
-}
-
-void window_fixture_close(HWND window)
-{
-    MSG message;
-    int step;
-
-    if (!CHECK(MESSAGE_DRAIN_LIMIT > 0) || (window == NULL)) {
-        return;
-    }
-    (void)DestroyWindow(window);
-    for (step = 0; step < MESSAGE_DRAIN_LIMIT; ++step) {
-        if (PeekMessageW(&message, NULL, 0, 0, PM_REMOVE) == 0) {
-            break;
-        }
-    }
+    window_fixture_act(window, ACTION_FIRST_STEP + step);
 }
 
 static bool tab_reaches(HWND window, HWND target)
@@ -411,6 +392,18 @@ bool test_windows_is_told_the_language_is_english(void)
     return told;
 }
 
+static bool element_is_polite(IUIAutomationElement *element)
+{
+    VARIANT setting;
+
+    if (!CHECK(element != NULL) || !CHECK(UIA_LiveSettingPropertyId > 0)) {
+        return false;
+    }
+    VariantInit(&setting);
+    return (IUIAutomationElement_GetCurrentPropertyValue(element, UIA_LiveSettingPropertyId, &setting) == S_OK) &&
+           (setting.vt == VT_I4) && (setting.lVal == 1);
+}
+
 static bool is_polite_live_region(HWND control)
 {
     static const CLSID AUTOMATION = {
@@ -420,7 +413,6 @@ static bool is_polite_live_region(HWND control)
     void *object = NULL;
     IUIAutomation *automation;
     IUIAutomationElement *element = NULL;
-    VARIANT setting;
     bool polite = false;
 
     if (!CHECK(control != NULL) ||
@@ -428,11 +420,8 @@ static bool is_polite_live_region(HWND control)
         return false;
     }
     automation = object;
-    VariantInit(&setting);
     if ((IUIAutomation_ElementFromHandle(automation, control, &element) == S_OK) && (element != NULL)) {
-        polite = (IUIAutomationElement_GetCurrentPropertyValue(element, UIA_LiveSettingPropertyId, &setting) ==
-                  S_OK) &&
-                 (setting.vt == VT_I4) && (setting.lVal == 1);
+        polite = element_is_polite(element);
         (void)IUIAutomationElement_Release(element);
     }
     (void)IUIAutomation_Release(automation);

@@ -20,8 +20,12 @@ typedef enum {
 
 enum { STEP_TITLE_WIDTH = 24, STEP_HELP_WIDTH = 128 };
 
-const char *wizard_title(WizardStep step);
-const char *wizard_help(WizardStep step);
+typedef struct {
+    char title[STEP_TITLE_WIDTH];
+    char help[STEP_HELP_WIDTH];
+} WizardPage;
+
+const WizardPage *wizard_page(WizardStep step);
 WizardStep wizard_move(WizardStep step, int by);
 bool wizard_step_is_done(const CivDesign *design, WizardStep step);
 

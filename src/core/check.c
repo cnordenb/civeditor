@@ -80,3 +80,24 @@ void check_forget_failures(void)
     failure_count = 0;
     last_failure[0] = '\0';
 }
+
+bool check_is_among(int value, const int *values, int count)
+{
+    int index;
+
+    if (!CHECK(values != NULL) || !CHECK(count <= CHECK_AMONG_LIMIT) ||
+        !CHECK(count > 0)) {
+        return false;
+    }
+    for (index = 0; (index < count) && (index < CHECK_AMONG_LIMIT); ++index) {
+        if (values[index] == value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+int check_index(int index, int count, int fallback)
+{
+    return (CHECK(index >= 0) && CHECK(index < count)) ? index : fallback;
+}

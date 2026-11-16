@@ -1,0 +1,15 @@
+#ifndef GATE_TESTS_H
+#define GATE_TESTS_H
+
+#include <stdbool.h>
+
+bool test_the_rule_against_goto_names_the_line_of_a_goto(void);
+bool test_the_rule_against_allocation_names_the_line_of_a_malloc(void);
+bool test_the_rule_of_bounded_loops_names_a_loop_without_a_fixed_bound(void);
+bool test_the_rule_of_the_preprocessor_names_a_macro_with_arguments(void);
+bool test_the_rule_of_one_dereference_names_two_arrows_in_a_row(void);
+bool test_the_rule_against_function_pointers_names_one(void);
+bool test_the_rule_against_comments_names_the_line_of_a_comment(void);
+bool test_the_rule_against_recursion_names_a_function_that_calls_itself(void);
+
+#endif

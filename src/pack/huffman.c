@@ -10,16 +10,33 @@ enum {
     FIXED_MIDDLE_BITS = 8,
     FIXED_LONG_BITS = 9,
     FIXED_DISTANCE_BITS = 5,
-    FIXED_SHORT_COUNT = 24
+    FIXED_SHORT_COUNT = 24,
+    FIXED_KINDS = 2
 };
 
 static short fixed_lengths[HUFFMAN_SYMBOL_LIMIT];
+
+static bool lengths_fit(const HuffmanCode *code)
+{
+    int left = 1;
+    int bits;
+
+    if (!CHECK(code != NULL) || !CHECK(HUFFMAN_MAX_BITS > 0)) {
+        return false;
+    }
+    for (bits = 1; bits <= HUFFMAN_MAX_BITS; ++bits) {
+        left = (left << 1) - code->count[bits];
+        if (left < 0) {
+            return false;
+        }
+    }
+    return true;
+}
 
 static bool count_lengths(HuffmanCode *code, const short *length, int symbols)
 {
     int bits;
     int symbol;
-    int left = 1;
 
     if (!CHECK(code != NULL) || !CHECK(length != NULL)) {
         return false;
@@ -33,13 +50,7 @@ static bool count_lengths(HuffmanCode *code, const short *length, int symbols)
         }
         ++code->count[length[symbol]];
     }
-    for (bits = 1; bits <= HUFFMAN_MAX_BITS; ++bits) {
-        left = (left << 1) - code->count[bits];
-        if (left < 0) {
-            return false;
-        }
-    }
-    return true;
+    return lengths_fit(code);
 }
 
 bool huffman_build(HuffmanCode *code, const short *length, int symbols)
@@ -80,16 +91,17 @@ static short fixed_length(int symbol)
 
 bool huffman_build_fixed(HuffmanCode *code, bool literals)
 {
-    int limit = literals ? HUFFMAN_SYMBOL_LIMIT : HUFFMAN_DISTANCE_LIMIT;
+    static const int LIMITS[FIXED_KINDS] = { HUFFMAN_DISTANCE_LIMIT, HUFFMAN_SYMBOL_LIMIT };
+    static const int TOLD_BITS[FIXED_KINDS] = { FIXED_DISTANCE_BITS, FIXED_SHORT_BITS };
+    static const int TOLD_COUNTS[FIXED_KINDS] = { HUFFMAN_DISTANCE_LIMIT, FIXED_SHORT_COUNT };
+    int kind = (int)literals;
     int symbol;
 
-    if (!CHECK(code != NULL) || !CHECK(limit <= HUFFMAN_SYMBOL_LIMIT)) {
+    if (!CHECK(code != NULL) || !CHECK(LIMITS[kind] <= HUFFMAN_SYMBOL_LIMIT)) {
         return false;
     }
-    for (symbol = 0; (symbol < limit) && (symbol < HUFFMAN_SYMBOL_LIMIT); ++symbol) {
+    for (symbol = 0; (symbol < LIMITS[kind]) && (symbol < HUFFMAN_SYMBOL_LIMIT); ++symbol) {
         fixed_lengths[symbol] = literals ? fixed_length(symbol) : FIXED_DISTANCE_BITS;
     }
-    return huffman_build(code, fixed_lengths, limit) &&
-           CHECK(code->count[literals ? FIXED_SHORT_BITS : FIXED_DISTANCE_BITS] ==
-                 (literals ? FIXED_SHORT_COUNT : HUFFMAN_DISTANCE_LIMIT));
+    return huffman_build(code, fixed_lengths, LIMITS[kind]) && CHECK(code->count[TOLD_BITS[kind]] == TOLD_COUNTS[kind]);
 }

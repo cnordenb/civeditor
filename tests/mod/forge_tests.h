@@ -1,0 +1,20 @@
+#ifndef FORGE_TESTS_H
+#define FORGE_TESTS_H
+
+#include <stdbool.h>
+
+bool test_a_built_mod_has_a_data_folder_named_after_the_civ(void);
+bool test_a_built_mod_has_a_ui_folder_named_after_the_civ(void);
+bool test_the_data_mods_info_names_the_civ(void);
+bool test_the_ui_mods_info_says_that_it_is_the_ui_mod(void);
+bool test_the_data_mod_holds_the_dat_file_with_the_civs_techs(void);
+bool test_the_data_mods_list_of_civs_names_the_civs_unique_unit(void);
+bool test_the_data_mod_holds_the_tech_tree_file_of_the_replaced_civ(void);
+bool test_the_ui_mod_names_the_civ_in_english(void);
+bool test_the_ui_mod_is_written_for_the_last_language_of_the_game(void);
+bool test_a_game_folder_without_its_list_of_civs_is_reported(void);
+bool test_a_data_file_that_is_not_the_games_is_reported(void);
+bool test_a_game_without_the_civs_tech_tree_file_is_reported(void);
+bool test_a_civ_with_parts_the_catalog_lacks_is_built_and_reported(void);
+
+#endif

@@ -7,12 +7,10 @@ enum {
     TITLE_POINTS = 16,
     POINTS_PER_INCH = 72,
     DROP_HEIGHT = 320,
-    BOX_SIZE = 18,
     BOX_INSET = 4,
     BOX_LINE = 2,
     FOCUS_LINE = 3,
     RING_LIMIT = 4 * BOX_SIZE,
-    TEXT_INSET = 8,
     CHECK_KNEE_DIVISOR = 2,
     CLASS_WIDTH = 16,
     ROW_TEXT_CAPACITY = 512,
@@ -28,8 +26,8 @@ static const DWORD STYLES[WIDGET_KIND_COUNT] = {
     WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL,
     WS_BORDER | WS_TABSTOP | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN,
     WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | CBS_HASSTRINGS,
-    WS_BORDER | WS_TABSTOP | WS_VSCROLL | LBS_NOTIFY | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT,
-    WS_BORDER | WS_TABSTOP | WS_VSCROLL | LBS_NOTIFY | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT |
+    WS_BORDER | WS_TABSTOP | WS_VSCROLL | LBS_NOTIFY | LBS_OWNERDRAWVARIABLE | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT,
+    WS_BORDER | WS_TABSTOP | WS_VSCROLL | LBS_NOTIFY | LBS_OWNERDRAWVARIABLE | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT |
         LBS_MULTIPLESEL,
     WS_TABSTOP | BS_PUSHBUTTON | BS_NOTIFY,
     WS_BORDER | WS_TABSTOP | WS_VSCROLL | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL
@@ -125,21 +123,15 @@ static HFONT make_font(int dpi, int points, int weight)
 
 static COLORREF color_of(const AppState *app, ColorRole role)
 {
+    static const int SYSTEM_COLORS[COLOR_ROLE_COUNT] = { COLOR_WINDOW,    COLOR_WINDOWTEXT,    COLOR_WINDOW,
+                                                         COLOR_WINDOWTEXT, COLOR_HIGHLIGHT,     COLOR_HIGHLIGHTTEXT,
+                                                         COLOR_HIGHLIGHT };
     Rgb color = palette_color(role);
 
     if (!CHECK(app != NULL) || !CHECK(role < COLOR_ROLE_COUNT)) {
         return RGB(0, 0, 0);
     }
-    if (!app->high_contrast) {
-        return RGB(color.red, color.green, color.blue);
-    }
-    if ((role == COLOR_ROLE_CHOSEN) || (role == COLOR_ROLE_FOCUS)) {
-        return GetSysColor(COLOR_HIGHLIGHT);
-    }
-    if (role == COLOR_ROLE_CHOSEN_INK) {
-        return GetSysColor(COLOR_HIGHLIGHTTEXT);
-    }
-    return GetSysColor(((role == COLOR_ROLE_PAPER) || (role == COLOR_ROLE_FIELD)) ? COLOR_WINDOW : COLOR_WINDOWTEXT);
+    return app->high_contrast ? GetSysColor(SYSTEM_COLORS[role]) : RGB(color.red, color.green, color.blue);
 }
 
 static void replace_brush(HBRUSH *brush, COLORREF color)
@@ -216,28 +208,59 @@ static void move_to(const AppState *app, HWND window, Box box)
                      MulDiv(box.height, app->dpi, LAYOUT_BASE_DPI), TRUE);
 }
 
-void controls_place(AppState *app)
-{
-    RECT client;
+typedef struct {
     int width;
     int height;
-    int control;
+    bool narrow;
+} Room;
+
+static Room room_of(const AppState *app)
+{
+    Room room = { REFLOW_MIN_WIDTH, REFLOW_MIN_HEIGHT, true };
+    RECT client;
 
     if (!CHECK(app != NULL) || !CHECK(app->dpi > 0) || (GetClientRect(app->window, &client) == 0)) {
+        return room;
+    }
+    room.width = MulDiv(client.right - client.left, LAYOUT_BASE_DPI, app->dpi);
+    room.height = MulDiv(client.bottom - client.top, LAYOUT_BASE_DPI, app->dpi);
+    room.narrow = reflow_is_needed(room.width, room.height);
+    room.width = (room.width < REFLOW_MIN_WIDTH) ? REFLOW_MIN_WIDTH : room.width;
+    return room;
+}
+
+static Box control_box(const AppState *app, ControlId control, Room room, bool label)
+{
+    Box box;
+
+    if (!room.narrow) {
+        return label ? layout_label_box(control, room.width, room.height)
+                     : layout_box(control, room.width, room.height);
+    }
+    box = label ? reflow_label_box(control, app->step, room.width) : reflow_box(control, app->step, room.width);
+    box.top -= app->scroll;
+    return box;
+}
+
+void controls_place(AppState *app)
+{
+    Room room = room_of(app);
+    int control;
+
+    if (!CHECK(app != NULL) || !CHECK(app->dpi > 0)) {
         return;
     }
-    width = MulDiv(client.right - client.left, LAYOUT_BASE_DPI, app->dpi);
-    height = MulDiv(client.bottom - client.top, LAYOUT_BASE_DPI, app->dpi);
-    width = (width < LAYOUT_MIN_WIDTH) ? LAYOUT_MIN_WIDTH : width;
-    height = (height < LAYOUT_MIN_HEIGHT) ? LAYOUT_MIN_HEIGHT : height;
+    app->scroll = assist_scroll_range(app, room.narrow ? reflow_height(app->step) : room.height, room.height);
+    room = room_of(app);
     for (control = 0; control < CONTROL_COUNT; ++control) {
-        Box box = layout_box((ControlId)control, width, height);
+        Box box = control_box(app, (ControlId)control, room, false);
         box.height += (layout_spec((ControlId)control).kind == WIDGET_CHOICE) ? DROP_HEIGHT : 0;
         move_to(app, app->controls[control], box);
         if (app->labels[control] != NULL) {
-            move_to(app, app->labels[control], layout_label_box((ControlId)control, width, height));
+            move_to(app, app->labels[control], control_box(app, (ControlId)control, room, true));
         }
     }
+    assist_placed(app);
 }
 
 void controls_show_step(AppState *app)
@@ -255,20 +278,28 @@ void controls_show_step(AppState *app)
             (void)ShowWindow(app->labels[control], show);
         }
     }
+    app->scroll = 0;
+    controls_place(app);
+}
+
+static bool is_field(int identifier)
+{
+    return (identifier >= 0) && (identifier < CONTROL_COUNT) && layout_is_focusable((ControlId)identifier);
 }
 
 HBRUSH controls_color(const AppState *app, HDC context, HWND control)
 {
     int identifier;
     bool field;
+    bool muted;
 
     if (!CHECK(app != NULL) || !CHECK(context != NULL)) {
         return NULL;
     }
     identifier = GetDlgCtrlID(control) - CONTROL_ID_BASE;
-    field = (identifier >= 0) && (identifier < CONTROL_COUNT) && layout_is_focusable((ControlId)identifier);
-    (void)SetTextColor(context, color_of(app, (control == app->controls[CONTROL_HELP]) ? COLOR_ROLE_MUTED
-                                                                                         : COLOR_ROLE_INK));
+    field = is_field(identifier);
+    muted = (control == app->controls[CONTROL_HELP]);
+    (void)SetTextColor(context, color_of(app, muted ? COLOR_ROLE_MUTED : COLOR_ROLE_INK));
     (void)SetBkColor(context, color_of(app, field ? COLOR_ROLE_FIELD : COLOR_ROLE_PAPER));
     return field ? app->field_brush : app->paper_brush;
 }
@@ -410,7 +441,7 @@ void controls_draw_item(const AppState *app, const DRAWITEMSTRUCT *item)
     (void)SetBkMode(item->hDC, TRANSPARENT);
     (void)SetTextColor(item->hDC, color_of(app, chosen ? COLOR_ROLE_CHOSEN_INK : COLOR_ROLE_INK));
     if (item_text(item, text, ROW_TEXT_CAPACITY)) {
-        (void)DrawTextW(item->hDC, text, -1, &area, DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX);
+        (void)DrawTextW(item->hDC, text, -1, &area, assist_row_format(app, item, text, &area));
     }
     draw_row_focus(app, item, chosen);
 }

@@ -1,0 +1,49 @@
+static int late;
+
+int jump(void)
+{
+    goto out;
+out:
+    return 0;
+}
+
+void *block(void)
+{
+    return malloc(4);
+}
+
+int spin(int count)
+{
+    while (count > 0) {
+        --count;
+    }
+    return count;
+}
+
+#define TWICE(x) ((x) * 2)
+
+int deep(const Outer *outer)
+{
+    return outer->inner->value;
+}
+
+static int (*callback)(int);
+
+int again(int depth)
+{
+    return again(depth - 1); /* a comment */
+}
+
+int tangle(int first, int second)
+{
+    if (first > second) {
+        return 1;
+    }
+    if (first < second) {
+        return 2;
+    }
+    if (first == 0) {
+        return 3;
+    }
+    return 0;
+}

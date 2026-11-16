@@ -146,14 +146,19 @@ static bool skip_graphics(DatCursor *cursor)
     return CHECK(graphic_count >= 0) && cursor->fine;
 }
 
+static bool skip_two_texts(DatCursor *cursor)
+{
+    return CHECK(cursor != NULL) && dat_cursor_skip_text(cursor) && dat_cursor_skip_text(cursor);
+}
+
 static bool skip_terrain(DatCursor *cursor)
 {
     if (!CHECK(cursor != NULL) || !CHECK(cursor->fine)) {
         return false;
     }
-    return dat_cursor_skip(cursor, TERRAIN_HEAD_SIZE) && dat_cursor_skip_text(cursor) &&
-           dat_cursor_skip_text(cursor) && dat_cursor_skip(cursor, TERRAIN_MIDDLE_SIZE) &&
-           dat_cursor_skip_text(cursor) && dat_cursor_skip(cursor, TERRAIN_TAIL_SIZE);
+    return dat_cursor_skip(cursor, TERRAIN_HEAD_SIZE) && skip_two_texts(cursor) &&
+           dat_cursor_skip(cursor, TERRAIN_MIDDLE_SIZE) && dat_cursor_skip_text(cursor) &&
+           dat_cursor_skip(cursor, TERRAIN_TAIL_SIZE);
 }
 
 static bool skip_terrain_block(DatCursor *cursor)
@@ -180,6 +185,11 @@ static bool skip_random_maps(DatCursor *cursor)
     return CHECK(map_count == 0L) && dat_cursor_skip(cursor, DAT_POINTER_SIZE);
 }
 
+static bool skip_sounds_and_graphics(DatCursor *cursor)
+{
+    return CHECK(cursor != NULL) && skip_sounds(cursor) && skip_graphics(cursor);
+}
+
 bool dat_skip_head(DatCursor *cursor)
 {
     int colour_count;
@@ -189,7 +199,7 @@ bool dat_skip_head(DatCursor *cursor)
     }
     colour_count = dat_cursor_i16(cursor);
     return CHECK(colour_count >= 0) && dat_cursor_skip_items(cursor, colour_count, PLAYER_COLOUR_SIZE) &&
-           skip_sounds(cursor) && skip_graphics(cursor) && skip_terrain_block(cursor) && skip_random_maps(cursor);
+           skip_sounds_and_graphics(cursor) && skip_terrain_block(cursor) && skip_random_maps(cursor);
 }
 
 bool dat_skip_unit_headers(DatCursor *cursor)

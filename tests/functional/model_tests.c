@@ -1,5 +1,6 @@
 #include "model_tests.h"
 
+#include "../../src/core/check.h"
 #include "../../src/core/text.h"
 #include "../../src/model/history.h"
 #include "../../src/present/summary.h"
@@ -73,23 +74,24 @@ bool test_next_walks_every_step_in_order(void)
     return (step == STEP_REVIEW) && (wizard_move(step, 1) == STEP_REVIEW);
 }
 
-bool test_summary_names_what_is_still_needed(void)
+static bool summary_of_a_named_civ_holds(const char *words)
 {
     CivDesign design;
 
     civ_design_reset(&design);
     (void)civ_design_set_text(&design, TEXT_FIELD_NAME, "Vikings");
-    return summary_write(&summary, &design, &empty_catalog) &&
-           text_contains_folded(summary.text, "Still needed before a mod can be built: a unique unit; a castle tech;");
+    return CHECK(words != NULL) && summary_write(&summary, &design, &empty_catalog) &&
+           text_contains_folded(summary.text, words);
+}
+
+bool test_summary_names_what_is_still_needed(void)
+{
+    return summary_of_a_named_civ_holds("Still needed before a mod can be built: a unique unit; a castle tech;");
 }
 
 bool test_summary_labels_the_name(void)
 {
-    CivDesign design;
-
-    civ_design_reset(&design);
-    (void)civ_design_set_text(&design, TEXT_FIELD_NAME, "Vikings");
-    return summary_write(&summary, &design, &empty_catalog) && text_contains_folded(summary.text, "Name: Vikings\r\n");
+    return summary_of_a_named_civ_holds("Name: Vikings\r\n");
 }
 
 bool test_the_last_step_shows_no_next_button(void)

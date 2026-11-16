@@ -1,0 +1,45 @@
+#ifndef READ_TESTS_H
+#define READ_TESTS_H
+
+#include <stdbool.h>
+
+bool test_a_number_with_a_minus_sign_is_negative(void);
+bool test_a_number_with_a_letter_in_it_is_no_number(void);
+bool test_a_number_beyond_a_billion_is_no_number(void);
+bool test_a_letter_of_two_bytes_is_widened_to_one_wide_letter(void);
+bool test_a_letter_of_three_bytes_is_widened_to_one_wide_letter(void);
+bool test_a_letter_beyond_the_basic_plane_is_widened_to_two(void);
+bool test_a_byte_that_starts_no_letter_is_not_widened(void);
+bool test_a_text_that_starts_inside_a_letter_is_not_widened(void);
+bool test_a_letter_cut_short_is_not_widened(void);
+bool test_a_text_longer_than_its_place_is_not_widened(void);
+bool test_a_field_that_is_a_dash_reads_as_empty(void);
+bool test_a_field_the_line_lacks_reads_as_no_text(void);
+bool test_hundredths_keep_two_digits_after_the_point(void);
+bool test_hundredths_of_one_digit_after_the_point_end_in_zero(void);
+bool test_a_second_point_makes_no_hundredths(void);
+bool test_a_decimal_with_a_minus_sign_is_negative(void);
+bool test_a_decimal_with_a_letter_in_it_is_no_decimal(void);
+bool test_a_minus_sign_alone_is_no_decimal(void);
+bool test_an_escaped_letter_of_four_hex_digits_is_read(void);
+bool test_an_escape_with_capital_hex_digits_is_read(void);
+bool test_an_escaped_pair_of_surrogates_is_one_letter(void);
+bool test_an_escape_that_is_not_hex_is_unreadable(void);
+bool test_a_high_surrogate_alone_is_unreadable(void);
+bool test_a_high_surrogate_before_a_plain_letter_is_unreadable(void);
+bool test_an_escaped_new_line_is_read(void);
+bool test_an_escaped_tab_is_read(void);
+bool test_an_escaped_carriage_return_is_read(void);
+bool test_an_escaped_quote_is_read(void);
+bool test_a_string_longer_than_its_place_is_not_copied(void);
+bool test_a_text_that_is_a_list_is_no_civ_file(void);
+bool test_an_object_left_open_is_unreadable(void);
+bool test_edits_made_out_of_order_are_written_in_the_files_order(void);
+bool test_an_escape_with_the_hex_digits_a_and_f_is_read(void);
+bool test_an_escape_with_the_capital_hex_digit_f_is_read(void);
+bool test_the_first_letter_of_two_bytes_is_read(void);
+bool test_the_first_letter_of_three_bytes_is_read(void);
+bool test_the_first_letter_beyond_the_basic_plane_is_read(void);
+bool test_the_last_letter_of_unicode_is_read(void);
+
+#endif

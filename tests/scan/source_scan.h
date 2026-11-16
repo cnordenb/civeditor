@@ -36,6 +36,7 @@ typedef struct {
 bool source_scan(ScannedSource *source, const char *path);
 bool source_find_functions(ScannedSource *source);
 bool source_is_word_letter(char letter);
+int source_word_end(const char *text, int at, int end);
 bool source_line_is_blank(const ScannedSource *source, int line);
 int source_line_length(const ScannedSource *source, int line);
 int source_count_word(const ScannedSource *source, int start, int end, const char *word);

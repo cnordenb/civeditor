@@ -2,7 +2,7 @@
 
 #include "../core/check.h"
 
-static const char HELP_TEXTS[CONTROL_COUNT][LAYOUT_HELP_WIDTH] = {
+static const char HELP_TEXTS[CONTROL_COUNT + 1][LAYOUT_HELP_WIDTH] = {
     "The nine steps of a civ. Pick one to go to it; a step marked done has all it needs.",
     "",
     "",
@@ -49,10 +49,7 @@ static const char HELP_TEXTS[CONTROL_COUNT][LAYOUT_HELP_WIDTH] = {
 
 const char *layout_help(ControlId control)
 {
-    if (!CHECK((int)control >= 0) || !CHECK(control < CONTROL_COUNT)) {
-        return "";
-    }
-    return HELP_TEXTS[control];
+    return HELP_TEXTS[check_index((int)control, CONTROL_COUNT, CONTROL_COUNT)];
 }
 
 static const GlossaryEntry GLOSSARY[LAYOUT_GLOSSARY_COUNT] = {

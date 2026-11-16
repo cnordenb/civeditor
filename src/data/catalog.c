@@ -39,7 +39,7 @@ static const wchar_t FILE_NAMES[CATALOG_FILE_COUNT][FILE_NAME_WIDTH] = {
     L"bonus_effects.txt"
 };
 
-static const char CATEGORY_NAMES[BONUS_CATEGORY_COUNT][NAME_WIDTH] = {
+static const char CATEGORY_NAMES[BONUS_CATEGORY_COUNT + 1][NAME_WIDTH] = {
     "naval", "monk", "cost", "economy", "speed", "combat", "research", "building", "unlock", "general"
 };
 
@@ -99,11 +99,27 @@ static bool add_base(Catalog *catalog)
     return CHECK(base.id != TSV_MISSING);
 }
 
+static void read_looks(AppearanceEntry *entry)
+{
+    int string;
+    int unit;
+
+    if (!CHECK(entry != NULL) || !CHECK(entry->kind < APPEARANCE_KIND_COUNT)) {
+        return;
+    }
+    for (string = 0; string < CIV_STRING_COUNT; ++string) {
+        entry->string_ids[string] = tsv_number(&record, FIRST_STRING_FIELD + string);
+    }
+    entry->look_civ = (entry->kind == APPEARANCE_CIV) ? CATALOG_MISSING : tsv_number(&record, LOOK_CIV_FIELD);
+    for (unit = 0; unit < CATALOG_LOOK_UNITS; ++unit) {
+        entry->look_units[unit] =
+            (entry->kind == APPEARANCE_MONK) ? tsv_number(&record, FIRST_LOOK_UNIT_FIELD + unit) : CATALOG_MISSING;
+    }
+}
+
 static bool add_appearance(Catalog *catalog)
 {
     AppearanceEntry entry;
-    int string;
-    int unit;
     int kind = field_index(0, APPEARANCE_NAMES, APPEARANCE_KIND_COUNT);
 
     if (!CHECK(catalog != NULL) || !CHECK(catalog->appearance_count <= CATALOG_APPEARANCE_CAPACITY) ||
@@ -112,14 +128,7 @@ static bool add_appearance(Catalog *catalog)
     }
     entry.kind = (AppearanceKind)kind;
     entry.id = tsv_number(&record, 1);
-    for (string = 0; string < CIV_STRING_COUNT; ++string) {
-        entry.string_ids[string] = tsv_number(&record, FIRST_STRING_FIELD + string);
-    }
-    entry.look_civ = (entry.kind == APPEARANCE_CIV) ? CATALOG_MISSING : tsv_number(&record, LOOK_CIV_FIELD);
-    for (unit = 0; unit < CATALOG_LOOK_UNITS; ++unit) {
-        entry.look_units[unit] =
-            (entry.kind == APPEARANCE_MONK) ? tsv_number(&record, FIRST_LOOK_UNIT_FIELD + unit) : CATALOG_MISSING;
-    }
+    read_looks(&entry);
     if (!tsv_text(&record, 2, entry.name, sizeof entry.name)) {
         return false;
     }
@@ -166,22 +175,39 @@ static bool add_bonus(Catalog *catalog, bool team)
     return read_bonus(&catalog->bonuses[catalog->bonus_count - 1], false);
 }
 
+static UnitRole role_of(char letter)
+{
+    if (letter == 'C') {
+        return UNIT_ROLE_CUSTOM;
+    }
+    return (letter == 'H') ? UNIT_ROLE_HERO : UNIT_ROLE_VANILLA;
+}
+
+static void read_stats(UnitEntry *entry)
+{
+    int stat;
+
+    if (!CHECK(entry != NULL) || !CHECK(UNIT_STAT_SPEED < UNIT_STAT_COUNT)) {
+        return;
+    }
+    for (stat = 0; stat < UNIT_STAT_COUNT; ++stat) {
+        entry->stats[stat] = (stat >= (int)UNIT_STAT_SPEED) ? tsv_hundredths(&record, 3 + stat)
+                                                             : tsv_number(&record, 3 + stat);
+    }
+}
+
 static bool add_unit(Catalog *catalog)
 {
     UnitEntry entry;
     char role[KIND_CAPACITY] = "";
-    int stat;
 
     if (!CHECK(catalog != NULL) || (catalog->unit_count >= CATALOG_UNIT_CAPACITY) ||
         !tsv_text(&record, 0, role, sizeof role)) {
         return false;
     }
-    entry.role = (role[0] == 'C') ? UNIT_ROLE_CUSTOM : ((role[0] == 'H') ? UNIT_ROLE_HERO : UNIT_ROLE_VANILLA);
+    entry.role = role_of(role[0]);
     entry.id = tsv_number(&record, 1);
-    for (stat = 0; stat < UNIT_STAT_COUNT; ++stat) {
-        entry.stats[stat] = (stat >= (int)UNIT_STAT_SPEED) ? tsv_hundredths(&record, 3 + stat)
-                                                             : tsv_number(&record, 3 + stat);
-    }
+    read_stats(&entry);
     entry.make_tech = tsv_number(&record, 3 + UNIT_STAT_COUNT);
     entry.elite_tech = tsv_number(&record, 4 + UNIT_STAT_COUNT);
     if (!CHECK(entry.id != TSV_MISSING) || !tsv_text(&record, 2, entry.name, sizeof entry.name)) {
@@ -294,18 +320,27 @@ static bool add_bonus_change(Catalog *catalog)
     return true;
 }
 
+static bool add_choice_record(Catalog *catalog, CatalogFile file)
+{
+    if (!CHECK(catalog != NULL) || !CHECK(file < CATALOG_FILE_COUNT)) {
+        return false;
+    }
+    switch ((int)file) {
+    case CATALOG_FILE_APPEARANCE:
+        return add_appearance(catalog);
+    case CATALOG_FILE_BONUSES:
+        return add_bonus(catalog, false);
+    default:
+        return add_bonus(catalog, true);
+    }
+}
+
 static bool add_record(Catalog *catalog, CatalogFile file)
 {
     if (!CHECK(catalog != NULL) || !CHECK(file < CATALOG_FILE_COUNT)) {
         return false;
     }
-    switch (file) {
-    case CATALOG_FILE_APPEARANCE:
-        return add_appearance(catalog);
-    case CATALOG_FILE_BONUSES:
-        return add_bonus(catalog, false);
-    case CATALOG_FILE_TEAM_BONUSES:
-        return add_bonus(catalog, true);
+    switch ((int)file) {
     case CATALOG_FILE_UNITS:
         return add_unit(catalog);
     case CATALOG_FILE_TECHS:
@@ -314,9 +349,8 @@ static bool add_record(Catalog *catalog, CatalogFile file)
         return add_bonus_change(catalog);
     case CATALOG_FILE_TREE:
         return add_tree_node(catalog);
-    case CATALOG_FILE_COUNT:
     default:
-        return false;
+        return add_choice_record(catalog, file);
     }
 }
 
@@ -363,8 +397,5 @@ bool catalog_load(Catalog *catalog, const wchar_t *folder)
 
 const char *catalog_category_name(BonusCategory category)
 {
-    if (!CHECK((int)category >= 0) || !CHECK(category < BONUS_CATEGORY_COUNT)) {
-        return "";
-    }
-    return CATEGORY_NAMES[category];
+    return (CHECK((int)category >= 0) && CHECK(category < BONUS_CATEGORY_COUNT)) ? CATEGORY_NAMES[category] : "";
 }

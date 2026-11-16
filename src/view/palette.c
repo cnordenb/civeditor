@@ -37,10 +37,7 @@ static const double HUNDRED = 100.0;
 
 Rgb palette_color(ColorRole role)
 {
-    if (!CHECK((int)role >= 0) || !CHECK(role < COLOR_ROLE_COUNT)) {
-        return COLORS[COLOR_ROLE_INK];
-    }
-    return COLORS[role];
+    return COLORS[check_index((int)role, COLOR_ROLE_COUNT, COLOR_ROLE_INK)];
 }
 
 ColorPair palette_pair(int index)

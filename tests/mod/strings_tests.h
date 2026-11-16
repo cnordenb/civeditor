@@ -1,0 +1,18 @@
+#ifndef STRINGS_TESTS_H
+#define STRINGS_TESTS_H
+
+#include <stdbool.h>
+
+bool test_a_line_break_in_a_text_is_written_as_an_escape(void);
+bool test_a_carriage_return_before_a_line_break_is_left_out(void);
+bool test_a_quote_in_a_text_is_escaped(void);
+bool test_a_quote_that_is_escaped_already_is_left_as_it_is(void);
+bool test_a_unique_techs_label_ends_its_description_without_a_full_stop(void);
+bool test_a_unique_tech_without_a_description_has_a_plain_label(void);
+bool test_a_units_tooltip_carries_its_description(void);
+bool test_the_first_tip_names_the_first_civ_bonus(void);
+bool test_the_first_tip_names_the_team_bonus_of_a_civ_without_civ_bonuses(void);
+bool test_the_tip_of_a_unique_tech_says_where_it_is_researched(void);
+bool test_the_second_tip_names_the_unique_unit(void);
+
+#endif

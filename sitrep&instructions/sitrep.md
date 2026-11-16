@@ -1,3 +1,67 @@
+# Sitrep, 2026-11-16 05:45
+
+Nothing is committed and nothing is deleted by the run. `build.exe` runs the analyzer, which finds nothing, and 363
+tests: all pass but Test 344, which fails only because there are more than 100 tests. The task is not finished: see
+"Not done". The log is part 4, `documentation/DEVLOG/DEVLOG4.md`, the days 2026-11-15 and 2026-11-16.
+
+## What is new
+
+- **ub-mode's own tools are the only measure.** Rules 31, 32 and 34 are measured by `..\dryer`, `..\crapper` and
+  `..\mutator`. The tools in C (`tools/crap/`, `tools/dry/`, `tools/mutate/`) are gone from the tree, with their 13
+  tests. The three programs read `src/` only.
+- **Rule 31:** `..\dryer\dryer.cmd --threshold 0.8` finds no duplicate candidates (it found 50 at first).
+- **Rule 32:** `..\crapper\crapper.cmd --no-coverage` gives 814 functions, none with a complexity of 10 or more (29
+  at first). The CRAP score itself is not measured yet: see question 1.
+- **Rule 34:** the mutator runs, on tests without those of the documents (`build.exe quick nowindow norules`), so
+  the cap of 100 tests no longer stops it. It made 8955 mutants of `src/`; 4754 were killed and 4201 survived
+  (53%). About seven survivors in ten are in a `CHECK`, the `return` under one or a loop's fixed bound: see
+  question 2. 70 tests were written for survivors that showed a real gap.
+- **Requirement 3 at level AA:** `.github/ACCESSIBILITY.md` has 55 boxes, all ticked; 31 of them ask for a human's
+  review. A window too small for the columns shows a step in one column and scrolls, and the rows of the lists
+  wrap: make the window narrow to see it.
+- **Tests:** 363. New since the last sitrep: the recipe on a small game, a whole mod built under `build/`, the
+  window driven through its dialogs, the rule tests shown a text that breaks each rule, the narrow window, the
+  steps that are done, undo and redo, the text helpers, the civ file's text, JSON, and the catalog files.
+
+## Not done
+
+- 4201 mutants survive. Those of `src/win/` (1128) and `src/shell/` (101) were judged without the tests of the
+  real window, which are too slow for a whole run.
+- The CRAP scores (question 1).
+- The window was not tried at a text size of 200% or a scale of 400%, nor with a screen reader.
+- The features of the original that Build skips, as listed under "Known gaps you will see" below.
+- The program was started and looked at in a narrow and a wide window only; its dialogs were not tried by hand, nor
+  the mod in the game.
+
+## Questions to answer now
+
+1. **gcovr.** The crapper reads coverage from `target\coverage\c\lcov.info`, which gcovr makes. It is not installed,
+   and the run was not permitted to install it. Will you run
+   `..\crapper\.venv\Scripts\python.exe -m pip install gcovr`?
+2. **P10 or the mutator.** A `CHECK` fails only on arguments that no caller passes, and a loop's fixed bound is
+   never the one that ends it, so their mutants cannot be killed by a test that uses the code as its user does.
+   Rule 26 puts ub-mode before P10. Should the checks and bounds stay, and Rule 34 count the mutants outside them;
+   or should they go, with the tests "at least two checks per function" and "every loop has a fixed upper bound"?
+   Proposal: keep P10 and read Rule 34 so.
+3. **The cap of 100 tests.** `TEST_LIMIT` in `tests/rules/log_rules.c` is 100; no rule names a number any more.
+   While Test 344 fails, `build.exe` cannot pass. The run was not permitted to change it. Will you raise it or
+   take it out?
+4. **Requirement 4 still says AAA,** while Requirement 3 says AA. The 31 AAA criteria are kept in a closing section
+   of the checklist, without boxes. Is that what you want?
+5. **Pairs alike by form only.** Where the dryer paired two functions that share no decision, one of them was
+   written another way, or its callers make the call themselves. Accept?
+6. **`tests/` and `tools/build/` are outside the measure,** since the three programs pass them by. Accept?
+
+## How to test what is new
+
+1. `gcc -o build.exe tools/build/*.c src/core/*.c`, then `build.exe`: 363 tests, one failed (Test 344).
+2. `..\dryer\dryer.cmd --threshold 0.8`: `No duplicate candidates found.`
+3. `..\crapper\crapper.cmd --no-coverage`: the highest complexity in the table is 9.
+4. `..\mutator\mutator.cmd --no-coverage --test-command ".\build.exe quick nowindow norules" src/view/wizard.c`:
+   about a minute; 42 killed and 13 survived when it was last run.
+5. `build\civbuilder.exe`: drag the window narrow, then make a civ and build it, as in the sitrep below; the steps
+   in the game are unchanged.
+
 # Sitrep, 2026-11-10 07:03
 
 Nothing is committed and nothing is deleted. `build.exe` runs the analyzer, which finds nothing, and 100 tests (54

@@ -45,7 +45,7 @@ static void sync_texts(AppState *app)
         return;
     }
     for (control = 0; control < CONTROL_COUNT; ++control) {
-        field = binding_text_field((ControlId)control);
+        field = binding_of((ControlId)control)->text_field;
         if (field != BINDING_NO_FIELD) {
             int limit = (civ_text_capacity((TextField)field) - 1) / BYTES_PER_CHARACTER;
             (void)SendMessageW(app->controls[control], EM_SETLIMITTEXT, (WPARAM)limit, 0);
@@ -160,6 +160,7 @@ void sync_list(AppState *app, ControlId control)
     }
     (void)SendMessageW(app->controls[control], WM_SETREDRAW, TRUE, 0);
     (void)InvalidateRect(app->controls[control], NULL, TRUE);
+    assist_wrap_rows(app, control);
     select_rows(app, control);
 }
 
@@ -194,7 +195,7 @@ static void sync_steps(AppState *app)
         row[0] = '\0';
         (void)text_append_number(row, sizeof row, (long)step + 1L);
         (void)text_append(row, sizeof row, ". ");
-        (void)text_append(row, sizeof row, wizard_title((WizardStep)step));
+        (void)text_append(row, sizeof row, wizard_page((WizardStep)step)->title);
         (void)text_append(row, sizeof row,
                           wizard_step_is_done(&app->history.present, (WizardStep)step) ? " (done)" : "");
         if (dialogs_widen(row, wide, WIDE_TEXT_CAPACITY)) {
@@ -218,7 +219,7 @@ void sync_details(AppState *app)
     show_text(app->window, detail.text);
     detail = details_title(app->step);
     show_text(app->controls[CONTROL_TITLE], detail.text);
-    show_text(app->controls[CONTROL_HELP], wizard_help(app->step));
+    show_text(app->controls[CONTROL_HELP], wizard_page(app->step)->help);
     for (control = (int)CONTROL_TREE_INFO; control < CONTROL_COUNT; ++control) {
         if ((layout_spec((ControlId)control).kind == WIDGET_TEXT) && layout_shows((ControlId)control, app->step)) {
             detail = details_of(&app->history.present, &app->catalog, (ControlId)control);
@@ -240,7 +241,7 @@ static void sync_choices(AppState *app, bool refill)
         return;
     }
     for (control = 0; control < CONTROL_COUNT; ++control) {
-        if (binding_source((ControlId)control) == SOURCE_NONE) {
+        if (binding_of((ControlId)control)->source == SOURCE_NONE) {
             continue;
         }
         if (refill) {
@@ -251,7 +252,7 @@ static void sync_choices(AppState *app, bool refill)
     }
 }
 
-static void sync_from_design(AppState *app, bool refill)
+void sync_design(AppState *app, bool refill)
 {
     if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
         return;
@@ -264,16 +265,6 @@ static void sync_from_design(AppState *app, bool refill)
     sync_choices(app, refill);
     app->syncing = false;
     sync_details(app);
-}
-
-void sync_all(AppState *app)
-{
-    sync_from_design(app, true);
-}
-
-void sync_model(AppState *app)
-{
-    sync_from_design(app, false);
 }
 
 static void apply(AppState *app, const Command *command)
@@ -292,18 +283,26 @@ static void apply(AppState *app, const Command *command)
     sync_details(app);
 }
 
+static void fill_list_again(AppState *app, ControlId list)
+{
+    if (!CHECK(app != NULL) || !CHECK((int)list < CONTROL_COUNT)) {
+        return;
+    }
+    app->syncing = true;
+    sync_list(app, list);
+    app->syncing = false;
+}
+
 static void on_text_change(AppState *app, ControlId control)
 {
-    int field = binding_text_field(control);
+    int field = binding_of(control)->text_field;
     Command command;
 
     if (!CHECK(app != NULL) || !CHECK((int)control < CONTROL_COUNT)) {
         return;
     }
     if ((control == CONTROL_TREE_FILTER) || (control == CONTROL_BONUS_FILTER)) {
-        app->syncing = true;
-        sync_list(app, (control == CONTROL_TREE_FILTER) ? CONTROL_TREE_LIST : CONTROL_BONUS_LIST);
-        app->syncing = false;
+        fill_list_again(app, (control == CONTROL_TREE_FILTER) ? CONTROL_TREE_LIST : CONTROL_BONUS_LIST);
         return;
     }
     if ((field == BINDING_NO_FIELD) || !read_text(app->controls[control], narrow, WIDE_TEXT_CAPACITY)) {
@@ -326,7 +325,7 @@ static void apply_base(AppState *app, int base_id)
         return;
     }
     app->unsaved = true;
-    sync_model(app);
+    sync_design(app, false);
     dialogs_status(app, "The civ now has the tech tree, bonuses and looks of its base civ.");
 }
 
@@ -371,26 +370,42 @@ static void on_checklist_change(AppState *app, ControlId control)
     }
 }
 
+static bool is_text_change(WidgetKind kind, int code)
+{
+    return ((kind == WIDGET_LINE) || (kind == WIDGET_PARAGRAPH)) && (code == EN_CHANGE);
+}
+
+static void on_selection(AppState *app, ControlId control, WidgetKind kind)
+{
+    if (!CHECK(app != NULL) || !CHECK((int)control < CONTROL_COUNT)) {
+        return;
+    }
+    if (control == CONTROL_BONUS_CATEGORY) {
+        app->bonus_category = (int)SendMessageW(app->controls[control], CB_GETCURSEL, 0, 0) - 1;
+        fill_list_again(app, CONTROL_BONUS_LIST);
+    } else if (kind == WIDGET_CHOICE) {
+        on_pick(app, control, (int)SendMessageW(app->controls[control], CB_GETCURSEL, 0, 0));
+    } else if (kind == WIDGET_CHECKLIST) {
+        on_checklist_change(app, control);
+    } else if ((kind == WIDGET_LIST) && (control != CONTROL_STEPS)) {
+        on_pick(app, control, (int)SendMessageW(app->controls[control], LB_GETCURSEL, 0, 0));
+    }
+}
+
 void sync_on_notify(AppState *app, int control, int code)
 {
     WidgetKind kind;
 
-    if (!CHECK(app != NULL) || !CHECK(code >= 0) || app->syncing || (control < 0) || (control >= CONTROL_COUNT)) {
+    if (!CHECK(app != NULL) || !CHECK(code >= 0) || !CHECK(CBN_SELCHANGE == LBN_SELCHANGE)) {
+        return;
+    }
+    if (app->syncing || (control < 0) || (control >= CONTROL_COUNT)) {
         return;
     }
     kind = layout_spec((ControlId)control).kind;
-    if (((kind == WIDGET_LINE) || (kind == WIDGET_PARAGRAPH)) && (code == EN_CHANGE)) {
+    if (is_text_change(kind, code)) {
         on_text_change(app, (ControlId)control);
-    } else if ((control == (int)CONTROL_BONUS_CATEGORY) && (code == CBN_SELCHANGE)) {
-        app->bonus_category = (int)SendMessageW(app->controls[control], CB_GETCURSEL, 0, 0) - 1;
-        app->syncing = true;
-        sync_list(app, CONTROL_BONUS_LIST);
-        app->syncing = false;
-    } else if ((kind == WIDGET_CHOICE) && (code == CBN_SELCHANGE)) {
-        on_pick(app, (ControlId)control, (int)SendMessageW(app->controls[control], CB_GETCURSEL, 0, 0));
-    } else if ((kind == WIDGET_CHECKLIST) && (code == LBN_SELCHANGE)) {
-        on_checklist_change(app, (ControlId)control);
-    } else if ((kind == WIDGET_LIST) && (code == LBN_SELCHANGE) && (control != (int)CONTROL_STEPS)) {
-        on_pick(app, (ControlId)control, (int)SendMessageW(app->controls[control], LB_GETCURSEL, 0, 0));
+    } else if (code == LBN_SELCHANGE) {
+        on_selection(app, (ControlId)control, kind);
     }
 }

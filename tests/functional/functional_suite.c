@@ -6,16 +6,21 @@
 #include "model_tests.h"
 #include "../base/base_tests.h"
 #include "../dat/dat_tests.h"
+#include "../suites/suites.h"
 #include "../mod/mod_tests.h"
 #include "../pack/pack_tests.h"
 
-enum { FILE_GROUP_SIZE = 6, MODEL_GROUP_SIZE = 8, PACK_GROUP_SIZE = 5, MOD_GROUP_SIZE = 8, CIV_GROUP_SIZE = 12 };
+enum { FILE_GROUP_SIZE = 6, MODEL_GROUP_SIZE = 8, PACK_GROUP_SIZE = 5, MOD_GROUP_SIZE = 8, UNIQUE_GROUP_SIZE = 6 };
+enum { CIV_LIST_GROUP_SIZE = 6, BASE_GROUP_SIZE = 8, TREE_GROUP_SIZE = 7 };
 enum {
     MODEL_START = FILE_GROUP_SIZE,
     PACK_START = MODEL_START + MODEL_GROUP_SIZE,
     MOD_START = PACK_START + PACK_GROUP_SIZE,
-    CIV_START = MOD_START + MOD_GROUP_SIZE,
-    BASE_START = CIV_START + CIV_GROUP_SIZE
+    UNIQUE_START = MOD_START + MOD_GROUP_SIZE,
+    CIV_LIST_START = UNIQUE_START + UNIQUE_GROUP_SIZE,
+    BASE_START = CIV_LIST_START + CIV_LIST_GROUP_SIZE,
+    TREE_START = BASE_START + BASE_GROUP_SIZE,
+    BUILD_START = TREE_START + TREE_GROUP_SIZE
 };
 
 static TestOutcome run_file_test(int index)
@@ -129,7 +134,7 @@ static TestOutcome run_mod_test(int index)
     }
 }
 
-static TestOutcome run_civ_test(int index)
+static TestOutcome run_unique_test(int index)
 {
     if (!CHECK(index > 0) || !CHECK(index <= 100)) {
         return test_outcome_missing();
@@ -151,20 +156,31 @@ static TestOutcome run_civ_test(int index)
         return test_outcome_of("a monk takes the look of its monk skin", test_a_monk_takes_the_look_of_its_monk_skin());
     case 6:
         return test_outcome_of("a hero trains at the castle", test_a_hero_trains_at_the_castle());
-    case 7:
+    default:
+        return test_outcome_missing();
+    }
+}
+
+static TestOutcome run_civ_list_test(int index)
+{
+    if (!CHECK(index > 0) || !CHECK(index <= 100)) {
+        return test_outcome_missing();
+    }
+    switch (index) {
+    case 1:
         return test_outcome_of("a hero's name is written under the string id of its slot",
                                test_a_heros_name_is_written_under_the_string_id_of_its_slot());
-    case 8:
+    case 2:
         return test_outcome_of("a skipped hero's name is not written", test_a_skipped_heros_name_is_not_written());
-    case 9:
+    case 3:
         return test_outcome_of("the civ list names the civ's own unique unit",
                                test_the_civ_list_names_the_civs_own_unique_unit());
-    case 10:
+    case 4:
         return test_outcome_of("a unique unit missing from the civ list takes its own icon and texts",
                                test_a_unique_unit_missing_from_the_civ_list_takes_its_own_icon_and_texts());
-    case 11:
+    case 5:
         return test_outcome_of("a unit patch changes its civ's unit", test_a_unit_patch_changes_its_civs_unit());
-    case 12:
+    case 6:
         return test_outcome_of("the civ list points at the civ's own description",
                                test_the_civ_list_points_at_the_civs_own_description());
     default:
@@ -202,24 +218,35 @@ static TestOutcome run_base_test(int index)
     case 8:
         return test_outcome_of("a building the civ has is available in its tech tree",
                                test_a_building_the_civ_has_is_available_in_its_tech_tree());
-    case 9:
+    default:
+        return test_outcome_missing();
+    }
+}
+
+static TestOutcome run_tree_test(int index)
+{
+    if (!CHECK(index > 0) || !CHECK(index <= 100)) {
+        return test_outcome_missing();
+    }
+    switch (index) {
+    case 1:
         return test_outcome_of("a civ with an empty tree keeps the game's tech tree",
                                test_a_civ_with_an_empty_tree_keeps_the_games_tech_tree());
-    case 10:
+    case 2:
         return test_outcome_of("a civ keeps its villagers in its tech tree",
                                test_a_civ_keeps_its_villagers_in_its_tech_tree());
-    case 11:
+    case 3:
         return test_outcome_of("a building the civ has keeps the research it needs in its tech tree",
                                test_a_building_the_civ_has_keeps_the_research_it_needs_in_its_tech_tree());
-    case 12:
+    case 4:
         return test_outcome_of("only the tech of a unit the civ lacks is disabled",
                                test_only_the_tech_of_a_unit_the_civ_lacks_is_disabled());
-    case 13:
+    case 5:
         return test_outcome_of("only a tech the civ lacks is disabled", test_only_a_tech_the_civ_lacks_is_disabled());
-    case 14:
+    case 6:
         return test_outcome_of("a civ keeps its villagers in the dat file",
                                test_a_civ_keeps_its_villagers_in_the_dat_file());
-    case 15:
+    case 7:
         return test_outcome_of("a building the replaced civ lacked takes the status most civs give it",
                                test_a_building_the_replaced_civ_lacked_takes_its_usual_status());
     default:
@@ -227,9 +254,37 @@ static TestOutcome run_base_test(int index)
     }
 }
 
+static TestOutcome run_window_suite_test(int index)
+{
+    if (!CHECK(index > 0) || test_window_is_left_out()) {
+        return test_outcome_missing();
+    }
+    return shell_suite_run(index);
+}
+
+static TestOutcome run_suite_test(int index)
+{
+    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
+        return test_outcome_missing();
+    }
+    if (index <= BUILD_SUITE_SIZE) {
+        return build_suite_run(index);
+    }
+    if (index <= BUILD_SUITE_SIZE + MOD_SUITE_SIZE) {
+        return mod_suite_run(index - BUILD_SUITE_SIZE);
+    }
+    if (index <= BUILD_SUITE_SIZE + MOD_SUITE_SIZE + CORE_SUITE_SIZE) {
+        return core_suite_run(index - BUILD_SUITE_SIZE - MOD_SUITE_SIZE);
+    }
+    if (index <= BUILD_SUITE_SIZE + MOD_SUITE_SIZE + CORE_SUITE_SIZE + MODEL_SUITE_SIZE) {
+        return model_suite_run(index - BUILD_SUITE_SIZE - MOD_SUITE_SIZE - CORE_SUITE_SIZE);
+    }
+    return run_window_suite_test(index - BUILD_SUITE_SIZE - MOD_SUITE_SIZE - CORE_SUITE_SIZE - MODEL_SUITE_SIZE);
+}
+
 TestOutcome functional_suite_run(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= 100)) {
+    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
         return test_outcome_missing();
     }
     if (index <= MODEL_START) {
@@ -241,11 +296,20 @@ TestOutcome functional_suite_run(int index)
     if (index <= MOD_START) {
         return run_pack_test(index - PACK_START);
     }
-    if (index <= CIV_START) {
+    if (index <= UNIQUE_START) {
         return run_mod_test(index - MOD_START);
     }
-    if (index <= BASE_START) {
-        return run_civ_test(index - CIV_START);
+    if (index <= CIV_LIST_START) {
+        return run_unique_test(index - UNIQUE_START);
     }
-    return run_base_test(index - BASE_START);
+    if (index <= BASE_START) {
+        return run_civ_list_test(index - CIV_LIST_START);
+    }
+    if (index <= TREE_START) {
+        return run_base_test(index - BASE_START);
+    }
+    if (index <= BUILD_START) {
+        return run_tree_test(index - TREE_START);
+    }
+    return run_suite_test(index - BUILD_START);
 }

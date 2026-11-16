@@ -160,6 +160,11 @@ DatSink dat_sink_over(unsigned char *bytes, size_t capacity, size_t length)
     return sink;
 }
 
+static bool sink_has_room(const DatSink *sink, size_t width)
+{
+    return CHECK(sink->length <= sink->capacity) && CHECK(width <= sink->capacity - sink->length);
+}
+
 static void sink_put(DatSink *sink, unsigned long value, size_t width)
 {
     unsigned char *bytes;
@@ -168,7 +173,7 @@ static void sink_put(DatSink *sink, unsigned long value, size_t width)
     if (!CHECK(sink != NULL) || !CHECK(width <= DAT_LONG_WIDTH) || !sink->fine) {
         return;
     }
-    sink->fine = CHECK(sink->length <= sink->capacity) && CHECK(width <= sink->capacity - sink->length);
+    sink->fine = sink_has_room(sink, width);
     bytes = sink->bytes;
     for (index = 0U; (index < width) && (index < DAT_LONG_WIDTH) && sink->fine; ++index) {
         bytes[sink->length + index] = (unsigned char)((value >> (BITS_PER_BYTE * index)) & BYTE_MASK);

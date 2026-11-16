@@ -1,0 +1,13 @@
+#ifndef LOOK_TESTS_H
+#define LOOK_TESTS_H
+
+#include <stdbool.h>
+
+bool test_a_warship_takes_the_look_of_its_architectures_civ(void);
+bool test_a_trade_carts_load_takes_the_look_of_its_architectures_civ(void);
+bool test_a_monks_healing_takes_the_look_of_its_monk_skin(void);
+bool test_a_castle_takes_the_look_of_the_civ_chosen_for_the_castle(void);
+bool test_a_soldier_keeps_the_look_of_the_replaced_civ(void);
+bool test_the_look_of_an_architecture_is_the_civ_that_the_catalog_names(void);
+
+#endif

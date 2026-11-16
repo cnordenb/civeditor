@@ -4,12 +4,9 @@
 #include "../data/catalog.h"
 #include "../model/civ_design.h"
 #include "../view/layout.h"
+#include "summary.h"
 
-enum { DETAIL_CAPACITY = 8192 };
-
-typedef struct {
-    char text[DETAIL_CAPACITY];
-} DetailText;
+typedef SummaryText DetailText;
 
 DetailText details_of(const CivDesign *design, const Catalog *catalog, ControlId control);
 DetailText details_title(WizardStep step);

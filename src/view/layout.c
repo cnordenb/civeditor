@@ -85,18 +85,14 @@ bool layout_shows(ControlId control, WizardStep step)
 
 bool layout_is_focusable(ControlId control)
 {
-    if (!CHECK((int)control >= 0) || !CHECK(control < CONTROL_COUNT)) {
-        return false;
-    }
-    return SPECS[control].kind != WIDGET_TEXT;
+    return layout_spec(control).kind != WIDGET_TEXT;
 }
 
 bool layout_has_label(ControlId control)
 {
-    if (!CHECK((int)control >= 0) || !CHECK(control < CONTROL_COUNT)) {
-        return false;
-    }
-    return (SPECS[control].label[0] != '\0') && (SPECS[control].kind != WIDGET_BUTTON);
+    ControlSpec spec = layout_spec(control);
+
+    return (spec.label[0] != '\0') && (spec.kind != WIDGET_BUTTON);
 }
 
 bool layout_boxes_overlap(Box first, Box second)
@@ -122,10 +118,30 @@ static Box box_of(int left, int top, int width, int height)
     return box;
 }
 
-static Box frame_box(ControlId control, int width, int height)
+static Box bottom_box(ControlId control, int width, int height)
 {
     int content_left = MARGIN + STEP_LIST_WIDTH + MARGIN;
     int bottom_row = height - MARGIN - LAYOUT_TARGET_SIZE;
+
+    if (!CHECK(width >= LAYOUT_MIN_WIDTH) || !CHECK(height >= LAYOUT_MIN_HEIGHT)) {
+        return box_of(0, 0, 0, 0);
+    }
+    switch ((int)control) {
+    case CONTROL_STATUS:
+        return box_of(content_left, bottom_row, width - content_left - MARGIN - (2 * (BUTTON_WIDTH + GAP)),
+                      LAYOUT_TARGET_SIZE);
+    case CONTROL_BACK:
+        return box_of(width - MARGIN - (2 * BUTTON_WIDTH) - GAP, bottom_row, BUTTON_WIDTH, LAYOUT_TARGET_SIZE);
+    case CONTROL_NEXT:
+        return box_of(width - MARGIN - BUTTON_WIDTH, bottom_row, BUTTON_WIDTH, LAYOUT_TARGET_SIZE);
+    default:
+        return box_of(0, 0, 0, 0);
+    }
+}
+
+static Box frame_box(ControlId control, int width, int height)
+{
+    int content_left = MARGIN + STEP_LIST_WIDTH + MARGIN;
     int right_width = width - content_left - MARGIN;
 
     if (!CHECK(width >= LAYOUT_MIN_WIDTH) || !CHECK(height >= LAYOUT_MIN_HEIGHT)) {
@@ -139,14 +155,8 @@ static Box frame_box(ControlId control, int width, int height)
         return box_of(content_left, MARGIN, right_width, TITLE_HEIGHT);
     case CONTROL_HELP:
         return box_of(content_left, HELP_TOP, right_width, HELP_HEIGHT);
-    case CONTROL_STATUS:
-        return box_of(content_left, bottom_row, right_width - (2 * (BUTTON_WIDTH + GAP)), LAYOUT_TARGET_SIZE);
-    case CONTROL_BACK:
-        return box_of(width - MARGIN - (2 * BUTTON_WIDTH) - GAP, bottom_row, BUTTON_WIDTH, LAYOUT_TARGET_SIZE);
-    case CONTROL_NEXT:
-        return box_of(width - MARGIN - BUTTON_WIDTH, bottom_row, BUTTON_WIDTH, LAYOUT_TARGET_SIZE);
     default:
-        return box_of(0, 0, 0, 0);
+        return bottom_box(control, width, height);
     }
 }
 

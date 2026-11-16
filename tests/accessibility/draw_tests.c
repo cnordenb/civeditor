@@ -26,26 +26,48 @@ static int marks_in(HDC picture, int left, int top, int width, int height)
     return marks;
 }
 
+static int steps_to_mark(HDC picture, int left, int top, bool down)
+{
+    int limit = down ? ROW_HEIGHT : ROW_WIDTH;
+    int count;
+
+    if (!CHECK(picture != NULL) || !CHECK(left >= 0) || !CHECK(top >= 0)) {
+        return 0;
+    }
+    for (count = 0; (count < limit) && (count < ROW_WIDTH); ++count) {
+        if (marks_in(picture, left + (down ? 0 : count), top + (down ? count : 0), 1, 1) != 0) {
+            break;
+        }
+    }
+    return count;
+}
+
+static bool is_partly_filled(HDC picture, int left, int top, int size)
+{
+    int marks = marks_in(picture, left, top, size, size);
+
+    if (!CHECK(picture != NULL) || !CHECK(size <= ROW_HEIGHT)) {
+        return false;
+    }
+    return (marks > 0) && (FILLED_SHARE * marks < 2 * size * size);
+}
+
 static bool box_holds_a_check(HDC picture)
 {
-    int left = 0;
-    int top = 0;
+    int left;
+    int top;
     int size;
     int line;
 
     if (!CHECK(picture != NULL)) {
         return false;
     }
-    for (left = 0; (left < ROW_WIDTH) && (marks_in(picture, left, ROW_HEIGHT / 2, 1, 1) == 0); ++left) {
-    }
-    for (top = 0; (top < ROW_HEIGHT) && (marks_in(picture, left, top, 1, 1) == 0); ++top) {
-    }
+    left = steps_to_mark(picture, 0, ROW_HEIGHT / 2, false);
+    top = steps_to_mark(picture, left, 0, true);
     size = marks_in(picture, left, 0, 1, ROW_HEIGHT);
     line = marks_in(picture, left + (size / 2), top, 1, size / 2);
     return (size > 4 * line) && (line > 0) &&
-           (marks_in(picture, left + line, top + line, size - (2 * line), size - (2 * line)) > 0) &&
-           (FILLED_SHARE * marks_in(picture, left + line, top + line, size - (2 * line), size - (2 * line)) <
-            2 * (size - (2 * line)) * (size - (2 * line)));
+           is_partly_filled(picture, left + line, top + line, size - (2 * line));
 }
 
 bool test_a_ticked_row_is_drawn_with_a_check(void)

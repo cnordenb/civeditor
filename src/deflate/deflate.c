@@ -93,12 +93,23 @@ static Code fixed_code(int symbol)
     return code;
 }
 
+static void fill_symbols(int *symbols, const int *bases, int base_count, int first, int limit)
+{
+    int index = 0;
+    int value;
+
+    if (!CHECK(symbols != NULL) || !CHECK(bases != NULL)) {
+        return;
+    }
+    for (value = first; (value < limit) && (value < WINDOW_SIZE); ++value) {
+        index += ((index + 1 < base_count) && (bases[index + 1] <= value)) ? 1 : 0;
+        symbols[value] = index;
+    }
+}
+
 static bool make_codes(void)
 {
     int symbol;
-    int length;
-    int distance;
-    int index = 0;
 
     if (!CHECK(DEFLATE_LENGTH_BASE[0] == MIN_MATCH) || !CHECK(DEFLATE_DISTANCE_BASE[0] == 1)) {
         return false;
@@ -110,15 +121,8 @@ static bool make_codes(void)
         distance_codes[symbol].bits = reversed((unsigned int)symbol, DISTANCE_CODE_BITS);
         distance_codes[symbol].length = DISTANCE_CODE_BITS;
     }
-    for (length = MIN_MATCH; length <= MAX_MATCH; ++length) {
-        index += ((index + 1 < DEFLATE_LENGTH_SYMBOLS) && (DEFLATE_LENGTH_BASE[index + 1] <= length)) ? 1 : 0;
-        length_symbols[length] = index;
-    }
-    index = 0;
-    for (distance = 1; distance < WINDOW_SIZE; ++distance) {
-        index += ((index + 1 < DEFLATE_DISTANCE_SYMBOLS) && (DEFLATE_DISTANCE_BASE[index + 1] <= distance)) ? 1 : 0;
-        distance_symbols[distance] = index;
-    }
+    fill_symbols(length_symbols, DEFLATE_LENGTH_BASE, DEFLATE_LENGTH_SYMBOLS, MIN_MATCH, MAX_MATCH + 1);
+    fill_symbols(distance_symbols, DEFLATE_DISTANCE_BASE, DEFLATE_DISTANCE_SYMBOLS, 1, WINDOW_SIZE);
     return true;
 }
 
@@ -161,29 +165,49 @@ static int match_length(Plain plain, int candidate, int position, int most)
     return length;
 }
 
+static Match better_of(Match best, int length, int distance)
+{
+    if (length > best.length) {
+        best.length = length;
+        best.distance = distance;
+    }
+    return best;
+}
+
+static Match search_chain(Plain plain, int position, int most)
+{
+    Match best = { 0, 0 };
+    int candidate = heads[hash_at(plain, position)];
+    int chain;
+
+    if (!CHECK(position >= 0) || !CHECK(most >= MIN_MATCH)) {
+        return best;
+    }
+    for (chain = 0; (chain < CHAIN_LIMIT) && (candidate > NO_POSITION) && (position - candidate < WINDOW_SIZE) &&
+                    (best.length < most); ++chain) {
+        if (plain.bytes[candidate + best.length] == plain.bytes[position + best.length]) {
+            best = better_of(best, match_length(plain, candidate, position, most), position - candidate);
+        }
+        candidate = previous[candidate & WINDOW_MASK];
+    }
+    return best;
+}
+
+static bool is_too_short(Match match)
+{
+    return (match.length < MIN_MATCH) || ((match.length == MIN_MATCH) && (match.distance > FAR_SHORT_MATCH));
+}
+
 static Match longest_match(Plain plain, int position)
 {
     Match best = { 0, 0 };
     int most = plain.size - position;
-    int candidate;
-    int length;
-    int chain;
 
     if (!CHECK(position >= 0) || !CHECK(position < plain.size) || (most < MIN_MATCH)) {
         return best;
     }
-    most = (most > MAX_MATCH) ? MAX_MATCH : most;
-    candidate = heads[hash_at(plain, position)];
-    for (chain = 0; (chain < CHAIN_LIMIT) && (candidate > NO_POSITION) && (position - candidate < WINDOW_SIZE) &&
-                    (best.length < most); ++chain) {
-        if (plain.bytes[candidate + best.length] == plain.bytes[position + best.length]) {
-            length = match_length(plain, candidate, position, most);
-            best.distance = (length > best.length) ? position - candidate : best.distance;
-            best.length = (length > best.length) ? length : best.length;
-        }
-        candidate = previous[candidate & WINDOW_MASK];
-    }
-    if ((best.length < MIN_MATCH) || ((best.length == MIN_MATCH) && (best.distance > FAR_SHORT_MATCH))) {
+    best = search_chain(plain, position, (most > MAX_MATCH) ? MAX_MATCH : most);
+    if (is_too_short(best)) {
         best.length = 0;
     }
     return best;

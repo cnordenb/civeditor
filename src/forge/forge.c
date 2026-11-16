@@ -5,7 +5,6 @@
 #include "../dat/dat_parts.h"
 #include "../civlist/civ_list.h"
 #include "../json/json_reader.h"
-#include "../json/json_writer.h"
 #include "../mod/mod_places.h"
 #include "../mod/mod_strings.h"
 #include "../deflate/deflate.h"
@@ -14,9 +13,6 @@
 
 enum {
     BUFFER_CAPACITY = 104857600,
-    VANILLA_CAPACITY = 4194304,
-    LANGUAGE_COUNT = 15,
-    LANGUAGE_WIDTH = 4,
     CONTINUATION_MASK = 0xC0,
     CONTINUATION = 0x80,
     HELP_TO_TOOLTIP = MOD_HELP_OFFSET - MOD_TOOLTIP_OFFSET
@@ -31,19 +27,12 @@ typedef struct {
     char prefix[FORGE_PREFIX_CAPACITY];
 } ForgeRun;
 
-static const char LANGUAGES[LANGUAGE_COUNT][LANGUAGE_WIDTH] = {
-    "br", "de", "en", "es", "fr", "hi", "it", "jp", "ko", "ms", "mx", "tr", "tw", "vi", "zh"
-};
-
 static unsigned char buffer_one[BUFFER_CAPACITY];
 static unsigned char buffer_two[BUFFER_CAPACITY];
-static char vanilla[VANILLA_CAPACITY];
 static DatMap map;
 static DatEdit edit;
-static ModStrings strings;
 static JsonDocument civilizations;
 static CivListOutput civ_list;
-static JsonWriter info;
 
 static bool fail(ForgeResult *result, const char *problem)
 {
@@ -54,19 +43,20 @@ static bool fail(ForgeResult *result, const char *problem)
     return false;
 }
 
+static bool is_folder_letter(char letter)
+{
+    return text_is_between(letter, 'a', 'z') || text_is_digit(letter) || (letter == '_') || (letter == '-');
+}
+
 static char prefix_letter(unsigned char letter)
 {
-    bool upper = (letter >= 'A') && (letter <= 'Z');
-    bool lower = (letter >= 'a') && (letter <= 'z');
-    bool digit = (letter >= '0') && (letter <= '9');
-
     if (!CHECK(letter != '\0') || !CHECK('a' > 'A')) {
         return '_';
     }
-    if (upper) {
+    if (text_is_between((char)letter, 'A', 'Z')) {
         return (char)(letter + ('a' - 'A'));
     }
-    return (lower || digit || (letter == '_') || (letter == '-')) ? (char)letter : '_';
+    return is_folder_letter((char)letter) ? (char)letter : '_';
 }
 
 bool forge_prefix(const char *alias, char *prefix, size_t capacity)
@@ -89,60 +79,38 @@ bool forge_prefix(const char *alias, char *prefix, size_t capacity)
     return (to > 0U) || text_copy(prefix, capacity, "custom_civ");
 }
 
-static bool joined(char *text, const char *first, const char *second)
+static bool read_civ_list(const ForgeRun *run)
 {
-    if (!CHECK(text != NULL) || !CHECK(first != NULL) || !CHECK(second != NULL)) {
-        return false;
-    }
-    return text_copy(text, FILE_PATH_CAPACITY, first) && text_append(text, FILE_PATH_CAPACITY, second);
-}
-
-static bool game_path(const ForgeRun *run, const char *relative, wchar_t *path)
-{
-    wchar_t wide[FILE_PATH_CAPACITY];
+    wchar_t path[FILE_PATH_CAPACITY];
     const ForgeJob *job;
+    FileRead read;
 
-    if (!CHECK(run != NULL) || !CHECK(relative != NULL)) {
+    if (!CHECK(run != NULL) || !CHECK(run->job != NULL)) {
         return false;
     }
     job = run->job;
-    return text_widen(relative, wide, FILE_PATH_CAPACITY) && mod_game_file(job->game_folder, wide, path);
-}
-
-static bool mods_path(const ForgeRun *run, const char *relative, wchar_t *path)
-{
-    wchar_t wide[FILE_PATH_CAPACITY];
-    const ForgeJob *job;
-
-    if (!CHECK(run != NULL) || !CHECK(relative != NULL)) {
+    if (!mod_game_path(job->game_folder, "resources\\_common\\dat\\civilizations.json", path)) {
         return false;
     }
-    job = run->job;
-    return text_widen(relative, wide, FILE_PATH_CAPACITY) && mod_make_folders(job->mods_folder, wide) &&
-           file_join_path(path, FILE_PATH_CAPACITY, job->mods_folder, wide);
+    read = file_read_all(path, civilizations.text, sizeof civilizations.text);
+    civilizations.length = (int)read.length;
+    return read.succeeded && json_parse(&civilizations);
 }
 
 static long find_name_sid(const ForgeRun *run, int slot)
 {
-    wchar_t path[FILE_PATH_CAPACITY];
-    FileRead read;
+    TextNumber sid;
     int civ;
 
-    if (!CHECK(run != NULL) || !CHECK(slot > 0) ||
-        !game_path(run, "resources\\_common\\dat\\civilizations.json", path)) {
-        return -1L;
-    }
-    read = file_read_all(path, civilizations.text, sizeof civilizations.text);
-    civilizations.length = (int)read.length;
-    if (!read.succeeded || !json_parse(&civilizations)) {
+    if (!CHECK(run != NULL) || !CHECK(slot > 0) || !read_civ_list(run)) {
         return -1L;
     }
     civ = civ_list_entry(&civilizations, slot);
-    civ = (civ == JSON_NONE) ? JSON_NONE : json_member(&civilizations, civ, "name_string_id");
-    if ((civ == JSON_NONE) || !json_number(&civilizations, civ).valid) {
+    if (civ == JSON_NONE) {
         return -1L;
     }
-    return json_number(&civilizations, civ).value;
+    sid = json_number(&civilizations, json_member(&civilizations, civ, "name_string_id"));
+    return sid.valid ? sid.value : -1L;
 }
 
 static bool unpack_game(ForgeRun *run)
@@ -150,12 +118,14 @@ static bool unpack_game(ForgeRun *run)
     wchar_t path[FILE_PATH_CAPACITY];
     ByteBuffer plain = { buffer_one, sizeof buffer_one, 0U };
     ByteSpan packed = { buffer_two, 0U };
+    const ForgeJob *job;
     FileRead read;
 
     if (!CHECK(run != NULL) || !CHECK(run->result != NULL)) {
         return false;
     }
-    if (!game_path(run, "resources\\_common\\dat\\empires2_x2_p1.dat", path)) {
+    job = run->job;
+    if (!mod_game_path(job->game_folder, "resources\\_common\\dat\\empires2_x2_p1.dat", path)) {
         return fail(run->result, "The game's data file could not be found.");
     }
     read = file_read_all(path, (char *)buffer_two, sizeof buffer_two);
@@ -180,12 +150,23 @@ static long unit_field(const RecipeInput *input, size_t at)
     return dat_cursor_i32(&cursor);
 }
 
+static void keep_game_texts(const RecipeInput *input, size_t unit_at, CivListEntry *entry)
+{
+    long help;
+
+    if (!CHECK(input != NULL) || !CHECK(entry != NULL)) {
+        return;
+    }
+    help = unit_field(input, unit_at + DAT_UNIT_HELP_AT);
+    entry->unit_name_sid = unit_field(input, unit_at + DAT_UNIT_NAME_AT);
+    entry->unit_description_sid = (help < MOD_HELP_OFFSET) ? CIV_LIST_KEEP : help - HELP_TO_TOOLTIP;
+}
+
 static void read_own_texts(const RecipeInput *input, CivListEntry *entry)
 {
     const DatMap *slots;
     DatCursor cursor;
     size_t at = 0U;
-    long help;
 
     if (!CHECK(input != NULL) || !CHECK(entry != NULL) || (entry->unit < 0)) {
         return;
@@ -197,9 +178,7 @@ static void read_own_texts(const RecipeInput *input, CivListEntry *entry)
     }
     entry->icon = dat_cursor_i16(&cursor);
     if (!entry->unit_named) {
-        help = unit_field(input, at + DAT_UNIT_HELP_AT);
-        entry->unit_name_sid = unit_field(input, at + DAT_UNIT_NAME_AT);
-        entry->unit_description_sid = (help < MOD_HELP_OFFSET) ? CIV_LIST_KEEP : help - HELP_TO_TOOLTIP;
+        keep_game_texts(input, at, entry);
     }
 }
 
@@ -233,18 +212,16 @@ static bool make_civ_list(const ForgeRun *run, const RecipeInput *input)
     return civ_list_write(&civilizations, &entry, &civ_list);
 }
 
-static bool edit_game(ForgeRun *run)
+static bool write_civ(ForgeRun *run, DatOutput *output)
 {
     const ForgeJob *job;
     const CivDesign *design;
     ForgeResult *result;
     DatBytes original = { buffer_one, 0U };
-    DatOutput output = { buffer_two, sizeof buffer_two, 0U };
-    ByteBuffer packed = { buffer_one, sizeof buffer_one, 0U };
-    ByteSpan plain = { buffer_two, 0U };
     RecipeInput input;
 
-    if (!CHECK(run != NULL) || !CHECK(run->job != NULL)) {
+    if (!CHECK(run != NULL) || !CHECK(output != NULL) ||
+        !CHECK(run->job != NULL)) {
         return false;
     }
     job = run->job;
@@ -256,52 +233,47 @@ static bool edit_game(ForgeRun *run)
     input.dat = &original;
     input.map = &map;
     input.slot = design->choices[CHOICE_REPLACE];
-    if (!dat_edit_start(&edit, &map) || !recipe_apply(&input, &edit, &result->recipe) ||
-        !dat_edit_write(&edit, &original, &output) || !make_civ_list(run, &input)) {
-        return fail(result, "The civ could not be written into the game data.");
+    return dat_edit_start(&edit, &map) && recipe_apply(&input, &edit, &result->recipe) &&
+           dat_edit_write(&edit, &original, output) && make_civ_list(run, &input);
+}
+
+static bool edit_game(ForgeRun *run)
+{
+    DatOutput output = { buffer_two, sizeof buffer_two, 0U };
+    ByteBuffer packed = { buffer_one, sizeof buffer_one, 0U };
+    ByteSpan plain = { buffer_two, 0U };
+
+    if (!CHECK(run != NULL) || !CHECK(run->job != NULL)) {
+        return false;
+    }
+    if (!write_civ(run, &output)) {
+        return fail(run->result, "The civ could not be written into the game data.");
     }
     plain.size = output.length;
     if (!deflate_pack(plain, &packed) && !deflate_store(plain, &packed)) {
-        return fail(result, "The mod's data file could not be packed.");
+        return fail(run->result, "The mod's data file could not be packed.");
     }
     run->packed_size = packed.size;
     return true;
 }
 
-static bool mods_file(const ForgeRun *run, const char *folder, const wchar_t *name, wchar_t *path)
+static bool mod_tree_file(const ForgeJob *job, const char *folder, const char *name, wchar_t *path)
 {
-    wchar_t place[FILE_PATH_CAPACITY];
+    char relative[FILE_PATH_CAPACITY];
+    wchar_t wide[FILE_PATH_CAPACITY];
 
-    if (!CHECK(name != NULL) || !CHECK(path != NULL)) {
+    if (!CHECK(job != NULL) || !CHECK(name != NULL) ||
+        !CHECK(folder != NULL)) {
         return false;
     }
-    return mods_path(run, folder, place) && file_join_path(path, FILE_PATH_CAPACITY, place, name);
-}
-
-static bool write_info(const ForgeRun *run, const char *folder, const char *title)
-{
-    wchar_t path[FILE_PATH_CAPACITY];
-
-    if (!CHECK(run != NULL) || !CHECK(title != NULL) || !CHECK(folder != NULL)) {
-        return false;
-    }
-    json_writer_start(&info);
-    json_begin(&info, NULL, '{');
-    json_write_string(&info, "Title", title);
-    json_write_number(&info, "CacheStatus", 0);
-    json_write_string(&info, "Description", "");
-    json_write_string(&info, "Author", "");
-    json_write_string(&info, "builder_version", "1.0.0");
-    json_end(&info, '}');
-    return json_writer_succeeded(&info) && mods_file(run, folder, L"info.json", path) &&
-           file_write_all(path, info.data, info.length);
+    return mod_join(relative, folder, "\\resources\\_common\\dat\\CivTechTrees") &&
+           text_widen(name, wide, FILE_PATH_CAPACITY) && mod_file_path(job->mods_folder, relative, wide, path);
 }
 
 static bool write_tech_tree(const ForgeRun *run, const char *folder)
 {
     char name[FILE_PATH_CAPACITY];
     char relative[FILE_PATH_CAPACITY];
-    wchar_t wide[FILE_PATH_CAPACITY];
     wchar_t game_file[FILE_PATH_CAPACITY];
     wchar_t mod_file[FILE_PATH_CAPACITY];
     const ForgeJob *job;
@@ -313,11 +285,32 @@ static bool write_tech_tree(const ForgeRun *run, const char *folder)
     job = run->job;
     tree.design = job->design;
     tree.catalog = job->catalog;
-    return tech_tree_file_name(&civilizations, tree.design->choices[CHOICE_REPLACE], name) &&
-           joined(relative, "resources\\_common\\dat\\CivTechTrees\\", name) && game_path(run, relative, game_file) &&
-           joined(relative, folder, "\\resources\\_common\\dat\\CivTechTrees") &&
-           text_widen(name, wide, FILE_PATH_CAPACITY) && mods_file(run, relative, wide, mod_file) &&
+    if (!tech_tree_file_name(&civilizations, tree.design->choices[CHOICE_REPLACE], name) ||
+        !mod_join(relative, "resources\\_common\\dat\\CivTechTrees\\", name)) {
+        return false;
+    }
+    return mod_game_path(job->game_folder, relative, game_file) && mod_tree_file(job, folder, name, mod_file) &&
            tech_tree_patch_file(&tree, game_file, mod_file);
+}
+
+static bool write_dat_files(const ForgeRun *run, const char *folder)
+{
+    char relative[FILE_PATH_CAPACITY];
+    wchar_t path[FILE_PATH_CAPACITY];
+    const ForgeJob *job;
+
+    if (!CHECK(run != NULL) || !CHECK(folder != NULL) ||
+        !CHECK(run->job != NULL)) {
+        return false;
+    }
+    job = run->job;
+    if (!mod_join(relative, folder, "\\resources\\_common\\dat") ||
+        !mod_file_path(job->mods_folder, relative, L"empires2_x2_p1.dat", path) ||
+        !file_write_all(path, (const char *)buffer_one, run->packed_size)) {
+        return false;
+    }
+    return mod_file_path(job->mods_folder, relative, L"civilizations.json", path) &&
+           file_write_all(path, civ_list.text, civ_list.length);
 }
 
 static bool write_data_mod(ForgeRun *run)
@@ -326,8 +319,6 @@ static bool write_data_mod(ForgeRun *run)
     const CivDesign *design;
     ForgeResult *result;
     char folder[FILE_PATH_CAPACITY];
-    char relative[FILE_PATH_CAPACITY];
-    wchar_t path[FILE_PATH_CAPACITY];
 
     if (!CHECK(run != NULL) || !CHECK(run->job != NULL)) {
         return false;
@@ -335,39 +326,14 @@ static bool write_data_mod(ForgeRun *run)
     job = run->job;
     design = job->design;
     result = run->result;
-    if (!joined(folder, run->prefix, "-data") || !write_info(run, folder, design->texts[TEXT_FIELD_NAME]) ||
-        !joined(relative, folder, "\\resources\\_common\\dat") ||
-        !mods_file(run, relative, L"empires2_x2_p1.dat", path) ||
-        !file_write_all(path, (const char *)buffer_one, run->packed_size) ||
-        !mods_file(run, relative, L"civilizations.json", path) ||
-        !file_write_all(path, civ_list.text, civ_list.length)) {
+    if (!mod_join(folder, run->prefix, "-data") ||
+        !mod_write_info(job->mods_folder, folder, design->texts[TEXT_FIELD_NAME]) || !write_dat_files(run, folder)) {
         return fail(result, "The data mod could not be written to the mods folder.");
     }
     if (!write_tech_tree(run, folder)) {
         return fail(result, "The civ's tech tree could not be written into the data mod.");
     }
-    return mods_path(run, folder, result->data_mod);
-}
-
-static bool write_language(const ForgeRun *run, const ModCiv *civ, int language)
-{
-    char relative[FILE_PATH_CAPACITY];
-    char folder[FILE_PATH_CAPACITY];
-    wchar_t path[FILE_PATH_CAPACITY];
-
-    if (!CHECK(run != NULL) || !CHECK((language >= 0) && (language < LANGUAGE_COUNT))) {
-        return false;
-    }
-    if (!joined(relative, "resources\\", LANGUAGES[language]) ||
-        !text_append(relative, sizeof relative, "\\strings\\key-value\\key-value-strings-utf8.txt") ||
-        !game_path(run, relative, path) || !file_read_all(path, vanilla, sizeof vanilla).succeeded) {
-        vanilla[0] = '\0';
-    }
-    return mod_strings_write(&strings, civ, vanilla) && joined(folder, run->prefix, "-ui\\resources\\") &&
-           text_append(folder, sizeof folder, LANGUAGES[language]) &&
-           text_append(folder, sizeof folder, "\\strings\\key-value") &&
-           mods_file(run, folder, L"key-value-modded-strings-utf8.txt", path) &&
-           file_write_all(path, strings.text, strings.length);
+    return mod_folder_path(job->mods_folder, folder, result->data_mod);
 }
 
 static bool write_ui_mod(ForgeRun *run)
@@ -376,10 +342,8 @@ static bool write_ui_mod(ForgeRun *run)
     const CivDesign *design;
     ForgeResult *result;
     ModCiv civ;
+    ModUi ui;
     char folder[FILE_PATH_CAPACITY];
-    char title[FILE_PATH_CAPACITY];
-    int language;
-    bool fine;
 
     if (!CHECK(run != NULL) || !CHECK(run->job != NULL)) {
         return false;
@@ -392,15 +356,19 @@ static bool write_ui_mod(ForgeRun *run)
     civ.slot = design->choices[CHOICE_REPLACE];
     civ.name_sid = run->name_sid;
     civ.hero_skipped = result->recipe.hero_skipped;
-    fine = joined(folder, run->prefix, "-ui") && joined(title, design->texts[TEXT_FIELD_NAME], " (UI)") &&
-           write_info(run, folder, title);
-    for (language = 0; fine && (language < LANGUAGE_COUNT); ++language) {
-        fine = write_language(run, &civ, language);
-    }
-    if (!fine) {
+    ui = (ModUi){ &civ, job->game_folder, job->mods_folder, run->prefix };
+    if (!mod_ui_write(&ui) || !mod_join(folder, run->prefix, "-ui")) {
         return fail(result, "The UI mod could not be written to the mods folder.");
     }
-    return mods_path(run, folder, result->ui_mod);
+    return mod_folder_path(job->mods_folder, folder, result->ui_mod);
+}
+
+static bool build_mods(ForgeRun *run)
+{
+    if (!CHECK(run != NULL) || !CHECK(run->job != NULL)) {
+        return false;
+    }
+    return unpack_game(run) && edit_game(run) && write_data_mod(run) && write_ui_mod(run);
 }
 
 bool forge_build(const ForgeJob *job, ForgeResult *result)
@@ -427,5 +395,5 @@ bool forge_build(const ForgeJob *job, ForgeResult *result)
     if (run.name_sid < 0L) {
         return fail(result, "The game's list of civs could not be read.");
     }
-    return unpack_game(&run) && edit_game(&run) && write_data_mod(&run) && write_ui_mod(&run);
+    return build_mods(&run);
 }

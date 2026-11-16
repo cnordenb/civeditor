@@ -79,46 +79,58 @@ static int first_word_line(const ScannedSource *source, const char words[][WORD_
 
 int pattern_forbidden_flow_line(const ScannedSource *source)
 {
-    if (!CHECK(source != NULL) || !CHECK(source->length >= 0)) {
-        return 0;
-    }
     return first_word_line(source, FLOW_WORDS, FLOW_WORD_COUNT);
 }
 
 int pattern_allocation_line(const ScannedSource *source)
 {
-    if (!CHECK(source != NULL) || !CHECK(source->length >= 0)) {
-        return 0;
-    }
     return first_word_line(source, ALLOCATION_WORDS, ALLOCATION_WORD_COUNT);
+}
+
+static bool word_is_constant(const ScannedSource *source, int start, int stop)
+{
+    int index;
+
+    if (!CHECK(source != NULL) || !CHECK(start <= stop)) {
+        return false;
+    }
+    if ((stop - start < 2) || !text_is_between(source->cleaned[start], 'A', 'Z')) {
+        return false;
+    }
+    for (index = start; (index < stop) && (index < SCAN_TEXT_CAPACITY); ++index) {
+        if (!text_is_between(source->cleaned[index], 'A', 'Z') && (source->cleaned[index] != '_') &&
+            !text_is_digit(source->cleaned[index])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 static bool has_constant_name(const ScannedSource *source, int start, int end)
 {
-    int index;
-    int run = 0;
-    bool capital = false;
+    int index = start;
+    int stop;
+    int step;
 
     if (!CHECK(source != NULL) || !CHECK(start <= end)) {
         return false;
     }
-    for (index = start; (index <= end) && (index < SCAN_TEXT_CAPACITY); ++index) {
-        char letter = (index < end) ? source->cleaned[index] : ' ';
-        bool upper = ((letter >= 'A') && (letter <= 'Z')) || (letter == '_') || ((letter >= '0') && (letter <= '9'));
-        if (upper && ((run > 0) || ((letter >= 'A') && (letter <= 'Z')))) {
-            capital = (run == 0) ? true : capital;
-            ++run;
-        } else if (source_is_word_letter(letter)) {
-            run = -SCAN_TEXT_CAPACITY;
-        } else {
-            if (capital && (run >= 2)) {
-                return true;
-            }
-            run = 0;
-            capital = false;
+    for (step = 0; (index < end) && (step < SCAN_TEXT_CAPACITY); ++step) {
+        stop = source_word_end(source->cleaned, index, end);
+        if (word_is_constant(source, index, stop)) {
+            return true;
         }
+        index = (stop > index) ? stop : index + 1;
     }
     return false;
+}
+
+static int depth_change(char letter)
+{
+    if (letter == '(') {
+        return 1;
+    }
+    return (letter == ')') ? -1 : 0;
 }
 
 static bool loop_is_bounded(const ScannedSource *source, int keyword)
@@ -133,7 +145,7 @@ static bool loop_is_bounded(const ScannedSource *source, int keyword)
     }
     for (index = keyword + 3; (index < source->length) && (index < SCAN_TEXT_CAPACITY); ++index) {
         char letter = source->cleaned[index];
-        depth += (letter == '(') ? 1 : ((letter == ')') ? -1 : 0);
+        depth += depth_change(letter);
         if ((letter == ';') && (depth == 1)) {
             ++semicolons;
             if (semicolons == 2) {
@@ -170,25 +182,24 @@ int pattern_unbounded_loop_line(const ScannedSource *source)
     return 0;
 }
 
-static bool define_is_allowed(const ScannedSource *source, int name_start)
+static bool is_header_guard(const ScannedSource *source, int name_start, int end)
 {
-    int end;
     char after;
 
+    if (!CHECK(source != NULL) || !CHECK(end <= source->length)) {
+        return false;
+    }
+    after = (end < source->length) ? source->cleaned[end] : '\n';
+    return (end - name_start >= 2) && text_starts_with(&source->cleaned[end - 2], "_H") && text_is_line_break(after);
+}
+
+static bool define_is_allowed(const ScannedSource *source, int name_start)
+{
     if (!CHECK(source != NULL) || !CHECK(name_start < source->length)) {
         return false;
     }
-    if (text_starts_with(&source->cleaned[name_start], "CHECK(")) {
-        return true;
-    }
-    for (end = name_start; (end < source->length) && (end < SCAN_TEXT_CAPACITY); ++end) {
-        if (!source_is_word_letter(source->cleaned[end])) {
-            break;
-        }
-    }
-    after = (end < source->length) ? source->cleaned[end] : '\n';
-    return (end - name_start >= 2) && (source->cleaned[end - 2] == '_') && (source->cleaned[end - 1] == 'H') &&
-           ((after == '\n') || (after == '\r'));
+    return text_starts_with(&source->cleaned[name_start], "CHECK(") ||
+           is_header_guard(source, name_start, source_word_end(source->cleaned, name_start, source->length));
 }
 
 static int directive_problem(const ScannedSource *source, int start)
@@ -229,27 +240,44 @@ int pattern_complex_directive_line(const ScannedSource *source)
     return 0;
 }
 
+static int field_end(const ScannedSource *source, int start)
+{
+    int cursor;
+
+    if (!CHECK(source != NULL) || !CHECK(start >= 0)) {
+        return start;
+    }
+    for (cursor = start; (cursor < source->length) && (cursor < SCAN_TEXT_CAPACITY); ++cursor) {
+        if (!source_is_word_letter(source->cleaned[cursor]) && (source->cleaned[cursor] != ' ')) {
+            break;
+        }
+    }
+    return cursor;
+}
+
+static bool is_deep_pointer(const ScannedSource *source, int index)
+{
+    const char *text;
+
+    if (!CHECK(source != NULL) || !CHECK(index < source->length)) {
+        return false;
+    }
+    text = &source->cleaned[index];
+    if (text_starts_with(text, "**") || text_starts_with(text, "*const *")) {
+        return true;
+    }
+    return text_starts_with(text, "->") && text_starts_with(&source->cleaned[field_end(source, index + 2)], "->");
+}
+
 int pattern_deep_pointer_line(const ScannedSource *source)
 {
     int index;
-    int cursor;
 
     if (!CHECK(source != NULL) || !CHECK(source->length < SCAN_TEXT_CAPACITY)) {
         return 0;
     }
     for (index = 0; (index + 1 < source->length) && (index < SCAN_TEXT_CAPACITY); ++index) {
-        if (text_starts_with(&source->cleaned[index], "**") || text_starts_with(&source->cleaned[index], "*const *")) {
-            return line_at(source, index);
-        }
-        if (!text_starts_with(&source->cleaned[index], "->")) {
-            continue;
-        }
-        for (cursor = index + 2; (cursor < source->length) && (cursor < SCAN_TEXT_CAPACITY); ++cursor) {
-            if (!source_is_word_letter(source->cleaned[cursor]) && (source->cleaned[cursor] != ' ')) {
-                break;
-            }
-        }
-        if (text_starts_with(&source->cleaned[cursor], "->")) {
+        if (is_deep_pointer(source, index)) {
             return line_at(source, index);
         }
     }
@@ -263,11 +291,7 @@ static bool declares_function_pointer(const ScannedSource *source, int start)
     if (!CHECK(source != NULL) || !text_starts_with(&source->cleaned[start], "(*")) {
         return false;
     }
-    for (cursor = start + 2; (cursor < source->length) && (cursor < SCAN_TEXT_CAPACITY); ++cursor) {
-        if (!source_is_word_letter(source->cleaned[cursor])) {
-            break;
-        }
-    }
+    cursor = source_word_end(source->cleaned, start + 2, source->length);
     return (cursor > start + 2) && text_starts_with(&source->cleaned[cursor], ")(");
 }
 

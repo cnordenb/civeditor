@@ -24,6 +24,21 @@ bool source_is_word_letter(char letter)
            ((letter >= '0') && (letter <= '9')) || (letter == '_');
 }
 
+int source_word_end(const char *text, int at, int end)
+{
+    int index;
+
+    if (!CHECK(text != NULL) || !CHECK(at >= 0)) {
+        return end;
+    }
+    for (index = at; (index < end) && (index < SCAN_TEXT_CAPACITY); ++index) {
+        if (!source_is_word_letter(text[index])) {
+            break;
+        }
+    }
+    return index;
+}
+
 static void note_comment(ScannedSource *source, Lexer *lexer, LexicalState next)
 {
     if (!CHECK(source != NULL) || !CHECK(lexer != NULL)) {
@@ -78,6 +93,19 @@ static char clean_literal_letter(ScannedSource *source, Lexer *lexer, int *index
     return (letter == '\n') ? '\n' : ' ';
 }
 
+static char blank_of(char letter)
+{
+    return (letter == '\n') ? '\n' : ' ';
+}
+
+static bool block_comment_ends(const ScannedSource *source, int index)
+{
+    if (!CHECK(source != NULL) || !CHECK(index < source->length)) {
+        return false;
+    }
+    return (source->raw[index] == '*') && (index + 1 < source->length) && (source->raw[index + 1] == '/');
+}
+
 static char clean_comment_letter(ScannedSource *source, Lexer *lexer, int *index)
 {
     char letter = source->raw[*index];
@@ -85,18 +113,17 @@ static char clean_comment_letter(ScannedSource *source, Lexer *lexer, int *index
     if (!CHECK(lexer != NULL) || !CHECK(*index < source->length)) {
         return ' ';
     }
-    if ((lexer->state == LEXICAL_LINE_COMMENT) && (letter == '\n')) {
-        lexer->state = LEXICAL_CODE;
-        return '\n';
+    if (lexer->state == LEXICAL_LINE_COMMENT) {
+        lexer->state = (letter == '\n') ? LEXICAL_CODE : LEXICAL_LINE_COMMENT;
+        return blank_of(letter);
     }
-    if ((lexer->state == LEXICAL_BLOCK_COMMENT) && (letter == '*') && (*index + 1 < source->length) &&
-        (source->raw[*index + 1] == '/')) {
+    if (block_comment_ends(source, *index)) {
         source->cleaned[*index] = ' ';
         ++*index;
         lexer->state = LEXICAL_CODE;
         return ' ';
     }
-    return (letter == '\n') ? '\n' : ' ';
+    return blank_of(letter);
 }
 
 static void clean_text(ScannedSource *source)

@@ -8,15 +8,15 @@ typedef struct {
     int depth;
 } ParseState;
 
-static bool is_space(char letter)
-{
-    return (letter == ' ') || (letter == '\n') || (letter == '\r') || (letter == '\t');
-}
+enum { SPACE_COUNT = 4, BRACKET_COUNT = 4, NUMBER_SIGN_COUNT = 5 };
+
+static const int SPACES[SPACE_COUNT] = { ' ', '\n', '\r', '\t' };
+static const int BRACKETS[BRACKET_COUNT] = { '{', '[', '}', ']' };
+static const int NUMBER_SIGNS[NUMBER_SIGN_COUNT] = { '-', '+', '.', 'e', 'E' };
 
 static bool is_number_part(char letter)
 {
-    return ((letter >= '0') && (letter <= '9')) || (letter == '-') || (letter == '+') || (letter == '.') ||
-           (letter == 'e') || (letter == 'E');
+    return text_is_digit(letter) || check_is_among(letter, NUMBER_SIGNS, NUMBER_SIGN_COUNT);
 }
 
 static int add_token(JsonDocument *document, JsonKind kind, int start, int end)
@@ -152,7 +152,7 @@ static bool read_literal(JsonDocument *document, ParseState *state, const char *
     return true;
 }
 
-static bool read_item(JsonDocument *document, ParseState *state, char letter)
+static bool read_bracket(JsonDocument *document, ParseState *state, char letter)
 {
     if (!CHECK(document != NULL) || !CHECK(state != NULL)) {
         return false;
@@ -164,14 +164,17 @@ static bool read_item(JsonDocument *document, ParseState *state, char letter)
         return open_container(document, state, JSON_KIND_ARRAY);
     case '}':
         return close_container(document, state, JSON_KIND_OBJECT);
-    case ']':
+    default:
         return close_container(document, state, JSON_KIND_ARRAY);
-    case '"':
-        return read_string(document, state);
-    case ':':
-    case ',':
-        ++state->position;
-        return state->depth > 0;
+    }
+}
+
+static bool read_word(JsonDocument *document, ParseState *state, char letter)
+{
+    if (!CHECK(document != NULL) || !CHECK(state != NULL)) {
+        return false;
+    }
+    switch (letter) {
     case 't':
         return read_literal(document, state, "true", JSON_KIND_TRUE);
     case 'f':
@@ -179,8 +182,37 @@ static bool read_item(JsonDocument *document, ParseState *state, char letter)
     case 'n':
         return read_literal(document, state, "null", JSON_KIND_NULL);
     default:
-        return is_number_part(letter) && read_number(document, state);
+        return false;
     }
+}
+
+static bool read_item(JsonDocument *document, ParseState *state, char letter)
+{
+    if (!CHECK(document != NULL) || !CHECK(state != NULL)) {
+        return false;
+    }
+    if (check_is_among(letter, BRACKETS, BRACKET_COUNT)) {
+        return read_bracket(document, state, letter);
+    }
+    if (letter == '"') {
+        return read_string(document, state);
+    }
+    if ((letter == ':') || (letter == ',')) {
+        ++state->position;
+        return state->depth > 0;
+    }
+    if (is_number_part(letter)) {
+        return read_number(document, state);
+    }
+    return read_word(document, state, letter);
+}
+
+static bool is_one_object(const JsonDocument *document, const ParseState *state)
+{
+    if (!CHECK(document != NULL) || !CHECK(state != NULL)) {
+        return false;
+    }
+    return (state->depth == 0) && (document->count > 0) && json_is_kind(document, 0, JSON_KIND_OBJECT);
 }
 
 bool json_parse(JsonDocument *document)
@@ -192,17 +224,14 @@ bool json_parse(JsonDocument *document)
         return false;
     }
     document->count = 0;
-    for (step = 0; step < JSON_INPUT_CAPACITY; ++step) {
-        if (state.position >= document->length) {
-            break;
-        }
-        if (is_space(document->text[state.position])) {
+    for (step = 0; (step < JSON_INPUT_CAPACITY) && (state.position < document->length); ++step) {
+        if (check_is_among(document->text[state.position], SPACES, SPACE_COUNT)) {
             ++state.position;
         } else if (!read_item(document, &state, document->text[state.position])) {
             return false;
         }
     }
-    return (state.depth == 0) && (document->count > 0) && json_is_kind(document, 0, JSON_KIND_OBJECT);
+    return is_one_object(document, &state);
 }
 
 bool json_is_kind(const JsonDocument *document, int token, JsonKind kind)

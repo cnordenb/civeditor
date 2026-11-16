@@ -83,6 +83,37 @@ an earlier one, the earlier one is named after it, with its own link.
 - **The message loop's bound.** `MESSAGE_LIMIT`, 2 147 483 647 messages, bounds the one loop that runs while the
   window is open (P10 rule 2).
   [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
+- **A `CHECK` is not a branch for the tools.** The crapper leaves each `CHECK` out of a function's complexity and
+  the branches of a line with a `CHECK` out of its coverage; the mutator makes no mutant of a `CHECK` or of the
+  `||` before one. Replaced: the branches of `CHECK` are counted like any other.
+  [2026-11-10 08:27:52](DEVLOG/DEVLOG3.md#082752-answers-recorded-check-left-out-of-the-tools-the-first-merges-unfinished)
+  [2026-11-10 04:22:28](DEVLOG/DEVLOG3.md#042228-the-crapper-in-c-and-369-functions-at-crap-10-or-above)
+- **Functions that differ only in a literal are made one** (Rule 31), such as `json_begin` for an object and an
+  array.
+  [2026-11-10 08:27:52](DEVLOG/DEVLOG3.md#082752-answers-recorded-check-left-out-of-the-tools-the-first-merges-unfinished)
+- **Rule 5 names no number of tests.** The cap of 100 in the test "TESTS.md numbers its tests in order"
+  (`TEST_LIMIT` in `tests/rules/log_rules.c`) is left for a human to raise or take out; until then that test fails.
+  [2026-11-10 08:27:52](DEVLOG/DEVLOG3.md#082752-answers-recorded-check-left-out-of-the-tools-the-first-merges-unfinished)
+  [2026-11-15 21:14:09](DEVLOG/DEVLOG4.md#211409-tests-101-to-103-documented-and-a-cap-of-100-tests-that-still-stops-the-build-and-the-mutator)
+- **Rules 31, 32 and 34 are measured by the original tools only:** the crapper, the dryer and the mutator that
+  lie beside the project, in `..\crapper`, `..\dryer` and `..\mutator`. The project holds no copy of them.
+  Replaced: the three tools written in C in `tools/`, and with them the reading that a `CHECK` is no branch.
+  [2026-11-16 02:13:51](DEVLOG/DEVLOG4.md#021351-rules-31-32-and-34-measured-by-the-original-tools-only-and-no-pair-alike-in-src)
+- **The dryer is run as `..\dryer\dryer --threshold 0.8`,** since Rule 31 says 80% and the tool's own limit is
+  0.82. It and the crapper read `src/` only; `.metrics/` and `target/`, which they write, are ignored by Git.
+  [2026-11-16 02:13:51](DEVLOG/DEVLOG4.md#021351-rules-31-32-and-34-measured-by-the-original-tools-only-and-no-pair-alike-in-src)
+- **A function of one line that only names a call with other values is not kept** when the dryer pairs it with
+  another: its callers make the call, or one function takes what differed.
+  [2026-11-16 02:13:51](DEVLOG/DEVLOG4.md#021351-rules-31-32-and-34-measured-by-the-original-tools-only-and-no-pair-alike-in-src)
+- **A `CHECK` is a branch for the original crapper.** A guard of two checks adds 2 to a function's complexity
+  and two branches that no test runs, so a function keeps at most four checks, and a longer list of them is a
+  function of its own that is a chain of checks.
+  [2026-11-16 02:23:39](DEVLOG/DEVLOG4.md#022339-no-function-of-src-with-a-complexity-of-10-or-more-by-the-original-crapper)
+- **The mutator runs the tests without those of maintainability:** `.\build.exe quick nowindow norules`, or
+  `.\build.exe quick norules` for the folders of the window. A worker's copy of the tree has no files that Git
+  lists, and the tests of the documents judge no mutant. The cap of 100 tests, which only `TESTS.md` breaks, no
+  longer stops the mutator; it still fails `build.exe`.
+  [2026-11-16 02:52:16](DEVLOG/DEVLOG4.md#025216-the-analyzed-build-clean-and-ub-modes-mutator-able-to-run-on-tests-without-the-rules)
 
 ## Requirements, and how they are read
 
@@ -202,6 +233,25 @@ an earlier one, the earlier one is named after it, with its own link.
   The tech tree file follows the same rule.
   [2026-11-09 02:15:04](DEVLOG/DEVLOG1.md#021504-a-mod-built-from-the-civ-from-the-catalog-and-the-games-own-data-file)
   [2026-11-09 10:40:46](DEVLOG/DEVLOG2.md#104046-one-rule-for-what-a-civ-keeps-in-the-dat-file-and-the-tech-tree-file-alike)
+- **The accessibility checklist is level AA** (Requirement 3): the 55 criteria of levels A and AA of WCAG 2.2 are
+  its boxes. The 31 criteria of level AAA are kept in a last section without boxes and are not counted. Replaced:
+  all 86 criteria as boxes.
+  [2026-11-15 21:39:11](DEVLOG/DEVLOG4.md#213911-the-accessibility-checklist-at-level-aa-53-of-55-boxes-ticked)
+  [2026-11-09 10:08:11](DEVLOG/DEVLOG2.md#100811-a-checklist-of-wcag-22-for-requirement-4)
+- **A ticked box that no test settles is flagged "Human review needed."** in the checklist: one that rests on
+  "Code" or "Read", or on a test with something left that was not looked at, heard or tried.
+  [2026-11-10 08:27:52](DEVLOG/DEVLOG3.md#082752-answers-recorded-check-left-out-of-the-tools-the-first-merges-unfinished)
+  [2026-11-15 21:39:11](DEVLOG/DEVLOG4.md#213911-the-accessibility-checklist-at-level-aa-53-of-55-boxes-ticked)
+- **A window that does not hold the wide layout shows the step in one column and scrolls** (WCAG 1.4.4 and
+  1.4.10): narrower than 960 units or shorter than 560. The least window is 320 by 256 units. The one column is
+  made in `src/reflow/`, a folder of its own, since `src/view/` and `src/win/` hold 7 files each (Rule 14).
+  Replaced: a least window of 960 by 560.
+  [2026-11-16 02:45:16](DEVLOG/DEVLOG4.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
+- **The rows of a list wrap** and take the height their text needs; none is cut with three dots.
+  [2026-11-16 02:45:16](DEVLOG/DEVLOG4.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
+- **1.4.4 and 1.4.10 are ticked on their tests and on a look at 100%,** each marked for a human's review at 200%
+  and 400%.
+  [2026-11-16 02:45:16](DEVLOG/DEVLOG4.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
 
 ## Code and files
 
@@ -347,6 +397,22 @@ an earlier one, the earlier one is named after it, with its own link.
 - **One way to change a JSON text.** `json_patch.c` replaces values one by one and copies every other byte; the
   civ list and the tech tree file are both changed with it.
   [2026-11-09 10:18:41](DEVLOG/DEVLOG2.md#101841-a-tech-tree-screen-that-shows-the-designs-tree-and-all-71-tests-listed)
+- **Dialogs are asked for through a seam.** `ask.c` in `src/shell/` shows every message box and file dialog and
+  finds the game's folders; a test gives it a script of answers, so that the window's commands run without a
+  dialog on the desktop. The program never sets a script.
+  [2026-11-15 22:56:15](DEVLOG/DEVLOG4.md#225615-every-function-of-src-under-crap-10-with-the-window-driven-through-its-dialogs-by-tests)
+- **A window that opens starts as saved,** with no file path, whatever a window before it left.
+  [2026-11-15 22:56:15](DEVLOG/DEVLOG4.md#225615-every-function-of-src-under-crap-10-with-the-window-driven-through-its-dialogs-by-tests)
+- **A tech that cannot be planned leaves no trace in the plan,** so a unique unit whose tech the game lacks is
+  skipped and reported, and the rest of the civ is built.
+  [2026-11-15 22:56:15](DEVLOG/DEVLOG4.md#225615-every-function-of-src-under-crap-10-with-the-window-driven-through-its-dialogs-by-tests)
+- **Membership and a checked index are in `check.c`.** `check_is_among` and `check_index` take the place of
+  conditions and bounds written out in each function; a list of values or a table with a fallback names what
+  is allowed.
+  [2026-11-15 23:21:05](DEVLOG/DEVLOG4.md#232105-no-two-functions-80-alike-any-more)
+- **The catalog is searched by one function,** `find_key`, for every table. Replaced: a shared key structure
+  in the entries, proposed on 2026-11-10 08:27:52.
+  [2026-11-15 23:21:05](DEVLOG/DEVLOG4.md#232105-no-two-functions-80-alike-any-more)
 
 ## Tests
 
@@ -388,6 +454,61 @@ an earlier one, the earlier one is named after it, with its own link.
 - **TESTS.md cites the requirements by their numbers.** The proposals of the first questions became Requirements 1
   to 9, and each test's purpose names the one it serves; a test of a bug found before cites Rule 24.
   [2026-11-09 10:18:41](DEVLOG/DEVLOG2.md#101841-a-tech-tree-screen-that-shows-the-designs-tree-and-all-71-tests-listed)
+- **The recipe is tested on a small game.** `tests/dat/recipe_game.c` makes a dat file, a catalog and a design, in
+  a full and a bare scenario, runs `recipe_apply` and reads the built dat file back; each test of
+  `recipe_tests.c` asks one thing of it. The small dat of `tests/dat/small_dat.c` is shared with the dat tests.
+  [2026-11-15](DEVLOG/DEVLOG4.md#the-recipe-run-by-tests-on-a-small-game-237-functions-at-crap-10-or-above)
+- **While the mutator cannot run, a new test is shown honest by mutants made by hand,** one at a time, each undone,
+  and the log names those that survived.
+  [2026-11-15](DEVLOG/DEVLOG4.md#the-recipe-run-by-tests-on-a-small-game-237-functions-at-crap-10-or-above)
+- **New tests are named in `tests/suites/`.** `functional_suite.c` holds its first 54 tests and passes on to
+  `build_suite.c`, `mod_suite.c` and `core_suite.c`, each of groups of at most eight tests so that no group's
+  complexity reaches 10. The test "TESTS.md documents every test" counts the tests of every suite file.
+  [2026-11-15 22:14:14](DEVLOG/DEVLOG4.md#221414-a-mod-built-end-to-end-by-tests-166-functions-at-crap-10-or-above)
+- **The test runner tries up to 400 tests of a category.** `CATEGORY_TEST_LIMIT` in `tests/runner.c` bounds a loop
+  (P10) and is no rule of how many tests there may be. Replaced: 100.
+  [2026-11-15 22:14:14](DEVLOG/DEVLOG4.md#221414-a-mod-built-end-to-end-by-tests-166-functions-at-crap-10-or-above)
+- **A whole mod is built by the tests,** from a small game written to `build/test_game` into `build/test_mods`;
+  both are build output and are written over by each run.
+  [2026-11-15 22:14:14](DEVLOG/DEVLOG4.md#221414-a-mod-built-end-to-end-by-tests-166-functions-at-crap-10-or-above)
+- **A step of a test's fixture that must succeed is a `CHECK`,** so that it adds no branch that the tests can
+  never take; what a test asks stays a plain condition.
+  [2026-11-15 22:14:14](DEVLOG/DEVLOG4.md#221414-a-mod-built-end-to-end-by-tests-166-functions-at-crap-10-or-above)
+- **Steam's folder and the user's home can be named.** `mod_find_game_under` and `mod_find_mods_under` take
+  them, so that tests find the game and the mods folder under `build/`; the program passes the real ones.
+  [2026-11-15 22:36:08](DEVLOG/DEVLOG4.md#223608-all-of-src-but-the-window-under-crap-10-110-functions-left)
+- **A fixture of bytes may be made once with a tool of Windows.** The dynamic stream of `dynamic_tests.c` was
+  packed with PowerShell's deflater and is kept as bytes in the test; no tool is run by the tests or the build.
+  [2026-11-15 22:36:08](DEVLOG/DEVLOG4.md#223608-all-of-src-but-the-window-under-crap-10-110-functions-left)
+- **A test that asks the same of other values is one line** that calls a shared helper; the helper gives a value
+  or takes the values to ask about. So tests of one check (Rule 24) are not alike for the dryer (Rule 31).
+  [2026-11-15 23:21:05](DEVLOG/DEVLOG4.md#232105-no-two-functions-80-alike-any-more)
+- **A rule test that is restructured is shown to fail on a fault made on purpose,** which is then undone; the
+  log names the faults.
+  [2026-11-15 23:21:05](DEVLOG/DEVLOG4.md#232105-no-two-functions-80-alike-any-more)
+- **Each scanner of a rule is shown a fault.** `tests/fixtures/broken_rules.txt` breaks eight rules, a line each,
+  and a gate test asks each scanner for that line; the text is a document, so the rule tests pass it by.
+  [2026-11-15 23:36:40](DEVLOG/DEVLOG4.md#233640-tests-and-src-under-crap-10-and-eight-tests-that-show-the-rule-tests-see-a-fault)
+- **A group of tests holds at most eight,** so that the function that runs it stays under CRAP 10; a larger
+  group is divided where its subject changes, and the order of the tests is kept.
+  [2026-11-15 23:36:40](DEVLOG/DEVLOG4.md#233640-tests-and-src-under-crap-10-and-eight-tests-that-show-the-rule-tests-see-a-fault)
+- **A tool is a part that takes its sources and its output, and a `main` that gives them.** So a test runs
+  the dryer and the crapper on a fixture; `tests/rules/tool_tests.c` holds the tests of the tools.
+  [2026-11-15 23:56:59](DEVLOG/DEVLOG4.md#235659-the-dryer-the-crapper-and-the-builds-plan-run-by-tests-27-functions-of-the-tools-left)
+- **A function that starts the compiler holds no decision of its own;** what it decides is asked of a part
+  that tests run, and a step that fails only when a text does not fit its place is a `CHECK`.
+  [2026-11-15 23:56:59](DEVLOG/DEVLOG4.md#235659-the-dryer-the-crapper-and-the-builds-plan-run-by-tests-27-functions-of-the-tools-left)
+- **The mutator's program is not restructured while it cannot run** (Rule 36).
+  [2026-11-15 23:56:59](DEVLOG/DEVLOG4.md#235659-the-dryer-the-crapper-and-the-builds-plan-run-by-tests-27-functions-of-the-tools-left)
+- **What each program is built from is one table,** `PROGRAM_PREFIXES` in `source_list.c`, read by
+  `source_in_program`.
+  [2026-11-15 23:56:59](DEVLOG/DEVLOG4.md#235659-the-dryer-the-crapper-and-the-builds-plan-run-by-tests-27-functions-of-the-tools-left)
+- **A survivor of the mutator is read before a test is written for it.** One on a line with a `CHECK`, on the
+  `return` under a guard or on a loop's fixed bound is left, until it is decided whether P10 or the mutator
+  gives way; one elsewhere gets a test that calls the code as its user does.
+  [2026-11-16 04:39:06](DEVLOG/DEVLOG4.md#043906-ub-modes-mutator-run-and-read-three-survivors-in-four-are-made-by-p10s-checks-and-bounds)
+- **A test of an order uses values that differ,** such as numbered changes, not one value put on and off.
+  [2026-11-16 04:39:06](DEVLOG/DEVLOG4.md#043906-ub-modes-mutator-run-and-read-three-survivors-in-four-are-made-by-p10s-checks-and-bounds)
 
 ## Documents
 

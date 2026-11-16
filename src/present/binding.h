@@ -30,6 +30,13 @@ typedef enum {
 } ListSource;
 
 typedef struct {
+    ListSource source;
+    int text_field;
+    int choice;
+    int appearance;
+} Binding;
+
+typedef struct {
     ControlId control;
     int item;
 } ListItem;
@@ -49,8 +56,7 @@ typedef struct {
     char text[LIST_TEXT_CAPACITY];
 } RowText;
 
-int binding_text_field(ControlId control);
-ListSource binding_source(ControlId control);
+const Binding *binding_of(ControlId control);
 bool list_model_fill(ListModel *model, const Catalog *catalog, const ListQuery *query);
 RowText list_item_text(const Catalog *catalog, ListItem item);
 bool list_item_is_chosen(const Catalog *catalog, const CivDesign *design, ListItem item);

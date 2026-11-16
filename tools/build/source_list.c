@@ -9,6 +9,13 @@ enum { FOLDER_ENTRY_LIMIT = 4096, FILE_TIME_HIGH_SHIFT = 32, EXTENSION_CAPACITY 
 
 static const char SOURCE_ROOTS[ROOT_COUNT][ROOT_WIDTH] = { "src", "tests", "tools" };
 
+static const char PROGRAM_PREFIXES[SOURCE_PROGRAM_COUNT][SOURCE_PREFIX_LIMIT][SOURCE_PREFIX_WIDTH] = {
+    { "src/" },
+    { "src/", "tests/", "tools/build/source_" },
+    { "tools/build/", "src/core/" }
+};
+static const char LIBRARIES[] = "-lgdi32\n-lcomdlg32\n-lshell32\n-ladvapi32\n-loleacc\n-lole32\n-loleaut32\n";
+
 typedef struct {
     char pending[SOURCE_FOLDER_CAPACITY][SOURCE_PATH_CAPACITY];
     int pending_count;
@@ -128,20 +135,25 @@ static bool scan_folder(SourceList *list, FolderWalk *walk)
     return CHECK(fine);
 }
 
+static bool start_walk(FolderWalk *walk, const char *root, const char *extension)
+{
+    if (!CHECK(walk != NULL) || !CHECK(root != NULL) || !CHECK(extension != NULL)) {
+        return false;
+    }
+    walk->pending_count = 1;
+    return text_copy(walk->pending[0], SOURCE_PATH_CAPACITY, root) &&
+           text_copy(walk->extension, EXTENSION_CAPACITY, extension);
+}
+
 bool source_list_collect(SourceList *list, const char *root, const char *extension)
 {
     static FolderWalk walk;
     int next;
 
-    if (!CHECK(list != NULL) || !CHECK(root != NULL) || !CHECK(extension != NULL)) {
+    if (!CHECK(list != NULL) || !start_walk(&walk, root, extension)) {
         return false;
     }
     list->count = 0;
-    walk.pending_count = 1;
-    if (!text_copy(walk.pending[0], SOURCE_PATH_CAPACITY, root) ||
-        !text_copy(walk.extension, EXTENSION_CAPACITY, extension)) {
-        return false;
-    }
     for (next = 0; (next < walk.pending_count) && (next < SOURCE_FOLDER_CAPACITY); ++next) {
         if (!text_copy(walk.current, SOURCE_PATH_CAPACITY, walk.pending[next]) || !scan_folder(list, &walk)) {
             return false;
@@ -175,25 +187,79 @@ bool source_list_collect_all(SourceList *list, const char *extension)
     return true;
 }
 
-bool source_in_tests(const char *path)
+bool source_in_program(SourceProgram program, const char *path)
 {
-    if (!CHECK(path != NULL) || !CHECK(path[0] != '\0')) {
+    int index;
+
+    if (!CHECK(path != NULL) || !CHECK(program < SOURCE_PROGRAM_COUNT)) {
         return false;
     }
-    return text_starts_with(path, "src/") || text_starts_with(path, "tests/") ||
-           text_starts_with(path, "tools/crap/crap_") || text_starts_with(path, "tools/dry/dry_") ||
-           text_starts_with(path, "tools/mutate/mutant_");
+    for (index = 0; (index < SOURCE_PREFIX_LIMIT) && (PROGRAM_PREFIXES[program][index][0] != '\0'); ++index) {
+        if (text_starts_with(path, PROGRAM_PREFIXES[program][index])) {
+            return true;
+        }
+    }
+    return false;
 }
 
-const char *source_test_libraries(void)
+static size_t name_start(const char *path, size_t length)
 {
-    static const char LIBRARIES[] = "-lgdi32\n-lcomdlg32\n-lshell32\n-ladvapi32\n"
-                                    "-loleacc\n-lole32\n-loleaut32\n";
+    size_t start = 0U;
+    size_t index;
 
-    if (!CHECK(sizeof LIBRARIES > 1U) || !CHECK(LIBRARIES[0] == '-')) {
-        return "";
+    if (!CHECK(path != NULL) || !CHECK(length < SOURCE_PATH_CAPACITY)) {
+        return 0U;
     }
-    return LIBRARIES;
+    for (index = 0U; (index < length) && (index < SOURCE_PATH_CAPACITY); ++index) {
+        start = (path[index] == '/') ? index + 1U : start;
+    }
+    return start;
+}
+
+bool source_built_path(char *destination, const char *folder, const char *source, const char *suffix)
+{
+    size_t length = text_length(source, SOURCE_PATH_CAPACITY);
+    size_t start = name_start(source, length);
+    size_t used;
+
+    if (!CHECK(destination != NULL) || !CHECK(suffix != NULL) || !CHECK(length > start + 2U)) {
+        return false;
+    }
+    if (!text_join(destination, SOURCE_PATH_CAPACITY, folder, "/")) {
+        return false;
+    }
+    used = text_length(destination, SOURCE_PATH_CAPACITY);
+    return text_copy_span(&destination[used], SOURCE_PATH_CAPACITY - used, &source[start], length - start - 2U) &&
+           text_append(destination, SOURCE_PATH_CAPACITY, suffix);
+}
+
+bool source_is_fresh(const SourceFile *source, const char *built_path, long long newest_header)
+{
+    long long built = source_file_modified(built_path);
+
+    if (!CHECK(source != NULL) || !CHECK(newest_header >= 0LL)) {
+        return false;
+    }
+    return (built > source->modified) && (built > newest_header);
+}
+
+bool source_write_objects(FILE *out, const SourceList *list, SourceProgram program, const char *folder)
+{
+    char object[SOURCE_PATH_CAPACITY];
+    int index;
+
+    if (!CHECK(out != NULL) || !CHECK(list != NULL) || !CHECK(folder != NULL)) {
+        return false;
+    }
+    for (index = 0; (index < list->count) && (index < SOURCE_LIST_CAPACITY); ++index) {
+        if (!source_in_program(program, list->files[index].path)) {
+            continue;
+        }
+        if (!source_built_path(object, folder, list->files[index].path, ".o") || (fprintf(out, "%s\n", object) < 0)) {
+            return false;
+        }
+    }
+    return (program > SOURCE_PROGRAM_TESTS) || (fputs(LIBRARIES, out) >= 0);
 }
 
 long long source_list_newest(const SourceList *list)

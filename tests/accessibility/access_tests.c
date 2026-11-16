@@ -1,5 +1,6 @@
 #include "access_tests.h"
 
+#include "../../src/core/check.h"
 #include "../../src/core/text.h"
 #include "../../src/data/tsv.h"
 #include "../../src/present/details.h"
@@ -33,10 +34,14 @@ bool test_every_text_contrasts_seven_to_one(void)
     return true;
 }
 
+enum { LABELLED_KIND_COUNT = 6 };
+
+static const int LABELLED_KINDS[LABELLED_KIND_COUNT] = { WIDGET_LINE, WIDGET_PARAGRAPH, WIDGET_CHOICE,
+                                                         WIDGET_LIST, WIDGET_CHECKLIST, WIDGET_REPORT };
+
 static bool needs_label(WidgetKind kind)
 {
-    return (kind == WIDGET_LINE) || (kind == WIDGET_PARAGRAPH) || (kind == WIDGET_CHOICE) || (kind == WIDGET_LIST) ||
-           (kind == WIDGET_CHECKLIST) || (kind == WIDGET_REPORT);
+    return check_is_among((int)kind, LABELLED_KINDS, LABELLED_KIND_COUNT);
 }
 
 bool test_every_input_has_a_visible_label(void)
@@ -107,7 +112,7 @@ bool test_no_two_controls_of_a_step_overlap(void)
             }
             for (second = first + 1; (second < count) && (second < BOX_CAPACITY); ++second) {
                 if (layout_boxes_overlap(boxes[first], boxes[second])) {
-                    test_note(wizard_title((WizardStep)step));
+                    test_note(wizard_page((WizardStep)step)->title);
                     return false;
                 }
             }
@@ -136,7 +141,7 @@ bool test_the_steps_and_their_buttons_are_on_every_step(void)
         at = (WizardStep)step;
         if (!layout_shows(CONTROL_STEPS, at) || (layout_shows(CONTROL_BACK, at) != (wizard_move(at, -1) != at)) ||
             (layout_shows(CONTROL_NEXT, at) != (wizard_move(at, 1) != at))) {
-            test_note(wizard_title(at));
+            test_note(wizard_page(at)->title);
             return false;
         }
     }
@@ -146,11 +151,6 @@ bool test_the_steps_and_their_buttons_are_on_every_step(void)
 bool test_the_layout_grows_with_the_text_size_of_windows(void)
 {
     return layout_text_dpi(LAYOUT_BASE_DPI, 400) == 216;
-}
-
-static bool is_letter_between(char letter, char first, char last)
-{
-    return (letter >= first) && (letter <= last);
 }
 
 static bool is_explained(const char *word)
@@ -177,37 +177,57 @@ static bool capitals_are_explained(const char *text, size_t at)
     char word[CAPITALS_MOST + 2] = "";
     size_t length;
 
-    if ((at > 0U) && (is_letter_between(text[at - 1U], 'A', 'Z') || is_letter_between(text[at - 1U], 'a', 'z'))) {
+    if ((at > 0U) && (text_is_between(text[at - 1U], 'A', 'Z') || text_is_between(text[at - 1U], 'a', 'z'))) {
         return true;
     }
-    for (length = 0U; (length <= CAPITALS_MOST) && is_letter_between(text[at + length], 'A', 'Z'); ++length) {
+    for (length = 0U; (length <= CAPITALS_MOST) && text_is_between(text[at + length], 'A', 'Z'); ++length) {
         word[length] = text[at + length];
     }
     word[length] = '\0';
-    if ((length < 2U) || (length > CAPITALS_MOST) || is_letter_between(text[at + length], 'a', 'z')) {
+    if ((length < 2U) || (length > CAPITALS_MOST) || text_is_between(text[at + length], 'a', 'z')) {
         return true;
     }
     test_note(word);
     return is_explained(word);
 }
 
-bool test_the_glossary_explains_every_short_form(void)
+static bool line_is_explained(const char *text)
 {
     size_t at;
-    int file;
-    int row;
 
-    for (file = 0; file < CATALOG_FILE_COUNT; ++file) {
-        if (!tsv_open(&catalog_file, CATALOG_FILES[file])) {
+    if (!CHECK(text != NULL) || !CHECK(TSV_LINE_CAPACITY > 0)) {
+        return false;
+    }
+    for (at = 0U; (at < TSV_LINE_CAPACITY) && (text[at] != '\0'); ++at) {
+        if (text_is_between(text[at], 'A', 'Z') && !capitals_are_explained(text, at)) {
             return false;
         }
-        for (row = 0; (row < TSV_FILE_CAPACITY) && tsv_next(&catalog_file, &catalog_line); ++row) {
-            for (at = 0U; (at < TSV_LINE_CAPACITY) && (catalog_line.text[at] != '\0'); ++at) {
-                if (is_letter_between(catalog_line.text[at], 'A', 'Z') &&
-                    !capitals_are_explained(catalog_line.text, at)) {
-                    return false;
-                }
-            }
+    }
+    return true;
+}
+
+static bool file_is_explained(const wchar_t *path)
+{
+    int row;
+
+    if (!CHECK(path != NULL) || !tsv_open(&catalog_file, path)) {
+        return false;
+    }
+    for (row = 0; (row < TSV_FILE_CAPACITY) && tsv_next(&catalog_file, &catalog_line); ++row) {
+        if (!line_is_explained(catalog_line.text)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool test_the_glossary_explains_every_short_form(void)
+{
+    int file;
+
+    for (file = 0; file < CATALOG_FILE_COUNT; ++file) {
+        if (!file_is_explained(CATALOG_FILES[file])) {
+            return false;
         }
     }
     return true;

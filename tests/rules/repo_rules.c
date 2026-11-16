@@ -18,6 +18,11 @@ static const char ALLOWED_SUFFIXES[ALLOWED_SUFFIX_COUNT][SUFFIX_WIDTH] = {
     ".c", ".h", ".md", ".txt", ".json", ".png", "LICENSE", ".gitignore", ".gitattributes"
 };
 
+typedef enum {
+    FILE_RULE_UNIQUE_NAME,
+    FILE_RULE_ALLOWED_KIND
+} FileRule;
+
 static RepoFiles files;
 static TsvFile document;
 static TsvRecord line;
@@ -111,22 +116,6 @@ static bool name_repeats(int file)
     return false;
 }
 
-bool repo_file_names_are_unique(void)
-{
-    int index;
-
-    if (!repo_files_list(&files) || !CHECK(files.count > 0)) {
-        return false;
-    }
-    for (index = 0; (index < files.count) && (index < REPO_FILE_CAPACITY); ++index) {
-        if (name_repeats(index)) {
-            test_note(files.paths[index]);
-            return false;
-        }
-    }
-    return true;
-}
-
 static bool has_allowed_suffix(const char *path)
 {
     int index;
@@ -142,7 +131,15 @@ static bool has_allowed_suffix(const char *path)
     return false;
 }
 
-bool repo_holds_only_c_and_documents(void)
+static bool file_breaks(FileRule rule, int index)
+{
+    if (!CHECK(index >= 0) || !CHECK(index < REPO_FILE_CAPACITY)) {
+        return true;
+    }
+    return (rule == FILE_RULE_UNIQUE_NAME) ? name_repeats(index) : !has_allowed_suffix(files.paths[index]);
+}
+
+static bool every_file_keeps(FileRule rule)
 {
     int index;
 
@@ -150,12 +147,30 @@ bool repo_holds_only_c_and_documents(void)
         return false;
     }
     for (index = 0; (index < files.count) && (index < REPO_FILE_CAPACITY); ++index) {
-        if (!has_allowed_suffix(files.paths[index])) {
+        if (file_breaks(rule, index)) {
             test_note(files.paths[index]);
             return false;
         }
     }
     return true;
+}
+
+bool repo_file_names_are_unique(void)
+{
+    return every_file_keeps(FILE_RULE_UNIQUE_NAME);
+}
+
+bool repo_holds_only_c_and_documents(void)
+{
+    return every_file_keeps(FILE_RULE_ALLOWED_KIND);
+}
+
+static bool placeholder_starts(const char *text)
+{
+    if (!CHECK(text != NULL) || !CHECK(text[0] != '\0')) {
+        return false;
+    }
+    return (text[0] == '{') && (text[1] == '{') && (text[2] >= 'A') && (text[2] <= 'Z');
 }
 
 static bool line_has_placeholder(const char *text)
@@ -166,8 +181,7 @@ static bool line_has_placeholder(const char *text)
         return false;
     }
     for (index = 0U; (index + 2U < (size_t)TSV_LINE_CAPACITY) && (text[index] != '\0'); ++index) {
-        if ((text[index] == '{') && (text[index + 1U] == '{') && (text[index + 2U] >= 'A') &&
-            (text[index + 2U] <= 'Z')) {
+        if (placeholder_starts(&text[index])) {
             return true;
         }
     }

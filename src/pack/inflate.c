@@ -57,6 +57,12 @@ typedef struct {
     int extra_base;
 } RepeatRule;
 
+typedef struct {
+    int literals;
+    int distances;
+    int code_lengths;
+} DynamicCounts;
+
 const int DEFLATE_LENGTH_BASE[DEFLATE_LENGTH_SYMBOLS] = {
     3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258
 };
@@ -152,10 +158,31 @@ static int decode_symbol(Inflater *z, const HuffmanCode *code)
     return NO_SYMBOL;
 }
 
+static size_t match_distance(Inflater *z)
+{
+    int symbol;
+
+    if (!CHECK(z != NULL) || !CHECK(z->out != NULL)) {
+        return 0U;
+    }
+    symbol = decode_symbol(z, &distance_code);
+    if ((symbol < 0) || (symbol >= DISTANCE_CODE_LIMIT)) {
+        return 0U;
+    }
+    return (size_t)DEFLATE_DISTANCE_BASE[symbol] + take_bits(z, DEFLATE_DISTANCE_EXTRA[symbol]);
+}
+
+static bool match_fits(const Inflater *z, size_t distance, size_t length)
+{
+    if (!CHECK(z != NULL) || !CHECK(z->out_pos <= z->out_capacity)) {
+        return false;
+    }
+    return !z->failed && (distance > 0U) && (distance <= z->out_pos) && (length <= z->out_capacity - z->out_pos);
+}
+
 static bool copy_match(Inflater *z, int symbol)
 {
     int index = symbol - FIRST_LENGTH;
-    int distance_symbol;
     size_t length;
     size_t distance;
     size_t step;
@@ -164,19 +191,30 @@ static bool copy_match(Inflater *z, int symbol)
         return false;
     }
     length = (size_t)DEFLATE_LENGTH_BASE[index] + take_bits(z, DEFLATE_LENGTH_EXTRA[index]);
-    distance_symbol = decode_symbol(z, &distance_code);
-    if ((distance_symbol < 0) || (distance_symbol >= DISTANCE_CODE_LIMIT)) {
-        return false;
-    }
-    distance = (size_t)DEFLATE_DISTANCE_BASE[distance_symbol] +
-               take_bits(z, DEFLATE_DISTANCE_EXTRA[distance_symbol]);
-    if (z->failed || (distance > z->out_pos) || (length > z->out_capacity - z->out_pos)) {
+    distance = match_distance(z);
+    if (!match_fits(z, distance, length)) {
         return false;
     }
     for (step = 0U; (step < length) && (step < MATCH_LIMIT); ++step) {
         z->out[z->out_pos] = z->out[z->out_pos - distance];
         ++z->out_pos;
     }
+    return true;
+}
+
+static bool take_symbol(Inflater *z, int symbol)
+{
+    if (!CHECK(z != NULL) || !CHECK(symbol >= 0)) {
+        return false;
+    }
+    if (symbol > END_OF_BLOCK) {
+        return copy_match(z, symbol);
+    }
+    if (z->out_pos >= z->out_capacity) {
+        return false;
+    }
+    z->out[z->out_pos] = (unsigned char)symbol;
+    ++z->out_pos;
     return true;
 }
 
@@ -196,14 +234,7 @@ static bool inflate_codes(Inflater *z)
         if (symbol == END_OF_BLOCK) {
             return true;
         }
-        if (symbol > END_OF_BLOCK) {
-            if (!copy_match(z, symbol)) {
-                return false;
-            }
-        } else if (z->out_pos < z->out_capacity) {
-            z->out[z->out_pos] = (unsigned char)symbol;
-            ++z->out_pos;
-        } else {
+        if (!take_symbol(z, symbol)) {
             return false;
         }
     }
@@ -252,71 +283,98 @@ static bool read_length_code(Inflater *z, int count)
     return !z->failed && huffman_build(&length_code, lengths, LENGTH_CODE_COUNT);
 }
 
+static int fill_lengths(int index, int repeat, int value)
+{
+    int step;
+
+    if (!CHECK(index >= 0) || !CHECK(repeat <= ALL_CODE_LIMIT - index)) {
+        return NO_SYMBOL;
+    }
+    for (step = 0; (step < repeat) && (step < REPEAT_LIMIT); ++step) {
+        lengths[index + step] = (short)value;
+    }
+    return index + repeat;
+}
+
 static int repeat_lengths(Inflater *z, int symbol, int index)
 {
     RepeatRule rule;
     int repeat;
-    int step;
 
-    if (!CHECK(z != NULL) || !CHECK((symbol >= REPEAT_PREVIOUS) && (symbol < LENGTH_CODE_COUNT))) {
+    if (!CHECK(z != NULL) || !CHECK(symbol >= REPEAT_PREVIOUS) || !CHECK(symbol < LENGTH_CODE_COUNT)) {
         return NO_SYMBOL;
     }
     rule = REPEAT_RULES[symbol - REPEAT_PREVIOUS];
-    if ((symbol == REPEAT_PREVIOUS) && (index == 0)) {
-        return NO_SYMBOL;
+    if (symbol == REPEAT_PREVIOUS) {
+        if (index == 0) {
+            return NO_SYMBOL;
+        }
+        rule.value = lengths[index - 1];
     }
-    rule.value = (symbol == REPEAT_PREVIOUS) ? lengths[index - 1] : rule.value;
     repeat = rule.extra_base + (int)take_bits(z, rule.extra_bits);
     if (z->failed || (repeat > ALL_CODE_LIMIT - index)) {
         return NO_SYMBOL;
     }
-    for (step = 0; (step < repeat) && (step < REPEAT_LIMIT); ++step) {
-        lengths[index + step] = (short)rule.value;
+    return fill_lengths(index, repeat, rule.value);
+}
+
+static int take_length(Inflater *z, int symbol, int index)
+{
+    if (!CHECK(z != NULL) || !CHECK(index >= 0) || z->failed || (symbol < 0)) {
+        return NO_SYMBOL;
     }
-    return index + repeat;
+    if (symbol >= REPEAT_PREVIOUS) {
+        return repeat_lengths(z, symbol, index);
+    }
+    lengths[index] = (short)symbol;
+    return index + 1;
 }
 
 static bool read_lengths(Inflater *z, int total)
 {
     int index;
-    int symbol;
 
     if (!CHECK(z != NULL) || !CHECK(total <= ALL_CODE_LIMIT)) {
         return false;
     }
     for (index = 0; (index >= 0) && (index < total) && (index < ALL_CODE_LIMIT);) {
-        symbol = decode_symbol(z, &length_code);
-        if (z->failed || (symbol < 0)) {
-            return false;
-        }
-        if (symbol < REPEAT_PREVIOUS) {
-            lengths[index] = (short)symbol;
-            ++index;
-        } else {
-            index = repeat_lengths(z, symbol, index);
-        }
+        index = take_length(z, decode_symbol(z, &length_code), index);
     }
     return (index == total) && (lengths[END_OF_BLOCK] != 0);
 }
 
+static bool read_counts(Inflater *z, DynamicCounts *counts)
+{
+    if (!CHECK(z != NULL) || !CHECK(counts != NULL)) {
+        return false;
+    }
+    counts->literals = (int)take_bits(z, LITERAL_COUNT_BITS) + FIRST_LENGTH;
+    counts->distances = (int)take_bits(z, DISTANCE_COUNT_BITS) + 1;
+    counts->code_lengths = (int)take_bits(z, LENGTH_COUNT_BITS) + LENGTH_COUNT_BASE;
+    return !z->failed && (counts->literals <= LITERAL_CODE_MOST) && (counts->distances <= DISTANCE_CODE_LIMIT);
+}
+
 static bool build_dynamic_codes(Inflater *z)
 {
-    int literals;
-    int distances;
-    int code_lengths;
+    DynamicCounts counts;
 
     if (!CHECK(z != NULL) || !CHECK(!z->failed)) {
         return false;
     }
-    literals = (int)take_bits(z, LITERAL_COUNT_BITS) + FIRST_LENGTH;
-    distances = (int)take_bits(z, DISTANCE_COUNT_BITS) + 1;
-    code_lengths = (int)take_bits(z, LENGTH_COUNT_BITS) + LENGTH_COUNT_BASE;
-    if (z->failed || (literals > LITERAL_CODE_MOST) || (distances > DISTANCE_CODE_LIMIT) ||
-        !read_length_code(z, code_lengths) || !read_lengths(z, literals + distances)) {
+    if (!read_counts(z, &counts) || !read_length_code(z, counts.code_lengths) ||
+        !read_lengths(z, counts.literals + counts.distances)) {
         return false;
     }
-    return huffman_build(&literal_code, lengths, literals) &&
-           huffman_build(&distance_code, &lengths[literals], distances);
+    return huffman_build(&literal_code, lengths, counts.literals) &&
+           huffman_build(&distance_code, &lengths[counts.literals], counts.distances);
+}
+
+static bool inflate_fixed(Inflater *z)
+{
+    if (!CHECK(z != NULL) || !CHECK(!z->failed)) {
+        return false;
+    }
+    return huffman_build_fixed(&literal_code, true) && huffman_build_fixed(&distance_code, false) && inflate_codes(z);
 }
 
 static bool inflate_block(Inflater *z, unsigned int type)
@@ -328,8 +386,7 @@ static bool inflate_block(Inflater *z, unsigned int type)
     case BLOCK_STORED:
         return inflate_stored(z);
     case BLOCK_FIXED:
-        return huffman_build_fixed(&literal_code, true) && huffman_build_fixed(&distance_code, false) &&
-               inflate_codes(z);
+        return inflate_fixed(z);
     case BLOCK_DYNAMIC:
         return build_dynamic_codes(z) && inflate_codes(z);
     default:

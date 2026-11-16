@@ -1,0 +1,41 @@
+#ifndef PRESENT_TESTS_H
+#define PRESENT_TESTS_H
+
+#include <stdbool.h>
+
+bool test_a_command_to_pick_a_unit_picks_it(void);
+bool test_a_command_to_pick_a_tech_picks_it(void);
+bool test_a_command_to_pick_a_hero_picks_it(void);
+bool test_a_command_to_tick_a_civ_bonus_ticks_it(void);
+bool test_a_command_to_tick_a_team_bonus_ticks_it(void);
+bool test_a_command_to_tick_a_node_ticks_it(void);
+bool test_a_command_to_set_a_choice_sets_it(void);
+bool test_a_command_of_no_kind_changes_nothing(void);
+bool test_a_civ_bonus_ticked_twice_is_no_longer_picked(void);
+bool test_a_team_bonus_ticked_twice_is_no_longer_picked(void);
+bool test_a_row_of_the_tech_tree_gives_the_command_to_tick_its_node(void);
+bool test_a_row_of_the_civ_bonuses_gives_the_command_to_tick_its_bonus(void);
+bool test_a_row_of_the_team_bonuses_gives_the_command_to_tick_its_bonus(void);
+bool test_a_row_of_a_look_gives_the_command_to_set_that_choice(void);
+bool test_a_row_of_the_units_gives_the_command_to_pick_its_unit(void);
+bool test_a_row_of_the_heroes_gives_the_command_to_pick_its_hero(void);
+bool test_the_row_no_hero_gives_the_command_to_pick_no_hero(void);
+bool test_a_row_of_the_castle_techs_gives_the_command_to_pick_its_tech(void);
+bool test_a_row_of_the_imperial_techs_gives_the_command_to_pick_its_tech(void);
+bool test_a_filter_keeps_the_rows_that_hold_its_letters(void);
+bool test_a_category_keeps_only_the_civ_bonuses_of_that_category(void);
+bool test_the_summary_names_the_unique_unit_and_the_unit_it_is_made_from(void);
+bool test_the_summary_lists_a_civ_bonus_by_its_description(void);
+bool test_the_summary_names_a_civ_bonus_the_catalog_lacks_by_its_number(void);
+bool test_the_summary_names_a_unique_tech_by_its_catalog_name(void);
+bool test_the_summary_says_when_the_catalog_lacks_the_unique_unit(void);
+bool test_the_summary_says_when_the_catalog_lacks_a_unique_tech(void);
+bool test_the_details_of_the_unique_unit_list_what_it_costs(void);
+bool test_the_details_of_a_unit_without_a_cost_say_so(void);
+bool test_the_details_say_when_no_unit_is_selected(void);
+bool test_the_details_say_when_the_catalog_lacks_the_unit(void);
+bool test_the_build_report_counts_the_civ_bonuses_built_and_skipped(void);
+bool test_the_build_report_says_when_the_hero_was_not_built(void);
+bool test_the_build_report_of_a_whole_civ_names_the_two_folders(void);
+
+#endif

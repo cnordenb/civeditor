@@ -45,24 +45,15 @@ void civ_design_reset(CivDesign *design)
 
 int civ_text_capacity(TextField field)
 {
+    static const int CAPACITIES[TEXT_FIELD_COUNT] = {
+        CIV_NAME_CAPACITY, CIV_LINE_CAPACITY, CIV_DESCRIPTION_CAPACITY, CIV_NAME_CAPACITY,
+        CIV_DESCRIPTION_CAPACITY, CIV_NAME_CAPACITY, CIV_NAME_CAPACITY, CIV_NAME_CAPACITY
+    };
+
     if (!CHECK((int)field >= 0) || !CHECK((int)field < (int)TEXT_FIELD_COUNT)) {
         return 0;
     }
-    switch (field) {
-    case TEXT_FIELD_NAME:
-    case TEXT_FIELD_UNIT_NAME:
-    case TEXT_FIELD_CASTLE_TECH_NAME:
-    case TEXT_FIELD_IMPERIAL_TECH_NAME:
-    case TEXT_FIELD_HERO_NAME:
-        return CIV_NAME_CAPACITY;
-    case TEXT_FIELD_TAGLINE:
-        return CIV_LINE_CAPACITY;
-    case TEXT_FIELD_DESCRIPTION:
-    case TEXT_FIELD_UNIT_DESCRIPTION:
-    case TEXT_FIELD_COUNT:
-    default:
-        return CIV_DESCRIPTION_CAPACITY;
-    }
+    return CAPACITIES[field];
 }
 
 bool civ_design_set_text(CivDesign *design, TextField field, const char *text)
@@ -81,12 +72,15 @@ const char *civ_design_text(const CivDesign *design, TextField field)
     return design->texts[field];
 }
 
+static bool is_choice_value(int value)
+{
+    return CHECK(value >= CIV_NO_CHOICE) && CHECK(value < ID_LIMIT);
+}
+
 bool civ_design_set_choice(CivDesign *design, ChoiceField field, int value)
 {
-    if (!CHECK(design != NULL) || !CHECK((int)field >= 0) || !CHECK(field < CHOICE_COUNT)) {
-        return false;
-    }
-    if (!CHECK(value >= CIV_NO_CHOICE) || !CHECK(value < ID_LIMIT)) {
+    if (!CHECK(design != NULL) || !CHECK((int)field >= 0) || !CHECK(field < CHOICE_COUNT) ||
+        !is_choice_value(value)) {
         return false;
     }
     design->choices[field] = value;

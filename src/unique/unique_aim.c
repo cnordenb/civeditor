@@ -1,6 +1,7 @@
 #include "unique_aim.h"
 
 #include "../core/check.h"
+#include "../forge/recipe_parts.h"
 
 enum {
     NO_UNIT = -1,
@@ -17,68 +18,94 @@ enum {
     CHANGE_LIMIT = 32768
 };
 
-static int unit_in_effect(const UniqueSource *source, int tech_id, int wanted_type)
-{
-    const DatMap *map;
-    DatTech tech;
-    DatEffect effect;
-    DatChange change;
-    int index;
+typedef struct {
+    bool found;
+    int unit;
+} UnitHit;
 
-    if (!CHECK(source != NULL) || !CHECK(source->map != NULL) || (tech_id < 0)) {
-        return NO_UNIT;
+static bool names_unit(const DatChange *change, int wanted_type)
+{
+    if (!CHECK(change != NULL) || !CHECK((wanted_type == ENABLE_UNIT) || (wanted_type == UPGRADE_UNIT))) {
+        return false;
     }
-    map = source->map;
-    if ((tech_id >= map->tech_count) || !dat_tech_read(source->dat, map->tech_at[tech_id], &tech) ||
-        (tech.effect_id < 0) || (tech.effect_id >= map->effect_count) ||
-        !dat_effect_read(source->dat, map->effect_at[tech.effect_id], &effect)) {
-        return NO_UNIT;
-    }
-    for (index = 0; (index < effect.change_count) && (index < CHANGE_LIMIT); ++index) {
-        if (!dat_change_read(source->dat, effect.changes_at + ((size_t)index * DAT_CHANGE_SIZE), &change)) {
-            return NO_UNIT;
-        }
-        if ((change.type == ENABLE_UNIT) && (wanted_type == ENABLE_UNIT) && (change.b != 0)) {
-            return change.a;
-        }
-        if ((change.type == UPGRADE_UNIT) && (wanted_type == UPGRADE_UNIT)) {
-            return change.b;
-        }
-    }
-    return NO_UNIT;
+    return (change->type == wanted_type) && ((wanted_type == UPGRADE_UNIT) || (change->b != 0));
 }
 
-UniqueUnit unique_unit_of_techs(const UniqueSource *source, int make_tech, int elite_tech)
+static UnitHit unit_at_change(const RecipeInput *input, const DatEffect *effect, int index, int wanted_type)
+{
+    UnitHit hit = { true, NO_UNIT };
+    RecipeChange read;
+
+    if (!CHECK(input != NULL) || !CHECK(effect != NULL)) {
+        return hit;
+    }
+    read = recipe_change_at(input, effect, index);
+    if (!read.read) {
+        return hit;
+    }
+    hit.found = names_unit(&read.change, wanted_type);
+    if (hit.found) {
+        hit.unit = (wanted_type == ENABLE_UNIT) ? read.change.a : read.change.b;
+    }
+    return hit;
+}
+
+static int unit_in_effect(const RecipeInput *input, int tech_id, int wanted_type)
+{
+    UnitHit hit = { false, NO_UNIT };
+    DatTech tech;
+    DatEffect effect;
+    int index;
+
+    if (!CHECK(input != NULL) || !CHECK(input->map != NULL)) {
+        return NO_UNIT;
+    }
+    if (!recipe_read_tech(input, tech_id, &tech) || !recipe_read_effect(input, tech.effect_id, &effect)) {
+        return NO_UNIT;
+    }
+    for (index = 0; !hit.found && (index < effect.change_count) && (index < CHANGE_LIMIT); ++index) {
+        hit = unit_at_change(input, &effect, index, wanted_type);
+    }
+    return hit.unit;
+}
+
+UniqueUnit unique_unit_of_techs(const RecipeInput *input, int make_tech, int elite_tech)
 {
     UniqueUnit unit = { NO_UNIT, NO_UNIT };
 
-    if (!CHECK(source != NULL) || !CHECK(source->dat != NULL)) {
+    if (!CHECK(input != NULL) || !CHECK(input->dat != NULL)) {
         return unit;
     }
-    unit.base = unit_in_effect(source, make_tech, ENABLE_UNIT);
-    unit.elite = unit_in_effect(source, elite_tech, UPGRADE_UNIT);
+    unit.base = unit_in_effect(input, make_tech, ENABLE_UNIT);
+    unit.elite = unit_in_effect(input, elite_tech, UPGRADE_UNIT);
     return unit;
 }
 
-UniqueUnit unique_unit_of_civ(const UniqueSource *source, int civ)
+static bool is_made_by_civ(const RecipeInput *input, const UnitEntry *entry, int civ)
+{
+    DatTech tech;
+
+    if (!CHECK(input != NULL) || !CHECK(entry != NULL) || (entry->role != UNIT_ROLE_VANILLA)) {
+        return false;
+    }
+    return recipe_read_tech(input, entry->make_tech, &tech) && (tech.civ == civ);
+}
+
+UniqueUnit unique_unit_of_civ(const RecipeInput *input, int civ)
 {
     UniqueUnit none = { NO_UNIT, NO_UNIT };
     const Catalog *catalog;
     const UnitEntry *entry;
-    const DatMap *map;
-    DatTech tech;
     int index;
 
-    if (!CHECK(source != NULL) || !CHECK((source->catalog != NULL) && (source->map != NULL)) || (civ < 0)) {
+    if (!CHECK(input != NULL) || !CHECK(input->catalog != NULL) || (civ < 0)) {
         return none;
     }
-    catalog = source->catalog;
-    map = source->map;
+    catalog = input->catalog;
     for (index = 0; (index < catalog->unit_count) && (index < CATALOG_UNIT_CAPACITY); ++index) {
         entry = &catalog->units[index];
-        if ((entry->role == UNIT_ROLE_VANILLA) && (entry->make_tech >= 0) && (entry->make_tech < map->tech_count) &&
-            dat_tech_read(source->dat, map->tech_at[entry->make_tech], &tech) && (tech.civ == civ)) {
-            return unique_unit_of_techs(source, entry->make_tech, entry->elite_tech);
+        if (is_made_by_civ(input, entry, civ)) {
+            return unique_unit_of_techs(input, entry->make_tech, entry->elite_tech);
         }
     }
     return none;
@@ -101,37 +128,57 @@ static UniqueAim aim_at(DatChange *change, int unit)
     return UNIQUE_SWAP;
 }
 
-UniqueAim unique_aim(const UniqueSwap *swap, DatChange *change)
-{
-    bool stat = false;
+enum { STAT_CHANGE_COUNT = 3 };
 
+static const int STAT_CHANGES[STAT_CHANGE_COUNT] = { SET_ATTRIBUTE, ADD_ATTRIBUTE, MULTIPLY_ATTRIBUTE };
+
+static UniqueAim aim_stat(const UniqueSwap *swap, DatChange *change)
+{
+    if (!CHECK(swap != NULL) || !CHECK(change != NULL) || !is_source_unit(swap, change->a)) {
+        return UNIQUE_KEEP;
+    }
+    return aim_at(change, (change->a == swap->from.base) ? swap->to.base : swap->to.elite);
+}
+
+static UniqueAim aim_enable(const UniqueSwap *swap, DatChange *change)
+{
     if (!CHECK(swap != NULL) || !CHECK(change != NULL)) {
         return UNIQUE_DROP;
     }
+    if ((change->b != 0) && (change->a == swap->from.base) && (change->a != NO_UNIT)) {
+        return aim_at(change, swap->to.base);
+    }
+    return is_source_unit(swap, change->a) ? UNIQUE_DROP : UNIQUE_KEEP;
+}
+
+static UniqueAim aim_upgrade(const UniqueSwap *swap, const DatChange *change)
+{
+    if (!CHECK(swap != NULL) || !CHECK(change != NULL)) {
+        return UNIQUE_DROP;
+    }
+    return (is_source_unit(swap, change->a) || is_source_unit(swap, change->b)) ? UNIQUE_DROP : UNIQUE_KEEP;
+}
+
+UniqueAim unique_aim(const UniqueSwap *swap, DatChange *change)
+{
+    if (!CHECK(swap != NULL) || !CHECK(change != NULL)) {
+        return UNIQUE_DROP;
+    }
+    if (check_is_among(change->type, STAT_CHANGES, STAT_CHANGE_COUNT)) {
+        return aim_stat(swap, change);
+    }
     switch (change->type) {
     case ENABLE_UNIT:
-        if ((change->b != 0) && (change->a == swap->from.base) && (change->a != NO_UNIT)) {
-            return aim_at(change, swap->to.base);
-        }
-        return is_source_unit(swap, change->a) ? UNIQUE_DROP : UNIQUE_KEEP;
+        return aim_enable(swap, change);
     case UPGRADE_UNIT:
-        return (is_source_unit(swap, change->a) || is_source_unit(swap, change->b)) ? UNIQUE_DROP : UNIQUE_KEEP;
+        return aim_upgrade(swap, change);
     case SPAWN_UNIT:
         return aim_at(change, swap->to.elite);
     case TEAM_ENABLE_UNIT:
         return UNIQUE_DROP;
-    case SET_ATTRIBUTE:
-    case ADD_ATTRIBUTE:
-    case MULTIPLY_ATTRIBUTE:
-        stat = true;
-        break;
     default:
-        break;
-    }
-    if (!stat || !is_source_unit(swap, change->a)) {
         return UNIQUE_KEEP;
     }
-    return aim_at(change, (change->a == swap->from.base) ? swap->to.base : swap->to.elite);
 }
 
 static int armor_class(const DatChange *change)
@@ -142,14 +189,18 @@ static int armor_class(const DatChange *change)
     return (int)change->d / ARMOR_CLASS_SIZE;
 }
 
-bool unique_same_target(const DatChange *left, const DatChange *right)
+static bool same_attribute(const DatChange *left, const DatChange *right)
 {
     if (!CHECK(left != NULL) || !CHECK(right != NULL)) {
         return false;
     }
-    if ((left->type != SET_ATTRIBUTE) && (left->type != ADD_ATTRIBUTE) && (left->type != MULTIPLY_ATTRIBUTE)) {
+    return (left->type == right->type) && (left->a == right->a) && (left->b == right->b) && (left->c == right->c);
+}
+
+bool unique_same_target(const DatChange *left, const DatChange *right)
+{
+    if (!CHECK(left != NULL) || !CHECK(right != NULL) || !check_is_among(left->type, STAT_CHANGES, STAT_CHANGE_COUNT)) {
         return false;
     }
-    return (left->type == right->type) && (left->a == right->a) && (left->b == right->b) &&
-           (left->c == right->c) && (armor_class(left) == armor_class(right));
+    return same_attribute(left, right) && (armor_class(left) == armor_class(right));
 }

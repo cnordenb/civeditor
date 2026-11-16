@@ -4,5 +4,6 @@
 #include <windows.h>
 
 void window_fixture_close(HWND window);
+void window_fixture_act(HWND window, int action);
 
 #endif

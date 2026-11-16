@@ -1,0 +1,32 @@
+#ifndef REFLOW_TESTS_H
+#define REFLOW_TESTS_H
+
+#include <stdbool.h>
+
+bool test_a_window_narrower_than_the_wide_layout_reflows(void);
+bool test_a_window_shorter_than_the_wide_layout_reflows(void);
+bool test_a_window_as_large_as_the_wide_layout_does_not_reflow(void);
+bool test_no_control_reaches_past_a_window_320_wide(void);
+bool test_no_two_controls_overlap_in_a_window_320_wide(void);
+bool test_every_target_is_44_by_44_in_a_window_320_wide(void);
+bool test_a_step_is_as_high_as_its_last_control_and_a_margin(void);
+bool test_a_control_below_the_window_is_scrolled_up_into_it(void);
+bool test_a_control_above_the_window_is_scrolled_down_into_it(void);
+bool test_a_control_in_the_window_leaves_it_where_it_is(void);
+bool test_the_window_scrolls_no_further_than_its_content(void);
+bool test_the_window_scrolls_no_higher_than_its_top(void);
+bool test_a_window_that_holds_its_content_does_not_scroll(void);
+bool test_a_narrow_window_places_its_controls_in_one_column(void);
+bool test_the_control_in_focus_is_scrolled_into_a_short_window(void);
+bool test_the_window_may_be_as_small_as_320_by_256(void);
+bool test_scroll_down_moves_a_short_window_down_a_page(void);
+bool test_scroll_up_takes_back_a_scroll_down(void);
+bool test_the_wheel_scrolls_a_short_window(void);
+bool test_a_long_row_of_a_narrow_list_is_higher_than_a_short_one(void);
+bool test_a_short_row_of_a_list_is_as_high_as_a_target(void);
+bool test_the_first_control_of_a_step_comes_under_the_help(void);
+bool test_back_and_next_come_under_the_status_line(void);
+bool test_a_control_starts_a_margin_from_the_left(void);
+bool test_next_ends_a_margin_from_the_right(void);
+
+#endif

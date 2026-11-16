@@ -4,7 +4,7 @@
 #include "../src/core/text.h"
 #include "test_outcome.h"
 
-enum { CATEGORY_COUNT = 3, CATEGORY_TEST_LIMIT = 100, LINE_CAPACITY = 512 };
+enum { CATEGORY_COUNT = 3, CATEGORY_TEST_LIMIT = 400, LINE_CAPACITY = 512, ARGUMENT_LIMIT = 8 };
 
 typedef struct {
     int run;
@@ -112,20 +112,52 @@ bool test_window_is_left_out(void)
     return window_left_out;
 }
 
-int main(int argc, char *argv[])
+static bool print_summary(TestTally tally)
 {
-    TestTally tally = { 0, 0 };
     char summary[LINE_CAPACITY] = "";
-    int category;
 
-    window_left_out = (argc > 1) && text_equal(argv[1], "nowindow");
-    for (category = 0; category < CATEGORY_COUNT; ++category) {
-        run_category(category, &tally);
+    if (!CHECK(tally.run >= 0) || !CHECK(tally.failed <= tally.run)) {
+        return false;
     }
     (void)text_append_number(summary, sizeof summary, tally.run);
     (void)text_append(summary, sizeof summary, " tests run, ");
     (void)text_append_number(summary, sizeof summary, tally.failed);
     (void)text_append(summary, sizeof summary, " failed.\n");
-    (void)fputs(summary, stdout);
-    return (tally.failed == 0) && (tally.run > 0) ? 0 : 1;
+    return fputs(summary, stdout) >= 0;
+}
+
+static int exit_code(TestTally tally)
+{
+    if (!CHECK(tally.run >= 0) || !CHECK(tally.failed <= tally.run)) {
+        return 1;
+    }
+    return ((tally.failed == 0) && (tally.run > 0)) ? 0 : 1;
+}
+
+static bool rules_left_out;
+
+static void read_arguments(int argc, char *argv[])
+{
+    int index;
+
+    if (!CHECK(argc >= 1) || !CHECK(argv != NULL)) {
+        return;
+    }
+    for (index = 1; (index < argc) && (index < ARGUMENT_LIMIT); ++index) {
+        window_left_out = window_left_out || text_equal(argv[index], "nowindow");
+        rules_left_out = rules_left_out || text_equal(argv[index], "norules");
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    TestTally tally = { 0, 0 };
+    int category;
+
+    read_arguments(argc, argv);
+    for (category = 0; category < CATEGORY_COUNT - (rules_left_out ? 1 : 0); ++category) {
+        run_category(category, &tally);
+    }
+    (void)print_summary(tally);
+    return exit_code(tally);
 }

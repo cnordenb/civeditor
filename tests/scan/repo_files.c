@@ -43,19 +43,13 @@ static void trim_line_end(char *line)
     }
 }
 
-bool repo_files_list(RepoFiles *files)
+static bool keep_lines(RepoFiles *files, FILE *listing)
 {
     char line[REPO_PATH_CAPACITY];
-    FILE *listing;
     bool fine = true;
     int step;
 
-    if (!CHECK(files != NULL) || !CHECK(LIST_COMMAND[0] != '\0')) {
-        return false;
-    }
-    files->count = 0;
-    listing = _popen(LIST_COMMAND, "r");
-    if (listing == NULL) {
+    if (!CHECK(files != NULL) || !CHECK(listing != NULL)) {
         return false;
     }
     for (step = 0; (step < REPO_FILE_CAPACITY) && fine; ++step) {
@@ -65,6 +59,23 @@ bool repo_files_list(RepoFiles *files)
         trim_line_end(line);
         fine = keep_line(files, line);
     }
+    return fine;
+}
+
+bool repo_files_list(RepoFiles *files)
+{
+    FILE *listing;
+    bool fine;
+
+    if (!CHECK(files != NULL) || !CHECK(LIST_COMMAND[0] != '\0')) {
+        return false;
+    }
+    files->count = 0;
+    listing = _popen(LIST_COMMAND, "r");
+    if (listing == NULL) {
+        return false;
+    }
+    fine = keep_lines(files, listing);
     return (_pclose(listing) == 0) && fine && (files->count > 0);
 }
 

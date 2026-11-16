@@ -17,7 +17,7 @@ enum {
 };
 
 static const wchar_t STEAM_FOLDER[] = L"C:\\Program Files (x86)\\Steam";
-static const wchar_t LIBRARY_LIST[] = L"C:\\Program Files (x86)\\Steam\\steamapps\\libraryfolders.vdf";
+static const wchar_t LIBRARY_LIST[] = L"steamapps\\libraryfolders.vdf";
 static const wchar_t GAME_IN_LIBRARY[] = L"steamapps\\common\\AoE2DE";
 static const wchar_t DAT_IN_GAME[] = L"resources\\_common\\dat\\empires2_x2_p1.dat";
 static const wchar_t PROFILES[] = L"Games\\Age of Empires 2 DE";
@@ -55,21 +55,43 @@ static bool holds_game(const wchar_t *library, wchar_t *folder, size_t capacity)
            file_exists(dat);
 }
 
-static size_t read_quoted(size_t from, char *path)
+enum { QUOTE_END_COUNT = 2 };
+
+static const int QUOTE_ENDS[QUOTE_END_COUNT] = { '"', '\0' };
+
+static size_t after_opening_quote(size_t from)
 {
     size_t at = from;
+    int step;
+
+    if (!CHECK(from < (size_t)LIBRARY_LIST_CAPACITY) || !CHECK(NARROW_PATH_CAPACITY > 0)) {
+        return from;
+    }
+    for (step = 0; step < NARROW_PATH_CAPACITY; ++step) {
+        if (check_is_among(library_list[at], QUOTE_ENDS, QUOTE_END_COUNT)) {
+            break;
+        }
+        ++at;
+    }
+    return (library_list[at] == '"') ? at + 1U : at;
+}
+
+static size_t read_quoted(size_t from, char *path)
+{
+    size_t at = after_opening_quote(from);
     size_t used = 0U;
     int step;
 
     if (!CHECK(path != NULL) || !CHECK(from < (size_t)LIBRARY_LIST_CAPACITY)) {
         return from;
     }
-    for (step = 0; (step < NARROW_PATH_CAPACITY) && (library_list[at] != '"') && (library_list[at] != '\0'); ++step) {
-        ++at;
-    }
-    at += (library_list[at] == '"') ? 1U : 0U;
-    for (step = 0; (step < NARROW_PATH_CAPACITY) && (library_list[at] != '"') && (library_list[at] != '\0'); ++step) {
-        at += ((library_list[at] == '\\') && (library_list[at + 1U] == '\\')) ? 1U : 0U;
+    for (step = 0; step < NARROW_PATH_CAPACITY; ++step) {
+        if (check_is_among(library_list[at], QUOTE_ENDS, QUOTE_END_COUNT)) {
+            break;
+        }
+        if ((library_list[at] == '\\') && (library_list[at + 1U] == '\\')) {
+            ++at;
+        }
         if (used + 1U < (size_t)NARROW_PATH_CAPACITY) {
             path[used] = library_list[at];
             ++used;
@@ -80,15 +102,24 @@ static size_t read_quoted(size_t from, char *path)
     return at;
 }
 
-static bool find_in_libraries(wchar_t *folder, size_t capacity)
+static bool read_library_list(const wchar_t *steam)
 {
-    FileRead list = file_read_all(LIBRARY_LIST, library_list, sizeof library_list);
+    wchar_t path[FILE_PATH_CAPACITY];
+
+    if (!CHECK(steam != NULL) || !file_join_path(path, FILE_PATH_CAPACITY, steam, LIBRARY_LIST)) {
+        return false;
+    }
+    return file_read_all(path, library_list, sizeof library_list).succeeded;
+}
+
+static bool find_in_libraries(const wchar_t *steam, wchar_t *folder, size_t capacity)
+{
     char narrow[NARROW_PATH_CAPACITY];
     wchar_t library[FILE_PATH_CAPACITY];
     const char *key = library_list;
     int count;
 
-    if (!CHECK(folder != NULL) || !CHECK(capacity > 0U) || !list.succeeded) {
+    if (!CHECK(folder != NULL) || !CHECK(capacity > 0U) || !read_library_list(steam)) {
         return false;
     }
     for (count = 0; count < LIBRARY_LIMIT; ++count) {
@@ -104,36 +135,48 @@ static bool find_in_libraries(wchar_t *folder, size_t capacity)
     return false;
 }
 
-bool mod_find_game_folder(wchar_t *folder, size_t capacity)
+bool mod_find_game_under(const wchar_t *steam, wchar_t *folder, size_t capacity)
 {
-    if (!CHECK(folder != NULL) || !CHECK(capacity >= (size_t)FILE_PATH_CAPACITY)) {
+    if (!CHECK(steam != NULL) || !CHECK(folder != NULL) || !CHECK(capacity >= (size_t)FILE_PATH_CAPACITY)) {
         return false;
     }
-    return holds_game(STEAM_FOLDER, folder, capacity) || find_in_libraries(folder, capacity);
+    return holds_game(steam, folder, capacity) || find_in_libraries(steam, folder, capacity);
 }
 
-static long long mods_age(const wchar_t *profiles, const wchar_t *name, wchar_t *mods)
+bool mod_find_game_folder(wchar_t *folder, size_t capacity)
 {
-    wchar_t profile[FILE_PATH_CAPACITY];
+    return CHECK(folder != NULL) && mod_find_game_under(STEAM_FOLDER, folder, capacity);
+}
+
+static long long folder_age(const wchar_t *path)
+{
     struct _stat64 status;
 
-    if (!CHECK(profiles != NULL) || !CHECK(name != NULL) || (name[0] == L'.')) {
-        return NO_AGE;
-    }
-    if (!file_join_path(profile, FILE_PATH_CAPACITY, profiles, name) ||
-        !file_join_path(mods, FILE_PATH_CAPACITY, profile, LOCAL_MODS) || !folder_exists(mods) ||
-        (_wstat64(mods, &status) != 0)) {
+    if (!CHECK(path != NULL) || (_wstat64(path, &status) != 0) || ((status.st_mode & _S_IFDIR) == 0)) {
         return NO_AGE;
     }
     return (long long)status.st_mtime;
 }
 
-static bool open_profiles(wchar_t *profiles, intptr_t *search, struct _wfinddata64_t *entry)
+static long long mods_age(const wchar_t *profiles, const wchar_t *name, wchar_t *mods)
 {
-    const wchar_t *home = _wgetenv(L"USERPROFILE");
+    wchar_t profile[FILE_PATH_CAPACITY];
+
+    if (!CHECK(profiles != NULL) || !CHECK(name != NULL) || (name[0] == L'.')) {
+        return NO_AGE;
+    }
+    if (!file_join_path(profile, FILE_PATH_CAPACITY, profiles, name) ||
+        !file_join_path(mods, FILE_PATH_CAPACITY, profile, LOCAL_MODS)) {
+        return NO_AGE;
+    }
+    return folder_age(mods);
+}
+
+static bool open_profiles(const wchar_t *home, wchar_t *profiles, intptr_t *search, struct _wfinddata64_t *entry)
+{
     wchar_t pattern[FILE_PATH_CAPACITY];
 
-    if (!CHECK(profiles != NULL) || !CHECK(search != NULL) || (home == NULL)) {
+    if (!CHECK(home != NULL) || !CHECK(profiles != NULL) || !CHECK(search != NULL)) {
         return false;
     }
     if (!file_join_path(profiles, FILE_PATH_CAPACITY, home, PROFILES) ||
@@ -144,7 +187,7 @@ static bool open_profiles(wchar_t *profiles, intptr_t *search, struct _wfinddata
     return *search != -1;
 }
 
-bool mod_find_local_mods(wchar_t *folder, size_t capacity)
+bool mod_find_mods_under(const wchar_t *home, wchar_t *folder, size_t capacity)
 {
     wchar_t profiles[FILE_PATH_CAPACITY];
     wchar_t mods[FILE_PATH_CAPACITY];
@@ -155,7 +198,7 @@ bool mod_find_local_mods(wchar_t *folder, size_t capacity)
     int count;
 
     if (!CHECK(folder != NULL) || !CHECK(capacity >= (size_t)FILE_PATH_CAPACITY) ||
-        !open_profiles(profiles, &search, &entry)) {
+        !open_profiles(home, profiles, &search, &entry)) {
         return false;
     }
     for (count = 0; count < PROFILE_LIMIT; ++count) {
@@ -171,6 +214,16 @@ bool mod_find_local_mods(wchar_t *folder, size_t capacity)
     }
     (void)_findclose(search);
     return newest > NO_AGE;
+}
+
+bool mod_find_local_mods(wchar_t *folder, size_t capacity)
+{
+    const wchar_t *home = _wgetenv(L"USERPROFILE");
+
+    if (!CHECK(folder != NULL) || (home == NULL)) {
+        return false;
+    }
+    return mod_find_mods_under(home, folder, capacity);
 }
 
 bool mod_make_folders(const wchar_t *root, const wchar_t *relative)
@@ -190,4 +243,40 @@ bool mod_make_folders(const wchar_t *root, const wchar_t *relative)
     }
     (void)_wmkdir(path);
     return folder_exists(path);
+}
+
+bool mod_join(char *text, const char *first, const char *second)
+{
+    return text_join(text, FILE_PATH_CAPACITY, first, second);
+}
+
+bool mod_game_path(const wchar_t *game, const char *relative, wchar_t *path)
+{
+    wchar_t wide[FILE_PATH_CAPACITY];
+
+    if (!CHECK(game != NULL) || !CHECK(relative != NULL)) {
+        return false;
+    }
+    return text_widen(relative, wide, FILE_PATH_CAPACITY) && mod_game_file(game, wide, path);
+}
+
+bool mod_folder_path(const wchar_t *mods, const char *folder, wchar_t *path)
+{
+    wchar_t wide[FILE_PATH_CAPACITY];
+
+    if (!CHECK(mods != NULL) || !CHECK(folder != NULL)) {
+        return false;
+    }
+    return text_widen(folder, wide, FILE_PATH_CAPACITY) && mod_make_folders(mods, wide) &&
+           file_join_path(path, FILE_PATH_CAPACITY, mods, wide);
+}
+
+bool mod_file_path(const wchar_t *mods, const char *folder, const wchar_t *name, wchar_t *path)
+{
+    wchar_t place[FILE_PATH_CAPACITY];
+
+    if (!CHECK(name != NULL) || !CHECK(path != NULL)) {
+        return false;
+    }
+    return mod_folder_path(mods, folder, place) && file_join_path(path, FILE_PATH_CAPACITY, place, name);
 }

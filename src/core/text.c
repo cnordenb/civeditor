@@ -119,18 +119,18 @@ bool text_append_number(char *destination, size_t capacity, long value)
     return text_append(destination, capacity, (value < 0) ? digits : &digits[1]);
 }
 
-static bool matches(const char *text, const char *other, bool whole)
+bool text_starts_with(const char *text, const char *prefix)
 {
     size_t index;
 
-    if (!CHECK(text != NULL) || !CHECK(other != NULL)) {
+    if (!CHECK(text != NULL) || !CHECK(prefix != NULL)) {
         return false;
     }
     for (index = 0U; index < (size_t)TEXT_SCAN_LIMIT; ++index) {
-        if (other[index] == '\0') {
-            return !whole || (text[index] == '\0');
+        if (prefix[index] == '\0') {
+            return true;
         }
-        if (text[index] != other[index]) {
+        if (text[index] != prefix[index]) {
             return false;
         }
     }
@@ -139,12 +139,7 @@ static bool matches(const char *text, const char *other, bool whole)
 
 bool text_equal(const char *left, const char *right)
 {
-    return matches(left, right, true);
-}
-
-bool text_starts_with(const char *text, const char *prefix)
-{
-    return matches(text, prefix, false);
+    return text_starts_with(left, right) && text_starts_with(right, left);
 }
 
 static char fold_case(char letter)
@@ -191,24 +186,35 @@ bool text_contains_folded(const char *text, const char *needle)
     return false;
 }
 
+static bool take_digit(TextNumber *number, char letter)
+{
+    if (!CHECK(number != NULL) || !text_is_digit(letter) || (number->value > NUMBER_LIMIT)) {
+        return false;
+    }
+    number->value = (number->value * DECIMAL_BASE) + (long)(letter - '0');
+    number->valid = true;
+    return true;
+}
+
 TextNumber text_to_number(const char *text, size_t length)
 {
     TextNumber result = { false, 0L };
-    bool negative = (length > 0U) && (text != NULL) && (text[0] == '-');
     size_t index;
+    bool negative;
 
     if (!CHECK(text != NULL) || !CHECK(length < (size_t)TEXT_NUMBER_CAPACITY)) {
         return result;
     }
+    negative = (length > 0U) && (text[0] == '-');
     for (index = negative ? 1U : 0U; (index < length) && (index < (size_t)TEXT_NUMBER_CAPACITY); ++index) {
-        if ((text[index] < '0') || (text[index] > '9') || (result.value > NUMBER_LIMIT)) {
+        if (!take_digit(&result, text[index])) {
             result.valid = false;
             return result;
         }
-        result.value = (result.value * DECIMAL_BASE) + (long)(text[index] - '0');
-        result.valid = true;
     }
-    result.value = negative ? -result.value : result.value;
+    if (negative) {
+        result.value = -result.value;
+    }
     return result;
 }
 
@@ -292,4 +298,48 @@ bool text_widen(const char *text, wchar_t *wide, size_t capacity)
     }
     wide[out.used] = L'\0';
     return text[in] == '\0';
+}
+
+bool text_is_between(char letter, char first, char last)
+{
+    return (letter >= first) && (letter <= last);
+}
+
+bool text_is_digit(char letter)
+{
+    return text_is_between(letter, '0', '9');
+}
+
+enum { LINE_BREAK_COUNT = 2 };
+
+static const int LINE_BREAKS[LINE_BREAK_COUNT] = { '\n', '\r' };
+
+bool text_is_line_break(char letter)
+{
+    return check_is_among(letter, LINE_BREAKS, LINE_BREAK_COUNT);
+}
+
+bool text_append_two(char *destination, size_t capacity, const char *first, const char *second)
+{
+    return text_append_three(destination, capacity, first, second, "");
+}
+
+bool text_append_three(char *destination, size_t capacity, const char *first, const char *second, const char *third)
+{
+    if (!CHECK(destination != NULL) || !CHECK(first != NULL) || !CHECK(second != NULL) || !CHECK(third != NULL)) {
+        return false;
+    }
+    return text_append(destination, capacity, first) && text_append(destination, capacity, second) &&
+           text_append(destination, capacity, third);
+}
+
+bool text_join(char *destination, size_t capacity, const char *first, const char *second)
+{
+    if (!CHECK(destination != NULL) || !CHECK(capacity > 0U) ||
+        !CHECK(first != NULL) ||
+        !CHECK(second != NULL)) {
+        return false;
+    }
+    destination[0] = '\0';
+    return text_append_two(destination, capacity, first, second);
 }

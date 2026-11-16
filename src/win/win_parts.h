@@ -8,6 +8,7 @@
 #include "../data/catalog.h"
 #include "../model/history.h"
 #include "../present/binding.h"
+#include "../reflow/reflow.h"
 #include "../view/layout.h"
 #include "../view/palette.h"
 
@@ -16,7 +17,9 @@ enum {
     LABEL_ID_BASE = 300,
     ACTION_ID_BASE = 500,
     WIDE_TEXT_CAPACITY = 16384,
-    STATUS_CAPACITY = 320
+    STATUS_CAPACITY = 320,
+    BOX_SIZE = 18,
+    TEXT_INSET = 8
 };
 
 typedef enum {
@@ -30,6 +33,8 @@ typedef enum {
     ACTION_EXIT,
     ACTION_HELP,
     ACTION_GLOSSARY,
+    ACTION_SCROLL_UP,
+    ACTION_SCROLL_DOWN,
     ACTION_FIRST_STEP,
     ACTION_COUNT = ACTION_FIRST_STEP + STEP_COUNT
 } Action;
@@ -52,6 +57,7 @@ typedef struct {
     bool unsaved;
     bool catalog_loaded;
     int dpi;
+    int scroll;
     History history;
     Catalog catalog;
     ListModel lists[CONTROL_COUNT];
@@ -72,10 +78,14 @@ int assist_dpi(HWND window);
 void assist_move_focus(AppState *app, WPARAM wparam, LPARAM lparam);
 void assist_show_help(AppState *app);
 void assist_follow_focus(AppState *app);
+UINT assist_row_format(const AppState *app, const DRAWITEMSTRUCT *item, const wchar_t *text, RECT *area);
+void assist_wrap_rows(const AppState *app, ControlId control);
+void assist_placed(const AppState *app);
+int assist_scroll_range(AppState *app, int content, int view);
+void assist_scroll(AppState *app, UINT message, WPARAM wparam);
 void assist_draw_focus(const AppState *app, HDC context);
 
-void sync_all(AppState *app);
-void sync_model(AppState *app);
+void sync_design(AppState *app, bool refill);
 void sync_list(AppState *app, ControlId control);
 void sync_on_notify(AppState *app, int control, int code);
 void sync_details(AppState *app);
@@ -92,5 +102,6 @@ void dialogs_glossary(AppState *app);
 
 HWND app_open(HINSTANCE instance);
 int app_run(HINSTANCE instance, int show);
+int app_run_messages(void);
 
 #endif

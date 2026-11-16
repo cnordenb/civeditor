@@ -56,8 +56,7 @@ static void set_number(int civ, const char *key, long value)
         return;
     }
     token = json_member(document, civ, key);
-    if ((token != JSON_NONE) && json_is_kind(document, token, JSON_KIND_NUMBER) &&
-        text_append_number(text, sizeof text, value)) {
+    if (json_is_kind(document, token, JSON_KIND_NUMBER) && text_append_number(text, sizeof text, value)) {
         json_patch_replace(&patch, token, text);
     }
 }
@@ -74,7 +73,7 @@ static void copy_member(int civ, int source, const char *key)
     }
     to = json_member(document, civ, key);
     found = json_member(document, source, key);
-    if ((to == JSON_NONE) || (found == JSON_NONE) || json_is_kind(document, found, JSON_KIND_STRING) ||
+    if ((found == JSON_NONE) || json_is_kind(document, found, JSON_KIND_STRING) ||
         !json_is_kind(document, to, document->tokens[found].kind)) {
         return;
     }
@@ -82,6 +81,16 @@ static void copy_member(int civ, int source, const char *key)
     if (text_copy_span(text, sizeof text, &document->text[from->start], (size_t)(from->end - from->start))) {
         json_patch_replace(&patch, to, text);
     }
+}
+
+static bool make_string_ids(char *text, size_t capacity, const CivListEntry *entry)
+{
+    if (!CHECK(text != NULL) || !CHECK(entry != NULL)) {
+        return false;
+    }
+    return text_append_number(text, capacity, entry->unit_name_sid) &&
+           text_append(text, capacity, ",\"description\":") &&
+           text_append_number(text, capacity, entry->unit_description_sid) && text_append(text, capacity, "}]");
 }
 
 static void set_string_ids(int civ, const CivListEntry *entry)
@@ -92,11 +101,26 @@ static void set_string_ids(int civ, const CivListEntry *entry)
         (entry->unit_description_sid < 0L)) {
         return;
     }
-    if (text_append_number(text, sizeof text, entry->unit_name_sid) &&
-        text_append(text, sizeof text, ",\"description\":") &&
-        text_append_number(text, sizeof text, entry->unit_description_sid) && text_append(text, sizeof text, "}]")) {
+    if (make_string_ids(text, sizeof text, entry)) {
         json_patch_replace(&patch, json_member(document, civ, "unique_unit_string_ids"), text);
     }
+}
+
+static const char *icon_zeros(int icon)
+{
+    if (icon >= ICON_DIGITS_FULL) {
+        return "";
+    }
+    return (icon >= ICON_DIGITS_TWO) ? "0" : "00";
+}
+
+static bool make_icon_path(char *text, size_t capacity, int icon)
+{
+    if (!CHECK(text != NULL) || !CHECK(icon >= 0)) {
+        return false;
+    }
+    return text_append(text, capacity, icon_zeros(icon)) && text_append_number(text, capacity, icon) &&
+           text_append(text, capacity, "_50730.png\"]");
 }
 
 static void set_icon(int civ, int icon)
@@ -106,8 +130,7 @@ static void set_icon(int civ, int icon)
     if (!CHECK(document != NULL) || (civ == JSON_NONE) || (icon < 0)) {
         return;
     }
-    if (((icon >= ICON_DIGITS_FULL) || text_append(text, sizeof text, (icon >= ICON_DIGITS_TWO) ? "0" : "00")) &&
-        text_append_number(text, sizeof text, icon) && text_append(text, sizeof text, "_50730.png\"]")) {
+    if (make_icon_path(text, sizeof text, icon)) {
         json_patch_replace(&patch, json_member(document, civ, "unique_unit_image_paths"), text);
     }
 }

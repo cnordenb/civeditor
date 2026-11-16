@@ -99,17 +99,17 @@ static void put_code_point(Utf8Sink *sink, unsigned long code)
     }
 }
 
-static int decode_unicode_escape(Utf8Sink *sink, const char *text, int available)
+static bool is_surrogate(long code)
 {
-    long first = read_hex(text, available);
+    return (code >= SURROGATE_FIRST) && (code <= SURROGATE_LAST);
+}
+
+static int decode_surrogate_pair(Utf8Sink *sink, const char *text, int available, long first)
+{
     long second;
 
-    if (!CHECK(sink != NULL) || !CHECK(text != NULL) || (first < 0L)) {
+    if (!CHECK(sink != NULL) || !CHECK(text != NULL)) {
         return -1;
-    }
-    if ((first < SURROGATE_FIRST) || (first > SURROGATE_LAST)) {
-        put_code_point(sink, (unsigned long)first);
-        return HEX_LENGTH;
     }
     if ((first >= SURROGATE_LOW) || (available < (2 * HEX_LENGTH) + 2) || (text[HEX_LENGTH] != '\\')) {
         return -1;
@@ -123,59 +123,93 @@ static int decode_unicode_escape(Utf8Sink *sink, const char *text, int available
     return (2 * HEX_LENGTH) + 2;
 }
 
+static int decode_unicode_escape(Utf8Sink *sink, const char *text, int available)
+{
+    long first = read_hex(text, available);
+
+    if (!CHECK(sink != NULL) || !CHECK(text != NULL) || (first < 0L)) {
+        return -1;
+    }
+    if (is_surrogate(first)) {
+        return decode_surrogate_pair(sink, text, available, first);
+    }
+    put_code_point(sink, (unsigned long)first);
+    return HEX_LENGTH;
+}
+
+static unsigned long control_of(char letter)
+{
+    switch (letter) {
+    case 'n':
+        return (unsigned long)'\n';
+    case 't':
+        return (unsigned long)'\t';
+    case 'r':
+        return (unsigned long)'\r';
+    default:
+        return (unsigned long)(unsigned char)letter;
+    }
+}
+
 static int decode_escape(Utf8Sink *sink, const char *text, int available)
 {
     if (!CHECK(sink != NULL) || !CHECK(available > 0)) {
         return -1;
     }
-    switch (text[0]) {
-    case 'n':
-        put_byte(sink, (unsigned long)'\n');
-        return 1;
-    case 't':
-        put_byte(sink, (unsigned long)'\t');
-        return 1;
-    case 'r':
-        put_byte(sink, (unsigned long)'\r');
-        return 1;
-    case 'b':
-    case 'f':
-        return 1;
-    case 'u':
+    if (text[0] == 'u') {
         return 1 + decode_unicode_escape(sink, &text[1], available - 1);
-    default:
+    }
+    if ((text[0] != 'b') && (text[0] != 'f')) {
+        put_byte(sink, control_of(text[0]));
+    }
+    return 1;
+}
+
+static int copy_letter(Utf8Sink *sink, const char *text, int available)
+{
+    int consumed;
+
+    if (!CHECK(sink != NULL) || !CHECK(text != NULL)) {
+        return 0;
+    }
+    if (text[0] != '\\') {
         put_byte(sink, (unsigned long)(unsigned char)text[0]);
         return 1;
     }
+    consumed = decode_escape(sink, &text[1], available - 1);
+    return (consumed <= 0) ? 0 : 1 + consumed;
+}
+
+static int copy_letters(Utf8Sink *sink, const char *text, int position, int end)
+{
+    int consumed = 1;
+    int at = position;
+    int step;
+
+    if (!CHECK(sink != NULL) || !CHECK(text != NULL)) {
+        return position;
+    }
+    for (step = 0; (step < JSON_INPUT_CAPACITY) && (at < end) && (consumed > 0); ++step) {
+        consumed = sink->overflow ? 0 : copy_letter(sink, &text[at], end - at);
+        at += consumed;
+    }
+    return at;
 }
 
 bool json_copy_string(const JsonDocument *document, int token, char *destination, size_t capacity)
 {
     static Utf8Sink sink;
-    int position;
     int end;
-    int step;
-    int consumed;
 
     if (!CHECK(destination != NULL) || !CHECK(capacity > 0U) || !json_is_kind(document, token, JSON_KIND_STRING)) {
         return false;
     }
     sink.used = 0U;
     sink.overflow = false;
-    position = document->tokens[token].start;
     end = document->tokens[token].end;
-    for (step = 0; (step < JSON_INPUT_CAPACITY) && (position < end) && !sink.overflow; ++step) {
-        if (document->text[position] != '\\') {
-            put_byte(&sink, (unsigned long)(unsigned char)document->text[position]);
-            ++position;
-            continue;
-        }
-        consumed = decode_escape(&sink, &document->text[position + 1], end - position - 1);
-        if (consumed <= 0) {
-            break;
-        }
-        position += 1 + consumed;
+    if (copy_letters(&sink, document->text, document->tokens[token].start, end) < end) {
+        return false;
     }
     sink.bytes[sink.used] = '\0';
-    return !sink.overflow && (position >= end) && text_copy(destination, capacity, sink.bytes);
+    return !sink.overflow && text_copy(destination, capacity, sink.bytes);
 }

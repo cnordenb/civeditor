@@ -45,9 +45,12 @@ void recipe_plan_reset(void);
 bool recipe_plan_tech(const RecipeInput *input, int tech_id);
 bool recipe_commit_plan(const RecipeInput *input, DatEdit *edit);
 int recipe_copy_effect(const RecipeInput *input, DatEdit *edit, int effect_id);
-int recipe_copy_unique_effect(const RecipeInput *input, DatEdit *edit, const RecipeUniqueCopy *copy);
+void recipe_remap_change(DatChange *change);
+bool recipe_copy_changes(const RecipeInput *input, DatEdit *edit, const DatEffect *effect, bool remap);
 UniqueSwap recipe_unique_swap(const RecipeInput *input, int source_civ);
 bool recipe_name_unique_unit(const RecipeInput *input, DatEdit *edit);
+const UnitEntry *recipe_design_unit(const RecipeInput *input);
+bool recipe_add_unique_tech(const RecipeInput *input, DatEdit *edit, RecipeReport *report, TechTier tier);
 
 bool recipe_wire_tree(const RecipeInput *input, RecipeChanges *changes, RecipeReport *report);
 

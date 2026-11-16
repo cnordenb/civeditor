@@ -5,6 +5,7 @@
 
 #include "../dat/dat_map.h"
 #include "../data/catalog.h"
+#include "../forge/recipe.h"
 
 typedef struct {
     int base;
@@ -16,20 +17,14 @@ typedef struct {
     UniqueUnit to;
 } UniqueSwap;
 
-typedef struct {
-    const DatBytes *dat;
-    const DatMap *map;
-    const Catalog *catalog;
-} UniqueSource;
-
 typedef enum {
     UNIQUE_KEEP,
     UNIQUE_DROP,
     UNIQUE_SWAP
 } UniqueAim;
 
-UniqueUnit unique_unit_of_techs(const UniqueSource *source, int make_tech, int elite_tech);
-UniqueUnit unique_unit_of_civ(const UniqueSource *source, int civ);
+UniqueUnit unique_unit_of_techs(const RecipeInput *input, int make_tech, int elite_tech);
+UniqueUnit unique_unit_of_civ(const RecipeInput *input, int civ);
 UniqueAim unique_aim(const UniqueSwap *swap, DatChange *change);
 bool unique_same_target(const DatChange *left, const DatChange *right);
 

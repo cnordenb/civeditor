@@ -6,6 +6,7 @@
    - [Diagram](#diagram)
    - [How a change reaches the window](#how-a-change-reaches-the-window)
    - [Adding a control to a step](#adding-a-control-to-a-step)
+   - [The narrow window](#the-narrow-window)
    - [The catalog files](#the-catalog-files)
    - [Base civs](#base-civs)
    - [How a mod is built](#how-a-mod-is-built)
@@ -55,21 +56,20 @@ only by handing a `Command` to `history_do`, so that every change can be undone.
 | `src/pack/` | Unpacking raw deflate (`inflate.c`, `huffman.c`) and packing in stored blocks (`deflate_store.c`). `inflate.h` holds the tables of deflate's codes. |
 | `src/deflate/` | Compressing the mod's dat file with deflate (`deflate.c`), writing the bits with `bit_writer.c`. |
 | `src/dat/` | The game's `empires2_x2_p1.dat`: finding its parts, a civ's units and the parts of a unit (`dat_map.c`, with `dat_skip.c` and `dat_field.c`) and writing it anew with changes (`dat_edit.c`). |
-| `src/mod/` | Finding the game and its mods folder (`mod_places.c`), the civ's texts (`mod_text.c`) and the UI mod's strings file (`mod_strings.c`). |
+| `src/mod/` | Finding the game and its mods folder (`mod_places.c`), the civ's texts (`mod_text.c`), the UI mod's strings file (`mod_strings.c`) and the two folders' `info.json` and the UI mod's files (`mod_ui.c`). |
 | `src/forge/` | Building the mod: the changes to the game's data (`recipe.c`, `recipe_copy.c`, `recipe_tree.c`) and the whole build, from the game's file to the two mod folders (`forge.c`). |
 | `src/bonus/` | Building a bonus that `bonus_effects.txt` gives as changes and unit patches rather than techs (`bonus_build.c`). |
-| `src/unique/` | Aiming a unique tech taken from another civ at the civ's own unique unit (`unique_aim.c`). |
+| `src/unique/` | Aiming a unique tech taken from another civ at the civ's own unique unit (`unique_aim.c`), and copying the tech itself for the civ, with its costs and age (`unique_tech.c`). |
 | `src/look/` | Giving the civ the looks of other civs: which civs the design names (`look_sources.c`), and copying their buildings, castle, wonder, monks, kings, trade carts and warships (`look_copy.c`). |
 | `src/hero/` | Making the civ's hero: finding its unit, training it at the Castle and making it available in the Imperial Age (`hero_build.c`). |
 | `src/civlist/` | The civ list, `civilizations.json`: finding a slot's entry and writing it anew with the civ's unique techs, unique unit and description id (`civ_list.c`). |
 | `src/techtree/` | The civ's tech tree file, `CivTechTrees\<name>.json`: the game's file with each node of the catalog set to what the design has (`tech_tree.c`), read and written by `tech_tree_file.c`. |
-| `src/win/` | The only Win32 code: `winmain.c` starts it, `app_window.c` is the window, `controls.c` makes and draws controls, `assist.c` holds what the window does for accessibility (the text size of Windows, the focus frame, help in the status line, the status line marked for screen readers), `sync.c` keeps them in step with the design, `dialogs.c` opens and saves files and builds the mod. `win_parts.h` holds what they share. |
+| `src/reflow/` | The step in one column, for a window too narrow or too short for the columns, and how far it scrolls (`reflow.c`); no Win32. |
+| `src/shell/` | What the window asks of Windows through one door, so that a test can answer in the user's place: message boxes, the file dialogs and where the game is (`ask.c`), and the menu with its keys (`menu.c`). `shell.h` holds both. |
+| `src/win/` | The rest of the Win32 code: `winmain.c` starts it, `app_window.c` is the window, `controls.c` makes and draws controls, `assist.c` holds what the window does for accessibility (the text size of Windows, the focus frame, help in the status line, the status line marked for screen readers), `sync.c` keeps them in step with the design, `dialogs.c` opens and saves files and builds the mod. `win_parts.h` holds what they share. |
 | `data/` | The catalog, seven tab-separated text files; see [The catalog files](#the-catalog-files). |
 | `tests/` | The test runner (`runner.c`) and the tests, by kind; see [Tests](#tests). |
-| `tools/build/` | The build program. `source_list.c` says which folders hold code and which files make the test program. |
-| `tools/mutate/` | The mutator, `build\mutator.exe`: every mutant of `src/` that the tests do not catch (Rule 34). `mutant_sites.c` finds the places to change, `mutation_run.c` builds and runs one mutant, `mutator.c` shares the work among twelve workers and reports. |
-| `tools/dry/` | The dryer, `build\dryer.exe`: every two functions that are 80% alike or more (Rule 31). `dry_shape.c` takes a function's shape and ranks two shapes, `dryer.c` compares and reports. |
-| `tools/crap/` | The crapper, `build\crapper.exe`: the CRAP score of every function (Rule 32). `cover_build.c` builds and runs the tests with coverage, `crap_cover.c` reads gcov, `crap_score.c` counts complexity and scores, `crapper.c` reports. |
+| `tools/build/` | The build program. `source_list.c` lists the code, says which files make each of the three programs (`PROGRAM_PREFIXES`), where a source's object goes and whether it is still fresh; `build_steps.c` compiles, links and runs the tests; `build.c` is its `main`. |
 | `documentation/` | This guide, `RULES.md`, `REQUIREMENTS.md`, `TESTS.md`, `DECISIONS.md`, `TERMINOLOGY.md`, `DELETION_REQUESTS.md`, and the development log in `DEVLOG/`. |
 | `README.md` | Introduces the project. |
 | `LICENSE` | The GPL-3.0, under which anyone may use the project. |
@@ -88,7 +88,11 @@ all of them use, and the window's direct uses of the folders further down.
 
 ```mermaid
 flowchart TD
-    win["src/win: the window"] --> persist["src/persist: civ files"]
+    win["src/win: the window"] --> shell["src/shell: dialogs and the menu"]
+    win --> reflow["src/reflow: the step in one column"]
+    reflow --> view
+    shell --> view
+    win --> persist["src/persist: civ files"]
     win --> present["src/present: what the controls show"]
     win --> forge["src/forge: building the mod"]
     win --> base["src/base: base civs"]
@@ -132,10 +136,10 @@ Every change goes the same way, so that it can be undone and the window always s
    for a row of a list, such as `COMMAND_TOGGLE_BONUS` with the bonus's id.
 3. `history_do` in `history.c` keeps a copy of the design, then applies the command with `command_apply`. If the
    command is refused, such as a 25th bonus, the design stays as it was.
-4. `sync_all` sets every control from the design again. While it does, `app->syncing` is true, so that the changes
-   it makes are not taken for the user's.
+4. `sync_design` sets every control from the design again; its second argument says whether the lists are filled
+   anew as well. While it does, `app->syncing` is true, so that the changes it makes are not taken for the user's.
 
-Undo (Ctrl+Z) and redo (Ctrl+Y) swap the design with a kept copy and call `sync_all`. Letters typed one after another
+Undo (Ctrl+Z) and redo (Ctrl+Y) swap the design with a kept copy and call `sync_design`. Letters typed one after another
 into the same field join one change (`command_joins`), so one undo takes back a whole word.
 
 ### Adding a control to a step
@@ -147,6 +151,25 @@ into the same field join one change (`command_joins`), so one undo takes back a 
    sentences, which F1 shows in the status line. A test fails if a control one acts on has none.
 4. **Bind it.** Add its line to `BINDINGS` in `src/present/binding.c`: the text field, choice or list it shows.
 5. **Build and test**, then look at the step in `build\civbuilder.exe`.
+
+### The narrow window
+
+The window lays a step out in one of two ways (`controls_place` in `controls.c`). When it is at least 960 wide and
+560 high, at the scale in use, `layout.c` places the list of steps on the left and the step's controls in up to
+three columns. When it is narrower or shorter, `src/reflow/reflow.c` places everything in one column as wide as the
+window: the list of steps, the title, the help, the step's controls in the order the Tab key takes them, the status
+line, and Back and Next side by side. A control that stretches in the wide layout has a fixed height there
+(`KIND_HEIGHTS`, by kind of control), and the window scrolls:
+
+- `app->scroll` is how far the step is scrolled, in the layout's units; `assist_scroll_range` in `assist.c` keeps it
+  within the step and sets the scroll bar, and `controls_place` moves the controls up by it.
+- `assist_scroll` answers the scroll bar, the wheel, and Scroll up and Scroll down of the menu Go.
+- `assist_follow_focus` scrolls the control in focus into view, with its label.
+
+The window may be as small as 320 by 256 units (`limit_size` in `app_window.c`), which is what a screen 1280 wide
+holds at 400%. The rows of a list are as high as their text needs: `assist_wrap_rows` measures each row for the
+list's width whenever a list is filled or the window changes size, and `assist_row_format` draws the text on as
+many lines. A new control needs nothing for the narrow window: it takes its place after the control before it.
 
 ### The catalog files
 
@@ -334,22 +357,48 @@ The code follows P10, Holzmann's ten rules for safety-critical code. In practice
 ### Tests
 
 `build.exe` runs the tests; `build\tests.exe` runs them again without building. `tests/runner.c` runs the functional
-tests (`tests/functional/`, with those of unpacking in `tests/pack/`, of the data file in `tests/dat/`, of the mod
-and its tech tree in `tests/mod/` and of base civs in `tests/base/`), then the accessibility tests
-(`tests/accessibility/`), then the maintainability tests (`tests/maintainability/` and `tests/rules/`), and numbers
-them as they run. No test needs the game: the tests of the data file build a small one in memory, and those of the
-tech tree a small tree. [TESTS.md](TESTS.md) lists every test by that number. A test is a `case` in the `switch` of
-its suite, such as `functional_suite.c`; a suite's groups, such as `run_base_test`, keep each `switch` within 60 lines.
-The tests of the tools, such as the crapper's, are the group `run_tool_test` of `maintainability_suite.c`.
+tests, then the accessibility tests (`tests/accessibility/`), then the maintainability tests
+(`tests/maintainability/` and `tests/rules/`), and numbers them as they run. [TESTS.md](TESTS.md) lists every test
+by that number.
+
+| Folder | The tests it holds |
+| --- | --- |
+| `tests/functional/` | The design, commands and civ files, and `functional_suite.c`, which runs every functional test. |
+| `tests/suites/` | The later functional tests in five suites: the recipe and the looks (`build_suite.c`), the mod, its strings and its places (`mod_suite.c`), numbers, text, TSV and JSON (`core_suite.c`), commands, lists, the summary and the details (`model_suite.c`), and the window's dialogs (`shell_suite.c`). `suites.h` holds their sizes. |
+| `tests/core/`, `tests/pack/` | Reading numbers, UTF-8, TSV and JSON (`read_tests.c`), the text helpers (`text_tests.c`), writing JSON (`writer_tests.c`); unpacking and packing. |
+| `tests/dat/` | The data file and the recipe. `small_dat.c` builds a small data file in memory, `recipe_game.c` runs the recipe on it for four civs and answers what the tests of `recipe_tests.c` ask. |
+| `tests/mod/`, `tests/places/`, `tests/look/`, `tests/base/` | A whole mod built from a small game under `build/test_game` into `build/test_mods`, its strings, finding the game and the mods folder under `build/`, the looks, and base civs. |
+| `tests/model/`, `tests/design/`, `tests/shell/` | What the lists and the review show, which steps are done (`wizard_tests.c`), undo and redo (`history_tests.c`), the design and its saved text (`tests/design/`), and the window driven through its dialogs; `window_fixture.c` opens and closes the window for a test. |
+| `tests/reflow/` | The one column at a width of 320, scrolling, and the real window made narrow and short. |
+| `tests/maintainability/`, `tests/rules/`, `tests/scan/` | The rules of the code and of the documents. `tests/scan/` reads the code for them; `gate_tests.c` shows each rule a text that breaks it, `tests/fixtures/broken_rules.txt`; `tool_tests.c` tests the build program's `source_list.c`. |
+
+`build\tests.exe nowindow` leaves out the tests that open the real window, and `build\tests.exe norules` those of
+maintainability, which read the documents and ask Git for the project's files; `build.exe` passes both words on,
+as in `build.exe quick norules`.
+
+No test needs the game, and none writes outside `build/`. A test of a dialog never shows one: it tells `ask_script`
+(`src/shell/ask.c`) what the user would answer, and reads what was asked with `ask_last_message`.
+
+To add a test:
+
+1. **Write it** as `bool test_what_it_shows(void)` in the test file of its subject, with one check, and name it in
+   that file's header.
+2. **Give it a place.** Add a `case` for it to a group of its suite, with the words the report prints. A group is a
+   `switch` of at most eight tests; start a new group when one is full. In a suite of `tests/suites/` each group
+   has an `..._END` number at the top of the file, and the suite's size is in `suites.h`: raise both by one.
+3. **See it fail.** Run `build.exe quick`, then break the code it guards, see the test fail and undo the break.
+4. **Document it** in `TESTS.md`, at its number, and renumber the tests after it.
 
 The test program also holds `src/win/`, so a test can drive the real window: `tests/accessibility/window_tests.c` calls
 `app_open` (`app_window.c`), which makes the window and its controls without showing it, sends it the commands of the
 menu, asks Windows for the Tab order, and destroys it; `draw_tests.c` has the window draw a row into a picture in
 memory and reads the picture. Such a test must never show the window, send keys or move the
-mouse, and must not open a dialog. The libraries the window needs are named once, in `source_test_libraries`
+mouse, and must not open a dialog. The libraries the window needs are named once, in `LIBRARIES`
 (`tools/build/source_list.c`).
 
-There may be at most 100 tests. When you add, change or remove one, update `TESTS.md`.
+When you add, change or remove a test, update `TESTS.md`. One test of `TESTS.md` still fails when there are more than
+100 tests (`TEST_LIMIT` in `tests/rules/log_rules.c`); there are more, so `build.exe` ends with `Tests failed.` and
+Test 253 until that number is raised.
 
 ### Rules for changing the code
 
@@ -362,21 +411,31 @@ There may be at most 100 tests. When you add, change or remove one, update `TEST
 - A change of behaviour starts with a test that fails, and then the smallest change that makes it pass (Rule 33).
 - Each test must catch a broken line of the code it guards (Rule 34). To see that it does, swap one operator in that
   code, such as `<` for `<=`, `&&` for `||` or `==` for `!=`, run `build.exe quick`, see the test fail, and undo the
-  swap. `build\mutator.exe src/model/` does it for every operator and constant of a folder or a file of `src/`, after
-  `build.exe`: it prints the mutants that survived and writes all of them to `build\mutants.txt`, each with `K`
-  (killed), `S` (survived), `N` (did not compile), `T` (ended after 30 seconds) or `U` (on a line no test runs).
-  Without a folder it takes all of `src/`, which takes long. Do not build while it runs. It leaves `src/win/` out and
-  runs the tests without those of the real window (`build\tests.exe nowindow`), which are slow when many run at once;
-  check a change of `src/win/` by breaking it by hand and running `build.exe quick`.
-- Keep each function's CRAP score below 10 (Rule 32). After `build.exe`, run `build\crapper.exe`: it builds the tests
-  once more with coverage in `build\cover\`, runs them, prints every function at 10 or above and writes all of them
-  to `build\crap.txt`, the worst first, as `score  CC complexity  covered taken of branches  file:line  function`.
-  To bring a function down, split it into smaller ones or have a test run the branches it misses. Many functions
-  are still above 10; do not add to them.
-- Do not write a function twice (Rule 31). After `build.exe`, run `build\dryer.exe`: it prints every two functions
-  that are 80% alike or more, as `rank  file:lines function  file:lines function`, and writes those at 60% or more
-  to `build\dry.txt`. Names do not count, only what is called and how the code is built. Make one function of the
-  two, with what differs as an argument. Pairs are still listed; do not add to them.
+  swap.
+- Rules 31, 32 and 34 are measured by ub-mode's dryer, crapper and mutator only. They are three projects of their
+  own, checked out beside this one in `..\dryer`, `..\crapper` and `..\mutator`; each makes its own Python
+  environment the first time it runs. Run them from the project's folder. They read `src/`, pass by `tests/` and
+  `tools/build/`, and write `.metrics\` and `target\`, which Git leaves out.
+- Do not write a function twice (Rule 31). `..\dryer\dryer.cmd --threshold 0.8` prints every two functions of `src/`
+  that are 80% alike or more, as `DUPLICATE score=...` and the two places, or `No duplicate candidates found.` Names
+  and values do not count, only what is called and how the code is built, so two functions of one line that make
+  the same call are a pair. Make one function of the two, with what differs as an argument, or let the callers make
+  the call.
+- Keep each function's CRAP score below 10 (Rule 32). `..\crapper\crapper.cmd --no-coverage` prints the complexity of
+  every function, the highest first; none may reach 10. It counts each `if`, loop, `case`, `default`, `?:`, `&&` and
+  `||`, those of a `CHECK` too, so keep a function to four checks at most and give a longer list of checks a
+  function of its own. For the score itself the crapper reads `target\coverage\c\lcov.info`, which gcovr makes
+  from a build with `--coverage`; that is not set up yet.
+- Kill every mutant (Rule 34). `..\mutator\mutator.cmd --scan src/model` lists the places it would change. To run
+  them: `..\mutator\mutator.cmd --no-coverage --test-command ".\build.exe quick nowindow norules" src/model`, a
+  folder or a file at a time; for `src/win/`, `src/view/`, `src/shell/`, `src/present/` and `src/reflow/` leave
+  `nowindow` out, so that the tests of the real window judge them. It prints each mutant as `KILLED` or `SURVIVED`
+  and a table by function, and writes `.metrics\mutate\`. Each worker builds the whole project once in
+  `target\mutation-workers\`, so a file takes a minute or more. Do not change the code while it runs, and
+  do not run `build.exe` in the project: the workers read the same files, and the mutator stops with "being used by
+  another process" when it cannot clear away a worker while the build program it links is running. A run that
+  stops so leaves its workers in `target\mutation-workers\`; they hold links into the project, so remove them
+  with care (see `DELETION_REQUESTS.md`). A second run takes only the survivors and the functions that changed.
 - Only C and the Win32 API. Nothing is deleted; list it in `DELETION_REQUESTS.md`.
 - `REQUIREMENTS.md` defines what the project does, and only the chief developer may change it.
 - Record what you change, and why, in the last part of `documentation/DEVLOG/`, under the day's date, and list any

@@ -37,6 +37,12 @@ static void write_header(unsigned char *at, size_t length, bool last)
     at[4] = (unsigned char)((complement >> BYTE_BITS) & (size_t)LOW_BYTE);
 }
 
+static bool store_fits(ByteSpan plain, const ByteBuffer *packed)
+{
+    return CHECK(packed != NULL) && CHECK(packed->bytes != NULL) &&
+           CHECK((plain.bytes != NULL) || (plain.size == 0U)) && (deflate_store_size(plain.size) <= packed->capacity);
+}
+
 bool deflate_store(ByteSpan plain, ByteBuffer *packed)
 {
     size_t done = 0U;
@@ -44,8 +50,7 @@ bool deflate_store(ByteSpan plain, ByteBuffer *packed)
     bool last = false;
     int block;
 
-    if (!CHECK(packed != NULL) || !CHECK(packed->bytes != NULL) ||
-        !CHECK((plain.bytes != NULL) || (plain.size == 0U)) || (deflate_store_size(plain.size) > packed->capacity)) {
+    if (!store_fits(plain, packed)) {
         return false;
     }
     packed->size = 0U;

@@ -62,11 +62,18 @@ check - a condition the code asserts with CHECK, as P10 rule 5 asks; a failed ch
 build program - build.exe, made from tools/build/, which compiles, links and runs the tests in one step
 analyzed build - the build that also runs the static analyzer of gcc: build.exe
 quick build - the build without the static analyzer: build.exe quick
-complexity - one more than the branches of a function: each if, for, while, case, &&, || and ?
+complexity - one more than the branches of a function: each if, loop, case, default, ?:, && and ||, a check's too
 CRAP score - complexity squared times the cube of the share of branches no test takes, plus complexity (Rule 32)
-crapper - build\crapper.exe, made from tools/crap/, which works out the CRAP score of every function
-shape - the runs of four tokens of a function, in which every name but that of a call counts as the same
-dryer - build\dryer.exe, made from tools/dry/, which finds every two functions whose shapes are 80% alike or more
+crapper - ub-mode's program for Rule 32, kept beside the project in ..\crapper: the CRAP score of each function of src/
+shape - what is left of a function without its names and values: its calls, its operators and how it is built
+dryer - ub-mode's program for Rule 31, in ..\dryer: finds every two functions of src/ whose shapes are 80% alike or more
 mutant - the code with one operator or constant changed, which a test should catch (Rule 34)
-mutator - build\mutator.exe, made from tools/mutate/, which makes each mutant of src/ and runs the tests on it
+mutator - ub-mode's program for Rule 34, in ..\mutator: makes each mutant of src/ and runs the tests on it
+suite - the tests of one kind or subject, run in order by one file, e.g. tests/suites/mod_suite.c
+group - at most eight tests of a suite, held in one switch, e.g. run_gate_test
+fixture - a file or a small game that a test reads or builds, e.g. tests/fixtures/broken_rules.txt
+gate test - a test that shows the test of a rule a fixture that breaks the rule, and asks which line it names
+script - the answers a test gives in the user's place to the dialogs of the window, set with ask_script
+wide layout - a step beside the list of steps, its controls in up to three columns, in a window of 960 by 560 or more
+reflow - to show a step in one column that scrolls up and down, when the window does not hold the wide layout
 glossary - the words of the game and the shortened forms of the catalog with their meanings, in the menu Help

@@ -21,16 +21,13 @@ static void put_char(JsonWriter *writer, char letter)
     writer->data[writer->length] = '\0';
 }
 
-static void put_text(JsonWriter *writer, const char *text)
+static void put_escape(JsonWriter *writer, char letter)
 {
-    size_t index;
-
-    if (!CHECK(writer != NULL) || !CHECK(text != NULL)) {
+    if (!CHECK(writer != NULL) || !CHECK(letter != '\0')) {
         return;
     }
-    for (index = 0U; (index < (size_t)TEXT_SCAN_LIMIT) && (text[index] != '\0'); ++index) {
-        put_char(writer, text[index]);
-    }
+    put_char(writer, '\\');
+    put_char(writer, letter);
 }
 
 static void put_escaped_char(JsonWriter *writer, char letter)
@@ -41,14 +38,15 @@ static void put_escaped_char(JsonWriter *writer, char letter)
         return;
     }
     if ((letter == '"') || (letter == '\\')) {
-        put_char(writer, '\\');
-        put_char(writer, letter);
+        put_escape(writer, letter);
     } else if (letter == '\n') {
-        put_text(writer, "\\n");
+        put_escape(writer, 'n');
     } else if (letter == '\t') {
-        put_text(writer, "\\t");
+        put_escape(writer, 't');
     } else if (code < (unsigned int)CONTROL_LIMIT) {
-        put_text(writer, "\\u00");
+        put_escape(writer, 'u');
+        put_char(writer, '0');
+        put_char(writer, '0');
         put_char(writer, HEX[(code >> NIBBLE) & (unsigned int)NIBBLE_MASK]);
         put_char(writer, HEX[code & (unsigned int)NIBBLE_MASK]);
     } else {
@@ -56,17 +54,29 @@ static void put_escaped_char(JsonWriter *writer, char letter)
     }
 }
 
-static void put_string(JsonWriter *writer, const char *value)
+static void put_letters(JsonWriter *writer, const char *text, bool escaped)
 {
     size_t index;
 
+    if (!CHECK(writer != NULL) || !CHECK(text != NULL)) {
+        return;
+    }
+    for (index = 0U; (index < (size_t)TEXT_SCAN_LIMIT) && (text[index] != '\0'); ++index) {
+        if (escaped) {
+            put_escaped_char(writer, text[index]);
+        } else {
+            put_char(writer, text[index]);
+        }
+    }
+}
+
+static void put_string(JsonWriter *writer, const char *value)
+{
     if (!CHECK(writer != NULL) || !CHECK(value != NULL)) {
         return;
     }
     put_char(writer, '"');
-    for (index = 0U; (index < (size_t)TEXT_SCAN_LIMIT) && (value[index] != '\0'); ++index) {
-        put_escaped_char(writer, value[index]);
-    }
+    put_letters(writer, value, true);
     put_char(writer, '"');
 }
 
@@ -99,7 +109,7 @@ static void start_item(JsonWriter *writer, const char *key)
     put_indent(writer);
     if (key != NULL) {
         put_string(writer, key);
-        put_text(writer, ": ");
+        put_letters(writer, ": ", false);
     }
 }
 
@@ -163,7 +173,7 @@ void json_write_number(JsonWriter *writer, const char *key, long value)
         return;
     }
     start_item(writer, key);
-    put_text(writer, digits);
+    put_letters(writer, digits, false);
 }
 
 void json_write_bool(JsonWriter *writer, const char *key, bool value)
@@ -172,7 +182,7 @@ void json_write_bool(JsonWriter *writer, const char *key, bool value)
         return;
     }
     start_item(writer, key);
-    put_text(writer, value ? "true" : "false");
+    put_letters(writer, value ? "true" : "false", false);
 }
 
 void json_write_null(JsonWriter *writer, const char *key)
@@ -181,7 +191,7 @@ void json_write_null(JsonWriter *writer, const char *key)
         return;
     }
     start_item(writer, key);
-    put_text(writer, "null");
+    put_letters(writer, "null", false);
 }
 
 bool json_writer_succeeded(const JsonWriter *writer)

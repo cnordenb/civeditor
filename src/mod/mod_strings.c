@@ -41,6 +41,20 @@ static void put(ModStrings *strings, const char *text)
     put_span(strings, text, strlen(text));
 }
 
+static void put_escaped_letter(ModStrings *strings, const char *text, size_t index)
+{
+    if (!CHECK(strings != NULL) || !CHECK(text != NULL)) {
+        return;
+    }
+    if (text_is_line_break(text[index])) {
+        put(strings, "\\n");
+    } else if ((text[index] == '"') && ((index == 0U) || (text[index - 1U] != '\\'))) {
+        put(strings, "\\\"");
+    } else {
+        put_span(strings, &text[index], 1U);
+    }
+}
+
 static void put_escaped(ModStrings *strings, const char *text)
 {
     size_t index;
@@ -49,15 +63,8 @@ static void put_escaped(ModStrings *strings, const char *text)
         return;
     }
     for (index = 0U; (index < (size_t)MOD_TEXT_CAPACITY) && (text[index] != '\0'); ++index) {
-        if ((text[index] == '\r') && (text[index + 1U] == '\n')) {
-            continue;
-        }
-        if ((text[index] == '\n') || (text[index] == '\r')) {
-            put(strings, "\\n");
-        } else if ((text[index] == '"') && ((index == 0U) || (text[index - 1U] != '\\'))) {
-            put(strings, "\\\"");
-        } else {
-            put_span(strings, &text[index], 1U);
+        if ((text[index] != '\r') || (text[index + 1U] != '\n')) {
+            put_escaped_letter(strings, text, index);
         }
     }
 }
@@ -92,7 +99,7 @@ static long line_id(const char *line)
     if (!CHECK(line != NULL) || !CHECK(line[0] != '\0')) {
         return -1L;
     }
-    for (length = 0U; (length < (size_t)ID_DIGITS) && (line[length] >= '0') && (line[length] <= '9'); ++length) {
+    for (length = 0U; (length < (size_t)ID_DIGITS) && text_is_digit(line[length]); ++length) {
         continue;
     }
     if ((length != (size_t)ID_DIGITS) || (line[length] != ' ')) {
@@ -117,10 +124,21 @@ static void put_vanilla(ModStrings *strings, const char *line)
     put(strings, "\n");
 }
 
+static void note_description(long id, long offset)
+{
+    long index = id - FIRST_DESCRIPTION;
+
+    if (!CHECK(offset >= 0L) || (index < 0L) || (index >= DESCRIPTION_SPAN)) {
+        return;
+    }
+    if (description_at[index] < 0L) {
+        description_at[index] = offset;
+    }
+}
+
 static void find_descriptions(const char *vanilla)
 {
     const char *line = vanilla;
-    long id;
     int count;
 
     if (!CHECK(vanilla != NULL) || !CHECK(DESCRIPTION_SPAN > 0)) {
@@ -130,11 +148,7 @@ static void find_descriptions(const char *vanilla)
         description_at[count] = -1L;
     }
     for (count = 0; (count < LINE_LIMIT) && (line != NULL) && (line[0] != '\0'); ++count) {
-        id = line_id(line);
-        if ((id >= FIRST_DESCRIPTION) && (id < FIRST_DESCRIPTION + DESCRIPTION_SPAN) &&
-            (description_at[id - FIRST_DESCRIPTION] < 0L)) {
-            description_at[id - FIRST_DESCRIPTION] = (long)(line - vanilla);
-        }
+        note_description(line_id(line), (long)(line - vanilla));
         line = strchr(line, '\n');
         line = (line == NULL) ? NULL : line + 1;
     }
@@ -160,6 +174,16 @@ static void put_descriptions(ModStrings *strings, const char *vanilla, long ours
     }
 }
 
+static bool make_tip_key(char *key, size_t capacity, int slot, int index)
+{
+    if (!CHECK(key != NULL) || !CHECK(capacity > 0U)) {
+        return false;
+    }
+    key[0] = '\0';
+    return text_append(key, capacity, "IDS_CIVTIPS_") && text_append_number(key, capacity, slot) &&
+           text_append(key, capacity, "_") && text_append_number(key, capacity, index);
+}
+
 static void put_tips(ModStrings *strings, const ModCiv *civ)
 {
     char key[KEY_CAPACITY];
@@ -169,9 +193,7 @@ static void put_tips(ModStrings *strings, const ModCiv *civ)
         return;
     }
     for (index = 0; index < MOD_TIP_COUNT; ++index) {
-        if (!text_copy(key, sizeof key, "IDS_CIVTIPS_") || !text_append_number(key, sizeof key, civ->slot) ||
-            !text_append(key, sizeof key, "_") || !text_append_number(key, sizeof key, index) ||
-            !mod_tip(civ, index, part, sizeof part)) {
+        if (!make_tip_key(key, sizeof key, civ->slot, index) || !mod_tip(civ, index, part, sizeof part)) {
             strings->failed = true;
             return;
         }
@@ -179,18 +201,26 @@ static void put_tips(ModStrings *strings, const ModCiv *civ)
     }
 }
 
+static bool make_part(const char *first, const char *second, const char *third)
+{
+    if (!CHECK(first != NULL) || !CHECK(second != NULL) || !CHECK(third != NULL)) {
+        return false;
+    }
+    part[0] = '\0';
+    return text_append_three(part, sizeof part, first, second, third);
+}
+
 static bool make_tech_label(const char *name, const char *description)
 {
     size_t length;
 
-    if (!CHECK(name != NULL) || !CHECK(description != NULL) || !text_copy(part, sizeof part, "Research ") ||
-        !text_append(part, sizeof part, name)) {
+    if (!CHECK(name != NULL) || !CHECK(description != NULL) || !make_part("Research ", name, "")) {
         return false;
     }
     if (description[0] == '\0') {
         return true;
     }
-    if (!text_append(part, sizeof part, " (") || !text_append(part, sizeof part, description)) {
+    if (!text_append_two(part, sizeof part, " (", description)) {
         return false;
     }
     length = strlen(part);
@@ -203,18 +233,33 @@ static bool make_tech_label(const char *name, const char *description)
 static bool make_tooltip(const char *verb, const char *name, const char *description)
 {
     if (!CHECK((verb != NULL) && (name != NULL)) || !CHECK(description != NULL) ||
-        !text_copy(part, sizeof part, verb) || !text_append(part, sizeof part, " <b>") ||
-        !text_append(part, sizeof part, name) || !text_append(part, sizeof part, "<b> (<cost>)")) {
+        !make_part(verb, " <b>", name) || !text_append(part, sizeof part, "<b> (<cost>)")) {
         return false;
     }
-    return (description[0] == '\0') ||
-           (text_append(part, sizeof part, "\n") && text_append(part, sizeof part, description));
+    return (description[0] == '\0') || text_append_two(part, sizeof part, "\n", description);
+}
+
+static bool put_tech_lines(ModStrings *strings, int sid, const char *name, const char *description)
+{
+    if (!CHECK(strings != NULL) || !CHECK(name != NULL) || !CHECK(sid + MOD_LABEL_OFFSET > 0)) {
+        return false;
+    }
+    put_numbered(strings, sid, name);
+    put_numbered(strings, sid + MOD_TECH_TREE_OFFSET, name);
+    if (!make_tech_label(name, description)) {
+        return false;
+    }
+    put_numbered(strings, sid + MOD_LABEL_OFFSET, part);
+    if (!make_tooltip("Research", name, description)) {
+        return false;
+    }
+    put_numbered(strings, sid + MOD_TOOLTIP_OFFSET, part);
+    return true;
 }
 
 static void put_tech_names(ModStrings *strings, const ModCiv *civ)
 {
     const char *name;
-    const char *description;
     int tier;
     int sid;
 
@@ -224,22 +269,13 @@ static void put_tech_names(ModStrings *strings, const ModCiv *civ)
     for (tier = 0; tier < TECH_TIER_COUNT; ++tier) {
         sid = catalog_string_id(civ->catalog, civ->slot, (CivString)tier);
         name = mod_tech_text(civ, (TechTier)tier, true);
-        description = mod_tech_text(civ, (TechTier)tier, false);
         if ((sid == CATALOG_MISSING) || (name[0] == '\0')) {
             continue;
         }
-        put_numbered(strings, sid, name);
-        put_numbered(strings, sid + MOD_TECH_TREE_OFFSET, name);
-        if (!make_tech_label(name, description) || !CHECK(sid + MOD_LABEL_OFFSET > 0)) {
+        if (!put_tech_lines(strings, sid, name, mod_tech_text(civ, (TechTier)tier, false))) {
             strings->failed = true;
             return;
         }
-        put_numbered(strings, sid + MOD_LABEL_OFFSET, part);
-        if (!make_tooltip("Research", name, description)) {
-            strings->failed = true;
-            return;
-        }
-        put_numbered(strings, sid + MOD_TOOLTIP_OFFSET, part);
     }
 }
 
@@ -249,7 +285,7 @@ static void put_unit_lines(ModStrings *strings, int sid, const char *name, const
         return;
     }
     put_numbered(strings, sid, name);
-    if (!text_copy(part, sizeof part, "Create ") || !text_append(part, sizeof part, name)) {
+    if (!make_part("Create ", name, "")) {
         strings->failed = true;
         return;
     }
@@ -272,7 +308,8 @@ static void put_unit_names(ModStrings *strings, const ModCiv *civ)
     }
     design = civ->design;
     name = mod_unit_name(civ);
-    if (!text_copy(elite_name, sizeof elite_name, "Elite ") || !text_append(elite_name, sizeof elite_name, name)) {
+    elite_name[0] = '\0';
+    if (!text_append_two(elite_name, sizeof elite_name, "Elite ", name)) {
         strings->failed = true;
         return;
     }
@@ -310,8 +347,7 @@ bool mod_strings_write(ModStrings *strings, const ModCiv *civ, const char *vanil
     strings->text[0] = '\0';
     strings->failed = false;
     put_numbered(strings, civ->name_sid, alias);
-    if (!text_copy(part, sizeof part, "Click to play as ") || !text_append(part, sizeof part, alias) ||
-        !text_append(part, sizeof part, ".")) {
+    if (!make_part("Click to play as ", alias, ".")) {
         return false;
     }
     put_numbered(strings, civ->name_sid + PICKER_OFFSET, part);

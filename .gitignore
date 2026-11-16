@@ -4,3 +4,5 @@ temp/
 .claude/settings.local.json
 /build/
 /build.exe
+.metrics/
+/target/

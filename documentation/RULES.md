@@ -79,27 +79,3 @@ used; in particular no Python, JavaScript, CSS or HTML. Data and documents (Rule
 Rule 30: An AI agent deletes nothing on the disk: no file or directory, by any command. A deletion that is needed is
 listed in DELETION_REQUESTS.md for a human to perform. Objects in the code, such as those that DeleteObject and
 DestroyWindow free, are not files and may be freed.
-
-Rules 31 to 36 are derived from Uncle Bob mode (https://github.com/unclebob/ub-mode), as far as they fit C and Rules 0
-and 30.
-
-Rule 31: One decision lives in one place. Two functions whose normalised forms are 80% alike or more (the dryer of
-ub-mode) are made one.
-
-Rule 32: Every function's CRAP score is below 10: CRAP = CC² × (1 − coverage)³ + CC, where CC is the function's
-cyclomatic complexity and coverage the share of its branches that the tests run (the crapper of ub-mode).
-
-Rule 33: A change of behaviour starts with a test that fails for the reason expected; then the smallest change that
-makes it pass is made. A test that would still pass if every function returned nothing is no test. Where an honest test
-is impractical, none is written, and the log says so.
-
-Rule 34: Every mutant of the code that the tests run is killed by a test: an operator swapped (+ and -, < and <=, ==
-and !=, && and ||), a ! or a unary - taken away, true and false or 0 and 1 swapped (the mutator of ub-mode). Code that
-nothing runs is taken out of the source.
-
-Rule 35: The shape of the data comes before the logic: the domain is held in structures that make illegal states
-impossible, data is checked where it enters, and the logic is kept in functions without side effects where it can be.
-The compiler is never silenced.
-
-Rule 36: The cause of a fault is fixed. A guard that only hides a crash is not a fix. A structure is changed only with
-its behaviour pinned by tests before and shown unchanged after.

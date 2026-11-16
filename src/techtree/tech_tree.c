@@ -7,6 +7,13 @@ enum { NAME_CAPACITY = 32, NODE_LIST_COUNT = 2, NODE_LIMIT = 4096 };
 
 static const char USE_TYPES[TREE_KIND_COUNT][NAME_CAPACITY] = { "Unit", "Building", "Tech" };
 static const char NODE_LISTS[NODE_LIST_COUNT][NAME_CAPACITY] = { "civ_techs_buildings", "civ_techs_units" };
+typedef struct {
+    int kind;
+    int id;
+    int status;
+    int entry;
+} TreeNode;
+
 static JsonPatch patch;
 
 static bool string_is(const JsonDocument *tree, int token, const char *expected)
@@ -36,36 +43,46 @@ static int node_kind(const JsonDocument *tree, int node)
     return JSON_NONE;
 }
 
-static void set_status(const TechTreeJob *job, int node)
+static bool read_node(const TechTreeJob *job, int node, TreeNode *found)
 {
     const JsonDocument *tree;
-    const Catalog *catalog;
-    int kind;
-    int status;
-    int entry;
     TextNumber id;
 
-    if (!CHECK(job != NULL) || !CHECK(job->tree != NULL) || !CHECK(job->catalog != NULL)) {
-        return;
+    if (!CHECK(job != NULL) || !CHECK(found != NULL) ||
+        !CHECK(job->tree != NULL)) {
+        return false;
     }
     tree = job->tree;
-    catalog = job->catalog;
-    kind = node_kind(tree, node);
     id = json_number(tree, json_member(tree, node, "Node ID"));
-    status = json_member(tree, node, "Node Status");
-    if ((kind == JSON_NONE) || !id.valid || (status == JSON_NONE)) {
+    found->kind = node_kind(tree, node);
+    found->status = json_member(tree, node, "Node Status");
+    if ((found->kind == JSON_NONE) || !id.valid || (found->status == JSON_NONE)) {
+        return false;
+    }
+    found->id = (int)id.value;
+    found->entry = catalog_find(job->catalog, CATALOG_TREE, found->kind, found->id);
+    return found->entry != CATALOG_MISSING;
+}
+
+static void set_status(const TechTreeJob *job, int node)
+{
+    const Catalog *catalog;
+    TreeNode found;
+
+    if (!CHECK(job != NULL) || !CHECK(job->tree != NULL) || !CHECK(job->catalog != NULL) ||
+        !read_node(job, node, &found)) {
         return;
     }
-    entry = catalog_find_tree(catalog, (TreeKind)kind, (int)id.value);
-    if (entry == CATALOG_MISSING) {
+    catalog = job->catalog;
+    if (!civ_design_tree_keeps(job->design, (TreeKind)found.kind, found.id)) {
+        json_patch_replace(&patch, found.status, "\"NotAvailable\"");
         return;
     }
-    if (!civ_design_tree_keeps(job->design, (TreeKind)kind, (int)id.value)) {
-        json_patch_replace(&patch, status, "\"NotAvailable\"");
-    } else if (civ_design_tree_has(job->design, (TreeKind)kind, (int)id.value) &&
-               string_is(tree, status, "NotAvailable")) {
-        json_patch_replace(&patch, status,
-                           catalog->tree[entry].needs_research ? "\"ResearchRequired\"" : "\"ResearchedCompleted\"");
+    if (civ_design_tree_has(job->design, (TreeKind)found.kind, found.id) &&
+        string_is(job->tree, found.status, "NotAvailable")) {
+        json_patch_replace(&patch, found.status,
+                           catalog->tree[found.entry].needs_research ? "\"ResearchRequired\""
+                                                                     : "\"ResearchedCompleted\"");
     }
 }
 

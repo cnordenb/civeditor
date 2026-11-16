@@ -142,6 +142,7 @@ typedef struct {
 } DatTech;
 
 bool dat_map_read(const unsigned char *data, size_t size, DatMap *map);
+bool dat_map_has_civ(const DatMap *map, int civ);
 bool dat_civ_read(const DatBytes *dat, size_t at, DatCiv *civ);
 bool dat_find_unit(const DatBytes *dat, size_t civ_at, int unit_id, size_t *unit_at);
 bool dat_list_units(const DatBytes *dat, size_t civ_at, DatUnitList *list);

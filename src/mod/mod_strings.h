@@ -17,6 +17,15 @@ typedef struct {
     bool failed;
 } ModStrings;
 
+typedef struct {
+    const ModCiv *civ;
+    const wchar_t *game;
+    const wchar_t *mods;
+    const char *prefix;
+} ModUi;
+
 bool mod_strings_write(ModStrings *strings, const ModCiv *civ, const char *vanilla);
+bool mod_write_info(const wchar_t *mods, const char *folder, const char *title);
+bool mod_ui_write(const ModUi *ui);
 
 #endif

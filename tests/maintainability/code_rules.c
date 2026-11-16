@@ -52,20 +52,29 @@ static int long_line(void)
     return 0;
 }
 
-static int violation_line(CodeRule rule, const char *path)
+static int size_violation_line(CodeRule rule)
 {
-    if (!CHECK(path != NULL) || !CHECK(rule < CODE_RULE_COUNT)) {
+    if (!CHECK(rule <= CODE_RULE_FILE_LENGTH) || !CHECK(FILE_LINE_LIMIT > 0)) {
         return 0;
     }
-    switch (rule) {
+    switch ((int)rule) {
     case CODE_RULE_NO_COMMENTS:
         return source.comment_line;
     case CODE_RULE_FUNCTION_LENGTH:
         return long_function_line();
     case CODE_RULE_LINE_LENGTH:
         return long_line();
-    case CODE_RULE_FILE_LENGTH:
+    default:
         return (source.lines_of_code > FILE_LINE_LIMIT) ? 1 : 0;
+    }
+}
+
+static int pattern_violation_line(CodeRule rule, const char *path)
+{
+    if (!CHECK(path != NULL) || !CHECK(rule > CODE_RULE_FILE_LENGTH)) {
+        return 0;
+    }
+    switch ((int)rule) {
     case CODE_RULE_SIMPLE_CONTROL_FLOW:
         return pattern_forbidden_flow_line(&source);
     case CODE_RULE_BOUNDED_LOOPS:
@@ -76,12 +85,17 @@ static int violation_line(CodeRule rule, const char *path)
         return pattern_complex_directive_line(&source);
     case CODE_RULE_POINTER_DEPTH:
         return pattern_deep_pointer_line(&source);
-    case CODE_RULE_NO_FUNCTION_POINTERS:
-        return pattern_function_pointer_line(&source, path);
-    case CODE_RULE_COUNT:
     default:
+        return pattern_function_pointer_line(&source, path);
+    }
+}
+
+static int violation_line(CodeRule rule, const char *path)
+{
+    if (!CHECK(path != NULL) || !CHECK(rule < CODE_RULE_COUNT)) {
         return 0;
     }
+    return (rule <= CODE_RULE_FILE_LENGTH) ? size_violation_line(rule) : pattern_violation_line(rule, path);
 }
 
 static void note_violation(const char *path, int line)
@@ -175,24 +189,41 @@ static void note_density(long checks, long functions)
     test_note(note);
 }
 
+static bool is_measured(const char *path)
+{
+    if (!CHECK(path != NULL) || !CHECK(path[0] != '\0')) {
+        return false;
+    }
+    return repo_path_has_suffix(path, ".c") && !text_starts_with(path, "tests/") && !text_equal(path, CHECK_SOURCE);
+}
+
+static long checks_of_source(void)
+{
+    long checks = 0L;
+    int function;
+
+    if (!CHECK(source.function_count >= 0) || !CHECK(source.function_count <= SCAN_FUNCTION_CAPACITY)) {
+        return 0L;
+    }
+    for (function = 0; (function < source.function_count) && (function < SCAN_FUNCTION_CAPACITY); ++function) {
+        checks += source.functions[function].checks;
+    }
+    return checks;
+}
+
 bool code_has_two_checks_per_function(void)
 {
     long checks = 0L;
     long functions = 0L;
     int index;
-    int function;
 
     if (!repo_files_list(&files) || !CHECK(files.count > 0)) {
         return false;
     }
     for (index = 0; (index < files.count) && (index < REPO_FILE_CAPACITY); ++index) {
-        if (!repo_path_has_suffix(files.paths[index], ".c") || text_starts_with(files.paths[index], "tests/") ||
-            text_equal(files.paths[index], CHECK_SOURCE) || !source_scan(&source, files.paths[index])) {
-            continue;
-        }
-        for (function = 0; (function < source.function_count) && (function < SCAN_FUNCTION_CAPACITY); ++function) {
-            checks += source.functions[function].checks;
-            ++functions;
+        if (is_measured(files.paths[index]) && source_scan(&source, files.paths[index])) {
+            checks += checks_of_source();
+            functions += source.function_count;
         }
     }
     note_density(checks, functions);

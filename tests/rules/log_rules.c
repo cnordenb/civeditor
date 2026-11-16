@@ -29,35 +29,45 @@ static TsvFile document;
 static TsvRecord line;
 static DayIndex index_of_days;
 
-static bool is_digit(char letter)
+static bool has_shape(const char *text, const char *shape, int length)
 {
-    return (letter >= '0') && (letter <= '9');
+    int index;
+
+    if (!CHECK(text != NULL) || !CHECK(shape != NULL) || !CHECK(length < DAY_WIDTH)) {
+        return false;
+    }
+    for (index = 0; (index < length) && (index < DAY_WIDTH); ++index) {
+        if ((shape[index] == 'd') ? !text_is_digit(text[index]) : (text[index] != shape[index])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 static bool is_date(const char *text)
 {
     static const char SHAPE[] = "dddd-dd-dd";
-    int index;
 
     if (!CHECK(text != NULL) || !CHECK(SHAPE[0] == 'd')) {
         return false;
     }
-    for (index = 0; index < DAY_WIDTH - 6; ++index) {
-        if ((SHAPE[index] == 'd') ? !is_digit(text[index]) : (text[index] != '-')) {
-            return false;
-        }
-    }
-    return text[DAY_WIDTH - 6] == '\0';
+    return has_shape(text, SHAPE, DAY_WIDTH - 6) && (text[DAY_WIDTH - 6] == '\0');
+}
+
+static bool is_hour(const char *digits)
+{
+    return CHECK(digits != NULL) && ((digits[0] < '2') || (digits[1] < '4'));
 }
 
 static bool time_title_is_valid(const char *text)
 {
-    if (!CHECK(text != NULL) || !is_digit(text[4])) {
+    static const char SHAPE[] = "dd:dd:dd: ";
+
+    if (!CHECK(text != NULL) || !text_is_digit(text[4])) {
         return true;
     }
-    return is_digit(text[5]) && (text[6] == ':') && is_digit(text[7]) && is_digit(text[8]) && (text[9] == ':') &&
-           is_digit(text[10]) && is_digit(text[11]) && (text[12] == ':') && (text[13] == ' ') &&
-           ((text[4] < '2') || (text[5] < '4')) && (text[7] < '6') && (text[10] < '6');
+    return has_shape(&text[4], SHAPE, (int)sizeof SHAPE - 1) && is_hour(&text[4]) && (text[7] < '6') &&
+           (text[10] < '6');
 }
 
 static bool note_day(const char *text, bool listed)
@@ -104,17 +114,11 @@ static bool part_path(int part, wchar_t *path)
     return file_exists(path);
 }
 
-static bool part_keeps_form(int part)
+static bool lines_keep_form(void)
 {
-    wchar_t path[FILE_PATH_CAPACITY];
-    char title[HEADING_CAPACITY] = "# Development log, part ";
     int number;
 
-    if (!CHECK(part > 0) || !CHECK(part < PART_LIMIT) || !part_path(part, path)) {
-        return false;
-    }
-    (void)text_append_number(title, sizeof title, part);
-    if (!tsv_open(&document, path) || !tsv_next(&document, &line) || !text_equal(line.text, title)) {
+    if (!CHECK(PART_LINE_LIMIT > 0) || !CHECK(line.text[0] != '\1')) {
         return false;
     }
     for (number = 2; (number <= PART_LINE_LIMIT + 1) && tsv_next(&document, &line); ++number) {
@@ -124,6 +128,21 @@ static bool part_keeps_form(int part)
         }
     }
     return true;
+}
+
+static bool part_keeps_form(int part)
+{
+    wchar_t path[FILE_PATH_CAPACITY];
+    char title[HEADING_CAPACITY] = "# Development log, part ";
+
+    if (!CHECK(part > 0) || !CHECK(part < PART_LIMIT) || !part_path(part, path)) {
+        return false;
+    }
+    (void)text_append_number(title, sizeof title, part);
+    if (!tsv_open(&document, path) || !tsv_next(&document, &line) || !text_equal(line.text, title)) {
+        return false;
+    }
+    return lines_keep_form();
 }
 
 static bool comes_before(const char *earlier, const char *later)
@@ -144,6 +163,15 @@ static bool comes_before(const char *earlier, const char *later)
     return false;
 }
 
+static bool day_is_in_place(int day)
+{
+    if (!CHECK(day >= 0) || !CHECK(day < DAY_CAPACITY)) {
+        return false;
+    }
+    return text_equal(index_of_days.days[day], index_of_days.listed[day]) &&
+           ((day == 0) || comes_before(index_of_days.days[day - 1], index_of_days.days[day]));
+}
+
 static bool days_are_listed_in_order(void)
 {
     int day;
@@ -152,10 +180,7 @@ static bool days_are_listed_in_order(void)
         return false;
     }
     for (day = 0; (day < index_of_days.day_count) && (day < DAY_CAPACITY); ++day) {
-        if (!text_equal(index_of_days.days[day], index_of_days.listed[day])) {
-            return false;
-        }
-        if ((day > 0) && !comes_before(index_of_days.days[day - 1], index_of_days.days[day])) {
+        if (!day_is_in_place(day)) {
             return false;
         }
     }
@@ -201,7 +226,7 @@ static int heading_number(const char *prefix, int prefix_length)
         return 0;
     }
     for (length = 0; length < TEXT_NUMBER_CAPACITY - 1; ++length) {
-        if (!is_digit(line.text[prefix_length + length])) {
+        if (!text_is_digit(line.text[prefix_length + length])) {
             break;
         }
     }
@@ -218,6 +243,35 @@ static bool field_line_is_too_long(bool in_field)
            (text_length(line.text, TSV_LINE_CAPACITY) > (size_t)FIELD_LIMIT);
 }
 
+static bool takes_heading(int *headings)
+{
+    int number = heading_number("## Test ", 8);
+
+    if (!CHECK(headings != NULL) || (number <= 0)) {
+        return true;
+    }
+    ++*headings;
+    return number == *headings;
+}
+
+static bool is_in_a_field(bool before)
+{
+    if (text_starts_with(line.text, "### ")) {
+        return true;
+    }
+    return text_starts_with(line.text, "## ") ? false : before;
+}
+
+static int next_listed(int listed)
+{
+    return (heading_number("- [Test ", 8) == listed + 1) ? listed + 1 : listed;
+}
+
+static bool counts_agree(int headings, int listed)
+{
+    return CHECK(headings >= 0) && (headings == listed) && (headings <= TEST_LIMIT);
+}
+
 bool tests_document_is_numbered_in_order(void)
 {
     int headings = 0;
@@ -229,22 +283,14 @@ bool tests_document_is_numbered_in_order(void)
         return false;
     }
     for (step = 0; (step < TSV_FILE_CAPACITY) && tsv_next(&document, &line); ++step) {
-        if (heading_number("## Test ", 8) > 0) {
-            ++headings;
-            in_field = false;
-            if (heading_number("## Test ", 8) != headings) {
-                test_note(line.text);
-                return false;
-            }
-        }
-        listed += (heading_number("- [Test ", 8) == listed + 1) ? 1 : 0;
-        in_field = text_starts_with(line.text, "### ") ? true : (text_starts_with(line.text, "## ") ? false : in_field);
-        if (field_line_is_too_long(in_field)) {
+        listed = next_listed(listed);
+        in_field = is_in_a_field(in_field);
+        if (!takes_heading(&headings) || field_line_is_too_long(in_field)) {
             test_note(line.text);
             return false;
         }
     }
-    return (headings == listed) && (headings <= TEST_LIMIT);
+    return counts_agree(headings, listed);
 }
 
 static int count_cases(const wchar_t *path)
@@ -266,6 +312,9 @@ bool tests_document_counts_every_test(void)
     int documented = 0;
     int step;
     int defined = count_cases(L"tests/functional/functional_suite.c") +
+                  count_cases(L"tests/suites/build_suite.c") + count_cases(L"tests/suites/mod_suite.c") +
+                  count_cases(L"tests/suites/core_suite.c") + count_cases(L"tests/suites/model_suite.c") +
+                  count_cases(L"tests/suites/shell_suite.c") +
                   count_cases(L"tests/accessibility/accessibility_suite.c") +
                   count_cases(L"tests/maintainability/maintainability_suite.c");
 

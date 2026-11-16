@@ -1,0 +1,30 @@
+#ifndef DIALOG_TESTS_H
+#define DIALOG_TESTS_H
+
+#include <stdbool.h>
+
+bool test_a_new_civ_is_saved_as_civbuilder_civ_by_default(void);
+bool test_a_named_civ_is_saved_under_its_name(void);
+bool test_a_save_that_is_cancelled_says_that_the_civ_was_not_saved(void);
+bool test_a_saved_civ_is_opened_again(void);
+bool test_a_file_that_is_no_civ_file_is_refused_with_a_message(void);
+bool test_the_glossary_is_shown_with_its_words(void);
+bool test_the_next_button_goes_to_the_next_step(void);
+bool test_a_filter_empties_a_list_that_holds_no_such_text(void);
+bool test_a_typed_name_is_shown_in_the_title_of_the_window(void);
+bool test_a_category_narrows_the_list_of_civ_bonuses(void);
+bool test_redo_says_when_there_is_nothing_to_redo(void);
+bool test_closing_is_stopped_when_the_question_of_saving_is_cancelled(void);
+bool test_closing_without_saving_closes_the_window(void);
+bool test_the_exit_command_closes_a_window_without_changes(void);
+bool test_build_is_refused_when_the_game_is_not_found(void);
+bool test_build_writes_nothing_when_the_question_is_not_confirmed(void);
+bool test_build_of_an_unfinished_civ_says_that_it_is_not_finished(void);
+bool test_build_from_the_window_reports_the_mod_it_built(void);
+bool test_the_help_line_is_written_in_the_muted_colour(void);
+bool test_a_field_is_written_on_the_colour_of_fields(void);
+bool test_a_row_in_focus_is_drawn_with_a_frame_in_the_focus_colour(void);
+bool test_picking_the_picked_row_again_makes_no_new_change(void);
+bool test_the_program_ends_with_the_code_of_the_message_that_ends_it(void);
+
+#endif

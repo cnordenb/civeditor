@@ -9,37 +9,43 @@ typedef struct {
     int count;
 } TechPlan;
 
-enum { KEPT_CAPACITY = 512, UNIQUE_PASSES = 2, SWAP_PASS = 1, UNIT_FORMS = 2 };
+enum { UNIT_FORMS = 2 };
 
 static TechPlan plan;
-static DatChange kept[KEPT_CAPACITY];
 
-bool recipe_read_tech(const RecipeInput *input, int id, DatTech *tech)
+static size_t place_in(const size_t *places, int count, int capacity, int id)
+{
+    if (!CHECK(places != NULL) || !CHECK(count <= capacity)) {
+        return 0U;
+    }
+    return (id < count) ? places[id] : 0U;
+}
+
+static size_t place_of(const RecipeInput *input, bool tech, int id)
 {
     const DatMap *map;
 
-    if (!CHECK(input != NULL) || !CHECK(tech != NULL)) {
-        return false;
+    if (!CHECK(input != NULL) || !CHECK(input->map != NULL) || (id < 0) || !CHECK(input->dat != NULL)) {
+        return 0U;
     }
     map = input->map;
-    if ((id < 0) || (id >= map->tech_count) || (id >= DAT_TECH_CAPACITY)) {
-        return false;
-    }
-    return dat_tech_read(input->dat, map->tech_at[id], tech);
+    return tech ? place_in(map->tech_at, map->tech_count, DAT_TECH_CAPACITY, id)
+                : place_in(map->effect_at, map->effect_count, DAT_EFFECT_CAPACITY, id);
+}
+
+bool recipe_read_tech(const RecipeInput *input, int id, DatTech *tech)
+{
+    size_t at = place_of(input, true, id);
+
+    return CHECK(tech != NULL) && (at != 0U) && dat_tech_read(input->dat, at, tech);
 }
 
 bool recipe_read_effect(const RecipeInput *input, int id, DatEffect *effect)
 {
-    const DatMap *map;
-
-    if (!CHECK(input != NULL) || !CHECK(effect != NULL)) {
+    if (!CHECK(effect != NULL) || (place_of(input, false, id) == 0U)) {
         return false;
     }
-    map = input->map;
-    if ((id < 0) || (id >= map->effect_count) || (id >= DAT_EFFECT_CAPACITY)) {
-        return false;
-    }
-    return dat_effect_read(input->dat, map->effect_at[id], effect);
+    return dat_effect_read(input->dat, place_of(input, false, id), effect);
 }
 
 RecipeChange recipe_change_at(const RecipeInput *input, const DatEffect *effect, int index)
@@ -156,6 +162,9 @@ bool recipe_plan_tech(const RecipeInput *input, int tech_id)
     for (position = first; fine && (position < plan.count) && (position < RECIPE_COPY_CAPACITY); ++position) {
         fine = plan_requirements(input, position);
     }
+    if (!fine) {
+        plan.count = first;
+    }
     return fine;
 }
 
@@ -169,7 +178,7 @@ static int remapped(int tech_id)
     return plan.to[found];
 }
 
-static void remap_change(DatChange *change)
+void recipe_remap_change(DatChange *change)
 {
     int tech_id;
 
@@ -184,86 +193,38 @@ static void remap_change(DatChange *change)
     }
 }
 
+bool recipe_copy_changes(const RecipeInput *input, DatEdit *edit, const DatEffect *effect, bool remap)
+{
+    RecipeChange found;
+    int index;
+    bool fine = true;
+
+    if (!CHECK(input != NULL) || !CHECK(effect != NULL)) {
+        return false;
+    }
+    for (index = 0; fine && (index < effect->change_count) && (index < RECIPE_CHANGE_LIMIT); ++index) {
+        found = recipe_change_at(input, effect, index);
+        if (remap) {
+            recipe_remap_change(&found.change);
+        }
+        fine = found.read && dat_edit_add_change(edit, &found.change);
+    }
+    return fine;
+}
+
 int recipe_copy_effect(const RecipeInput *input, DatEdit *edit, int effect_id)
 {
     DatEffect effect;
-    RecipeChange found;
     int added;
-    int index;
-    bool fine = true;
 
     if (!CHECK(input != NULL) || !CHECK(edit != NULL) || !recipe_read_effect(input, effect_id, &effect)) {
         return DAT_NO_ID;
     }
     added = dat_edit_add_effect(edit, effect.name);
-    for (index = 0; fine && (index < effect.change_count) && (index < RECIPE_CHANGE_LIMIT); ++index) {
-        found = recipe_change_at(input, &effect, index);
-        remap_change(&found.change);
-        fine = found.read && dat_edit_add_change(edit, &found.change);
-    }
-    return (fine && (added != DAT_NO_ID)) ? added : DAT_NO_ID;
+    return recipe_copy_changes(input, edit, &effect, true) ? added : DAT_NO_ID;
 }
 
-static bool already_kept(const DatChange *change, int kept_count)
-{
-    int index;
-
-    if (!CHECK(change != NULL) || !CHECK(kept_count <= KEPT_CAPACITY)) {
-        return false;
-    }
-    for (index = 0; (index < kept_count) && (index < KEPT_CAPACITY); ++index) {
-        if (unique_same_target(&kept[index], change)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-static bool add_unique_change(DatEdit *edit, const DatChange *change, int *kept_count)
-{
-    if (!CHECK(change != NULL) || !CHECK(kept_count != NULL)) {
-        return false;
-    }
-    if (*kept_count < KEPT_CAPACITY) {
-        kept[*kept_count] = *change;
-        ++*kept_count;
-    }
-    return dat_edit_add_change(edit, change);
-}
-
-int recipe_copy_unique_effect(const RecipeInput *input, DatEdit *edit, const RecipeUniqueCopy *copy)
-{
-    DatEffect effect;
-    RecipeChange found;
-    UniqueAim aim;
-    int kept_count = 0;
-    int added;
-    int pass;
-    int index;
-    bool fine = true;
-
-    if (!CHECK(input != NULL) || !CHECK(copy != NULL) || !recipe_read_effect(input, copy->effect_id, &effect)) {
-        return DAT_NO_ID;
-    }
-    added = dat_edit_add_effect(edit, effect.name);
-    for (pass = 0; fine && (pass < UNIQUE_PASSES); ++pass) {
-        for (index = 0; fine && (index < effect.change_count) && (index < RECIPE_CHANGE_LIMIT); ++index) {
-            found = recipe_change_at(input, &effect, index);
-            remap_change(&found.change);
-            aim = unique_aim(&copy->swap, &found.change);
-            fine = found.read;
-            if (fine && (pass != SWAP_PASS) && (aim == UNIQUE_KEEP)) {
-                fine = add_unique_change(edit, &found.change, &kept_count);
-            } else if (fine && (pass == SWAP_PASS) && (aim == UNIQUE_SWAP) &&
-                       !already_kept(&found.change, kept_count)) {
-                fine = add_unique_change(edit, &found.change, &kept_count);
-            }
-        }
-    }
-    return (fine && (added != DAT_NO_ID)) ? added : DAT_NO_ID;
-}
-
-static const UnitEntry *design_unit(const RecipeInput *input)
+const UnitEntry *recipe_design_unit(const RecipeInput *input)
 {
     const CivDesign *design;
     const Catalog *catalog;
@@ -275,38 +236,34 @@ static const UnitEntry *design_unit(const RecipeInput *input)
     design = input->design;
     catalog = input->catalog;
     found = (design->unique_unit.origin == UNIT_ORIGIN_VANILLA)
-                ? catalog_find_unit(catalog, UNIT_ROLE_VANILLA, design->unique_unit.id)
+                ? catalog_find(catalog, CATALOG_UNITS, UNIT_ROLE_VANILLA, design->unique_unit.id)
                 : CATALOG_MISSING;
     return (found == CATALOG_MISSING) ? NULL : &catalog->units[found];
-}
-
-static UniqueSource source_of(const RecipeInput *input)
-{
-    UniqueSource source = { NULL, NULL, NULL };
-
-    if (!CHECK(input != NULL) || !CHECK(input->map != NULL)) {
-        return source;
-    }
-    source.dat = input->dat;
-    source.map = input->map;
-    source.catalog = input->catalog;
-    return source;
 }
 
 UniqueSwap recipe_unique_swap(const RecipeInput *input, int source_civ)
 {
     UniqueSwap swap = { { DAT_NO_ID, DAT_NO_ID }, { DAT_NO_ID, DAT_NO_ID } };
-    const UnitEntry *own = design_unit(input);
-    UniqueSource source = source_of(input);
+    const UnitEntry *own = recipe_design_unit(input);
 
-    if (!CHECK(input != NULL) || !CHECK(source.catalog != NULL)) {
+    if (!CHECK(input != NULL) || !CHECK(input->catalog != NULL)) {
         return swap;
     }
-    swap.from = unique_unit_of_civ(&source, source_civ);
+    swap.from = unique_unit_of_civ(input, source_civ);
     if (own != NULL) {
-        swap.to = unique_unit_of_techs(&source, own->make_tech, own->elite_tech);
+        swap.to = unique_unit_of_techs(input, own->make_tech, own->elite_tech);
     }
     return swap;
+}
+
+static bool name_unit_at(DatEdit *edit, size_t at, int sid)
+{
+    if (!CHECK(edit != NULL) || !CHECK(sid > 0)) {
+        return false;
+    }
+    return dat_edit_patch_i32(edit, at + DAT_UNIT_NAME_AT, sid) &&
+           dat_edit_patch_i32(edit, at + DAT_UNIT_CREATION_AT, sid + MOD_LABEL_OFFSET) &&
+           dat_edit_patch_i32(edit, at + DAT_UNIT_HELP_AT, sid + MOD_HELP_OFFSET);
 }
 
 static bool name_units(const RecipeInput *input, DatEdit *edit, UniqueUnit unit)
@@ -319,19 +276,14 @@ static bool name_units(const RecipeInput *input, DatEdit *edit, UniqueUnit unit)
     int sid;
     bool fine = true;
 
-    if (!CHECK(input != NULL) || !CHECK(edit != NULL)) {
+    if (!CHECK(input != NULL) || !CHECK(edit != NULL) || !dat_map_has_civ(input->map, input->slot)) {
         return false;
     }
     map = input->map;
-    if (!CHECK((input->slot >= 0) && (input->slot < map->civ_count) && (input->slot < DAT_CIV_CAPACITY))) {
-        return false;
-    }
     for (form = 0; fine && (form < UNIT_FORMS); ++form) {
         sid = catalog_string_id(input->catalog, input->slot, KINDS[form]);
         if ((sid != CATALOG_MISSING) && dat_find_unit(input->dat, map->civ_at[input->slot], units[form], &at)) {
-            fine = dat_edit_patch_i32(edit, at + DAT_UNIT_NAME_AT, sid) &&
-                   dat_edit_patch_i32(edit, at + DAT_UNIT_CREATION_AT, sid + MOD_LABEL_OFFSET) &&
-                   dat_edit_patch_i32(edit, at + DAT_UNIT_HELP_AT, sid + MOD_HELP_OFFSET);
+            fine = name_unit_at(edit, at, sid);
         }
     }
     return fine;
@@ -339,8 +291,7 @@ static bool name_units(const RecipeInput *input, DatEdit *edit, UniqueUnit unit)
 
 bool recipe_name_unique_unit(const RecipeInput *input, DatEdit *edit)
 {
-    const UnitEntry *own = design_unit(input);
-    UniqueSource source = source_of(input);
+    const UnitEntry *own = recipe_design_unit(input);
 
     if (!CHECK(input != NULL) || !CHECK(edit != NULL)) {
         return false;
@@ -348,20 +299,19 @@ bool recipe_name_unique_unit(const RecipeInput *input, DatEdit *edit)
     if ((own == NULL) || !mod_unit_has_own_texts(input->design)) {
         return true;
     }
-    return name_units(input, edit, unique_unit_of_techs(&source, own->make_tech, own->elite_tech));
+    return name_units(input, edit, unique_unit_of_techs(input, own->make_tech, own->elite_tech));
 }
 
 RecipeUnitIds recipe_unique_unit_ids(const RecipeInput *input)
 {
     RecipeUnitIds ids = { DAT_NO_ID, DAT_NO_ID, DAT_NO_ID };
-    const UnitEntry *own = design_unit(input);
-    UniqueSource source = source_of(input);
+    const UnitEntry *own = recipe_design_unit(input);
     UniqueUnit unit;
 
     if (!CHECK(input != NULL) || (own == NULL) || (plan_index(own->make_tech) < 0)) {
         return ids;
     }
-    unit = unique_unit_of_techs(&source, own->make_tech, own->elite_tech);
+    unit = unique_unit_of_techs(input, own->make_tech, own->elite_tech);
     ids.unit = unit.base;
     ids.elite_unit = unit.elite;
     ids.elite_tech = (plan_index(own->elite_tech) < 0) ? DAT_NO_ID : remapped(own->elite_tech);
@@ -370,7 +320,7 @@ RecipeUnitIds recipe_unique_unit_ids(const RecipeInput *input)
 
 static void name_elite_tech(const RecipeInput *input, int tech_id, DatTech *copy)
 {
-    const UnitEntry *own = design_unit(input);
+    const UnitEntry *own = recipe_design_unit(input);
     int sid;
 
     if (!CHECK(input != NULL) || !CHECK(copy != NULL) || (own == NULL) || (own->elite_tech != tech_id) ||

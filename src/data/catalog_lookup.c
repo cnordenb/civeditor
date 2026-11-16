@@ -2,19 +2,76 @@
 
 #include "../core/check.h"
 
-const char *catalog_appearance_name(const Catalog *catalog, AppearanceKind kind, int id)
+typedef struct {
+    int kind;
+    int id;
+} CatalogKey;
+
+static const int TABLE_CAPACITIES[CATALOG_TABLE_COUNT] = { CATALOG_UNIT_CAPACITY, CATALOG_TECH_CAPACITY,
+                                                           CATALOG_TREE_CAPACITY, CATALOG_APPEARANCE_CAPACITY,
+                                                           CATALOG_BASE_CAPACITY };
+
+static CatalogKey key_at(const Catalog *catalog, CatalogTable table, int index)
 {
+    CatalogKey key = { 0, CATALOG_MISSING };
+
+    if (!CHECK(catalog != NULL) || !CHECK(index >= 0) ||
+        !CHECK(table < CATALOG_TABLE_COUNT)) {
+        return key;
+    }
+    if (table == CATALOG_UNITS) {
+        key = (CatalogKey){ (int)catalog->units[index].role, catalog->units[index].id };
+    } else if (table == CATALOG_TECHS) {
+        key = (CatalogKey){ (int)catalog->techs[index].tier, catalog->techs[index].id };
+    } else if (table == CATALOG_TREE) {
+        key = (CatalogKey){ (int)catalog->tree[index].kind, catalog->tree[index].id };
+    } else if (table == CATALOG_APPEARANCES) {
+        key = (CatalogKey){ (int)catalog->appearance[index].kind, catalog->appearance[index].id };
+    } else {
+        key.id = catalog->bases[index].id;
+    }
+    return key;
+}
+
+static int table_count(const Catalog *catalog, CatalogTable table)
+{
+    int counts[CATALOG_TABLE_COUNT] = { 0, 0, 0, 0, 0 };
+
+    if (!CHECK(catalog != NULL) || !CHECK(table < CATALOG_TABLE_COUNT)) {
+        return 0;
+    }
+    counts[CATALOG_UNITS] = catalog->unit_count;
+    counts[CATALOG_TECHS] = catalog->tech_count;
+    counts[CATALOG_TREE] = catalog->tree_count;
+    counts[CATALOG_APPEARANCES] = catalog->appearance_count;
+    counts[CATALOG_BASES] = catalog->base_count;
+    return counts[table];
+}
+
+int catalog_find(const Catalog *catalog, CatalogTable table, int kind, int id)
+{
+    int count = table_count(catalog, table);
+    CatalogKey key;
     int index;
 
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->appearance_count <= CATALOG_APPEARANCE_CAPACITY)) {
-        return "";
+    if (!CHECK(catalog != NULL) || !CHECK(count <= TABLE_CAPACITIES[table]) ||
+        !CHECK(table < CATALOG_TABLE_COUNT)) {
+        return CATALOG_MISSING;
     }
-    for (index = 0; (index < catalog->appearance_count) && (index < CATALOG_APPEARANCE_CAPACITY); ++index) {
-        if ((catalog->appearance[index].kind == kind) && (catalog->appearance[index].id == id)) {
-            return catalog->appearance[index].name;
+    for (index = 0; (index < count) && (index < TABLE_CAPACITIES[table]); ++index) {
+        key = key_at(catalog, table, index);
+        if ((key.kind == kind) && (key.id == id)) {
+            return index;
         }
     }
-    return "";
+    return CATALOG_MISSING;
+}
+
+const char *catalog_appearance_name(const Catalog *catalog, AppearanceKind kind, int id)
+{
+    int found = catalog_find(catalog, CATALOG_APPEARANCES, (int)kind, id);
+
+    return (found == CATALOG_MISSING) ? "" : catalog->appearance[found].name;
 }
 
 int catalog_string_id(const Catalog *catalog, int slot, CivString kind)
@@ -71,62 +128,7 @@ int catalog_find_bonus(const Catalog *catalog, bool team, int bonus_id)
     return CATALOG_MISSING;
 }
 
-int catalog_find_unit(const Catalog *catalog, UnitRole role, int unit_id)
-{
-    int index;
-
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->unit_count <= CATALOG_UNIT_CAPACITY)) {
-        return CATALOG_MISSING;
-    }
-    for (index = 0; (index < catalog->unit_count) && (index < CATALOG_UNIT_CAPACITY); ++index) {
-        if ((catalog->units[index].role == role) && (catalog->units[index].id == unit_id)) {
-            return index;
-        }
-    }
-    return CATALOG_MISSING;
-}
-
-int catalog_find_tech(const Catalog *catalog, TechTier tier, int tech_id)
-{
-    int index;
-
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->tech_count <= CATALOG_TECH_CAPACITY)) {
-        return CATALOG_MISSING;
-    }
-    for (index = 0; (index < catalog->tech_count) && (index < CATALOG_TECH_CAPACITY); ++index) {
-        if ((catalog->techs[index].tier == tier) && (catalog->techs[index].id == tech_id)) {
-            return index;
-        }
-    }
-    return CATALOG_MISSING;
-}
-
-int catalog_find_tree(const Catalog *catalog, TreeKind kind, int node_id)
-{
-    int index;
-
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->tree_count <= CATALOG_TREE_CAPACITY)) {
-        return CATALOG_MISSING;
-    }
-    for (index = 0; (index < catalog->tree_count) && (index < CATALOG_TREE_CAPACITY); ++index) {
-        if ((catalog->tree[index].kind == kind) && (catalog->tree[index].id == node_id)) {
-            return index;
-        }
-    }
-    return CATALOG_MISSING;
-}
-
 int catalog_find_base(const Catalog *catalog, int base_id)
 {
-    int index;
-
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->base_count <= CATALOG_BASE_CAPACITY)) {
-        return CATALOG_MISSING;
-    }
-    for (index = 0; (index < catalog->base_count) && (index < CATALOG_BASE_CAPACITY); ++index) {
-        if (catalog->bases[index].id == base_id) {
-            return index;
-        }
-    }
-    return CATALOG_MISSING;
+    return catalog_find(catalog, CATALOG_BASES, 0, base_id);
 }

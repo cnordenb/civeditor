@@ -106,25 +106,31 @@ enum { CASTLE_TECH = 11, CASTLE_TECH_SID = 44008 };
 
 static const char CASTLE_TECH_LINE[] = "\n44008 \"Testing Axes\"\n";
 
-bool test_a_unique_techs_name_is_written_under_its_slots_string_id(void)
+static bool written_under(CivString kind, int sid, const char *line)
 {
-    ModCiv civ = named_civ();
+    ModCiv civ = { &design, &catalog, BRITONS_SLOT, BRITONS_NAME_ID, false };
     bool written;
 
     catalog.appearance[0].kind = APPEARANCE_CIV;
     catalog.appearance[0].id = BRITONS_SLOT;
-    catalog.appearance[0].string_ids[CIV_STRING_CASTLE_TECH] = CASTLE_TECH_SID;
     catalog.appearance[0].string_ids[CIV_STRING_IMPERIAL_TECH] = CATALOG_MISSING;
+    catalog.appearance[0].string_ids[kind] = sid;
     catalog.appearance_count = 1;
+    written = CHECK(mod_strings_write(&strings, &civ, VANILLA)) && (strstr(strings.text, line) != NULL);
+    catalog.appearance_count = 0;
+    catalog.tech_count = 0;
+    return written;
+}
+
+bool test_a_unique_techs_name_is_written_under_its_slots_string_id(void)
+{
+    (void)named_civ();
     catalog.techs[0].tier = TECH_TIER_CASTLE;
     catalog.techs[0].id = CASTLE_TECH;
     catalog.tech_count = 1;
     (void)CHECK(civ_design_pick_tech(&design, TECH_TIER_CASTLE, CASTLE_TECH));
     (void)CHECK(civ_design_set_text(&design, TEXT_FIELD_CASTLE_TECH_NAME, "Testing Axes"));
-    written = CHECK(mod_strings_write(&strings, &civ, VANILLA)) && (strstr(strings.text, CASTLE_TECH_LINE) != NULL);
-    catalog.appearance_count = 0;
-    catalog.tech_count = 0;
-    return written;
+    return written_under(CIV_STRING_CASTLE_TECH, CASTLE_TECH_SID, CASTLE_TECH_LINE);
 }
 
 enum { UNIT_SID = 69802 };
@@ -133,18 +139,10 @@ static const char UNIT_LINE[] = "\n69802 \"Testbowman\"\n";
 
 bool test_a_unique_units_name_is_written_under_the_string_id_of_its_slot(void)
 {
-    ModCiv civ = named_civ();
-    bool written;
-
-    catalog.appearance[0].kind = APPEARANCE_CIV;
-    catalog.appearance[0].id = BRITONS_SLOT;
-    catalog.appearance[0].string_ids[CIV_STRING_UNIT] = UNIT_SID;
-    catalog.appearance_count = 1;
+    (void)named_civ();
     (void)CHECK(civ_design_pick_unit(&design, UNIT_ORIGIN_VANILLA, 0));
     (void)CHECK(civ_design_set_text(&design, TEXT_FIELD_UNIT_NAME, "Testbowman"));
-    written = CHECK(mod_strings_write(&strings, &civ, VANILLA)) && (strstr(strings.text, UNIT_LINE) != NULL);
-    catalog.appearance_count = 0;
-    return written;
+    return written_under(CIV_STRING_UNIT, UNIT_SID, UNIT_LINE);
 }
 
 enum { LIU_BEI = 1966, HERO_SID = 44500 };
@@ -204,12 +202,13 @@ static bool list_written_as(const char *list, const CivListEntry *entry, const c
     return parsed(list) && CHECK(civ_list_write(&civ_list, entry, &written_list)) && written_is(expected);
 }
 
+static const CivListEntry OWN_UNIT_ENTRY = { LIST_SLOT,     LONGBOWMAN,    CIV_LIST_KEEP, CIV_LIST_KEEP,
+                                             CIV_LIST_KEEP, false,         CIV_LIST_KEEP, CIV_LIST_KEEP,
+                                             CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP };
+
 bool test_the_civ_list_names_the_civs_own_unique_unit(void)
 {
-    CivListEntry entry = { LIST_SLOT, LONGBOWMAN, CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP, false, CIV_LIST_KEEP,
-                           CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP };
-
-    return list_written_as(CIV_LIST, &entry, TWO_LONGBOWMEN);
+    return list_written_as(CIV_LIST, &OWN_UNIT_ENTRY, TWO_LONGBOWMEN);
 }
 
 enum { UNLISTED_UNIT = 9, UNLISTED_ICON = 7, UNLISTED_NAME = 5200, UNLISTED_DESCRIPTION = 26200 };
@@ -221,12 +220,13 @@ static const char UNLISTED_UNIT_SHOWN[] = "{\"civilization_list\":[{},{\"unique_
                                           "\"unique_unit_image_paths\":[\"/resources/uniticons/007_50730.png\"],"
                                           "\"unique_unit_string_ids\":[{\"name\":5200,\"description\":26200}]}]}";
 
+static const CivListEntry UNLISTED_ENTRY = { LIST_SLOT,     UNLISTED_UNIT, CIV_LIST_KEEP, CIV_LIST_KEEP,
+                                             UNLISTED_ICON, false,         UNLISTED_NAME, UNLISTED_DESCRIPTION,
+                                             CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP };
+
 bool test_a_unique_unit_missing_from_the_civ_list_takes_its_own_icon_and_texts(void)
 {
-    CivListEntry entry = { LIST_SLOT, UNLISTED_UNIT, CIV_LIST_KEEP, CIV_LIST_KEEP, UNLISTED_ICON, false, UNLISTED_NAME,
-                           UNLISTED_DESCRIPTION, CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP };
-
-    return list_written_as(LIST_WITH_TEXTS, &entry, UNLISTED_UNIT_SHOWN);
+    return list_written_as(LIST_WITH_TEXTS, &UNLISTED_ENTRY, UNLISTED_UNIT_SHOWN);
 }
 
 enum { OWN_DESCRIPTION_SID = 990101 };
@@ -234,12 +234,13 @@ enum { OWN_DESCRIPTION_SID = 990101 };
 static const char DESCRIBED_LIST[] = "{\"civilization_list\":[{},{\"tech_tree_description_string_id\":120150}]}";
 static const char OWN_DESCRIPTION[] = "{\"civilization_list\":[{},{\"tech_tree_description_string_id\":990101}]}";
 
+static const CivListEntry DESCRIBED_ENTRY = { LIST_SLOT,     CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP,
+                                              CIV_LIST_KEEP, false,         CIV_LIST_KEEP, CIV_LIST_KEEP,
+                                              CIV_LIST_KEEP, CIV_LIST_KEEP, OWN_DESCRIPTION_SID };
+
 bool test_the_civ_list_points_at_the_civs_own_description(void)
 {
-    CivListEntry entry = { LIST_SLOT,     CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP,      false,
-                           CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP, OWN_DESCRIPTION_SID };
-
-    return list_written_as(DESCRIBED_LIST, &entry, OWN_DESCRIPTION);
+    return list_written_as(DESCRIBED_LIST, &DESCRIBED_ENTRY, OWN_DESCRIPTION);
 }
 
 enum { STABLE = 101, KEEP = 235, BARRACKS_NODE = 12, VILLAGER = 83, NOTHING_TICKED = -1 };

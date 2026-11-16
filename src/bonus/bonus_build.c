@@ -11,6 +11,12 @@ enum { NOWHERE = -1, NO_STRING = -1, NO_HOT_KEY = -1, NO_RESOURCE = -1, REPEATAB
 static const char BONUS_NAME[] = "C-Bonus EC-list";
 static const int FIELD_WIDTHS[UNIT_FIELD_TYPE_COUNT] = { DAT_BYTE_WIDTH, DAT_SHORT_WIDTH, DAT_LONG_WIDTH };
 
+typedef struct {
+    const BonusChange *first;
+    int effect_id;
+    int made;
+} BonusGroups;
+
 static DatChange change_of(const BonusChange *line)
 {
     DatChange change = { 0, 0, 0, 0, 0.0F };
@@ -67,31 +73,40 @@ static bool add_bonus_tech(const BonusBuild *build, const BonusChange *first, in
     return dat_edit_add_tech(build->target.edit, &tech) != DAT_NO_ID;
 }
 
+static bool patch_field(DatEdit *edit, size_t at, const UnitPatch *patch)
+{
+    if (!CHECK(edit != NULL) || !CHECK(patch != NULL)) {
+        return false;
+    }
+    if (patch->type == UNIT_FIELD_U8) {
+        return dat_edit_patch_u8(edit, at, (int)patch->value);
+    }
+    if (patch->type == UNIT_FIELD_I16) {
+        return dat_edit_patch_i16(edit, at, (int)patch->value);
+    }
+    return dat_edit_patch_f32(edit, at, patch->value);
+}
+
+static bool patch_fits(const UnitPatch *patch)
+{
+    return CHECK((int)patch->type >= 0) && CHECK((int)patch->type < (int)UNIT_FIELD_TYPE_COUNT) &&
+           CHECK(patch->offset >= 0) && CHECK(patch->offset + FIELD_WIDTHS[patch->type] <= DAT_UNIT_FIXED_SIZE);
+}
+
 static bool patch_unit(const DatTarget *target, const UnitPatch *patch)
 {
     const DatMap *map;
     size_t at = 0U;
 
-    if (!CHECK(target != NULL) || !CHECK(patch != NULL) || !CHECK(target->map != NULL) ||
-        !CHECK(((int)patch->type >= 0) && ((int)patch->type < (int)UNIT_FIELD_TYPE_COUNT)) ||
-        !CHECK((patch->offset >= 0) && (patch->offset + FIELD_WIDTHS[patch->type] <= DAT_UNIT_FIXED_SIZE))) {
+    if (!CHECK(target != NULL) || !CHECK(patch != NULL) || !patch_fits(patch) ||
+        !dat_map_has_civ(target->map, target->civ)) {
         return false;
     }
     map = target->map;
-    if (!CHECK((target->civ >= 0) && (target->civ < map->civ_count) && (target->civ < DAT_CIV_CAPACITY))) {
-        return false;
-    }
     if (!dat_find_unit(target->dat, map->civ_at[target->civ], patch->unit, &at)) {
         return true;
     }
-    at += (size_t)patch->offset;
-    if (patch->type == UNIT_FIELD_U8) {
-        return dat_edit_patch_u8(target->edit, at, (int)patch->value);
-    }
-    if (patch->type == UNIT_FIELD_I16) {
-        return dat_edit_patch_i16(target->edit, at, (int)patch->value);
-    }
-    return dat_edit_patch_f32(target->edit, at, patch->value);
+    return patch_field(target->edit, at + (size_t)patch->offset, patch);
 }
 
 static int patch_units(const BonusBuild *build, int bonus_id)
@@ -116,42 +131,71 @@ static int patch_units(const BonusBuild *build, int bonus_id)
     return fine ? patched : BONUS_BUILD_FAILED;
 }
 
-int bonus_build_civ(const BonusBuild *build, int bonus_id)
+static bool close_group(const BonusBuild *build, BonusGroups *groups)
 {
-    const BonusChange *first = NULL;
+    if (!CHECK(build != NULL) || !CHECK(groups != NULL)) {
+        return false;
+    }
+    if (groups->first == NULL) {
+        return true;
+    }
+    ++groups->made;
+    return add_bonus_tech(build, groups->first, groups->effect_id);
+}
+
+static bool take_line(const BonusBuild *build, BonusGroups *groups, const BonusChange *line)
+{
+    const BonusChange *first;
+    DatChange change = change_of(line);
+
+    if (!CHECK(build != NULL) || !CHECK(groups != NULL)) {
+        return false;
+    }
+    first = groups->first;
+    if ((first == NULL) || (line->entry != first->entry)) {
+        if (!close_group(build, groups)) {
+            return false;
+        }
+        groups->first = line;
+        groups->effect_id = dat_edit_add_effect(build->target.edit, BONUS_NAME);
+    }
+    return (groups->effect_id != DAT_NO_ID) && dat_edit_add_change(build->target.edit, &change);
+}
+
+static bool take_lines(const BonusBuild *build, BonusGroups *groups, int bonus_id)
+{
     const BonusChange *line;
     const Catalog *catalog;
-    DatChange change;
-    int effect_id = DAT_NO_ID;
-    int made = 0;
-    int patched;
     int index;
     bool fine = true;
 
-    if (!CHECK(build != NULL) || !CHECK(build->catalog != NULL)) {
-        return BONUS_BUILD_FAILED;
+    if (!CHECK(build != NULL) || !CHECK(groups != NULL) ||
+        !CHECK(build->catalog != NULL)) {
+        return false;
     }
     catalog = build->catalog;
     for (index = 0; fine && (index < catalog->bonus_change_count) && (index < CATALOG_BONUS_CHANGE_CAPACITY); ++index) {
         line = &catalog->bonus_changes[index];
-        if (line->team || (line->bonus_id != bonus_id)) {
-            continue;
+        if (!line->team && (line->bonus_id == bonus_id)) {
+            fine = take_line(build, groups, line);
         }
-        if ((first == NULL) || (line->entry != first->entry)) {
-            fine = (first == NULL) || add_bonus_tech(build, first, effect_id);
-            made += (first == NULL) ? 0 : 1;
-            first = line;
-            effect_id = fine ? dat_edit_add_effect(build->target.edit, BONUS_NAME) : DAT_NO_ID;
-        }
-        change = change_of(line);
-        fine = (effect_id != DAT_NO_ID) && dat_edit_add_change(build->target.edit, &change);
     }
-    if (fine && (first != NULL)) {
-        fine = add_bonus_tech(build, first, effect_id);
-        ++made;
+    return fine;
+}
+
+int bonus_build_civ(const BonusBuild *build, int bonus_id)
+{
+    BonusGroups groups = { NULL, DAT_NO_ID, 0 };
+    int patched;
+
+    if (!CHECK(build != NULL) || !CHECK(build->catalog != NULL)) {
+        return BONUS_BUILD_FAILED;
     }
-    patched = fine ? patch_units(build, bonus_id) : BONUS_BUILD_FAILED;
-    return (patched == BONUS_BUILD_FAILED) ? BONUS_BUILD_FAILED : made + patched;
+    if (!take_lines(build, &groups, bonus_id) || !close_group(build, &groups)) {
+        return BONUS_BUILD_FAILED;
+    }
+    patched = patch_units(build, bonus_id);
+    return (patched == BONUS_BUILD_FAILED) ? BONUS_BUILD_FAILED : groups.made + patched;
 }
 
 int bonus_build_team(const BonusBuild *build, int team_bonus_id)

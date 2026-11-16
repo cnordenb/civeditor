@@ -1,0 +1,16 @@
+#ifndef CATALOG_TESTS_H
+#define CATALOG_TESTS_H
+
+#include <stdbool.h>
+
+bool test_the_catalog_holds_every_civ_bonus_of_its_file(void);
+bool test_the_catalog_holds_every_team_bonus_of_its_file(void);
+bool test_the_catalog_holds_every_unit_of_its_file(void);
+bool test_the_catalog_holds_every_tech_of_its_file(void);
+bool test_the_catalog_holds_every_node_of_its_file(void);
+bool test_the_first_unit_of_the_catalog_has_its_name(void);
+bool test_a_units_speed_is_kept_in_hundredths(void);
+bool test_the_first_unit_of_the_catalog_is_a_unit_of_the_game(void);
+bool test_a_catalog_folder_that_is_missing_is_not_loaded(void);
+
+#endif

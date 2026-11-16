@@ -6,9 +6,14 @@ the Win32 API.
 - Stack: C11, the Win32 API, gcc from MinGW-w64; nothing else (`sitrep&instructions/instructions.md`)
 - Build the build program once: `gcc -o build.exe tools/build/*.c src/core/*.c`
 - Build and run the tests: `build.exe` (with the static analyzer) or `build.exe quick`
-- Measure Rule 32 after a build: `build\crapper.exe` lists every function at CRAP 10 or above (`build\crap.txt`)
-- Measure Rule 31 after a build: `build\dryer.exe` lists every two functions 80% alike or more (`build\dry.txt`)
-- Measure Rule 34 after a build: `build\mutator.exe src/<folder>/` lists the mutants that survive (`build\mutants.txt`)
+- Rules 31, 32 and 34 are measured by ub-mode's dryer, crapper and mutator only, which lie beside the project in
+  `..\dryer`, `..\crapper` and `..\mutator` and read `src/`. Run them from the project's folder.
+- Measure Rule 31: `..\dryer\dryer.cmd --threshold 0.8` lists every two functions 80% alike or more
+  (`.metrics\dry.edn`)
+- Measure Rule 32: `..\crapper\crapper.cmd` scores every function (`.metrics\crap.edn`); it reads coverage from
+  `target\coverage\c\lcov.info`, and `--no-coverage` gives the complexity alone
+- Measure Rule 34: `..\mutator\mutator.cmd --no-coverage --test-command ".\build.exe quick nowindow norules" src/<folder>`
+  lists the mutants that survive (`.metrics\mutate\`); leave `nowindow` out for the folders of the window
 
 ## Read before changing anything
 

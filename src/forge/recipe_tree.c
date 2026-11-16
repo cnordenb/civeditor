@@ -71,30 +71,50 @@ void recipe_sort_changes(RecipeChanges *changes)
     }
 }
 
-bool recipe_find_unlock(const RecipeInput *input, int tech_id, DatChange *unlock)
+static bool civ_tree_effect(const RecipeInput *input, int civ_index, DatEffect *effect)
 {
     const DatMap *map;
     DatCiv civ;
-    DatEffect effect;
+
+    if (!CHECK(input != NULL) || !CHECK(effect != NULL)) {
+        return false;
+    }
+    map = input->map;
+    return dat_civ_read(input->dat, map->civ_at[civ_index], &civ) &&
+           recipe_read_effect(input, civ.tech_tree_id, effect);
+}
+
+static bool unlock_in_effect(const RecipeInput *input, const DatEffect *effect, int tech_id, DatChange *unlock)
+{
     RecipeChange found;
-    int civ_index;
     int index;
+
+    if (!CHECK(input != NULL) || !CHECK(effect != NULL)) {
+        return false;
+    }
+    for (index = 0; (index < effect->change_count) && (index < RECIPE_CHANGE_LIMIT); ++index) {
+        found = recipe_change_at(input, effect, index);
+        if ((found.change.type == RECIPE_UNLOCK_TECH) && (found.change.a == tech_id) && found.read) {
+            *unlock = found.change;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool recipe_find_unlock(const RecipeInput *input, int tech_id, DatChange *unlock)
+{
+    DatEffect effect;
+    const DatMap *map;
+    int civ_index;
 
     if (!CHECK(input != NULL) || !CHECK(unlock != NULL)) {
         return false;
     }
     map = input->map;
     for (civ_index = 1; (civ_index < map->civ_count) && (civ_index < DAT_CIV_CAPACITY); ++civ_index) {
-        if (!dat_civ_read(input->dat, map->civ_at[civ_index], &civ) ||
-            !recipe_read_effect(input, civ.tech_tree_id, &effect)) {
-            continue;
-        }
-        for (index = 0; (index < effect.change_count) && (index < RECIPE_CHANGE_LIMIT); ++index) {
-            found = recipe_change_at(input, &effect, index);
-            if (found.read && (found.change.type == RECIPE_UNLOCK_TECH) && (found.change.a == tech_id)) {
-                *unlock = found.change;
-                return true;
-            }
+        if (civ_tree_effect(input, civ_index, &effect) && unlock_in_effect(input, &effect, tech_id, unlock)) {
+            return true;
         }
     }
     return false;
@@ -123,29 +143,35 @@ static void note_civ_change(const DatChange *change)
     }
 }
 
+static void note_civ_changes(const RecipeInput *input, const DatEffect *effect)
+{
+    RecipeChange found;
+    int index;
+
+    if (!CHECK(input != NULL) || !CHECK(effect != NULL)) {
+        return;
+    }
+    for (index = 0; (index < effect->change_count) && (index < RECIPE_CHANGE_LIMIT); ++index) {
+        found = recipe_change_at(input, effect, index);
+        if (found.read) {
+            note_civ_change(&found.change);
+        }
+    }
+}
+
 static void scan_civ_trees(const RecipeInput *input)
 {
-    const DatMap *map;
-    DatCiv civ;
     DatEffect effect;
-    RecipeChange found;
+    const DatMap *map;
     int civ_index;
-    int index;
 
     if (!CHECK(input != NULL) || !CHECK(input->map != NULL)) {
         return;
     }
     map = input->map;
     for (civ_index = 1; (civ_index < map->civ_count) && (civ_index < DAT_CIV_CAPACITY); ++civ_index) {
-        if (!dat_civ_read(input->dat, map->civ_at[civ_index], &civ) ||
-            !recipe_read_effect(input, civ.tech_tree_id, &effect)) {
-            continue;
-        }
-        for (index = 0; (index < effect.change_count) && (index < RECIPE_CHANGE_LIMIT); ++index) {
-            found = recipe_change_at(input, &effect, index);
-            if (found.read) {
-                note_civ_change(&found.change);
-            }
+        if (civ_tree_effect(input, civ_index, &effect)) {
+            note_civ_changes(input, &effect);
         }
     }
 }
@@ -158,27 +184,33 @@ static bool unit_chosen(const CivDesign *design, int unit)
     return civ_design_tree_keeps(design, TREE_UNITS, unit) || civ_design_tree_keeps(design, TREE_BUILDINGS, unit);
 }
 
+static int changed_unit(const DatChange *change)
+{
+    if (!CHECK(change != NULL) || !CHECK(RECIPE_ENABLE_UNIT != RECIPE_UPGRADE_UNIT)) {
+        return DAT_NO_ID;
+    }
+    if (change->type == RECIPE_UPGRADE_UNIT) {
+        return change->b;
+    }
+    return ((change->type == RECIPE_ENABLE_UNIT) && (change->b != 0)) ? change->a : DAT_NO_ID;
+}
+
+static bool is_in_tree(const Catalog *catalog, int unit)
+{
+    return (catalog_find(catalog, CATALOG_TREE, TREE_UNITS, unit) != CATALOG_MISSING) ||
+           (catalog_find(catalog, CATALOG_TREE, TREE_BUILDINGS, unit) != CATALOG_MISSING);
+}
+
 static void note_unit_change(const RecipeInput *input, int tech_id, const DatChange *change)
 {
-    const Catalog *catalog;
-    int unit = DAT_NO_ID;
+    int unit = changed_unit(change);
 
-    if (!CHECK(input != NULL) || !CHECK(change != NULL)) {
-        return;
-    }
-    catalog = input->catalog;
-    if ((change->type == RECIPE_ENABLE_UNIT) && (change->b != 0)) {
-        unit = change->a;
-    } else if (change->type == RECIPE_UPGRADE_UNIT) {
-        unit = change->b;
-    }
-    if (unit < 0) {
+    if (!CHECK(input != NULL) || !CHECK(change != NULL) || (unit < 0)) {
         return;
     }
     if (unit_chosen(input->design, unit)) {
         mark(kept, tech_id);
-    } else if ((catalog_find_tree(catalog, TREE_UNITS, unit) != CATALOG_MISSING) ||
-               (catalog_find_tree(catalog, TREE_BUILDINGS, unit) != CATALOG_MISSING)) {
+    } else if (is_in_tree(input->catalog, unit)) {
         mark(disableable, tech_id);
     }
 }
@@ -199,30 +231,43 @@ static bool researched_nowhere(const DatTech *tech)
     return true;
 }
 
-static void scan_tech(const RecipeInput *input, int tech_id)
+enum { AGE_COUNT = 3 };
+
+static const int AGES[AGE_COUNT] = { RECIPE_FEUDAL_AGE, RECIPE_CASTLE_AGE, RECIPE_IMPERIAL_AGE };
+
+static bool changes_only_resources(const RecipeInput *input, int tech_id, const DatEffect *effect)
 {
-    DatTech tech;
-    DatEffect effect;
     RecipeChange found;
     bool only_resources = true;
     int index;
 
-    if (!CHECK(input != NULL) || !recipe_read_tech(input, tech_id, &tech)) {
-        return;
+    if (!CHECK(input != NULL) || !CHECK(effect != NULL)) {
+        return false;
     }
-    shielded[tech_id] = (tech.civ >= 0) || (tech_id == RECIPE_FEUDAL_AGE) || (tech_id == RECIPE_CASTLE_AGE) ||
-                        (tech_id == RECIPE_IMPERIAL_AGE);
-    if (shielded[tech_id] || !recipe_read_effect(input, tech.effect_id, &effect)) {
-        return;
-    }
-    for (index = 0; (index < effect.change_count) && (index < RECIPE_CHANGE_LIMIT); ++index) {
-        found = recipe_change_at(input, &effect, index);
+    for (index = 0; (index < effect->change_count) && (index < RECIPE_CHANGE_LIMIT); ++index) {
+        found = recipe_change_at(input, effect, index);
         if (found.read) {
             note_unit_change(input, tech_id, &found.change);
             only_resources = only_resources && (found.change.type == RESOURCE_CHANGE);
         }
     }
-    shielded[tech_id] = only_resources && (effect.change_count > 0) && researched_nowhere(&tech);
+    return only_resources;
+}
+
+static void scan_tech(const RecipeInput *input, int tech_id)
+{
+    DatEffect effect;
+    DatTech tech;
+
+    if (!CHECK(input != NULL) || !recipe_read_tech(input, tech_id, &tech)) {
+        return;
+    }
+    shielded[tech_id] = (tech.civ >= 0) || check_is_among(tech_id, AGES, AGE_COUNT);
+    if (shielded[tech_id] || !recipe_read_effect(input, tech.effect_id, &effect)) {
+        return;
+    }
+    shielded[tech_id] = changes_only_resources(input, tech_id, &effect) && (effect.change_count > 0) &&
+                        researched_nowhere(&tech);
 }
 
 static void mark_catalog_techs(const RecipeInput *input)
@@ -246,6 +291,14 @@ static void mark_catalog_techs(const RecipeInput *input)
     }
 }
 
+static bool is_disabled(int tech_id)
+{
+    if (!CHECK(tech_id >= 0) || !CHECK(tech_id < DAT_TECH_CAPACITY)) {
+        return false;
+    }
+    return disableable[tech_id] && !kept[tech_id] && !shielded[tech_id];
+}
+
 static void emit_changes(int tech_count, RecipeChanges *changes, RecipeReport *report)
 {
     DatChange disable = { RECIPE_DISABLE_TECH, DAT_NO_ID, DAT_NO_ID, DAT_NO_ID, 0.0F };
@@ -258,7 +311,7 @@ static void emit_changes(int tech_count, RecipeChanges *changes, RecipeReport *r
         if (kept[tech_id] && unlockable[tech_id]) {
             recipe_add_change(changes, &unlocks[tech_id]);
         }
-        if (disableable[tech_id] && !kept[tech_id] && !shielded[tech_id]) {
+        if (is_disabled(tech_id)) {
             disable.d = (float)tech_id;
             recipe_add_change(changes, &disable);
             ++report->tree_disabled;

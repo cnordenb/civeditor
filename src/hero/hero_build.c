@@ -52,17 +52,24 @@ static const DatTech ENABLING_TECH = {
 
 static DatUnitList units;
 
+static bool unit_is_listed(int unit_id)
+{
+    if (!CHECK(unit_id >= 0) || !CHECK(units.count <= DAT_UNIT_CAPACITY)) {
+        return false;
+    }
+    return (unit_id < units.count) && (units.at[unit_id] != 0U);
+}
+
 bool hero_find(const DatTarget *target, int unit_id, Hero *hero)
 {
     const DatMap *map;
 
-    if (!CHECK(target != NULL) || !CHECK(hero != NULL) || (unit_id < 0) || (unit_id >= DAT_UNIT_CAPACITY)) {
+    if (!CHECK(target != NULL) || !CHECK(hero != NULL) || (unit_id < 0) ||
+        !dat_map_has_civ(target->map, target->civ)) {
         return false;
     }
     map = target->map;
-    if ((target->civ < 0) || (target->civ >= map->civ_count) || (target->civ >= DAT_CIV_CAPACITY) ||
-        !dat_list_units(target->dat, map->civ_at[target->civ], &units) || (unit_id >= units.count) ||
-        (units.at[unit_id] == 0U)) {
+    if (!dat_list_units(target->dat, map->civ_at[target->civ], &units) || !unit_is_listed(unit_id)) {
         return false;
     }
     hero->id = unit_id;
@@ -151,10 +158,20 @@ static bool put_cost(DatEdit *edit, size_t at, const DatTechCost *cost)
     return dat_edit_patch_sunk(edit, at, &patch, &sink);
 }
 
+static bool train_in_castle(DatEdit *edit, size_t at)
+{
+    if (!CHECK(edit != NULL) || !CHECK(at > 0U) ||
+        !CHECK(at < DAT_UNIT_CAPACITY * DAT_UNIT_CAPACITY)) {
+        return false;
+    }
+    return dat_edit_patch_i16(edit, at, TRAIN_TIME) && dat_edit_patch_i16(edit, at + DAT_TRAIN_BUILDING_AT, CASTLE) &&
+           dat_edit_patch_u8(edit, at + DAT_TRAIN_BUTTON_AT, CASTLE_BUTTON) &&
+           dat_edit_patch_i32(edit, at + DAT_TRAIN_HOT_KEY_AT, CASTLE_HOT_KEY);
+}
+
 static bool train_at_castle(const DatTarget *target, const Hero *hero)
 {
     DatEdit *edit;
-    size_t at;
     int slot;
     bool fine;
 
@@ -165,10 +182,7 @@ static bool train_at_castle(const DatTarget *target, const Hero *hero)
         return true;
     }
     edit = target->edit;
-    at = hero->unit.train_locations_at;
-    fine = dat_edit_patch_i16(edit, at, TRAIN_TIME) && dat_edit_patch_i16(edit, at + DAT_TRAIN_BUILDING_AT, CASTLE) &&
-           dat_edit_patch_u8(edit, at + DAT_TRAIN_BUTTON_AT, CASTLE_BUTTON) &&
-           dat_edit_patch_i32(edit, at + DAT_TRAIN_HOT_KEY_AT, CASTLE_HOT_KEY) &&
+    fine = train_in_castle(edit, hero->unit.train_locations_at) &&
            dat_edit_patch_u8(edit, hero->unit.hero_mode_at, HERO_STATUS);
     for (slot = 0; fine && (slot < DAT_UNIT_COST_SLOTS); ++slot) {
         fine = put_cost(edit, hero->unit.costs_at + ((size_t)slot * DAT_UNIT_COST_SIZE), &HERO_COSTS[slot]);

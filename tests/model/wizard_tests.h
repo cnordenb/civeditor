@@ -1,0 +1,18 @@
+#ifndef WIZARD_TESTS_H
+#define WIZARD_TESTS_H
+
+#include <stdbool.h>
+
+bool test_no_step_of_a_new_design_is_done(void);
+bool test_the_identity_step_is_done_once_the_civ_has_a_name(void);
+bool test_the_tech_tree_step_is_done_once_a_node_is_chosen(void);
+bool test_the_bonuses_step_is_done_once_a_bonus_is_ticked(void);
+bool test_the_team_bonus_step_is_done_once_one_is_picked(void);
+bool test_the_unique_unit_step_is_done_once_a_unit_is_picked(void);
+bool test_the_castle_tech_step_is_done_once_a_tech_is_picked(void);
+bool test_the_imperial_tech_step_is_done_once_a_tech_is_picked(void);
+bool test_the_hero_step_is_done_once_a_hero_is_picked(void);
+bool test_a_pick_finishes_only_its_own_step(void);
+bool test_back_from_the_second_step_goes_to_the_first(void);
+
+#endif

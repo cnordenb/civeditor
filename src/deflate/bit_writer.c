@@ -10,15 +10,12 @@ enum {
 
 void bit_writer_start(BitWriter *writer, unsigned char *bytes, size_t capacity)
 {
+    const BitWriter empty = { bytes, capacity, 0U, 0U, 0, false };
+
     if (!CHECK(writer != NULL) || !CHECK(bytes != NULL)) {
         return;
     }
-    writer->bytes = bytes;
-    writer->capacity = capacity;
-    writer->size = 0U;
-    writer->waiting = 0U;
-    writer->waiting_count = 0;
-    writer->full = false;
+    *writer = empty;
 }
 
 static void flush_bytes(BitWriter *writer)
