@@ -14,12 +14,12 @@ int civ_list_entry(const JsonDocument *list, int slot)
     int civ;
     int index;
 
-    if (!CHECK(list != NULL) || !CHECK((slot >= 0) && (slot < CIV_LIMIT))) {
+    if (!CHECK((slot >= 0) && (slot < CIV_LIMIT))) {
         return JSON_NONE;
     }
     civs = json_member(list, 0, "civilization_list");
     civ = (civs == JSON_NONE) ? JSON_NONE : json_first_child(list, civs);
-    for (index = 0; (index < slot) && (index < CIV_LIMIT) && (civ != JSON_NONE); ++index) {
+    for (index = 0; (index < slot) && (civ != JSON_NONE); ++index) {
         civ = json_next_sibling(list, civs, civ);
     }
     return civ;
@@ -32,9 +32,6 @@ static int entry_with_unit(int unit)
     int civ;
     int index;
 
-    if (!CHECK(document != NULL) || !CHECK(unit >= 0)) {
-        return JSON_NONE;
-    }
     civs = json_member(document, 0, "civilization_list");
     civ = (civs == JSON_NONE) ? JSON_NONE : json_first_child(document, civs);
     for (index = 0; (index < CIV_LIMIT) && (civ != JSON_NONE); ++index) {
@@ -52,7 +49,7 @@ static void set_number(int civ, const char *key, long value)
     char text[VALUE_CAPACITY] = "";
     int token;
 
-    if (!CHECK(document != NULL) || !CHECK(key != NULL) || (civ == JSON_NONE) || (value < 0L)) {
+    if (value < 0L) {
         return;
     }
     token = json_member(document, civ, key);
@@ -68,7 +65,7 @@ static void copy_member(int civ, int source, const char *key)
     int to;
     int found;
 
-    if (!CHECK(document != NULL) || !CHECK(key != NULL) || (civ == JSON_NONE) || (source == JSON_NONE)) {
+    if (source == JSON_NONE) {
         return;
     }
     to = json_member(document, civ, key);
@@ -85,9 +82,6 @@ static void copy_member(int civ, int source, const char *key)
 
 static bool make_string_ids(char *text, size_t capacity, const CivListEntry *entry)
 {
-    if (!CHECK(text != NULL) || !CHECK(entry != NULL)) {
-        return false;
-    }
     return text_append_number(text, capacity, entry->unit_name_sid) &&
            text_append(text, capacity, ",\"description\":") &&
            text_append_number(text, capacity, entry->unit_description_sid) && text_append(text, capacity, "}]");
@@ -97,8 +91,7 @@ static void set_string_ids(int civ, const CivListEntry *entry)
 {
     char text[VALUE_CAPACITY] = "[{\"name\":";
 
-    if (!CHECK(document != NULL) || !CHECK(entry != NULL) || (civ == JSON_NONE) || (entry->unit_name_sid < 0L) ||
-        (entry->unit_description_sid < 0L)) {
+    if ((entry->unit_name_sid < 0L) || (entry->unit_description_sid < 0L)) {
         return;
     }
     if (make_string_ids(text, sizeof text, entry)) {
@@ -116,9 +109,6 @@ static const char *icon_zeros(int icon)
 
 static bool make_icon_path(char *text, size_t capacity, int icon)
 {
-    if (!CHECK(text != NULL) || !CHECK(icon >= 0)) {
-        return false;
-    }
     return text_append(text, capacity, icon_zeros(icon)) && text_append_number(text, capacity, icon) &&
            text_append(text, capacity, "_50730.png\"]");
 }
@@ -127,7 +117,7 @@ static void set_icon(int civ, int icon)
 {
     char text[VALUE_CAPACITY] = "[\"/resources/uniticons/";
 
-    if (!CHECK(document != NULL) || (civ == JSON_NONE) || (icon < 0)) {
+    if (icon < 0) {
         return;
     }
     if (make_icon_path(text, sizeof text, icon)) {
@@ -137,9 +127,6 @@ static void set_icon(int civ, int icon)
 
 static void name_unit(int civ, int source, const CivListEntry *entry)
 {
-    if (!CHECK(entry != NULL) || (civ == JSON_NONE)) {
-        return;
-    }
     if (source == JSON_NONE) {
         set_icon(civ, entry->icon);
     } else {
@@ -157,9 +144,6 @@ bool civ_list_write(const JsonDocument *list, const CivListEntry *entry, CivList
     int civ;
     int source;
 
-    if (!CHECK(list != NULL) || !CHECK(entry != NULL) || !CHECK(output != NULL)) {
-        return false;
-    }
     document = list;
     json_patch_start(&patch, list);
     civ = civ_list_entry(list, entry->slot);

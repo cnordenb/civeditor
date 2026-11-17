@@ -4,13 +4,18 @@
 #include <stdbool.h>
 
 bool test_the_sources_of_a_folder_include_those_of_its_folders(void);
+bool test_a_folder_lists_only_its_own_sources(void);
 bool test_the_sources_of_the_project_are_those_of_src_tests_and_tools(void);
 bool test_the_newest_source_is_the_one_changed_last(void);
 bool test_the_object_of_a_source_is_named_after_it_in_the_folder_given(void);
 bool test_a_source_older_than_its_object_is_not_built_again(void);
 bool test_a_source_with_a_newer_header_is_built_again(void);
 bool test_a_source_changed_when_its_object_was_made_is_built_again(void);
-bool test_the_objects_of_the_tests_are_listed_with_the_libraries_of_windows(void);
 bool test_the_objects_of_the_build_tool_are_listed_without_libraries(void);
+bool test_a_coverage_build_is_asked_for_by_coverage(void);
+bool test_the_tests_are_run_with_the_arguments_given_to_the_build(void);
+bool test_a_coverage_build_links_the_tests_alone(void);
+bool test_a_coverage_build_links_the_tests_with_coverage(void);
+bool test_a_coverage_build_makes_the_folder_of_its_report(void);
 
 #endif

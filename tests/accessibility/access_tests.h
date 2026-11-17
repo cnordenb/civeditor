@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-bool test_every_text_contrasts_seven_to_one(void);
+bool test_every_text_contrasts_four_and_a_half_to_one(void);
 bool test_every_input_has_a_visible_label(void);
 bool test_every_target_is_44_by_44(void);
 bool test_no_two_controls_of_a_step_overlap(void);
@@ -21,7 +21,6 @@ bool test_windows_is_told_the_language_is_english(void);
 bool test_help_is_given_for_the_control_in_focus(void);
 bool test_the_status_line_is_told_to_a_screen_reader(void);
 bool test_the_layout_grows_with_the_text_size_of_windows(void);
-bool test_the_glossary_explains_every_short_form(void);
 bool test_the_control_in_focus_has_a_solid_frame(void);
 bool test_a_ticked_row_is_drawn_with_a_check(void);
 bool test_an_undone_choice_shows_the_designs_value_again(void);

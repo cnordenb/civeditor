@@ -25,9 +25,9 @@ Bug 2: Checkboxes give a rectangle instead of a check when selected.
 Bug 3: 9. Review has a Next button even though there is no next page.
 ## Output bugs in-game
 Bug 4: Bonus preview in civ selection does not show new values; image attachment
-![alt text](image.png). See civbuilder summary for comparison: ![alt text](image-1.png)
-Bug 5: The tech tree bonus descriptions are also incorrect: ![alt text](image-2.png)
-Bug 6: Newcivians (test civ) have plenty of units available in the tech tree when they're supposed to just have town center and villagers, as per civbuilder settings: ![alt text](image-3.png)
+![alt text](pictures/image.png). See civbuilder summary for comparison: ![alt text](pictures/image-1.png)
+Bug 5: The tech tree bonus descriptions are also incorrect: ![alt text](pictures/image-2.png)
+Bug 6: Newcivians (test civ) have plenty of units available in the tech tree when they're supposed to just have town center and villagers, as per civbuilder settings: ![alt text](pictures/image-3.png)
 Observation 7: In-game, the barracks is not available (matches with civbuilder settings but not with tech tree)
 
 I did not test further than that.

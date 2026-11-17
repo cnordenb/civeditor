@@ -9,9 +9,7 @@ enum {
     RECIPE_ENABLE_UNIT = 2,
     RECIPE_UPGRADE_UNIT = 3,
     RECIPE_UNLOCK_TECH = 8,
-    RECIPE_TECH_COST = 101,
     RECIPE_DISABLE_TECH = 102,
-    RECIPE_TECH_TIME = 103,
     RECIPE_FEUDAL_AGE = 101,
     RECIPE_CASTLE_AGE = 102,
     RECIPE_IMPERIAL_AGE = 103
@@ -43,10 +41,11 @@ void recipe_sort_changes(RecipeChanges *changes);
 bool recipe_neutralize(const RecipeInput *input, DatEdit *edit);
 void recipe_plan_reset(void);
 bool recipe_plan_tech(const RecipeInput *input, int tech_id);
+bool recipe_plan_requirement(const RecipeInput *input, const BonusRequirement *line);
 bool recipe_commit_plan(const RecipeInput *input, DatEdit *edit);
 int recipe_copy_effect(const RecipeInput *input, DatEdit *edit, int effect_id);
 void recipe_remap_change(DatChange *change);
-bool recipe_copy_changes(const RecipeInput *input, DatEdit *edit, const DatEffect *effect, bool remap);
+bool recipe_copy_changes(const RecipeInput *input, DatEdit *edit, const DatEffect *effect, bool remap, int multiplier);
 UniqueSwap recipe_unique_swap(const RecipeInput *input, int source_civ);
 bool recipe_name_unique_unit(const RecipeInput *input, DatEdit *edit);
 const UnitEntry *recipe_design_unit(const RecipeInput *input);

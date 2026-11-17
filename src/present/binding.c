@@ -94,9 +94,6 @@ static TechTier tier_of(ListSource source)
 
 static int ticked_size(const Catalog *catalog, ListSource source)
 {
-    if (!CHECK(catalog != NULL) || !CHECK(source < SOURCE_COUNT)) {
-        return 0;
-    }
     if (source == SOURCE_TREE) {
         return catalog->tree_count;
     }
@@ -111,9 +108,6 @@ static int ticked_size(const Catalog *catalog, ListSource source)
 
 static int source_size(const Catalog *catalog, ListSource source)
 {
-    if (!CHECK(catalog != NULL) || !CHECK(source < SOURCE_COUNT)) {
-        return 0;
-    }
     if (pick_kind(source) == PICK_UNIT) {
         return catalog->unit_count;
     }
@@ -124,9 +118,6 @@ static bool item_belongs(const Catalog *catalog, ListItem item)
 {
     ListSource source;
 
-    if (!CHECK(catalog != NULL) || !CHECK(item.item >= 0) || !CHECK(item.item < LIST_ROW_CAPACITY)) {
-        return false;
-    }
     source = BINDINGS[item.control].source;
     if (pick_kind(source) == PICK_UNIT) {
         return (catalog->units[item.item].role == UNIT_ROLE_HERO) == (source == SOURCE_HERO);
@@ -144,9 +135,6 @@ static bool item_matches(const Catalog *catalog, ListItem item, const ListQuery 
 {
     RowText row;
 
-    if (!CHECK(catalog != NULL) || !CHECK(query != NULL)) {
-        return false;
-    }
     if ((query->category != LIST_ALL_CATEGORIES) && (BINDINGS[item.control].source == SOURCE_BONUS) &&
         ((int)catalog->bonuses[item.item].category != query->category)) {
         return false;
@@ -160,7 +148,7 @@ static bool item_matches(const Catalog *catalog, ListItem item, const ListQuery 
 
 static void add_row(ListModel *model, int item)
 {
-    if (!CHECK(model != NULL) || !CHECK(model->count >= 0) || (model->count >= LIST_ROW_CAPACITY)) {
+    if (model->count >= LIST_ROW_CAPACITY) {
         return;
     }
     model->items[model->count] = item;
@@ -172,9 +160,6 @@ bool list_model_fill(ListModel *model, const Catalog *catalog, const ListQuery *
     ListItem item;
     int size;
 
-    if (!CHECK(model != NULL) || !CHECK(catalog != NULL) || !CHECK(query != NULL)) {
-        return false;
-    }
     model->count = 0;
     item.control = query->control;
     size = source_size(catalog, BINDINGS[query->control].source);
@@ -194,9 +179,6 @@ static RowText row_of(const char *first, const char *second)
     RowText row;
 
     row.text[0] = '\0';
-    if (!CHECK(first != NULL) || !CHECK(second != NULL)) {
-        return row;
-    }
     (void)text_append(row.text, sizeof row.text, first);
     (void)text_append(row.text, sizeof row.text, second);
     return row;
@@ -206,10 +188,6 @@ static RowText picked_row(const Catalog *catalog, ListItem item, ListSource sour
 {
     const UnitEntry *unit;
 
-    if (!CHECK(catalog != NULL) || !CHECK(item.item >= 0) ||
-        !CHECK(item.item < LIST_ROW_CAPACITY)) {
-        return row_of("", "");
-    }
     if (pick_kind(source) == PICK_TECH) {
         return row_of(catalog->techs[item.item].name, "");
     }
@@ -219,10 +197,6 @@ static RowText picked_row(const Catalog *catalog, ListItem item, ListSource sour
 
 static RowText ticked_row(const Catalog *catalog, ListItem item, ListSource source)
 {
-    if (!CHECK(catalog != NULL) || !CHECK(item.item >= 0) ||
-        !CHECK(item.item < LIST_ROW_CAPACITY)) {
-        return row_of("", "");
-    }
     if (source == SOURCE_TREE) {
         return row_of(TREE_KIND_NAMES[catalog->tree[item.item].kind], catalog->tree[item.item].name);
     }
@@ -239,7 +213,7 @@ RowText list_item_text(const Catalog *catalog, ListItem item)
 {
     ListSource source;
 
-    if (!CHECK(catalog != NULL) || !CHECK(item.item < LIST_ROW_CAPACITY) || (item.item == LIST_NO_ITEM)) {
+    if (item.item == LIST_NO_ITEM) {
         return row_of("No hero", "");
     }
     source = BINDINGS[item.control].source;
@@ -250,19 +224,12 @@ static bool unit_is_chosen(const CivDesign *design, const UnitEntry *unit)
 {
     UnitOrigin origin;
 
-    if (!CHECK(design != NULL) || !CHECK(unit != NULL)) {
-        return false;
-    }
     origin = (unit->role == UNIT_ROLE_CUSTOM) ? UNIT_ORIGIN_CUSTOM : UNIT_ORIGIN_VANILLA;
     return (design->unique_unit.origin == origin) && (design->unique_unit.id == unit->id);
 }
 
 static bool pick_is_chosen(const Catalog *catalog, const CivDesign *design, ListItem item, ListSource source)
 {
-    if (!CHECK(catalog != NULL) || !CHECK(design != NULL) ||
-        !CHECK(item.item >= 0)) {
-        return false;
-    }
     if (source == SOURCE_HERO) {
         return design->hero_unit == catalog->units[item.item].id;
     }
@@ -274,10 +241,6 @@ static bool pick_is_chosen(const Catalog *catalog, const CivDesign *design, List
 
 static bool tick_is_chosen(const Catalog *catalog, const CivDesign *design, ListItem item, ListSource source)
 {
-    if (!CHECK(catalog != NULL) || !CHECK(design != NULL) ||
-        !CHECK(item.item >= 0)) {
-        return false;
-    }
     if (source == SOURCE_TREE) {
         return civ_design_tree_has(design, catalog->tree[item.item].kind, catalog->tree[item.item].id);
     }
@@ -295,9 +258,6 @@ bool list_item_is_chosen(const Catalog *catalog, const CivDesign *design, ListIt
 {
     ListSource source;
 
-    if (!CHECK(catalog != NULL) || !CHECK(design != NULL)) {
-        return false;
-    }
     if (item.item == LIST_NO_ITEM) {
         return design->hero_unit == CIV_NO_CHOICE;
     }
@@ -310,10 +270,6 @@ static Command pick_command(const Catalog *catalog, ListItem item, ListSource so
 {
     const UnitEntry *unit;
 
-    if (!CHECK(catalog != NULL) || !CHECK(item.item >= 0) ||
-        !CHECK(item.item < LIST_ROW_CAPACITY)) {
-        return command_nothing();
-    }
     if (pick_kind(source) == PICK_TECH) {
         return command_of(COMMAND_PICK_TECH, tier_of(source), catalog->techs[item.item].id);
     }
@@ -327,10 +283,6 @@ static Command pick_command(const Catalog *catalog, ListItem item, ListSource so
 
 static Command tick_command(const Catalog *catalog, ListItem item, ListSource source)
 {
-    if (!CHECK(catalog != NULL) || !CHECK(item.item >= 0) ||
-        !CHECK(item.item < LIST_ROW_CAPACITY)) {
-        return command_nothing();
-    }
     if (source == SOURCE_TREE) {
         return command_of(COMMAND_TOGGLE_TREE, (int)catalog->tree[item.item].kind, catalog->tree[item.item].id);
     }
@@ -350,7 +302,7 @@ Command list_item_command(const Catalog *catalog, ListItem item)
 {
     ListSource source;
 
-    if (!CHECK(catalog != NULL) || !CHECK(item.item < LIST_ROW_CAPACITY) || (item.item == LIST_NO_ITEM)) {
+    if (item.item == LIST_NO_ITEM) {
         return command_of(COMMAND_PICK_HERO, 0, CIV_NO_CHOICE);
     }
     source = BINDINGS[item.control].source;

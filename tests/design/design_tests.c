@@ -33,6 +33,20 @@ bool test_a_picked_team_bonus_counts_once(void)
     return civ_design_toggle_team_bonus(fresh(), A_TEAM_BONUS) && (design.team_bonuses[0].multiplier == 1);
 }
 
+bool test_a_multiplier_past_ten_is_refused(void)
+{
+    (void)civ_design_toggle_bonus(fresh(), A_BONUS);
+    civ_design_set_multiplier(&design, false, A_BONUS, CIV_MULTIPLIER_LIMIT + 1);
+    return design.bonuses[0].multiplier == 1;
+}
+
+bool test_a_multiplier_below_one_is_refused(void)
+{
+    (void)civ_design_toggle_bonus(fresh(), A_BONUS);
+    civ_design_set_multiplier(&design, false, A_BONUS, 0);
+    return design.bonuses[0].multiplier == 1;
+}
+
 bool test_a_bonus_ticked_twice_is_not_chosen(void)
 {
     (void)CHECK(civ_design_toggle_bonus(fresh(), A_BONUS));

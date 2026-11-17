@@ -40,9 +40,11 @@ static const GameChange GAME_CHANGES[GAME_CHANGE_COUNT] = {
     { IMPERIAL_SOURCE, { ADD_ATTRIBUTE, OLD_UNIT, -1, 0, 20.0F } },
     { OWN_MAKE_TECH, { RECIPE_ENABLE_UNIT, OWN_UNIT, 1, -1, 0.0F } },
     { LACKED_TECH, { RECIPE_ENABLE_UNIT, LACKED_UNIT, 1, -1, 0.0F } },
+    { BONUS_TECH, { DAT_CHANGE_TECH_COST, OWN_ELITE_TECH, WOOD, 1, -10.0F } },
     { BONUS_TECH, { ADD_ATTRIBUTE, -1, INFANTRY_CLASS, 0, 5.0F } },
     { NOWHERE_TECH, { RESOURCE, 0, 1, -1, 100.0F } },
     { OWN_ELITE_TECH, { UPGRADE_UNIT, OWN_UNIT, ELITE_UNIT, -1, 0.0F } },
+    { TEAM_EFFECT, { DAT_CHANGE_TECH_COST, OWN_ELITE_TECH, WOOD, 1, -10.0F } },
     { TEAM_EFFECT, { ADD_ATTRIBUTE, -1, INFANTRY_CLASS, TEAM_ATTRIBUTE, 1.0F } }
 };
 
@@ -65,6 +67,7 @@ static DatTech game_tech(int index)
     tech.civ = GAME_TECH_CIVS[index];
     if (index == NOWHERE_TECH) {
         tech.research_locations[0].location_id = DAT_NO_ID;
+        (void)memset(tech.required_techs, 0, sizeof tech.required_techs);
     }
     if (index == BONUS_TECH) {
         tech.required_techs[0] = OWN_ELITE_TECH;
@@ -127,16 +130,28 @@ static void fill_bonuses(void)
     game_catalog.bonuses[1].id = GENERIC_BONUS;
     game_catalog.bonuses[1].effects = (TsvNumberList){ { GENERIC_TECH }, 1 };
     game_catalog.bonuses[2].id = CHANGES_BONUS;
+    game_catalog.bonuses[BUILT_BONUSES].id = EMPTY_BONUS;
     (void)text_copy(game_catalog.bonuses[0].description, CATALOG_TEXT_CAPACITY, "Infantry is stronger");
-    game_catalog.bonus_count = BUILT_BONUSES;
+    game_catalog.bonuses[BUILT_BONUSES + 1].id = REQUIRE_BONUS;
+    game_catalog.bonuses[BUILT_BONUSES + 2].id = NO_ROOM_BONUS;
+    game_catalog.bonuses[BUILT_BONUSES + 3].id = MIXED_BONUS;
+    game_catalog.bonuses[BUILT_BONUSES + 3].effects = (TsvNumberList){ { GENERIC_TECH }, 1 };
+    game_catalog.bonus_count = BUILT_BONUSES + 4;
     game_catalog.team_bonuses[0].id = EFFECT_TEAM_BONUS;
     game_catalog.team_bonuses[0].effects = (TsvNumberList){ { TEAM_EFFECT }, 1 };
     game_catalog.team_bonuses[1].id = CHANGES_TEAM_BONUS;
     (void)text_copy(game_catalog.team_bonuses[1].description, CATALOG_TEXT_CAPACITY, "Allies are faster");
-    game_catalog.team_bonus_count = 2;
+    game_catalog.team_bonuses[2].id = EMPTY_TEAM_BONUS;
+    game_catalog.team_bonus_count = 3;
     game_catalog.bonus_changes[0] = CIV_CHANGE;
     game_catalog.bonus_changes[1] = TEAM_CHANGE;
-    game_catalog.bonus_change_count = 2;
+    game_catalog.bonus_changes[2] =
+        (BonusChange){ false, MIXED_BONUS, 0, { { 0 }, 0 }, ADD_ATTRIBUTE, -1, INFANTRY_CLASS, 0, 9.0F };
+    game_catalog.bonus_change_count = 3;
+    game_catalog.requirements[0] = (BonusRequirement){ REQUIRE_BONUS, GENERIC_TECH, LACKED_TECH };
+    game_catalog.requirements[1] = (BonusRequirement){ REQUIRE_BONUS, BONUS_TECH, LACKED_TECH };
+    game_catalog.requirements[2] = (BonusRequirement){ NO_ROOM_BONUS, NOWHERE_TECH, LACKED_TECH };
+    game_catalog.requirement_count = 3;
     (void)CHECK(game_catalog.bonus_count <= CATALOG_BONUS_CAPACITY);
 }
 
@@ -197,6 +212,15 @@ static bool fill_bare_design(void)
            CHECK(civ_design_toggle_team_bonus(&design, CHANGES_TEAM_BONUS));
 }
 
+static bool fill_multiplied_design(bool bare)
+{
+    bool filled = bare ? (fill_bare_design() && civ_design_toggle_bonus(&design, MIXED_BONUS)) : fill_full_design();
+
+    civ_design_set_multiplier(&design, false, bare ? MIXED_BONUS : TECH_BONUS, 2);
+    civ_design_set_multiplier(&design, true, bare ? CHANGES_TEAM_BONUS : EFFECT_TEAM_BONUS, 2);
+    return filled;
+}
+
 static bool fill_design(Scenario scenario)
 {
     civ_design_reset(&design);
@@ -209,6 +233,16 @@ static bool fill_design(Scenario scenario)
         return fill_bare_design();
     case LOST_HERO_CIV:
         return fill_bare_design() && CHECK(civ_design_pick_hero(&design, KEPT_UNIT));
+    case MULTIPLIED_CIV:
+        return fill_multiplied_design(false);
+    case MULTIPLIED_BARE_CIV:
+        return fill_multiplied_design(true);
+    case REQUIRED_CIV:
+        return fill_bare_design() && CHECK(civ_design_toggle_bonus(&design, REQUIRE_BONUS)) &&
+               CHECK(civ_design_toggle_bonus(&design, NO_ROOM_BONUS));
+    case EMPTY_CIV:
+        return fill_bare_design() && CHECK(civ_design_toggle_team_bonus(&design, EMPTY_TEAM_BONUS)) &&
+               CHECK(civ_design_toggle_bonus(&design, EMPTY_BONUS));
     case SCOUT_CIV:
         return fill_full_design() && CHECK(civ_design_set_choice(&design, CHOICE_SCOUT, SCOUT));
     case FULL_CIV:
@@ -233,16 +267,21 @@ bool recipe_game_build(Scenario scenario)
     return dat_map_read(rebuilt, output.length, &rebuilt_map);
 }
 
-DatTech recipe_game_tech(int id)
+static DatTech scenario_tech(Scenario scenario, int id)
 {
     DatTech tech = GAME_TECH;
 
     tech.civ = NO_TECH;
-    if (!CHECK(id >= 0) || !recipe_game_build(FULL_CIV) || (id >= rebuilt_map.tech_count)) {
+    if (!CHECK(id >= 0) || !recipe_game_build(scenario) || (id >= rebuilt_map.tech_count)) {
         return tech;
     }
     (void)CHECK(dat_tech_read(&rebuilt_bytes, rebuilt_map.tech_at[id], &tech));
     return tech;
+}
+
+DatTech recipe_game_tech(int id)
+{
+    return scenario_tech(FULL_CIV, id);
 }
 
 static bool is_wanted(const DatChange *change, int type, int key)
@@ -284,11 +323,16 @@ static int civ_effect(Scenario scenario, bool team)
     return team ? civ.team_bonus_id : civ.tech_tree_id;
 }
 
-int recipe_game_changes(int tech_id, int type, int key)
+int recipe_game_scenario_changes(Scenario scenario, int tech_id, int type, int key)
 {
     DatChange last;
 
-    return changes_of(recipe_game_tech(tech_id).effect_id, type, key, &last);
+    return changes_of(scenario_tech(scenario, tech_id).effect_id, type, key, &last);
+}
+
+int recipe_game_changes(int tech_id, int type, int key)
+{
+    return recipe_game_scenario_changes(FULL_CIV, tech_id, type, key);
 }
 
 int recipe_game_tree_changes(Scenario scenario, int type, int key)
@@ -323,14 +367,52 @@ long recipe_game_unit_name(Scenario scenario)
     return dat_cursor_i32(&cursor);
 }
 
-DatChange recipe_game_team_last(void)
+DatChange recipe_game_team_last(Scenario scenario)
 {
-    return last_of(civ_effect(FULL_CIV, true), ANY_CHANGE, 0);
+    return last_of(civ_effect(scenario, true), ANY_CHANGE, 0);
+}
+
+DatChange recipe_game_tech_last(int tech_id)
+{
+    return last_of(recipe_game_tech(tech_id).effect_id, ANY_CHANGE, 0);
+}
+
+int recipe_game_required_tech(Scenario scenario, int tech_id, int slot)
+{
+    DatTech tech = scenario_tech(scenario, tech_id);
+
+    if (!CHECK(slot >= 0) || !CHECK(slot < DAT_REQUIRED_TECH_SLOTS) || (tech.civ == NO_TECH)) {
+        return NO_TECH;
+    }
+    return tech.required_techs[slot];
+}
+
+float recipe_game_scenario_amount(Scenario scenario, int tech_id)
+{
+    return last_of(scenario_tech(scenario, tech_id).effect_id, ANY_CHANGE, 0).d;
+}
+
+int recipe_game_tech_civ(int tech_id)
+{
+    DatTech tech;
+
+    if ((tech_id < 0) || (tech_id >= rebuilt_map.tech_count) ||
+        !CHECK(dat_tech_read(&rebuilt_bytes, rebuilt_map.tech_at[tech_id], &tech))) {
+        return NO_TECH;
+    }
+    return tech.civ;
+}
+
+int recipe_game_team_changes(int type, int key)
+{
+    DatChange last;
+
+    return changes_of(civ_effect(FULL_CIV, true), type, key, &last);
 }
 
 RecipeReport recipe_game_report(Scenario scenario)
 {
-    const RecipeReport failed = { NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH,
+    const RecipeReport failed = { NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH,
                                   false,   false,   false,   { NO_TECH, NO_TECH } };
 
     return recipe_game_build(scenario) ? report : failed;

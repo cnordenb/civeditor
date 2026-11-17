@@ -114,7 +114,6 @@ static bool record_function(ScannedSource *source, int open_line, int close_line
     function->lines_of_code = count_code_lines(source, function->first_line, close_line);
     function->body_start = source->line_starts[open_line];
     function->body_end = line_end(source, close_line);
-    function->checks = source_count_word(source, function->body_start, function->body_end, "CHECK");
     name_function(source, function);
     ++source->function_count;
     return true;

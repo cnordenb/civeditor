@@ -14,5 +14,6 @@ bool test_the_first_tip_names_the_first_civ_bonus(void);
 bool test_the_first_tip_names_the_team_bonus_of_a_civ_without_civ_bonuses(void);
 bool test_the_tip_of_a_unique_tech_says_where_it_is_researched(void);
 bool test_the_second_tip_names_the_unique_unit(void);
+bool test_a_line_break_in_a_tip_is_written_as_a_space(void);
 
 #endif

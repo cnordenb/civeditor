@@ -49,6 +49,16 @@ bool test_a_civ_bonus_made_of_a_civs_tech_is_copied_for_the_civ(void)
     return recipe_game_tech(NEW_BONUS_TECH).civ == SLOT;
 }
 
+bool test_a_copied_techs_effect_keeps_the_amounts_of_its_changes(void)
+{
+    return (int)recipe_game_tech_last(NEW_BONUS_TECH).d == 5;
+}
+
+bool test_a_copied_effect_names_the_copy_of_a_copied_tech(void)
+{
+    return recipe_game_changes(NEW_BONUS_TECH, DAT_CHANGE_TECH_COST, NEW_ELITE_TECH) == 1;
+}
+
 bool test_a_civ_bonus_made_of_a_generic_tech_unlocks_it(void)
 {
     return recipe_game_tree_changes(FULL_CIV, RECIPE_UNLOCK_TECH, GENERIC_TECH) == 1;
@@ -64,9 +74,61 @@ bool test_the_report_counts_a_civ_bonus_the_catalog_lacks_as_skipped(void)
     return recipe_game_report(FULL_CIV).bonuses_skipped == 1;
 }
 
+bool test_a_bonus_with_nothing_to_build_is_counted_as_skipped(void)
+{
+    return recipe_game_report(EMPTY_CIV).bonuses_skipped == 1;
+}
+
+bool test_a_bonus_requirement_is_a_tech_of_the_civ(void)
+{
+    return recipe_game_tech_civ(recipe_game_required_tech(REQUIRED_CIV, BONUS_TECH, FREE_SLOT)) == SLOT;
+}
+
+bool test_two_techs_given_one_requirement_share_its_copy(void)
+{
+    return recipe_game_required_tech(REQUIRED_CIV, GENERIC_TECH, 0) ==
+           recipe_game_required_tech(REQUIRED_CIV, BONUS_TECH, FREE_SLOT);
+}
+
+bool test_a_bonus_of_requirements_is_counted_as_built(void)
+{
+    return recipe_game_report(REQUIRED_CIV).bonuses_built == 1;
+}
+
+bool test_a_bonus_whose_tech_has_no_room_is_skipped(void)
+{
+    return recipe_game_report(REQUIRED_CIV).bonuses_skipped == 1;
+}
+
+bool test_a_second_build_keeps_no_requirement_of_the_first(void)
+{
+    (void)recipe_game_build(REQUIRED_CIV);
+    return recipe_game_required_tech(BARE_CIV, GENERIC_TECH, 0) == -1;
+}
+
+bool test_a_tech_that_no_line_names_keeps_its_requirements(void)
+{
+    return recipe_game_required_tech(REQUIRED_CIV, FIRST_TECH, 0) == -1;
+}
+
+bool test_the_report_counts_a_multiplier_of_a_bonus_made_of_the_games_techs(void)
+{
+    return recipe_game_report(MULTIPLIED_CIV).multipliers_skipped == 1;
+}
+
 bool test_the_team_bonus_takes_the_changes_of_its_effect(void)
 {
-    return recipe_game_team_last().c == TEAM_ATTRIBUTE;
+    return recipe_game_team_last(FULL_CIV).c == TEAM_ATTRIBUTE;
+}
+
+bool test_the_team_bonus_names_the_games_own_techs(void)
+{
+    return recipe_game_team_changes(DAT_CHANGE_TECH_COST, OWN_ELITE_TECH) == 1;
+}
+
+bool test_a_team_bonus_taken_twice_doubles_the_changes_of_its_effect(void)
+{
+    return (int)recipe_game_team_last(MULTIPLIED_CIV).d == 2;
 }
 
 bool test_the_elite_units_tech_takes_the_string_id_of_its_slot(void)
@@ -129,6 +191,38 @@ bool test_a_team_bonus_without_an_effect_is_built_from_its_changes(void)
     return recipe_game_report(BARE_CIV).team_bonuses_built == 1;
 }
 
+bool test_a_team_bonus_with_nothing_to_build_is_counted_as_skipped(void)
+{
+    return recipe_game_report(EMPTY_CIV).team_bonuses_skipped == 1;
+}
+
+bool test_a_skipped_team_bonus_is_not_counted_as_built(void)
+{
+    return recipe_game_report(EMPTY_CIV).team_bonuses_built == 0;
+}
+
+bool test_a_built_team_bonus_is_not_counted_as_skipped(void)
+{
+    return recipe_game_report(FULL_CIV).team_bonuses_skipped == 0;
+}
+
+bool test_a_team_bonus_of_changes_taken_twice_doubles_them(void)
+{
+    return (int)recipe_game_team_last(MULTIPLIED_BARE_CIV).d == 6;
+}
+
+bool test_a_bonus_of_techs_builds_its_lines_too(void)
+{
+    return recipe_game_scenario_changes(MULTIPLIED_BARE_CIV, NEW_CHANGES_TECH, ADD_ATTRIBUTE, -1) == 1;
+}
+
+bool test_the_lines_of_a_bonus_of_techs_count_once(void)
+{
+    float amount = recipe_game_scenario_amount(MULTIPLIED_BARE_CIV, NEW_CHANGES_TECH);
+
+    return (amount > 8.5F) && (amount < 9.5F);
+}
+
 bool test_a_named_hero_takes_the_string_id_of_its_slot(void)
 {
     return recipe_game_unit_name(BARE_CIV) == HERO_SID;
@@ -178,4 +272,41 @@ bool test_a_unique_tech_asks_for_the_age_of_its_tier(void)
 bool test_the_report_counts_the_techs_that_the_tree_disables(void)
 {
     return recipe_game_report(FULL_CIV).tree_disabled == 1;
+}
+
+bool test_a_unique_unit_not_built_counts_no_techs(void)
+{
+    return recipe_game_report(BARE_CIV).unit_techs_built == 0;
+}
+
+enum { NO_ID = -1, EARLY_TECH = 20, LATE_TECH = 30, UNLOCKED_TECH = 40 };
+
+static RecipeChanges tree_changes;
+
+static void add_tree_change(int type, int a, float d)
+{
+    DatChange change = { type, NO_ID, NO_ID, NO_ID, 0.0F };
+
+    change.a = a;
+    change.d = d;
+    recipe_add_change(&tree_changes, &change);
+}
+
+bool test_the_trees_changes_are_sorted_unlocks_first_then_by_tech(void)
+{
+    tree_changes.count = 0;
+    add_tree_change(RECIPE_DISABLE_TECH, NO_ID, (float)LATE_TECH);
+    add_tree_change(RECIPE_UNLOCK_TECH, UNLOCKED_TECH, 0.0F);
+    add_tree_change(RECIPE_DISABLE_TECH, NO_ID, (float)EARLY_TECH);
+    recipe_sort_changes(&tree_changes);
+    return (tree_changes.changes[0].a == UNLOCKED_TECH) && ((int)tree_changes.changes[1].d == EARLY_TECH) &&
+           ((int)tree_changes.changes[2].d == LATE_TECH);
+}
+
+bool test_two_disabled_techs_are_two_changes_of_the_tree(void)
+{
+    tree_changes.count = 0;
+    add_tree_change(RECIPE_DISABLE_TECH, NO_ID, (float)EARLY_TECH);
+    add_tree_change(RECIPE_DISABLE_TECH, NO_ID, (float)LATE_TECH);
+    return tree_changes.count == 2;
 }

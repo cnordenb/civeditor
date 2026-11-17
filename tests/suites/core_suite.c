@@ -1,6 +1,5 @@
 #include "suites.h"
 
-#include "../../src/core/check.h"
 #include "../core/read_tests.h"
 #include "../pack/dynamic_tests.h"
 #include "../core/text_tests.h"
@@ -9,24 +8,21 @@
 #include "../data/catalog_tests.h"
 
 enum {
-    NUMBER_END = 3,
-    WIDEN_END = 10,
-    TSV_END = 18,
-    ESCAPE_END = 26,
-    JSON_END = 32,
-    EDGE_END = 38,
-    PACK_END = 39,
-    TEXT_END = 47,
-    WRITER_END = 51,
-    LINES_END = 59,
-    CATALOG_END = 64
+    NUMBER_END = 4,
+    WIDEN_END = 12,
+    TSV_END = 20,
+    ESCAPE_END = 28,
+    JSON_END = 34,
+    EDGE_END = 40,
+    PACK_END = 41,
+    TEXT_END = 49,
+    WRITER_END = 53,
+    LINES_END = 61,
+    CATALOG_END = 72
 };
 
 static TestOutcome run_number_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a number with a minus sign is negative", test_a_number_with_a_minus_sign_is_negative());
@@ -34,7 +30,11 @@ static TestOutcome run_number_test(int index)
         return test_outcome_of("a number with a letter in it is no number",
                                test_a_number_with_a_letter_in_it_is_no_number());
     case 3:
-        return test_outcome_of("a number beyond a billion is no number", test_a_number_beyond_a_billion_is_no_number());
+        return test_outcome_of("a number past the largest long is no number",
+                               test_a_number_past_the_largest_long_is_no_number());
+    case 4:
+        return test_outcome_of("the largest number a long holds is read",
+                               test_the_largest_number_a_long_holds_is_read());
     default:
         return test_outcome_missing();
     }
@@ -42,9 +42,6 @@ static TestOutcome run_number_test(int index)
 
 static TestOutcome run_widen_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a letter of two bytes is widened to one wide letter",
@@ -56,14 +53,17 @@ static TestOutcome run_widen_test(int index)
         return test_outcome_of("a letter beyond the basic plane is widened to two",
                                test_a_letter_beyond_the_basic_plane_is_widened_to_two());
     case 4:
+        return test_outcome_of("the first letter beyond the basic plane is widened to two",
+                               test_the_first_letter_beyond_the_basic_plane_is_widened_to_two());
+    case 5:
         return test_outcome_of("a byte that starts no letter is not widened",
                                test_a_byte_that_starts_no_letter_is_not_widened());
-    case 5:
+    case 6:
         return test_outcome_of("a text that starts inside a letter is not widened",
                                test_a_text_that_starts_inside_a_letter_is_not_widened());
-    case 6:
-        return test_outcome_of("a letter cut short is not widened", test_a_letter_cut_short_is_not_widened());
     case 7:
+        return test_outcome_of("a letter cut short is not widened", test_a_letter_cut_short_is_not_widened());
+    case 8:
         return test_outcome_of("a text longer than its place is not widened",
                                test_a_text_longer_than_its_place_is_not_widened());
     default:
@@ -73,9 +73,6 @@ static TestOutcome run_widen_test(int index)
 
 static TestOutcome run_tsv_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a field that is a dash reads as empty", test_a_field_that_is_a_dash_reads_as_empty());
@@ -105,9 +102,6 @@ static TestOutcome run_tsv_test(int index)
 
 static TestOutcome run_escape_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("an escaped letter of four hex digits is read",
@@ -137,9 +131,6 @@ static TestOutcome run_escape_test(int index)
 
 static TestOutcome run_json_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("an escaped carriage return is read", test_an_escaped_carriage_return_is_read());
@@ -162,9 +153,6 @@ static TestOutcome run_json_test(int index)
 
 static TestOutcome run_edge_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("an escape with the hex digits a and f is read",
@@ -189,9 +177,6 @@ static TestOutcome run_edge_test(int index)
 
 static TestOutcome run_pack_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a stream of dynamic codes with repeated lengths inflates",
@@ -203,9 +188,6 @@ static TestOutcome run_pack_test(int index)
 
 static TestOutcome run_text_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a text is not equal to a longer one that starts with it",
@@ -236,9 +218,6 @@ static TestOutcome run_text_test(int index)
 
 static TestOutcome run_writer_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("two members are written with a comma between",
@@ -259,9 +238,6 @@ static TestOutcome run_writer_test(int index)
 
 static TestOutcome run_lines_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a line of a file is split at its tabs", test_a_line_of_a_file_is_split_at_its_tabs());
@@ -287,9 +263,6 @@ static TestOutcome run_lines_test(int index)
 
 static TestOutcome run_catalog_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("the catalog holds every civ bonus of its file",
@@ -306,6 +279,24 @@ static TestOutcome run_catalog_test(int index)
     case 5:
         return test_outcome_of("the catalog holds every node of its file",
                                test_the_catalog_holds_every_node_of_its_file());
+    case 6:
+        return test_outcome_of("the catalog holds every requirement line of its file",
+                               test_the_catalog_holds_every_requirement_line_of_its_file());
+    case 7:
+        return test_outcome_of("a requirement line names its bonus, its tech and the tech required",
+                               test_a_requirement_line_names_its_bonus_its_tech_and_the_tech_required());
+    case 8:
+        return test_outcome_of("a train line is a unit patch placed in the train location",
+                               test_a_train_line_is_a_unit_patch_placed_in_the_train_location());
+    case 9:
+        return test_outcome_of("a cost line is a unit patch placed in the costs",
+                               test_a_cost_line_is_a_unit_patch_placed_in_the_costs());
+    case 10:
+        return test_outcome_of("a look line names its bonus, its unit and the civ of the look",
+                               test_a_look_line_names_its_bonus_its_unit_and_the_civ_of_the_look());
+    case 11:
+        return test_outcome_of("the catalog holds every look line of its file",
+                               test_the_catalog_holds_every_look_line_of_its_file());
     default:
         return test_outcome_missing();
     }
@@ -313,9 +304,6 @@ static TestOutcome run_catalog_test(int index)
 
 static TestOutcome run_units_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("the first unit of the catalog has its name",
@@ -335,9 +323,6 @@ static TestOutcome run_units_test(int index)
 
 TestOutcome core_suite_run(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     if (index <= NUMBER_END) {
         return run_number_test(index);
     }

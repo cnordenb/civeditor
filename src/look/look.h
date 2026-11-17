@@ -22,5 +22,7 @@ typedef struct {
 
 bool look_sources_of(const Catalog *catalog, const CivDesign *design, LookSources *sources);
 bool look_build(const DatTarget *target, const LookSources *sources);
+bool look_copy_unit(const DatTarget *target, const UnitLook *look);
+bool look_dress_units(const DatTarget *target, const Catalog *catalog, const CivDesign *design);
 
 #endif

@@ -2,16 +2,11 @@
 
 #include <stdio.h>
 
-#include "check.h"
-
 FileRead file_read_all(const wchar_t *path, char *buffer, size_t capacity)
 {
     FileRead result = { false, 0U };
     FILE *stream;
 
-    if (!CHECK(path != NULL) || !CHECK(buffer != NULL) || !CHECK(capacity > 1U)) {
-        return result;
-    }
     stream = _wfopen(path, L"rb");
     if (stream == NULL) {
         return result;
@@ -30,9 +25,6 @@ bool file_write_all(const wchar_t *path, const char *data, size_t length)
     FILE *stream;
     size_t written;
 
-    if (!CHECK(path != NULL) || !CHECK(data != NULL)) {
-        return false;
-    }
     stream = _wfopen(path, L"wb");
     if (stream == NULL) {
         return false;
@@ -45,9 +37,6 @@ static size_t append_wide(wchar_t *destination, size_t capacity, size_t used, co
 {
     size_t index;
 
-    if (!CHECK(destination != NULL) || !CHECK(text != NULL)) {
-        return capacity;
-    }
     for (index = 0U; (index < (size_t)FILE_PATH_CAPACITY) && (text[index] != L'\0'); ++index) {
         if (used + 1U >= capacity) {
             return capacity;
@@ -63,9 +52,6 @@ bool file_join_path(wchar_t *destination, size_t capacity, const wchar_t *folder
 {
     size_t used;
 
-    if (!CHECK(destination != NULL) || !CHECK(capacity > 1U)) {
-        return false;
-    }
     destination[0] = L'\0';
     used = append_wide(destination, capacity, 0U, folder);
     used = (used < capacity) ? append_wide(destination, capacity, used, L"\\") : used;
@@ -77,9 +63,6 @@ bool file_exists(const wchar_t *path)
 {
     FILE *stream;
 
-    if (!CHECK(path != NULL) || !CHECK(path[0] != L'\0')) {
-        return false;
-    }
     stream = _wfopen(path, L"rb");
     if (stream == NULL) {
         return false;

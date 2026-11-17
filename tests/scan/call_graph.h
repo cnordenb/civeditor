@@ -6,7 +6,7 @@
 
 #include "source_scan.h"
 
-enum { GRAPH_FUNCTION_CAPACITY = 1600, GRAPH_EDGE_CAPACITY = 16000 };
+enum { GRAPH_FUNCTION_CAPACITY = 2400, GRAPH_EDGE_CAPACITY = 24000 };
 
 typedef struct {
     char names[GRAPH_FUNCTION_CAPACITY][SCAN_NAME_CAPACITY];

@@ -12,7 +12,7 @@ static int read_number_or(const JsonDocument *document, int object, const char *
     int token = json_member(document, object, key);
     TextNumber number;
 
-    if (!CHECK(document != NULL) || !CHECK(key != NULL) || (token == JSON_NONE)) {
+    if (token == JSON_NONE) {
         return fallback;
     }
     number = json_number(document, token);
@@ -30,7 +30,7 @@ static void read_text(const JsonDocument *document, int object, const char *key,
     static char buffer[CIV_DESCRIPTION_CAPACITY];
     int token = json_member(document, object, key);
 
-    if (!CHECK(design != NULL) || !CHECK(key != NULL) || (token == JSON_NONE)) {
+    if (token == JSON_NONE) {
         return;
     }
     if (json_copy_string(document, token, buffer, sizeof buffer)) {
@@ -43,7 +43,7 @@ static bool has_known_format(const JsonDocument *document)
     char format[FORMAT_CAPACITY] = "";
     int token = json_member(document, 0, "format");
 
-    if (!CHECK(document != NULL) || !CHECK(document->count > 0) || (token == JSON_NONE)) {
+    if (token == JSON_NONE) {
         return false;
     }
     if (!json_copy_string(document, token, format, sizeof format)) {
@@ -57,9 +57,6 @@ static void read_choices(const JsonDocument *document, CivDesign *design)
     int wonder;
     int castle;
 
-    if (!CHECK(document != NULL) || !CHECK(design != NULL)) {
-        return;
-    }
     wonder = read_number_or(document, 0, "wonder", read_number_or(document, 0, "wonder_model", CIV_NO_CHOICE));
     castle = read_number_or(document, 0, "castle", read_number_or(document, 0, "castle_model", CIV_NO_CHOICE));
     (void)civ_design_set_choice(design, CHOICE_ARCHITECTURE,
@@ -81,9 +78,6 @@ static void read_bonuses(const JsonDocument *document, const char *key, CivDesig
     int step;
     int bonus;
 
-    if (!CHECK(design != NULL) || !CHECK(key != NULL)) {
-        return;
-    }
     for (step = 0; (step < CIV_BONUS_CAPACITY) && (item != JSON_NONE); ++step) {
         bonus = read_number_or(document, item, "id", CIV_NO_CHOICE);
         if ((bonus != CIV_NO_CHOICE) && team) {
@@ -91,6 +85,7 @@ static void read_bonuses(const JsonDocument *document, const char *key, CivDesig
         } else if ((bonus != CIV_NO_CHOICE) && !civ_design_has_bonus(design, bonus)) {
             (void)civ_design_toggle_bonus(design, bonus);
         }
+        civ_design_set_multiplier(design, team, bonus, read_number_or(document, item, "multiplier", 1));
         item = json_next_sibling(document, list, item);
     }
 }
@@ -104,9 +99,6 @@ static void read_tree(const JsonDocument *document, CivDesign *design)
     int step;
     TextNumber number;
 
-    if (!CHECK(document != NULL) || !CHECK(design != NULL)) {
-        return;
-    }
     for (kind = 0; kind < (int)TREE_KIND_COUNT; ++kind) {
         list = json_member(document, tree, CIV_FILE_TREE_KEYS[kind]);
         item = json_first_child(document, list);
@@ -126,9 +118,6 @@ static void read_unique_unit(const JsonDocument *document, CivDesign *design)
     int custom = read_number_or(document, unit, "km_idx", CIV_NO_CHOICE);
     int vanilla = read_number_or(document, unit, "vanilla_id", CIV_NO_CHOICE);
 
-    if (!CHECK(document != NULL) || !CHECK(design != NULL)) {
-        return;
-    }
     if (vanilla != CIV_NO_CHOICE) {
         (void)civ_design_pick_unit(design, UNIT_ORIGIN_VANILLA, vanilla);
     } else if (custom != CIV_NO_CHOICE) {
@@ -144,7 +133,7 @@ static void read_tech(const JsonDocument *document, const char *key, CivDesign *
     int cost = json_member(document, tech, "cost");
     int resource;
 
-    if (!CHECK(design != NULL) || !CHECK((tier == TECH_TIER_CASTLE) || (tier == TECH_TIER_IMPERIAL))) {
+    if (!CHECK((tier == TECH_TIER_CASTLE) || (tier == TECH_TIER_IMPERIAL))) {
         return;
     }
     (void)civ_design_pick_tech(design, tier, read_number_or(document, tech, "vanilla_km_idx", CIV_NO_CHOICE));
@@ -160,16 +149,13 @@ static void read_hero(const JsonDocument *document, CivDesign *design)
 {
     int hero = json_member(document, 0, "hero_unit");
 
-    if (!CHECK(document != NULL) || !CHECK(design != NULL)) {
-        return;
-    }
     (void)civ_design_pick_hero(design, read_number_or(document, hero, "base_unit_id", CIV_NO_CHOICE));
     read_text(document, hero, "name", design, TEXT_FIELD_HERO_NAME);
 }
 
 bool civ_file_interpret(const JsonDocument *document, CivDesign *design)
 {
-    if (!CHECK(document != NULL) || !CHECK(design != NULL) || !has_known_format(document)) {
+    if (!has_known_format(document)) {
         return false;
     }
     civ_design_reset(design);
@@ -192,9 +178,6 @@ bool civ_file_load(CivDesign *design, const wchar_t *path)
     static JsonDocument document;
     FileRead read;
 
-    if (!CHECK(design != NULL) || !CHECK(path != NULL)) {
-        return false;
-    }
     read = file_read_all(path, document.text, sizeof document.text);
     if (!read.succeeded) {
         return false;

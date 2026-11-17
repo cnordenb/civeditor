@@ -20,7 +20,7 @@ static bool string_is(const JsonDocument *tree, int token, const char *expected)
 {
     char text[NAME_CAPACITY] = "";
 
-    if (!CHECK(tree != NULL) || !CHECK(expected != NULL) || (token == JSON_NONE)) {
+    if (token == JSON_NONE) {
         return false;
     }
     return json_copy_string(tree, token, text, sizeof text) && text_equal(text, expected);
@@ -31,7 +31,7 @@ static int node_kind(const JsonDocument *tree, int node)
     int use;
     int kind;
 
-    if (!CHECK(tree != NULL) || !CHECK(node != JSON_NONE)) {
+    if (!CHECK(node != JSON_NONE)) {
         return JSON_NONE;
     }
     use = json_member(tree, node, "Use Type");
@@ -48,10 +48,6 @@ static bool read_node(const TechTreeJob *job, int node, TreeNode *found)
     const JsonDocument *tree;
     TextNumber id;
 
-    if (!CHECK(job != NULL) || !CHECK(found != NULL) ||
-        !CHECK(job->tree != NULL)) {
-        return false;
-    }
     tree = job->tree;
     id = json_number(tree, json_member(tree, node, "Node ID"));
     found->kind = node_kind(tree, node);
@@ -69,8 +65,7 @@ static void set_status(const TechTreeJob *job, int node)
     const Catalog *catalog;
     TreeNode found;
 
-    if (!CHECK(job != NULL) || !CHECK(job->tree != NULL) || !CHECK(job->catalog != NULL) ||
-        !read_node(job, node, &found)) {
+    if (!read_node(job, node, &found)) {
         return;
     }
     catalog = job->catalog;
@@ -92,9 +87,6 @@ static void set_statuses(const TechTreeJob *job, int list)
     int node;
     int index;
 
-    if (!CHECK(job != NULL) || !CHECK(job->tree != NULL)) {
-        return;
-    }
     tree = job->tree;
     node = json_is_kind(tree, list, JSON_KIND_ARRAY) ? json_first_child(tree, list) : JSON_NONE;
     for (index = 0; (index < NODE_LIMIT) && (node != JSON_NONE); ++index) {
@@ -107,9 +99,6 @@ bool tech_tree_write(const TechTreeJob *job, JsonPatchOutput *output)
 {
     int list;
 
-    if (!CHECK(job != NULL) || !CHECK(output != NULL) || !CHECK(job->tree != NULL)) {
-        return false;
-    }
     json_patch_start(&patch, job->tree);
     for (list = 0; (list < NODE_LIST_COUNT) && !civ_design_tree_is_empty(job->design); ++list) {
         set_statuses(job, json_member(job->tree, 0, NODE_LISTS[list]));

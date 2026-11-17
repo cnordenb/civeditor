@@ -40,6 +40,8 @@ TestOutcome test_outcome_missing(void)
     return outcome;
 }
 
+static bool rules_left_out;
+
 static TestOutcome run_in_category(int category, int index)
 {
     if (!CHECK(index > 0) || !CHECK(index <= CATEGORY_TEST_LIMIT)) {
@@ -51,7 +53,7 @@ static TestOutcome run_in_category(int category, int index)
     case 1:
         return accessibility_suite_run(index);
     case 2:
-        return maintainability_suite_run(index);
+        return rules_left_out ? maintainability_tools_run(index) : maintainability_suite_run(index);
     default:
         return test_outcome_missing();
     }
@@ -134,8 +136,6 @@ static int exit_code(TestTally tally)
     return ((tally.failed == 0) && (tally.run > 0)) ? 0 : 1;
 }
 
-static bool rules_left_out;
-
 static void read_arguments(int argc, char *argv[])
 {
     int index;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
     int category;
 
     read_arguments(argc, argv);
-    for (category = 0; category < CATEGORY_COUNT - (rules_left_out ? 1 : 0); ++category) {
+    for (category = 0; category < CATEGORY_COUNT; ++category) {
         run_category(category, &tally);
     }
     (void)print_summary(tally);

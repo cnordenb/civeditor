@@ -11,10 +11,11 @@ static const char SOURCE_ROOTS[ROOT_COUNT][ROOT_WIDTH] = { "src", "tests", "tool
 
 static const char PROGRAM_PREFIXES[SOURCE_PROGRAM_COUNT][SOURCE_PREFIX_LIMIT][SOURCE_PREFIX_WIDTH] = {
     { "src/" },
-    { "src/", "tests/", "tools/build/source_" },
+    { "src/", "tests/", "tools/build/source_", "tools/build/build_plan" },
     { "tools/build/", "src/core/" }
 };
-static const char LIBRARIES[] = "-lgdi32\n-lcomdlg32\n-lshell32\n-ladvapi32\n-loleacc\n-lole32\n-loleaut32\n";
+static const char LIBRARIES[] =
+    "-lgdi32\n-lcomdlg32\n-lshell32\n-ladvapi32\n-loleacc\n-lole32\n-loleaut32\n-luxtheme\n";
 
 typedef struct {
     char pending[SOURCE_FOLDER_CAPACITY][SOURCE_PATH_CAPACITY];
@@ -50,9 +51,6 @@ static bool ends_with(const char *name, const char *extension)
 
 static bool join_path(char *destination, const char *folder, const char *name)
 {
-    if (!CHECK(destination != NULL) || !CHECK(folder != NULL)) {
-        return false;
-    }
     return text_copy(destination, SOURCE_PATH_CAPACITY, folder) &&
            text_append(destination, SOURCE_PATH_CAPACITY, "/") &&
            text_append(destination, SOURCE_PATH_CAPACITY, name);
@@ -60,7 +58,7 @@ static bool join_path(char *destination, const char *folder, const char *name)
 
 static bool is_navigation_entry(const char *name)
 {
-    if (!CHECK(name != NULL) || !CHECK(name[0] != '\0')) {
+    if (!CHECK(name[0] != '\0')) {
         return true;
     }
     return text_equal(name, ".") || text_equal(name, "..");
@@ -68,7 +66,7 @@ static bool is_navigation_entry(const char *name)
 
 static bool add_file(SourceList *list, const char *path, FILETIME stamp)
 {
-    if (!CHECK(list != NULL) || !CHECK(list->count < SOURCE_LIST_CAPACITY)) {
+    if (!CHECK(list->count < SOURCE_LIST_CAPACITY)) {
         return false;
     }
     if (!text_copy(list->files[list->count].path, SOURCE_PATH_CAPACITY, path)) {
@@ -81,7 +79,7 @@ static bool add_file(SourceList *list, const char *path, FILETIME stamp)
 
 static bool queue_folder(FolderWalk *walk, const char *path)
 {
-    if (!CHECK(walk != NULL) || !CHECK(walk->pending_count < SOURCE_FOLDER_CAPACITY)) {
+    if (!CHECK(walk->pending_count < SOURCE_FOLDER_CAPACITY)) {
         return false;
     }
     ++walk->pending_count;
@@ -92,9 +90,6 @@ static bool visit_entry(SourceList *list, FolderWalk *walk, const WIN32_FIND_DAT
 {
     char path[SOURCE_PATH_CAPACITY];
 
-    if (!CHECK(walk != NULL) || !CHECK(entry != NULL)) {
-        return false;
-    }
     if (is_navigation_entry(entry->cFileName)) {
         return true;
     }
@@ -118,7 +113,7 @@ static bool scan_folder(SourceList *list, FolderWalk *walk)
     bool fine = true;
     int step;
 
-    if (!CHECK(walk != NULL) || !join_path(pattern, walk->current, "*")) {
+    if (!join_path(pattern, walk->current, "*")) {
         return false;
     }
     search = FindFirstFileA(pattern, &entry);
@@ -137,9 +132,6 @@ static bool scan_folder(SourceList *list, FolderWalk *walk)
 
 static bool start_walk(FolderWalk *walk, const char *root, const char *extension)
 {
-    if (!CHECK(walk != NULL) || !CHECK(root != NULL) || !CHECK(extension != NULL)) {
-        return false;
-    }
     walk->pending_count = 1;
     return text_copy(walk->pending[0], SOURCE_PATH_CAPACITY, root) &&
            text_copy(walk->extension, EXTENSION_CAPACITY, extension);
@@ -150,7 +142,7 @@ bool source_list_collect(SourceList *list, const char *root, const char *extensi
     static FolderWalk walk;
     int next;
 
-    if (!CHECK(list != NULL) || !start_walk(&walk, root, extension)) {
+    if (!start_walk(&walk, root, extension)) {
         return false;
     }
     list->count = 0;
@@ -168,15 +160,12 @@ bool source_list_collect_all(SourceList *list, const char *extension)
     int root;
     int index;
 
-    if (!CHECK(list != NULL) || !CHECK(extension != NULL)) {
-        return false;
-    }
     list->count = 0;
     for (root = 0; root < ROOT_COUNT; ++root) {
         if (!source_list_collect(&part, SOURCE_ROOTS[root], extension)) {
             return false;
         }
-        for (index = 0; (index < part.count) && (index < SOURCE_LIST_CAPACITY); ++index) {
+        for (index = 0; index < part.count; ++index) {
             if (!CHECK(list->count < SOURCE_LIST_CAPACITY)) {
                 return false;
             }
@@ -191,9 +180,6 @@ bool source_in_program(SourceProgram program, const char *path)
 {
     int index;
 
-    if (!CHECK(path != NULL) || !CHECK(program < SOURCE_PROGRAM_COUNT)) {
-        return false;
-    }
     for (index = 0; (index < SOURCE_PREFIX_LIMIT) && (PROGRAM_PREFIXES[program][index][0] != '\0'); ++index) {
         if (text_starts_with(path, PROGRAM_PREFIXES[program][index])) {
             return true;
@@ -207,10 +193,10 @@ static size_t name_start(const char *path, size_t length)
     size_t start = 0U;
     size_t index;
 
-    if (!CHECK(path != NULL) || !CHECK(length < SOURCE_PATH_CAPACITY)) {
+    if (!CHECK(length < SOURCE_PATH_CAPACITY)) {
         return 0U;
     }
-    for (index = 0U; (index < length) && (index < SOURCE_PATH_CAPACITY); ++index) {
+    for (index = 0U; index < length; ++index) {
         start = (path[index] == '/') ? index + 1U : start;
     }
     return start;
@@ -222,7 +208,7 @@ bool source_built_path(char *destination, const char *folder, const char *source
     size_t start = name_start(source, length);
     size_t used;
 
-    if (!CHECK(destination != NULL) || !CHECK(suffix != NULL) || !CHECK(length > start + 2U)) {
+    if (!CHECK(length > start + 2U)) {
         return false;
     }
     if (!text_join(destination, SOURCE_PATH_CAPACITY, folder, "/")) {
@@ -237,7 +223,7 @@ bool source_is_fresh(const SourceFile *source, const char *built_path, long long
 {
     long long built = source_file_modified(built_path);
 
-    if (!CHECK(source != NULL) || !CHECK(newest_header >= 0LL)) {
+    if (!CHECK(newest_header >= 0LL)) {
         return false;
     }
     return (built > source->modified) && (built > newest_header);
@@ -248,10 +234,7 @@ bool source_write_objects(FILE *out, const SourceList *list, SourceProgram progr
     char object[SOURCE_PATH_CAPACITY];
     int index;
 
-    if (!CHECK(out != NULL) || !CHECK(list != NULL) || !CHECK(folder != NULL)) {
-        return false;
-    }
-    for (index = 0; (index < list->count) && (index < SOURCE_LIST_CAPACITY); ++index) {
+    for (index = 0; index < list->count; ++index) {
         if (!source_in_program(program, list->files[index].path)) {
             continue;
         }
@@ -267,10 +250,7 @@ long long source_list_newest(const SourceList *list)
     long long newest = 0LL;
     int index;
 
-    if (!CHECK(list != NULL) || !CHECK(list->count <= SOURCE_LIST_CAPACITY)) {
-        return 0LL;
-    }
-    for (index = 0; (index < list->count) && (index < SOURCE_LIST_CAPACITY); ++index) {
+    for (index = 0; index < list->count; ++index) {
         if (list->files[index].modified > newest) {
             newest = list->files[index].modified;
         }
@@ -282,9 +262,6 @@ long long source_file_modified(const char *path)
 {
     WIN32_FILE_ATTRIBUTE_DATA attributes;
 
-    if (!CHECK(path != NULL) || !CHECK(path[0] != '\0')) {
-        return 0LL;
-    }
     if (GetFileAttributesExA(path, GetFileExInfoStandard, &attributes) == 0) {
         return 0LL;
     }

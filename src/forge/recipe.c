@@ -1,6 +1,5 @@
 #include "recipe_parts.h"
 
-#include "../core/check.h"
 #include "../core/text.h"
 #include "../bonus/bonus_build.h"
 #include "../dat/dat_parts.h"
@@ -28,7 +27,7 @@ static bool plan_bonus_tech(const RecipeInput *input, int tech_id)
     DatTech tech;
     DatChange unlock;
 
-    if (!CHECK(input != NULL) || !recipe_read_tech(input, tech_id, &tech)) {
+    if (!recipe_read_tech(input, tech_id, &tech)) {
         return false;
     }
     if (tech.civ >= 0) {
@@ -45,9 +44,6 @@ static BonusBuild bonus_build_of(const RecipeRun *run)
     BonusBuild build = { NULL, { NULL, NULL, NULL, 0 } };
     const RecipeInput *input;
 
-    if (!CHECK(run != NULL) || !CHECK(run->input != NULL)) {
-        return build;
-    }
     input = run->input;
     build.catalog = input->catalog;
     build.target = run->target;
@@ -59,34 +55,67 @@ static bool plan_bonus_techs(const RecipeInput *input, const BonusEntry *entry)
     int effect;
     bool fine = true;
 
-    if (!CHECK(input != NULL) || !CHECK(entry != NULL)) {
-        return false;
-    }
     for (effect = 0; fine && (effect < entry->effects.count) && (effect < TSV_LIST_LIMIT); ++effect) {
         fine = plan_bonus_tech(input, entry->effects.values[effect]);
     }
     return fine;
 }
 
-static bool plan_bonus(const RecipeRun *run, const BonusBuild *build, int bonus_id)
+static int plan_bonus_requirements(const RecipeInput *input, int bonus_id)
+{
+    const Catalog *catalog;
+    int line;
+    int planned = 0;
+
+    catalog = input->catalog;
+    for (line = 0; (line < catalog->requirement_count) && (line < CATALOG_REQUIREMENT_CAPACITY); ++line) {
+        if (catalog->requirements[line].bonus_id != bonus_id) {
+            continue;
+        }
+        if (!recipe_plan_requirement(input, &catalog->requirements[line])) {
+            return BONUS_BUILD_FAILED;
+        }
+        ++planned;
+    }
+    return planned;
+}
+
+static int build_bonus_lines(const RecipeRun *run, const BonusBuild *build, int bonus_id, int multiplier)
+{
+    int built = bonus_build_civ(build, bonus_id, multiplier);
+    int required;
+
+    if (built == BONUS_BUILD_FAILED) {
+        return BONUS_BUILD_FAILED;
+    }
+    required = plan_bonus_requirements(run->input, bonus_id);
+    if (required == BONUS_BUILD_FAILED) {
+        return BONUS_BUILD_FAILED;
+    }
+    return built + required;
+}
+
+static bool plan_bonus(const RecipeRun *run, const BonusBuild *build, const BonusPick *pick)
 {
     const RecipeInput *input;
     const Catalog *catalog;
+    RecipeReport *report;
     int found;
 
-    if (!CHECK(run != NULL) || !CHECK(build != NULL)) {
-        return false;
-    }
     input = run->input;
+    report = run->report;
     catalog = input->catalog;
-    found = catalog_find_bonus(catalog, false, bonus_id);
+    found = catalog_find_bonus(catalog, false, pick->id);
     if (found == CATALOG_MISSING) {
         return false;
     }
     if (catalog->bonuses[found].effects.count == 0) {
-        return bonus_build_civ(build, bonus_id) > 0;
+        return build_bonus_lines(run, build, pick->id, pick->multiplier) > 0;
     }
-    return plan_bonus_techs(input, &catalog->bonuses[found]);
+    if (pick->multiplier > 1) {
+        ++report->multipliers_skipped;
+    }
+    return plan_bonus_techs(input, &catalog->bonuses[found]) && (build_bonus_lines(run, build, pick->id, 1) >= 0);
 }
 
 static void plan_bonuses(const RecipeRun *run)
@@ -97,14 +126,11 @@ static void plan_bonuses(const RecipeRun *run)
     BonusBuild build = bonus_build_of(run);
     int pick;
 
-    if (!CHECK(run != NULL) || !CHECK(run->report != NULL)) {
-        return;
-    }
     input = run->input;
     report = run->report;
     design = input->design;
     for (pick = 0; (pick < design->bonus_count) && (pick < CIV_BONUS_CAPACITY); ++pick) {
-        if (plan_bonus(run, &build, design->bonuses[pick].id)) {
+        if (plan_bonus(run, &build, &design->bonuses[pick])) {
             ++report->bonuses_built;
         } else {
             ++report->bonuses_skipped;
@@ -114,9 +140,6 @@ static void plan_bonuses(const RecipeRun *run)
 
 static bool plan_unit_techs(const RecipeInput *input, const UnitEntry *entry)
 {
-    if (!CHECK(input != NULL) || !CHECK(entry != NULL)) {
-        return false;
-    }
     return recipe_plan_tech(input, entry->make_tech) &&
            ((entry->elite_tech < 0) || recipe_plan_tech(input, entry->elite_tech));
 }
@@ -125,9 +148,6 @@ static void plan_unit(const RecipeInput *input, RecipeReport *report)
 {
     const UnitEntry *entry = recipe_design_unit(input);
 
-    if (!CHECK(input != NULL) || !CHECK(report != NULL)) {
-        return;
-    }
     report->unit_skipped = (entry == NULL) || (entry->make_tech < 0) || !plan_unit_techs(input, entry);
     if (!report->unit_skipped) {
         report->unit_techs_built = (entry->elite_tech >= 0) ? 2 : 1;
@@ -140,9 +160,6 @@ static int add_named_effect(const RecipeRun *run, const char *suffix)
     const RecipeInput *input;
     const CivDesign *design;
 
-    if (!CHECK(run != NULL) || !CHECK(suffix != NULL)) {
-        return DAT_NO_ID;
-    }
     input = run->input;
     design = input->design;
     if (!text_copy(name, sizeof name, design->texts[TEXT_FIELD_NAME]) || !text_append(name, sizeof name, suffix)) {
@@ -157,9 +174,6 @@ static int team_source(const RecipeInput *input)
     const Catalog *catalog;
     int found;
 
-    if (!CHECK(input != NULL) || !CHECK(input->design != NULL)) {
-        return DAT_NO_ID;
-    }
     design = input->design;
     catalog = input->catalog;
     if (design->team_bonus_count == 0) {
@@ -179,16 +193,13 @@ static void build_team_bonus_from_changes(const RecipeRun *run)
     RecipeReport *report;
     BonusBuild build = bonus_build_of(run);
 
-    if (!CHECK(run != NULL) || !CHECK(run->report != NULL)) {
-        return;
-    }
     input = run->input;
     design = input->design;
     report = run->report;
     if (design->team_bonus_count == 0) {
         return;
     }
-    if (bonus_build_team(&build, design->team_bonuses[0].id) > 0) {
+    if (bonus_build_team(&build, design->team_bonuses[0].id, design->team_bonuses[0].multiplier) > 0) {
         report->team_bonuses_built = 1;
     } else {
         report->team_bonuses_skipped = 1;
@@ -198,18 +209,20 @@ static void build_team_bonus_from_changes(const RecipeRun *run)
 static bool add_team_bonus(RecipeRun *run)
 {
     const RecipeInput *input;
+    const CivDesign *design;
     RecipeReport *report;
     DatEffect effect;
     int added = add_named_effect(run, " Team Bonus");
     bool fine = true;
 
-    if (!CHECK(run != NULL) || (added == DAT_NO_ID)) {
+    if (added == DAT_NO_ID) {
         return false;
     }
     input = run->input;
+    design = input->design;
     report = run->report;
     if (recipe_read_effect(input, team_source(input), &effect) && (effect.change_count > 0)) {
-        fine = recipe_copy_changes(input, run->edit, &effect, false);
+        fine = recipe_copy_changes(input, run->edit, &effect, false, design->team_bonuses[0].multiplier);
         report->team_bonuses_built = 1;
     } else {
         build_team_bonus_from_changes(run);
@@ -223,7 +236,7 @@ static bool add_tech_tree(RecipeRun *run)
     int index;
     bool fine = true;
 
-    if (!CHECK(run != NULL) || (added == DAT_NO_ID)) {
+    if (added == DAT_NO_ID) {
         return false;
     }
     recipe_sort_changes(&tree);
@@ -240,9 +253,6 @@ static bool set_scout(const RecipeRun *run)
     DatCursor cursor;
     size_t at;
 
-    if (!CHECK(run != NULL) || !CHECK(run->input != NULL)) {
-        return false;
-    }
     input = run->input;
     design = input->design;
     if (design->choices[CHOICE_SCOUT] < 0) {
@@ -261,11 +271,9 @@ static bool build_looks(const RecipeRun *run)
     const RecipeInput *input;
     LookSources sources;
 
-    if (!CHECK(run != NULL) || !CHECK(run->input != NULL)) {
-        return false;
-    }
     input = run->input;
-    return look_sources_of(input->catalog, input->design, &sources) && look_build(&run->target, &sources);
+    return look_sources_of(input->catalog, input->design, &sources) && look_build(&run->target, &sources) &&
+           look_dress_units(&run->target, input->catalog, input->design);
 }
 
 static void plan_hero(RecipeRun *run)
@@ -275,9 +283,6 @@ static void plan_hero(RecipeRun *run)
     RecipeReport *report;
     DatChange hidden;
 
-    if (!CHECK(run != NULL) || !CHECK(run->input != NULL)) {
-        return;
-    }
     input = run->input;
     design = input->design;
     report = run->report;
@@ -299,11 +304,8 @@ static bool start_run(const RecipeInput *input, DatEdit *edit, RecipeRun *run)
 {
     const DatMap *map;
 
-    if (!CHECK(input != NULL) || !CHECK(run != NULL)) {
-        return false;
-    }
     map = input->map;
-    if ((input->slot <= 0) || (input->slot >= map->civ_count) || (input->slot >= DAT_CIV_CAPACITY)) {
+    if ((input->slot <= 0) || (input->slot >= map->civ_count)) {
         return false;
     }
     tree.count = 0;
@@ -321,10 +323,6 @@ static bool plan_all(RecipeRun *run)
     RecipeReport *report;
     bool wired;
 
-    if (!CHECK(run != NULL) || !CHECK(run->report != NULL) ||
-        !CHECK(run->input != NULL)) {
-        return false;
-    }
     report = run->report;
     plan_bonuses(run);
     plan_unit(run->input, report);
@@ -336,17 +334,11 @@ static bool plan_all(RecipeRun *run)
 
 static bool add_civ_effects(RecipeRun *run)
 {
-    if (!CHECK(run != NULL) || !CHECK(run->edit != NULL)) {
-        return false;
-    }
     return recipe_neutralize(run->input, run->edit) && add_team_bonus(run) && add_tech_tree(run);
 }
 
 static bool add_civ_techs(RecipeRun *run)
 {
-    if (!CHECK(run != NULL) || !CHECK(run->edit != NULL)) {
-        return false;
-    }
     return recipe_commit_plan(run->input, run->edit) &&
            recipe_add_unique_tech(run->input, run->edit, run->report, TECH_TIER_CASTLE) &&
            recipe_add_unique_tech(run->input, run->edit, run->report, TECH_TIER_IMPERIAL);
@@ -354,10 +346,6 @@ static bool add_civ_techs(RecipeRun *run)
 
 static bool change_units(const RecipeRun *run)
 {
-    if (!CHECK(run != NULL) || !CHECK(run->edit != NULL) ||
-        !CHECK(run->input != NULL)) {
-        return false;
-    }
     if (!set_scout(run) || !recipe_name_unique_unit(run->input, run->edit) || !build_looks(run)) {
         return false;
     }
@@ -366,10 +354,10 @@ static bool change_units(const RecipeRun *run)
 
 bool recipe_apply(const RecipeInput *input, DatEdit *edit, RecipeReport *report)
 {
-    RecipeReport empty = { 0, 0, 0, 0, 0, 0, 0, 0, false, false, false, { DAT_NO_ID, DAT_NO_ID } };
+    RecipeReport empty = { 0, 0, 0, 0, 0, 0, 0, 0, 0, false, false, false, { DAT_NO_ID, DAT_NO_ID } };
     RecipeRun run;
 
-    if (!CHECK(edit != NULL) || !CHECK(report != NULL) || !start_run(input, edit, &run)) {
+    if (!start_run(input, edit, &run)) {
         return false;
     }
     *report = empty;

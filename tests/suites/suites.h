@@ -4,11 +4,10 @@
 #include "../test_outcome.h"
 
 enum {
-    SUITE_TEST_LIMIT = 400,
-    BUILD_SUITE_SIZE = 40,
-    MOD_SUITE_SIZE = 29,
-    CORE_SUITE_SIZE = 68,
-    MODEL_SUITE_SIZE = 65
+    BUILD_SUITE_SIZE = 85,
+    MOD_SUITE_SIZE = 30,
+    CORE_SUITE_SIZE = 76,
+    MODEL_SUITE_SIZE = 67
 };
 
 TestOutcome build_suite_run(int index);

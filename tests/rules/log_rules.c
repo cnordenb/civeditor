@@ -12,7 +12,6 @@ enum {
     PART_DIGIT_LIMIT = 9,
     DAY_CAPACITY = 64,
     DAY_WIDTH = 16,
-    TEST_LIMIT = 100,
     FIELD_LIMIT = 120,
     TERM_LIMIT = 120,
     HEADING_CAPACITY = 64
@@ -269,7 +268,7 @@ static int next_listed(int listed)
 
 static bool counts_agree(int headings, int listed)
 {
-    return CHECK(headings >= 0) && (headings == listed) && (headings <= TEST_LIMIT);
+    return CHECK(headings >= 0) && (headings == listed);
 }
 
 bool tests_document_is_numbered_in_order(void)
@@ -279,7 +278,7 @@ bool tests_document_is_numbered_in_order(void)
     int step;
     bool in_field = false;
 
-    if (!CHECK(TEST_LIMIT > 0) || !tsv_open(&document, L"documentation/TESTS.md")) {
+    if (!tsv_open(&document, L"documentation/TESTS.md")) {
         return false;
     }
     for (step = 0; (step < TSV_FILE_CAPACITY) && tsv_next(&document, &line); ++step) {
@@ -307,16 +306,21 @@ static int count_cases(const wchar_t *path)
     return count;
 }
 
+static int defined_tests(void)
+{
+    return count_cases(L"tests/functional/functional_suite.c") +
+           count_cases(L"tests/suites/build_suite.c") + count_cases(L"tests/suites/mod_suite.c") +
+           count_cases(L"tests/suites/core_suite.c") + count_cases(L"tests/suites/model_suite.c") +
+           count_cases(L"tests/suites/shell_suite.c") +
+           count_cases(L"tests/accessibility/accessibility_suite.c") +
+           count_cases(L"tests/maintainability/maintainability_suite.c");
+}
+
 bool tests_document_counts_every_test(void)
 {
     int documented = 0;
     int step;
-    int defined = count_cases(L"tests/functional/functional_suite.c") +
-                  count_cases(L"tests/suites/build_suite.c") + count_cases(L"tests/suites/mod_suite.c") +
-                  count_cases(L"tests/suites/core_suite.c") + count_cases(L"tests/suites/model_suite.c") +
-                  count_cases(L"tests/suites/shell_suite.c") +
-                  count_cases(L"tests/accessibility/accessibility_suite.c") +
-                  count_cases(L"tests/maintainability/maintainability_suite.c");
+    int defined = defined_tests();
 
     if (!CHECK(defined > 0) || !tsv_open(&document, L"documentation/TESTS.md")) {
         return false;

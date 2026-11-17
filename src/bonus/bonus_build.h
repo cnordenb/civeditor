@@ -11,7 +11,7 @@ typedef struct {
     DatTarget target;
 } BonusBuild;
 
-int bonus_build_civ(const BonusBuild *build, int bonus_id);
-int bonus_build_team(const BonusBuild *build, int team_bonus_id);
+int bonus_build_civ(const BonusBuild *build, int bonus_id, int multiplier);
+int bonus_build_team(const BonusBuild *build, int team_bonus_id, int multiplier);
 
 #endif

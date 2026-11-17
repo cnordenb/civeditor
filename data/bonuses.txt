@@ -267,7 +267,7 @@
 283	unlock	UNLOCK	Chemistry and Hand Cannoneer available in Castle Age	-
 284	combat	+25%	Spearmen deals +25% bonus damage	802
 285	research	Research Benefits Villagers	Fervor and Sanctity affects villagers	803,804
-286	unlock	UPGRADE	Can upgrade Bombard Cannons to Houfnice	-
+286	unlock	UPGRADE	Can upgrade Bombard Cannons to Houfnice	787
 287	unlock	UNLOCK	Can build Caravanseri in Imperial Age	518
 288	combat	+1/+1 Armor	Gunpowder units +1/+1P armor	520
 289	economy	+200 [wood]	Receive +200 wood when advancing to the next age	851,852,853
@@ -319,7 +319,7 @@
 352	unlock	UNLOCK	Siege Engineers available in Castle Age	-
 353	cost	-	Siege and Fortification upgrades cost -75% wood and research +100% faster	995
 354	combat	-50%	Units receive -50% friendly fire damage	1009
-356	unlock	-	Pastures replace Farms and Mill upgrades	-
+356	unlock	-	Pastures replace Farms and Mill upgrades	1008,1012,1013,1014
 357	economy	+10% [food]	Shepherds and Herders generate +10% additional food	-
 358	combat	2× Effect	Melee attack upgrade effects are doubled	998,999,1000
 359	speed	+15% Faster	Skirmishers, Spearman- and Scout Cavalry-line train and upgrade +15% faster	1011
@@ -384,8 +384,8 @@
 443	speed	+50%	Stable technologies research 50% faster	-
 444	speed	HP Regeneration	Skirmishers regenerate 5 HP per minute in Feudal Age, 10 in Castle Age	1293,1294
 445	economy	+[food]	Villagers gathering stone slowly generate food	-
-451	unlock	UNLOCK	Unlock the Phalangite (Macedonian infantry, Barracks, Castle Age)	-
-454	unlock	UNLOCK	Unlock the Sannāhya (Puru elephant, Stable, Castle Age)	-
+451	unlock	UNLOCK	Unlock the Phalangite (Macedonian infantry, Barracks, Castle Age)	1290,1291
+454	unlock	UNLOCK	Unlock the Sannāhya (Puru elephant, Stable, Castle Age)	1327,1328
 455	unlock	UNLOCK	Unlock the Hoplite (Greek infantry, Barracks, Castle Age)	-
 456	unlock	UNLOCK	Unlock the Scythian Horse Archer (replaces the Cavalry Archer line, Archery Range, Castle Age)	-
 457	combat	+15% ATK	Palintonon replaces the Trebuchet (Chronicles), +15% attack	-

@@ -21,6 +21,8 @@ enum {
     CATALOG_GENERIC_BASE = 0,
     CATALOG_BONUS_CHANGE_CAPACITY = 4096,
     CATALOG_UNIT_PATCH_CAPACITY = 512,
+    CATALOG_REQUIREMENT_CAPACITY = 32,
+    CATALOG_UNIT_LOOK_CAPACITY = 16,
     CATALOG_LOOK_UNITS = 3,
     CATALOG_MISSING = -1
 };
@@ -146,13 +148,33 @@ typedef enum {
     UNIT_FIELD_TYPE_COUNT
 } UnitFieldType;
 
+typedef enum {
+    UNIT_PART_START,
+    UNIT_PART_COSTS,
+    UNIT_PART_TRAIN_LOCATION,
+    UNIT_PART_COUNT
+} UnitPart;
+
 typedef struct {
     int bonus_id;
     int unit;
     int offset;
     UnitFieldType type;
     float value;
+    UnitPart part;
 } UnitPatch;
+
+typedef struct {
+    int bonus_id;
+    int tech;
+    int requirement;
+} BonusRequirement;
+
+typedef struct {
+    int bonus_id;
+    int unit;
+    int from_civ;
+} UnitLook;
 
 typedef enum {
     BASE_TEAM_BONUS,
@@ -188,6 +210,10 @@ typedef struct {
     int bonus_change_count;
     UnitPatch unit_patches[CATALOG_UNIT_PATCH_CAPACITY];
     int unit_patch_count;
+    BonusRequirement requirements[CATALOG_REQUIREMENT_CAPACITY];
+    int requirement_count;
+    UnitLook unit_looks[CATALOG_UNIT_LOOK_CAPACITY];
+    int unit_look_count;
     BaseCiv bases[CATALOG_BASE_CAPACITY];
     int base_count;
 } Catalog;

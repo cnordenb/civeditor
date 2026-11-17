@@ -2,24 +2,16 @@
 
 #include "../../src/core/check.h"
 #include "../../src/core/text.h"
-#include "../../src/data/tsv.h"
 #include "../../src/present/details.h"
 #include "../../src/view/layout.h"
 #include "../../src/view/palette.h"
 #include "../test_outcome.h"
 
-enum { BOX_CAPACITY = 2 * CONTROL_COUNT, CAPITALS_MOST = 5, PLAIN_COUNT = 2, CATALOG_FILE_COUNT = 5, PATH_WIDTH = 24 };
-
-static const wchar_t CATALOG_FILES[CATALOG_FILE_COUNT][PATH_WIDTH] = {
-    L"data/bonuses.txt", L"data/team_bonuses.txt", L"data/techs.txt", L"data/units.txt", L"data/tree.txt"
-};
-static const char PLAIN_CAPITALS[PLAIN_COUNT][CAPITALS_MOST + 1] = { "FREE", "OFF" };
+enum { BOX_CAPACITY = 2 * CONTROL_COUNT };
 
 static Box boxes[BOX_CAPACITY];
-static TsvFile catalog_file;
-static TsvRecord catalog_line;
 
-bool test_every_text_contrasts_seven_to_one(void)
+bool test_every_text_contrasts_four_and_a_half_to_one(void)
 {
     ColorPair pair;
     int index;
@@ -27,7 +19,7 @@ bool test_every_text_contrasts_seven_to_one(void)
     for (index = 0; index < PALETTE_PAIR_COUNT; ++index) {
         pair = palette_pair(index);
         if (palette_contrast_hundredths(palette_color(pair.text), palette_color(pair.background)) <
-            PALETTE_AAA_CONTRAST) {
+            PALETTE_AA_CONTRAST) {
             return false;
         }
     }
@@ -151,84 +143,4 @@ bool test_the_steps_and_their_buttons_are_on_every_step(void)
 bool test_the_layout_grows_with_the_text_size_of_windows(void)
 {
     return layout_text_dpi(LAYOUT_BASE_DPI, 400) == 216;
-}
-
-static bool is_explained(const char *word)
-{
-    GlossaryEntry entry;
-    int index;
-
-    for (index = 0; index < LAYOUT_GLOSSARY_COUNT; ++index) {
-        entry = layout_glossary(index);
-        if (text_equal(word, entry.word) && (entry.meaning[0] != '\0')) {
-            return true;
-        }
-    }
-    for (index = 0; index < PLAIN_COUNT; ++index) {
-        if (text_equal(word, PLAIN_CAPITALS[index])) {
-            return true;
-        }
-    }
-    return false;
-}
-
-static bool capitals_are_explained(const char *text, size_t at)
-{
-    char word[CAPITALS_MOST + 2] = "";
-    size_t length;
-
-    if ((at > 0U) && (text_is_between(text[at - 1U], 'A', 'Z') || text_is_between(text[at - 1U], 'a', 'z'))) {
-        return true;
-    }
-    for (length = 0U; (length <= CAPITALS_MOST) && text_is_between(text[at + length], 'A', 'Z'); ++length) {
-        word[length] = text[at + length];
-    }
-    word[length] = '\0';
-    if ((length < 2U) || (length > CAPITALS_MOST) || text_is_between(text[at + length], 'a', 'z')) {
-        return true;
-    }
-    test_note(word);
-    return is_explained(word);
-}
-
-static bool line_is_explained(const char *text)
-{
-    size_t at;
-
-    if (!CHECK(text != NULL) || !CHECK(TSV_LINE_CAPACITY > 0)) {
-        return false;
-    }
-    for (at = 0U; (at < TSV_LINE_CAPACITY) && (text[at] != '\0'); ++at) {
-        if (text_is_between(text[at], 'A', 'Z') && !capitals_are_explained(text, at)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-static bool file_is_explained(const wchar_t *path)
-{
-    int row;
-
-    if (!CHECK(path != NULL) || !tsv_open(&catalog_file, path)) {
-        return false;
-    }
-    for (row = 0; (row < TSV_FILE_CAPACITY) && tsv_next(&catalog_file, &catalog_line); ++row) {
-        if (!line_is_explained(catalog_line.text)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool test_the_glossary_explains_every_short_form(void)
-{
-    int file;
-
-    for (file = 0; file < CATALOG_FILE_COUNT; ++file) {
-        if (!file_is_explained(CATALOG_FILES[file])) {
-            return false;
-        }
-    }
-    return true;
 }

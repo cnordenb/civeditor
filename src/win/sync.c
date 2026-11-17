@@ -10,15 +10,18 @@
 
 enum { BYTES_PER_CHARACTER = 3, CATEGORY_ROWS = BONUS_CATEGORY_COUNT + 1, STEP_ROW_CAPACITY = 64 };
 
+_Static_assert(CBN_SELCHANGE == LBN_SELCHANGE, "a choice and a list say alike that their row changed");
+
 static wchar_t wide[WIDE_TEXT_CAPACITY];
 static wchar_t shown[WIDE_TEXT_CAPACITY];
 static char narrow[WIDE_TEXT_CAPACITY];
 static SummaryText summary;
 static DetailText detail;
+static CivDesign base_design;
 
 static void show_text(HWND window, const char *text)
 {
-    if (!CHECK(window != NULL) || !CHECK(text != NULL) || !dialogs_widen(text, wide, WIDE_TEXT_CAPACITY)) {
+    if (!dialogs_widen(text, wide, WIDE_TEXT_CAPACITY)) {
         return;
     }
     (void)GetWindowTextW(window, shown, WIDE_TEXT_CAPACITY);
@@ -29,9 +32,6 @@ static void show_text(HWND window, const char *text)
 
 static bool read_text(HWND window, char *text, int capacity)
 {
-    if (!CHECK(window != NULL) || !CHECK(text != NULL)) {
-        return false;
-    }
     (void)GetWindowTextW(window, wide, WIDE_TEXT_CAPACITY);
     return dialogs_narrow(wide, text, capacity);
 }
@@ -41,9 +41,6 @@ static void sync_texts(AppState *app)
     int control;
     int field;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return;
-    }
     for (control = 0; control < CONTROL_COUNT; ++control) {
         field = binding_of((ControlId)control)->text_field;
         if (field != BINDING_NO_FIELD) {
@@ -62,9 +59,6 @@ static void tick_rows(AppState *app, ControlId control)
     bool chosen;
     int row;
 
-    if (!CHECK(app != NULL) || !CHECK(app->lists[control].count <= LIST_ROW_CAPACITY)) {
-        return;
-    }
     list = app->controls[control];
     top = SendMessageW(list, LB_GETTOPINDEX, 0, 0);
     (void)SendMessageW(list, WM_SETREDRAW, FALSE, 0);
@@ -86,9 +80,6 @@ static int first_chosen_row(const AppState *app, ControlId control)
     ListItem item;
     int row;
 
-    if (!CHECK(app != NULL) || !CHECK(control < CONTROL_COUNT)) {
-        return -1;
-    }
     item.control = control;
     for (row = 0; (row < app->lists[control].count) && (row < LIST_ROW_CAPACITY); ++row) {
         item.item = app->lists[control].items[row];
@@ -104,9 +95,6 @@ static void select_rows(AppState *app, ControlId control)
     WidgetKind kind = layout_spec(control).kind;
     int chosen_row;
 
-    if (!CHECK(app != NULL) || !CHECK(app->lists[control].count <= LIST_ROW_CAPACITY)) {
-        return;
-    }
     if (kind == WIDGET_CHECKLIST) {
         tick_rows(app, control);
         return;
@@ -123,9 +111,6 @@ static ListQuery query_of(AppState *app, ControlId control)
 {
     ListQuery query = { CONTROL_TITLE, "", LIST_ALL_CATEGORIES };
 
-    if (!CHECK(app != NULL) || !CHECK((int)control < CONTROL_COUNT)) {
-        return query;
-    }
     query.control = control;
     if (control == CONTROL_TREE_LIST) {
         (void)read_text(app->controls[CONTROL_TREE_FILTER], query.filter, LIST_FILTER_CAPACITY);
@@ -144,8 +129,7 @@ void sync_list(AppState *app, ControlId control)
     RowText row;
     int index;
 
-    if (!CHECK(app != NULL) || !CHECK((int)control < CONTROL_COUNT) ||
-        !list_model_fill(&app->lists[control], &app->catalog, &query)) {
+    if (!list_model_fill(&app->lists[control], &app->catalog, &query)) {
         return;
     }
     (void)SendMessageW(app->controls[control], WM_SETREDRAW, FALSE, 0);
@@ -168,7 +152,7 @@ static void fill_categories(AppState *app)
 {
     int category;
 
-    if (!CHECK(app != NULL) || !CHECK(app->controls[CONTROL_BONUS_CATEGORY] != NULL)) {
+    if (!CHECK(app->controls[CONTROL_BONUS_CATEGORY] != NULL)) {
         return;
     }
     (void)SendMessageW(app->controls[CONTROL_BONUS_CATEGORY], CB_RESETCONTENT, 0, 0);
@@ -186,9 +170,8 @@ static void sync_steps(AppState *app)
     char row[STEP_ROW_CAPACITY];
     int step;
 
-    if (!CHECK(app != NULL) || !CHECK(app->step < STEP_COUNT)) {
-        return;
-    }
+    base_design = app->history.present;
+    (void)base_civ_apply(&base_design, &app->catalog, app->history.present.choices[CHOICE_BASE]);
     (void)SendMessageW(app->controls[CONTROL_STEPS], WM_SETREDRAW, FALSE, 0);
     (void)SendMessageW(app->controls[CONTROL_STEPS], LB_RESETCONTENT, 0, 0);
     for (step = 0; step < STEP_COUNT; ++step) {
@@ -197,7 +180,7 @@ static void sync_steps(AppState *app)
         (void)text_append(row, sizeof row, ". ");
         (void)text_append(row, sizeof row, wizard_page((WizardStep)step)->title);
         (void)text_append(row, sizeof row,
-                          wizard_step_is_done(&app->history.present, (WizardStep)step) ? " (done)" : "");
+                          wizard_step_is_done(&app->history.present, &base_design, (WizardStep)step) ? " (done)" : "");
         if (dialogs_widen(row, wide, WIDE_TEXT_CAPACITY)) {
             (void)SendMessageW(app->controls[CONTROL_STEPS], LB_ADDSTRING, 0, (LPARAM)wide);
         }
@@ -211,9 +194,6 @@ void sync_details(AppState *app)
 {
     int control;
 
-    if (!CHECK(app != NULL) || !CHECK(app->step < STEP_COUNT)) {
-        return;
-    }
     app->syncing = true;
     detail = details_window_title(&app->history.present, app->step);
     show_text(app->window, detail.text);
@@ -237,9 +217,6 @@ static void sync_choices(AppState *app, bool refill)
 {
     int control;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return;
-    }
     for (control = 0; control < CONTROL_COUNT; ++control) {
         if (binding_of((ControlId)control)->source == SOURCE_NONE) {
             continue;
@@ -254,9 +231,6 @@ static void sync_choices(AppState *app, bool refill)
 
 void sync_design(AppState *app, bool refill)
 {
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return;
-    }
     app->syncing = true;
     sync_texts(app);
     if (refill) {
@@ -269,9 +243,6 @@ void sync_design(AppState *app, bool refill)
 
 static void apply(AppState *app, const Command *command)
 {
-    if (!CHECK(app != NULL) || !CHECK(command != NULL)) {
-        return;
-    }
     if (!history_do(&app->history, command)) {
         dialogs_status(app, "That change cannot be made: the civ is full or the text is too long.");
     } else {
@@ -285,9 +256,6 @@ static void apply(AppState *app, const Command *command)
 
 static void fill_list_again(AppState *app, ControlId list)
 {
-    if (!CHECK(app != NULL) || !CHECK((int)list < CONTROL_COUNT)) {
-        return;
-    }
     app->syncing = true;
     sync_list(app, list);
     app->syncing = false;
@@ -298,9 +266,6 @@ static void on_text_change(AppState *app, ControlId control)
     int field = binding_of(control)->text_field;
     Command command;
 
-    if (!CHECK(app != NULL) || !CHECK((int)control < CONTROL_COUNT)) {
-        return;
-    }
     if ((control == CONTROL_TREE_FILTER) || (control == CONTROL_BONUS_FILTER)) {
         fill_list_again(app, (control == CONTROL_TREE_FILTER) ? CONTROL_TREE_LIST : CONTROL_BONUS_LIST);
         return;
@@ -316,9 +281,6 @@ static void apply_base(AppState *app, int base_id)
 {
     static CivDesign based;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return;
-    }
     based = app->history.present;
     if (!base_civ_apply(&based, &app->catalog, base_id) || !history_replace(&app->history, &based)) {
         dialogs_status(app, "That base civ is not in the catalog.");
@@ -334,7 +296,7 @@ static void on_pick(AppState *app, ControlId control, int row)
     ListItem item;
     Command command;
 
-    if (!CHECK(app != NULL) || !CHECK(row < LIST_ROW_CAPACITY) || (row < 0) || (row >= app->lists[control].count)) {
+    if ((row < 0) || (row >= app->lists[control].count)) {
         return;
     }
     item.control = control;
@@ -357,9 +319,6 @@ static void on_checklist_change(AppState *app, ControlId control)
     int row;
     bool selected;
 
-    if (!CHECK(app != NULL) || !CHECK(app->lists[control].count <= LIST_ROW_CAPACITY)) {
-        return;
-    }
     item.control = control;
     for (row = 0; (row < app->lists[control].count) && (row < LIST_ROW_CAPACITY); ++row) {
         item.item = app->lists[control].items[row];
@@ -377,9 +336,6 @@ static bool is_text_change(WidgetKind kind, int code)
 
 static void on_selection(AppState *app, ControlId control, WidgetKind kind)
 {
-    if (!CHECK(app != NULL) || !CHECK((int)control < CONTROL_COUNT)) {
-        return;
-    }
     if (control == CONTROL_BONUS_CATEGORY) {
         app->bonus_category = (int)SendMessageW(app->controls[control], CB_GETCURSEL, 0, 0) - 1;
         fill_list_again(app, CONTROL_BONUS_LIST);
@@ -396,9 +352,6 @@ void sync_on_notify(AppState *app, int control, int code)
 {
     WidgetKind kind;
 
-    if (!CHECK(app != NULL) || !CHECK(code >= 0) || !CHECK(CBN_SELCHANGE == LBN_SELCHANGE)) {
-        return;
-    }
     if (app->syncing || (control < 0) || (control >= CONTROL_COUNT)) {
         return;
     }

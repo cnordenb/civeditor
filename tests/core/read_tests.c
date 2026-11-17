@@ -1,5 +1,6 @@
 #include "read_tests.h"
 
+#include <limits.h>
 #include <wchar.h>
 
 #include "../../src/core/check.h"
@@ -10,6 +11,7 @@
 enum { WIDE_CAPACITY = 8, SMALL_CAPACITY = 2, VALUE_CAPACITY = 16, MISSING_FIELD = 3 };
 
 static const wchar_t SMILE[] = { 0xD83D, 0xDE00, 0 };
+static const wchar_t FIRST_BEYOND[] = { 0xD800, 0xDC00, 0 };
 
 static JsonDocument document;
 static JsonPatch patch;
@@ -106,9 +108,16 @@ bool test_a_number_with_a_letter_in_it_is_no_number(void)
     return !text_to_number("1x", 2U).valid;
 }
 
-bool test_a_number_beyond_a_billion_is_no_number(void)
+bool test_a_number_past_the_largest_long_is_no_number(void)
 {
-    return !text_to_number("99999999999", 11U).valid;
+    return !text_to_number("2147483648", 10U).valid;
+}
+
+bool test_the_largest_number_a_long_holds_is_read(void)
+{
+    TextNumber number = text_to_number("2147483647", 10U);
+
+    return number.valid && (number.value == LONG_MAX);
 }
 
 bool test_a_letter_of_two_bytes_is_widened_to_one_wide_letter(void)
@@ -124,6 +133,11 @@ bool test_a_letter_of_three_bytes_is_widened_to_one_wide_letter(void)
 bool test_a_letter_beyond_the_basic_plane_is_widened_to_two(void)
 {
     return widens_to("\xF0\x9F\x98\x80", SMILE);
+}
+
+bool test_the_first_letter_beyond_the_basic_plane_is_widened_to_two(void)
+{
+    return widens_to("\xF0\x90\x80\x80", FIRST_BEYOND);
 }
 
 bool test_a_byte_that_starts_no_letter_is_not_widened(void)

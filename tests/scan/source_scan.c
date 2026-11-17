@@ -210,27 +210,6 @@ bool source_line_is_blank(const ScannedSource *source, int line)
     return true;
 }
 
-int source_count_word(const ScannedSource *source, int start, int end, const char *word)
-{
-    int count = 0;
-    int index;
-    size_t length = text_length(word, SCAN_NAME_CAPACITY);
-
-    if (!CHECK(source != NULL) || !CHECK(length > 0U)) {
-        return 0;
-    }
-    for (index = start; (index < end) && (index < SCAN_TEXT_CAPACITY); ++index) {
-        if ((index > 0) && source_is_word_letter(source->cleaned[index - 1])) {
-            continue;
-        }
-        if (text_starts_with(&source->cleaned[index], word) &&
-            !source_is_word_letter(source->cleaned[index + (int)length])) {
-            ++count;
-        }
-    }
-    return count;
-}
-
 static void measure_lines(ScannedSource *source)
 {
     int line;

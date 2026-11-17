@@ -9,7 +9,6 @@ typedef enum {
     CODE_RULE_LINE_LENGTH,
     CODE_RULE_FILE_LENGTH,
     CODE_RULE_SIMPLE_CONTROL_FLOW,
-    CODE_RULE_BOUNDED_LOOPS,
     CODE_RULE_NO_ALLOCATION,
     CODE_RULE_SIMPLE_PREPROCESSOR,
     CODE_RULE_POINTER_DEPTH,
@@ -19,6 +18,5 @@ typedef enum {
 
 bool code_rule_holds(CodeRule rule);
 bool code_has_no_recursion(void);
-bool code_has_two_checks_per_function(void);
 
 #endif

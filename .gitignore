@@ -6,3 +6,6 @@ temp/
 /build.exe
 .metrics/
 /target/
+deletion/
+/DELETION_REQUESTS.md
+future_feature_ideas.md

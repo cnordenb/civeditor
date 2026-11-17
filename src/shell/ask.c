@@ -25,9 +25,6 @@ const wchar_t *ask_last_message(void)
 
 int ask_message(HWND owner, const wchar_t *text, const wchar_t *title, UINT flags)
 {
-    if (!CHECK(text != NULL) || !CHECK(title != NULL)) {
-        return 0;
-    }
     if (!script.active) {
         return MessageBoxW(owner, text, title, flags);
     }
@@ -40,7 +37,7 @@ static bool scripted_file(OPENFILENAMEW *dialog, bool saving)
     wchar_t path[FILE_PATH_CAPACITY];
     const wchar_t *given = saving ? script.save_folder : script.open_path;
 
-    if (!CHECK(dialog != NULL) || !CHECK(dialog->nMaxFile >= (DWORD)FILE_PATH_CAPACITY) || (given == NULL)) {
+    if (!CHECK(dialog->nMaxFile >= (DWORD)FILE_PATH_CAPACITY) || (given == NULL)) {
         return false;
     }
     if (!saving) {
@@ -56,20 +53,17 @@ static bool scripted_file(OPENFILENAMEW *dialog, bool saving)
 
 static bool shown_file(OPENFILENAMEW *dialog, bool saving)
 {
-    return CHECK(dialog != NULL) && ((saving ? GetSaveFileNameW(dialog) : GetOpenFileNameW(dialog)) != 0);
+    return (saving ? GetSaveFileNameW(dialog) : GetOpenFileNameW(dialog)) != 0;
 }
 
 bool ask_file(OPENFILENAMEW *dialog, bool saving)
 {
-    if (!CHECK(dialog != NULL) || !CHECK(dialog->lpstrFile != NULL)) {
-        return false;
-    }
     return script.active ? scripted_file(dialog, saving) : shown_file(dialog, saving);
 }
 
 static bool scripted_folders(wchar_t *game, wchar_t *mods)
 {
-    if (!CHECK(game != NULL) || !CHECK(mods != NULL) || (script.steam == NULL) || (script.home == NULL)) {
+    if ((script.steam == NULL) || (script.home == NULL)) {
         return false;
     }
     return mod_find_game_under(script.steam, game, FILE_PATH_CAPACITY) &&
@@ -78,15 +72,10 @@ static bool scripted_folders(wchar_t *game, wchar_t *mods)
 
 static bool found_folders(wchar_t *game, wchar_t *mods)
 {
-    return CHECK(game != NULL) && mod_find_game_folder(game, FILE_PATH_CAPACITY) &&
-           mod_find_local_mods(mods, FILE_PATH_CAPACITY);
+    return mod_find_game_folder(game, FILE_PATH_CAPACITY) && mod_find_local_mods(mods, FILE_PATH_CAPACITY);
 }
 
 bool ask_game_folders(wchar_t *game, wchar_t *mods)
 {
-    if (!CHECK(game != NULL) || !CHECK(mods != NULL) ||
-        !CHECK(FILE_PATH_CAPACITY > 0)) {
-        return false;
-    }
     return script.active ? scripted_folders(game, mods) : found_folders(game, mods);
 }

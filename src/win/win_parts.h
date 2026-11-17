@@ -19,7 +19,9 @@ enum {
     WIDE_TEXT_CAPACITY = 16384,
     STATUS_CAPACITY = 320,
     BOX_SIZE = 18,
-    TEXT_INSET = 8
+    TEXT_INSET = 8,
+    LIST_REPEAT_TIMER = 1,
+    WINDOW_BAR_ID = 900
 };
 
 typedef enum {
@@ -42,6 +44,7 @@ typedef enum {
 typedef struct {
     HINSTANCE instance;
     HWND window;
+    HWND bar;
     HWND framed;
     HWND controls[CONTROL_COUNT];
     HWND labels[CONTROL_COUNT];
@@ -58,6 +61,9 @@ typedef struct {
     bool catalog_loaded;
     int dpi;
     int scroll;
+    int wheel_rest;
+    HWND held_list;
+    int held_rows;
     History history;
     Catalog catalog;
     ListModel lists[CONTROL_COUNT];
@@ -82,8 +88,12 @@ UINT assist_row_format(const AppState *app, const DRAWITEMSTRUCT *item, const wc
 void assist_wrap_rows(const AppState *app, ControlId control);
 void assist_placed(const AppState *app);
 int assist_scroll_range(AppState *app, int content, int view);
+RECT assist_view(const AppState *app);
+void assist_make_bar(AppState *app);
 void assist_scroll(AppState *app, UINT message, WPARAM wparam);
 void assist_draw_focus(const AppState *app, HDC context);
+void assist_plain_bar(HWND control);
+void assist_run_message(AppState *app, MSG *message);
 
 void sync_design(AppState *app, bool refill);
 void sync_list(AppState *app, ControlId control);

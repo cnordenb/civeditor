@@ -64,8 +64,7 @@ bool hero_find(const DatTarget *target, int unit_id, Hero *hero)
 {
     const DatMap *map;
 
-    if (!CHECK(target != NULL) || !CHECK(hero != NULL) || (unit_id < 0) ||
-        !dat_map_has_civ(target->map, target->civ)) {
+    if (unit_id < 0) {
         return false;
     }
     map = target->map;
@@ -79,11 +78,8 @@ bool hero_find(const DatTarget *target, int unit_id, Hero *hero)
 
 DatChange hero_hidden(const Hero *hero)
 {
-    DatChange hidden = { ENABLE_UNIT, DAT_NO_ID, 0, DAT_NO_ID, 0.0F };
+    DatChange hidden = { ENABLE_UNIT, hero->id, 0, DAT_NO_ID, 0.0F };
 
-    if (CHECK(hero != NULL)) {
-        hidden.a = hero->id;
-    }
     return hidden;
 }
 
@@ -98,10 +94,8 @@ static bool add_enabling_tech(const DatTarget *target, const Hero *hero)
     int change;
     bool fine;
 
-    if (!CHECK(target != NULL) || !CHECK(hero != NULL) || !text_copy(tech.name, sizeof tech.name, ENABLING_NAME) ||
-        !text_append_number(tech.name, sizeof tech.name, target->civ)) {
-        return false;
-    }
+    (void)(text_copy(tech.name, sizeof tech.name, ENABLING_NAME) &&
+           text_append_number(tech.name, sizeof tech.name, target->civ));
     tech.civ = target->civ;
     tech.effect_id = dat_edit_add_effect(target->edit, tech.name);
     fine = (tech.effect_id != DAT_NO_ID);
@@ -117,9 +111,6 @@ static bool keep_own_ids(const DatTarget *target, const Hero *hero)
     DatEdit *edit;
     size_t at;
 
-    if (!CHECK(target != NULL) || !CHECK(hero != NULL)) {
-        return false;
-    }
     edit = target->edit;
     at = hero->unit.copy_ids_at;
     return dat_edit_patch_i16(edit, at, hero->id) && dat_edit_patch_i16(edit, at + DAT_SHORT_WIDTH, hero->id) &&
@@ -131,9 +122,6 @@ static bool name_hero(const DatTarget *target, const Hero *hero)
     DatEdit *edit;
     size_t at;
 
-    if (!CHECK(target != NULL) || !CHECK(hero != NULL)) {
-        return false;
-    }
     if (hero->name_sid < 0L) {
         return true;
     }
@@ -149,9 +137,6 @@ static bool put_cost(DatEdit *edit, size_t at, const DatTechCost *cost)
     DatPatch patch = { 0U, 0U, { 0U } };
     DatSink sink = dat_sink_over(patch.bytes, sizeof patch.bytes, 0U);
 
-    if (!CHECK(edit != NULL) || !CHECK(cost != NULL)) {
-        return false;
-    }
     dat_sink_i16(&sink, cost->type);
     dat_sink_i16(&sink, cost->amount);
     dat_sink_i16(&sink, cost->flag);
@@ -160,10 +145,6 @@ static bool put_cost(DatEdit *edit, size_t at, const DatTechCost *cost)
 
 static bool train_in_castle(DatEdit *edit, size_t at)
 {
-    if (!CHECK(edit != NULL) || !CHECK(at > 0U) ||
-        !CHECK(at < DAT_UNIT_CAPACITY * DAT_UNIT_CAPACITY)) {
-        return false;
-    }
     return dat_edit_patch_i16(edit, at, TRAIN_TIME) && dat_edit_patch_i16(edit, at + DAT_TRAIN_BUILDING_AT, CASTLE) &&
            dat_edit_patch_u8(edit, at + DAT_TRAIN_BUTTON_AT, CASTLE_BUTTON) &&
            dat_edit_patch_i32(edit, at + DAT_TRAIN_HOT_KEY_AT, CASTLE_HOT_KEY);
@@ -175,9 +156,6 @@ static bool train_at_castle(const DatTarget *target, const Hero *hero)
     int slot;
     bool fine;
 
-    if (!CHECK(target != NULL) || !CHECK(hero != NULL)) {
-        return false;
-    }
     if (hero->unit.train_location_count <= 0) {
         return true;
     }
@@ -195,9 +173,6 @@ static bool raise_hit_points(const DatTarget *target, const Hero *hero)
     DatCursor cursor;
     size_t at;
 
-    if (!CHECK(target != NULL) || !CHECK(hero != NULL)) {
-        return false;
-    }
     at = hero->unit.at + DAT_UNIT_HIT_POINTS_AT;
     if (!dat_cursor_start(&cursor, target->dat, at)) {
         return false;
@@ -207,9 +182,6 @@ static bool raise_hit_points(const DatTarget *target, const Hero *hero)
 
 bool hero_build(const DatTarget *target, const Hero *hero)
 {
-    if (!CHECK(target != NULL) || !CHECK(hero != NULL)) {
-        return false;
-    }
     return add_enabling_tech(target, hero) && keep_own_ids(target, hero) && name_hero(target, hero) &&
            train_at_castle(target, hero) && raise_hit_points(target, hero);
 }

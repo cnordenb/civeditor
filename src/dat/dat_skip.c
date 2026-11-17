@@ -60,12 +60,9 @@ static bool skip_terrain_restrictions(DatCursor *cursor)
     int restriction_count;
     int terrain_count;
 
-    if (!CHECK(cursor != NULL) || !cursor->fine) {
-        return false;
-    }
     restriction_count = dat_cursor_i16(cursor);
     terrain_count = dat_cursor_i16(cursor);
-    return CHECK(restriction_count >= 0) && CHECK(terrain_count >= 0) &&
+    return CHECK(terrain_count >= 0) &&
            dat_cursor_skip_items(cursor, restriction_count, TERRAIN_POINTER_ARRAYS * DAT_POINTER_SIZE) &&
            dat_cursor_skip_items(cursor, restriction_count, (size_t)terrain_count * TERRAIN_PASS_SIZE);
 }
@@ -75,7 +72,7 @@ static bool skip_sound(DatCursor *cursor)
     int item_count;
     int item;
 
-    if (!CHECK(cursor != NULL) || !dat_cursor_skip(cursor, SOUND_HEAD_SIZE)) {
+    if (!dat_cursor_skip(cursor, SOUND_HEAD_SIZE)) {
         return false;
     }
     item_count = dat_cursor_i16(cursor);
@@ -92,7 +89,7 @@ static bool skip_sounds(DatCursor *cursor)
     int sound_count;
     int sound;
 
-    if (!CHECK(cursor != NULL) || !cursor->fine) {
+    if (!cursor->fine) {
         return false;
     }
     sound_count = dat_cursor_i16(cursor);
@@ -109,7 +106,7 @@ static bool skip_graphic(DatCursor *cursor)
     int angle_count;
     int text;
 
-    if (!CHECK(cursor != NULL) || !cursor->fine) {
+    if (!cursor->fine) {
         return false;
     }
     for (text = 0; text < GRAPHIC_TEXT_COUNT; ++text) {
@@ -122,7 +119,7 @@ static bool skip_graphic(DatCursor *cursor)
     (void)dat_cursor_skip(cursor, GRAPHIC_TO_ANGLE_COUNT);
     angle_count = dat_cursor_i16(cursor);
     (void)dat_cursor_skip(cursor, GRAPHIC_REST_SIZE);
-    return CHECK(delta_count >= 0) && dat_cursor_skip_items(cursor, delta_count, GRAPHIC_DELTA_SIZE) &&
+    return dat_cursor_skip_items(cursor, delta_count, GRAPHIC_DELTA_SIZE) &&
            dat_cursor_skip_items(cursor, (angle_sounds_used != 0) ? angle_count : 0, GRAPHIC_ANGLE_SOUND_SIZE);
 }
 
@@ -132,7 +129,7 @@ static bool skip_graphics(DatCursor *cursor)
     int graphic_count;
     int graphic;
 
-    if (!CHECK(cursor != NULL) || !cursor->fine) {
+    if (!cursor->fine) {
         return false;
     }
     graphic_count = dat_cursor_i16(cursor);
@@ -148,14 +145,11 @@ static bool skip_graphics(DatCursor *cursor)
 
 static bool skip_two_texts(DatCursor *cursor)
 {
-    return CHECK(cursor != NULL) && dat_cursor_skip_text(cursor) && dat_cursor_skip_text(cursor);
+    return dat_cursor_skip_text(cursor) && dat_cursor_skip_text(cursor);
 }
 
 static bool skip_terrain(DatCursor *cursor)
 {
-    if (!CHECK(cursor != NULL) || !CHECK(cursor->fine)) {
-        return false;
-    }
     return dat_cursor_skip(cursor, TERRAIN_HEAD_SIZE) && skip_two_texts(cursor) &&
            dat_cursor_skip(cursor, TERRAIN_MIDDLE_SIZE) && dat_cursor_skip_text(cursor) &&
            dat_cursor_skip(cursor, TERRAIN_TAIL_SIZE);
@@ -165,7 +159,7 @@ static bool skip_terrain_block(DatCursor *cursor)
 {
     int terrain;
 
-    if (!CHECK(cursor != NULL) || !dat_cursor_skip(cursor, TERRAIN_BLOCK_HEAD_SIZE)) {
+    if (!dat_cursor_skip(cursor, TERRAIN_BLOCK_HEAD_SIZE)) {
         return false;
     }
     for (terrain = 0; (terrain < TERRAIN_COUNT) && cursor->fine; ++terrain) {
@@ -178,7 +172,7 @@ static bool skip_random_maps(DatCursor *cursor)
 {
     long map_count;
 
-    if (!CHECK(cursor != NULL) || !cursor->fine) {
+    if (!cursor->fine) {
         return false;
     }
     map_count = dat_cursor_i32(cursor);
@@ -187,18 +181,13 @@ static bool skip_random_maps(DatCursor *cursor)
 
 static bool skip_sounds_and_graphics(DatCursor *cursor)
 {
-    return CHECK(cursor != NULL) && skip_sounds(cursor) && skip_graphics(cursor);
+    return skip_sounds(cursor) && skip_graphics(cursor);
 }
 
 bool dat_skip_head(DatCursor *cursor)
 {
-    int colour_count;
-
-    if (!CHECK(cursor != NULL) || !skip_terrain_restrictions(cursor)) {
-        return false;
-    }
-    colour_count = dat_cursor_i16(cursor);
-    return CHECK(colour_count >= 0) && dat_cursor_skip_items(cursor, colour_count, PLAYER_COLOUR_SIZE) &&
+    return skip_terrain_restrictions(cursor) &&
+           dat_cursor_skip_items(cursor, dat_cursor_i16(cursor), PLAYER_COLOUR_SIZE) &&
            skip_sounds_and_graphics(cursor) && skip_terrain_block(cursor) && skip_random_maps(cursor);
 }
 
@@ -207,11 +196,8 @@ bool dat_skip_unit_headers(DatCursor *cursor)
     long header_count;
     long header;
 
-    if (!CHECK(cursor != NULL) || !cursor->fine) {
-        return false;
-    }
     header_count = dat_cursor_i32(cursor);
-    for (header = 0L; (header < header_count) && (header < DAT_COUNT_LIMIT) && cursor->fine; ++header) {
+    for (header = 0L; (header < header_count) && cursor->fine; ++header) {
         if (dat_cursor_u8(cursor) != 0) {
             (void)dat_cursor_skip_items(cursor, dat_cursor_i16(cursor), DAT_TASK_SIZE);
         }
@@ -221,9 +207,6 @@ bool dat_skip_unit_headers(DatCursor *cursor)
 
 static bool skip_unit_base(DatCursor *cursor, DatUnit *unit)
 {
-    if (!CHECK(cursor != NULL) || !CHECK(unit != NULL) || !CHECK(cursor->fine)) {
-        return false;
-    }
     (void)dat_cursor_skip(cursor, UNIT_BASE_AFTER_TYPE);
     (void)dat_cursor_skip(cursor, RESOURCE_STORAGES_SIZE);
     unit->damage_graphic_count = dat_cursor_u8(cursor);
@@ -240,7 +223,7 @@ static bool skip_bird(DatCursor *cursor, DatUnit *unit)
 {
     int drop_site_count;
 
-    if (!CHECK(cursor != NULL) || !CHECK(unit != NULL) || !dat_cursor_skip(cursor, BIRD_HEAD_SIZE)) {
+    if (!dat_cursor_skip(cursor, BIRD_HEAD_SIZE)) {
         return false;
     }
     drop_site_count = dat_cursor_i16(cursor);
@@ -257,7 +240,7 @@ static bool skip_combatant(DatCursor *cursor, DatUnit *unit)
     int attack_count;
     int armour_count;
 
-    if (!CHECK(cursor != NULL) || !CHECK(unit != NULL) || !dat_cursor_skip(cursor, COMBATANT_HEAD_SIZE)) {
+    if (!dat_cursor_skip(cursor, COMBATANT_HEAD_SIZE)) {
         return false;
     }
     attack_count = dat_cursor_i16(cursor);
@@ -270,9 +253,6 @@ static bool skip_combatant(DatCursor *cursor, DatUnit *unit)
 
 static bool skip_creatable(DatCursor *cursor, DatUnit *unit)
 {
-    if (!CHECK(cursor != NULL) || !CHECK(unit != NULL)) {
-        return false;
-    }
     unit->costs_at = cursor->at;
     if (!dat_cursor_skip(cursor, (size_t)DAT_UNIT_COST_SLOTS * DAT_UNIT_COST_SIZE)) {
         return false;
@@ -287,9 +267,6 @@ static bool skip_creatable(DatCursor *cursor, DatUnit *unit)
 
 static void skip_unit_parts(DatCursor *cursor, DatUnit *unit, int type)
 {
-    if (!CHECK(cursor != NULL) || !CHECK(unit != NULL)) {
-        return;
-    }
     if (type >= TYPE_BIRD) {
         (void)skip_bird(cursor, unit);
     }
@@ -313,14 +290,11 @@ bool dat_read_unit(DatCursor *cursor, DatUnit *unit)
     const DatUnit absent = { 0U, 0, 0, 0U, 0, 0U, 0U, 0U, 0, 0U, 0U, 0U, 0, 0U, 0U, 0U };
     int type;
 
-    if (!CHECK(cursor != NULL) || !CHECK(unit != NULL) || !cursor->fine) {
-        return false;
-    }
     *unit = absent;
     unit->at = cursor->at;
     type = dat_cursor_u8(cursor);
     if (!skip_unit_base(cursor, unit) || (type == TYPE_TREE) || (type < TYPE_FLAG)) {
-        return CHECK(cursor->fine);
+        return cursor->fine;
     }
     (void)dat_cursor_skip(cursor, SPEED_SIZE);
     if (type >= TYPE_DEAD_FISH) {
@@ -328,14 +302,14 @@ bool dat_read_unit(DatCursor *cursor, DatUnit *unit)
         (void)dat_cursor_skip(cursor, DEAD_FISH_SIZE);
     }
     skip_unit_parts(cursor, unit, type);
-    return CHECK(cursor->fine);
+    return cursor->fine;
 }
 
 bool dat_skip_unit(DatCursor *cursor)
 {
     DatUnit unit;
 
-    return CHECK(cursor != NULL) && dat_read_unit(cursor, &unit);
+    return dat_read_unit(cursor, &unit);
 }
 
 int dat_skip_civ_head(DatCursor *cursor)
@@ -343,15 +317,14 @@ int dat_skip_civ_head(DatCursor *cursor)
     int resource_count;
     int unit_count;
 
-    if (!CHECK(cursor != NULL) || !dat_cursor_skip(cursor, DAT_PLAYER_TYPE_SIZE) || !dat_cursor_skip_text(cursor)) {
-        return -1;
-    }
+    (void)dat_cursor_skip(cursor, DAT_PLAYER_TYPE_SIZE);
+    (void)dat_cursor_skip_text(cursor);
     resource_count = dat_cursor_i16(cursor);
     (void)dat_cursor_skip(cursor, CIV_IDS_SIZE);
     (void)dat_cursor_skip_items(cursor, resource_count, RESOURCE_SIZE);
     (void)dat_cursor_skip(cursor, ICON_SET_SIZE);
     unit_count = dat_cursor_i16(cursor);
-    return (CHECK(resource_count >= 0) && CHECK(unit_count >= 0) && cursor->fine) ? unit_count : -1;
+    return (CHECK(unit_count >= 0) && cursor->fine) ? unit_count : -1;
 }
 
 bool dat_skip_civ(DatCursor *cursor)
@@ -360,7 +333,7 @@ bool dat_skip_civ(DatCursor *cursor)
     int unit_count = dat_skip_civ_head(cursor);
     int unit;
 
-    if (!CHECK(cursor != NULL) || (unit_count < 0)) {
+    if (unit_count < 0) {
         return false;
     }
     slots = *cursor;

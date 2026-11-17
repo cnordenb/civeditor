@@ -9,11 +9,11 @@ agents, REQUIREMENTS.md is read-only.
 
 Rule 3: Must be as easy as possible for humans to maintain with as few steps as possible.
 
-Rule 4: Must have tests to ensure the project still works every push.
+Rule 4: Must have tests to ensure the project still works every push. A test cannot rely solely on this rule alone and must always be compliant with rule 5.
 
 Rule 5: A test may test one thing and one thing only. A test must serve one of the following purposes: requirement coverage, regression testing for previously found bugs.
 
-Rule 6: Tests will be documented, without excess clutter, text or story-telling, in TESTS.md. Every test must refer to either a requirement, a rule, or a past bug. If it cannot do so, it cannot be considered compliant with rule 5.
+Rule 6: Tests will be documented, without excess clutter, text or story-telling, in TESTS.md. Every test must refer to either a requirement, a rule, or a past bug. If it cannot do so, it cannot be considered compliant with rule 5. A test which refers to only rule 4 is not a compliant test.
 
 Rule 7: Must keep up-to-date MAINTAINER.md which explains pedagogically for humans how to maintain the project.
 
@@ -79,3 +79,11 @@ used; in particular no Python, JavaScript, CSS or HTML. Data and documents (Rule
 Rule 30: An AI agent deletes nothing on the disk: no file or directory, by any command. A deletion that is needed is
 listed in DELETION_REQUESTS.md for a human to perform. Objects in the code, such as those that DeleteObject and
 DestroyWindow free, are not files and may be freed.
+
+Rule 31: Tests are limited to, apart from exceptions detailed in rule 32, (requirements + rules + bugs). Eg. if there are 31 rules, 12 requirements, and 3 bugs. There may not be more than 44 tests.
+
+Rule 32: There may be up to 55 tests for accessibility (reqs. 3-4). Redundancy tests (needed for the sole purpose of covering mutant survivors in accordance with req. 12) are kept separately and only run separately to test for req. 12.
+
+Rule 33: Documentation will have BUGS.md. It will not contain any prose. Only a table with the following values: Bug, discovered, status. Bug has max 120 characters. Discovered is YYYY-MM-DD hh:mm:ss. Status is "Covered by test x" where x is test number. A clanker may not add nor define new bugs, and may only edit BUGS.md to document bugs found by a human.
+
+Rule 34: Tests must be kept separate per category: Core (requirements+rules+bugs), Accessibility (checklist in ACCESSIBILITY.md) Redundancy (req. 12). A test from one category may not share file with a test from a different category. Core tests may never exceed n=(reqs+rules+bugs). If new tests are ordered to further cover requirements, rules, or already covered old bugs, they will be added to a fourth category Regression. A clanker may only add a new regression test at the explicit direction of a human.

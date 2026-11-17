@@ -25,7 +25,7 @@ typedef struct {
 
 static bool names_unit(const DatChange *change, int wanted_type)
 {
-    if (!CHECK(change != NULL) || !CHECK((wanted_type == ENABLE_UNIT) || (wanted_type == UPGRADE_UNIT))) {
+    if (!CHECK((wanted_type == ENABLE_UNIT) || (wanted_type == UPGRADE_UNIT))) {
         return false;
     }
     return (change->type == wanted_type) && ((wanted_type == UPGRADE_UNIT) || (change->b != 0));
@@ -36,9 +36,6 @@ static UnitHit unit_at_change(const RecipeInput *input, const DatEffect *effect,
     UnitHit hit = { true, NO_UNIT };
     RecipeChange read;
 
-    if (!CHECK(input != NULL) || !CHECK(effect != NULL)) {
-        return hit;
-    }
     read = recipe_change_at(input, effect, index);
     if (!read.read) {
         return hit;
@@ -57,9 +54,6 @@ static int unit_in_effect(const RecipeInput *input, int tech_id, int wanted_type
     DatEffect effect;
     int index;
 
-    if (!CHECK(input != NULL) || !CHECK(input->map != NULL)) {
-        return NO_UNIT;
-    }
     if (!recipe_read_tech(input, tech_id, &tech) || !recipe_read_effect(input, tech.effect_id, &effect)) {
         return NO_UNIT;
     }
@@ -73,9 +67,6 @@ UniqueUnit unique_unit_of_techs(const RecipeInput *input, int make_tech, int eli
 {
     UniqueUnit unit = { NO_UNIT, NO_UNIT };
 
-    if (!CHECK(input != NULL) || !CHECK(input->dat != NULL)) {
-        return unit;
-    }
     unit.base = unit_in_effect(input, make_tech, ENABLE_UNIT);
     unit.elite = unit_in_effect(input, elite_tech, UPGRADE_UNIT);
     return unit;
@@ -85,7 +76,7 @@ static bool is_made_by_civ(const RecipeInput *input, const UnitEntry *entry, int
 {
     DatTech tech;
 
-    if (!CHECK(input != NULL) || !CHECK(entry != NULL) || (entry->role != UNIT_ROLE_VANILLA)) {
+    if (entry->role != UNIT_ROLE_VANILLA) {
         return false;
     }
     return recipe_read_tech(input, entry->make_tech, &tech) && (tech.civ == civ);
@@ -98,7 +89,7 @@ UniqueUnit unique_unit_of_civ(const RecipeInput *input, int civ)
     const UnitEntry *entry;
     int index;
 
-    if (!CHECK(input != NULL) || !CHECK(input->catalog != NULL) || (civ < 0)) {
+    if (civ < 0) {
         return none;
     }
     catalog = input->catalog;
@@ -113,7 +104,7 @@ UniqueUnit unique_unit_of_civ(const RecipeInput *input, int civ)
 
 static bool is_source_unit(const UniqueSwap *swap, int unit)
 {
-    if (!CHECK(swap != NULL) || (unit == NO_UNIT)) {
+    if (unit == NO_UNIT) {
         return false;
     }
     return (unit == swap->from.base) || (unit == swap->from.elite);
@@ -121,7 +112,7 @@ static bool is_source_unit(const UniqueSwap *swap, int unit)
 
 static UniqueAim aim_at(DatChange *change, int unit)
 {
-    if (!CHECK(change != NULL) || (unit == NO_UNIT)) {
+    if (unit == NO_UNIT) {
         return UNIQUE_DROP;
     }
     change->a = unit;
@@ -134,7 +125,7 @@ static const int STAT_CHANGES[STAT_CHANGE_COUNT] = { SET_ATTRIBUTE, ADD_ATTRIBUT
 
 static UniqueAim aim_stat(const UniqueSwap *swap, DatChange *change)
 {
-    if (!CHECK(swap != NULL) || !CHECK(change != NULL) || !is_source_unit(swap, change->a)) {
+    if (!is_source_unit(swap, change->a)) {
         return UNIQUE_KEEP;
     }
     return aim_at(change, (change->a == swap->from.base) ? swap->to.base : swap->to.elite);
@@ -142,9 +133,6 @@ static UniqueAim aim_stat(const UniqueSwap *swap, DatChange *change)
 
 static UniqueAim aim_enable(const UniqueSwap *swap, DatChange *change)
 {
-    if (!CHECK(swap != NULL) || !CHECK(change != NULL)) {
-        return UNIQUE_DROP;
-    }
     if ((change->b != 0) && (change->a == swap->from.base) && (change->a != NO_UNIT)) {
         return aim_at(change, swap->to.base);
     }
@@ -153,17 +141,11 @@ static UniqueAim aim_enable(const UniqueSwap *swap, DatChange *change)
 
 static UniqueAim aim_upgrade(const UniqueSwap *swap, const DatChange *change)
 {
-    if (!CHECK(swap != NULL) || !CHECK(change != NULL)) {
-        return UNIQUE_DROP;
-    }
     return (is_source_unit(swap, change->a) || is_source_unit(swap, change->b)) ? UNIQUE_DROP : UNIQUE_KEEP;
 }
 
 UniqueAim unique_aim(const UniqueSwap *swap, DatChange *change)
 {
-    if (!CHECK(swap != NULL) || !CHECK(change != NULL)) {
-        return UNIQUE_DROP;
-    }
     if (check_is_among(change->type, STAT_CHANGES, STAT_CHANGE_COUNT)) {
         return aim_stat(swap, change);
     }
@@ -183,7 +165,7 @@ UniqueAim unique_aim(const UniqueSwap *swap, DatChange *change)
 
 static int armor_class(const DatChange *change)
 {
-    if (!CHECK(change != NULL) || ((change->c != ARMOR_ATTRIBUTE) && (change->c != ATTACK_ATTRIBUTE))) {
+    if ((change->c != ARMOR_ATTRIBUTE) && (change->c != ATTACK_ATTRIBUTE)) {
         return NO_UNIT;
     }
     return (int)change->d / ARMOR_CLASS_SIZE;
@@ -191,15 +173,12 @@ static int armor_class(const DatChange *change)
 
 static bool same_attribute(const DatChange *left, const DatChange *right)
 {
-    if (!CHECK(left != NULL) || !CHECK(right != NULL)) {
-        return false;
-    }
     return (left->type == right->type) && (left->a == right->a) && (left->b == right->b) && (left->c == right->c);
 }
 
 bool unique_same_target(const DatChange *left, const DatChange *right)
 {
-    if (!CHECK(left != NULL) || !CHECK(right != NULL) || !check_is_among(left->type, STAT_CHANGES, STAT_CHANGE_COUNT)) {
+    if (!check_is_among(left->type, STAT_CHANGES, STAT_CHANGE_COUNT)) {
         return false;
     }
     return same_attribute(left, right) && (armor_class(left) == armor_class(right));

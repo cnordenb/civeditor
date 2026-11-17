@@ -89,3 +89,9 @@ bool test_the_second_tip_names_the_unique_unit(void)
 {
     return strings_hold(FULL_CIV, TEXT_FIELD_TAGLINE, "North", "IDS_CIVTIPS_1_1 \"Your unique unit is the Tester.\"");
 }
+
+bool test_a_line_break_in_a_tip_is_written_as_a_space(void)
+{
+    return strings_hold(FULL_CIV, TEXT_FIELD_UNIT_NAME, "Test\ner",
+                        "IDS_CIVTIPS_1_1 \"Your unique unit is the Test er.\"");
+}

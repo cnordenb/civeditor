@@ -14,5 +14,9 @@ bool test_the_imperial_tech_step_is_done_once_a_tech_is_picked(void);
 bool test_the_hero_step_is_done_once_a_hero_is_picked(void);
 bool test_a_pick_finishes_only_its_own_step(void);
 bool test_back_from_the_second_step_goes_to_the_first(void);
+bool test_a_tree_that_swaps_a_node_of_the_base_civ_is_changed(void);
+bool test_bonuses_that_swap_one_of_the_base_civ_are_changed(void);
+bool test_a_team_bonus_other_than_the_base_civs_is_a_change(void);
+bool test_the_base_civs_own_team_bonus_is_no_change(void);
 
 #endif

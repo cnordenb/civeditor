@@ -12,11 +12,8 @@ enum {
     FUNCTION_LINE_LIMIT = 60,
     CODE_LINE_LIMIT = 120,
     FILE_LINE_LIMIT = 400,
-    NOTE_CAPACITY = 384,
-    CHECKS_PER_FUNCTION = 2
+    NOTE_CAPACITY = 384
 };
-
-static const char CHECK_SOURCE[] = "src/core/check.c";
 
 static RepoFiles files;
 static ScannedSource source;
@@ -77,8 +74,6 @@ static int pattern_violation_line(CodeRule rule, const char *path)
     switch ((int)rule) {
     case CODE_RULE_SIMPLE_CONTROL_FLOW:
         return pattern_forbidden_flow_line(&source);
-    case CODE_RULE_BOUNDED_LOOPS:
-        return pattern_unbounded_loop_line(&source);
     case CODE_RULE_NO_ALLOCATION:
         return pattern_allocation_line(&source);
     case CODE_RULE_SIMPLE_PREPROCESSOR:
@@ -175,57 +170,3 @@ bool code_has_no_recursion(void)
     return true;
 }
 
-static void note_density(long checks, long functions)
-{
-    char note[NOTE_CAPACITY] = "";
-
-    if (!CHECK(checks >= 0L) || !CHECK(functions >= 0L)) {
-        return;
-    }
-    (void)text_append_number(note, sizeof note, checks);
-    (void)text_append(note, sizeof note, " checks in ");
-    (void)text_append_number(note, sizeof note, functions);
-    (void)text_append(note, sizeof note, " functions");
-    test_note(note);
-}
-
-static bool is_measured(const char *path)
-{
-    if (!CHECK(path != NULL) || !CHECK(path[0] != '\0')) {
-        return false;
-    }
-    return repo_path_has_suffix(path, ".c") && !text_starts_with(path, "tests/") && !text_equal(path, CHECK_SOURCE);
-}
-
-static long checks_of_source(void)
-{
-    long checks = 0L;
-    int function;
-
-    if (!CHECK(source.function_count >= 0) || !CHECK(source.function_count <= SCAN_FUNCTION_CAPACITY)) {
-        return 0L;
-    }
-    for (function = 0; (function < source.function_count) && (function < SCAN_FUNCTION_CAPACITY); ++function) {
-        checks += source.functions[function].checks;
-    }
-    return checks;
-}
-
-bool code_has_two_checks_per_function(void)
-{
-    long checks = 0L;
-    long functions = 0L;
-    int index;
-
-    if (!repo_files_list(&files) || !CHECK(files.count > 0)) {
-        return false;
-    }
-    for (index = 0; (index < files.count) && (index < REPO_FILE_CAPACITY); ++index) {
-        if (is_measured(files.paths[index]) && source_scan(&source, files.paths[index])) {
-            checks += checks_of_source();
-            functions += source.function_count;
-        }
-    }
-    note_density(checks, functions);
-    return (functions > 0L) && (checks >= functions * CHECKS_PER_FUNCTION);
-}

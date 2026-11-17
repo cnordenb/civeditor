@@ -2,10 +2,10 @@
 name: tests-doc
 description: >-
   Keep documentation/TESTS.md in step with the tests: add, remove, merge, renumber and describe tests, keep each
-  test's file and lines right, and stay within 100 tests. Use this skill whenever a test is added, changed, moved,
-  merged or removed; whenever code in a test file moves so that the lines of its tests change; when deciding whether a
-  new test is worth one of the 100 places; and when a test fails and its entry is needed to judge whether the failure
-  is real or a false positive.
+  test's file and lines right, and keep every test tied to a requirement, a rule or a bug found before. Use this skill
+  whenever a test is added, changed, moved, merged or removed; whenever code in a test file moves so that the lines of
+  its tests change; when deciding whether a new test is worth writing; and when a test fails and its entry is needed
+  to judge whether the failure is real or a false positive.
 ---
 
 # TESTS.md
@@ -49,10 +49,12 @@ No file but `settings.py` writes `settings.json`; the failure names the file tha
   log alone; its sections describe the numbers as they were then.
 - After a test file changes, check the lines of every test in it, not only of the test that changed.
 
-## At most 100 tests
+## Which tests are written
 
-- Count before adding (Rule 5). At 100, merge the new check into a related test, or replace the test that is worth
-  least, and say which and why in the log.
+- A test covers a requirement, or catches again a bug that was found before (Rule 5). Its purpose names the
+  requirement, the rule or the bug (Rule 6): "(Req. 8)", "Rule 13", "(Bug 2 of 2026-11-16)". A test that can name none
+  of them is not written, and one already written is taken out.
+- There is no limit on how many tests there are.
 - Tests should _sufficiently_ ensure that the project is complete, correct, maintainable and accessible; coverage is
   not a goal. Do not write a test that another test already makes.
 - A test that fails without a real fault, a false positive, is mended or removed, not left to be ignored.
@@ -66,6 +68,6 @@ No file but `settings.py` writes `settings.json`; the failure names the file tha
    what is wrong. Undo the breakage. The log's **Checked.** point says that this was done.
 3. Write or mend its entry, and renumber what follows.
 4. Run all the tests with `build.exe quick`. Tests of `TESTS.md` among them check that the tests are numbered 1, 2, 3
-   in order in both the headings and the table of contents, that there are at most 100, that every test has an
-   entry, and the length of the fields.
+   in order in both the headings and the table of contents, that every test has an entry, and the length of the
+   fields.
 5. Record it in the log: the count in **Tests.**, and `TESTS.md` in **Documents.**

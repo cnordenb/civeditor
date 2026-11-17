@@ -1,3 +1,198 @@
+# Sitrep, 2026-11-17 11:14
+
+Nothing is committed and nothing is deleted by an agent. Every item that `documentation/DELETION_REQUESTS.md` names was
+moved, as ordered, into `deletion/` in the project's folder, `build.exe` and `build/` among them, so the build program
+must be made again before a build (see "How to test"). At the last build, the analyzer found nothing and 439 tests
+passed but Test 418, on the line of `TERMINOLOGY.md` added at 10:48 (question 13). The task is not finished: features
+of the original are still missing, and the tests do not yet keep Rules 31 to 34 (see "Not done"). The log is in
+`documentation/DEVLOG/`: `DEVLOG5.md` from 2026-11-16 21:03:39 on, and `DEVLOG6.md` and `DEVLOG7.md`, the day
+2026-11-17, which goes on in `DEVLOG7.md` from 07:15:16. The move and the new rules are not in the log yet
+(question 15).
+
+## What is new
+
+- **Everything the deletion requests name is in `deletion/`:** 950 items. `deletion/project/` holds `build/`,
+  `build.exe`, `.metrics/`, `target/`, and `tests/fixtures/alike.txt` and `coverage.txt`; `deletion/temp/` 66 files of
+  the system's temporary folder; `deletion/appdata-local/` `scratch_edit.txt`; and `deletion/scratchpad-b2aa4ee3/`,
+  `scratchpad-8654ebe4/`, `scratchpad-69bcc9ba/` and `scratchpad-02df68d1/` the whole of four sessions' scratchpads.
+  `sinkfix.txt` and `dummy_never_used` were already gone. Each item was moved by a rename on drive C:, so no junction
+  was followed. Git shows the two fixtures as deleted.
+- **Delete `deletion/` from Explorer, or with `rmdir /s /q deletion` in cmd.** It holds 1098 junctions, some to the
+  project's own `src/`, `tests/`, `tools/`, `data/` and `documentation/`; a tool that follows junctions would delete
+  those too.
+- **The rules and the requirements changed,** from 10:36 to 10:58. Rules 4 and 6: no test rests on Rule 4 alone. Rule
+  31: there are at most as many tests as requirements, rules and bugs. Rule 32: besides, up to 55 tests of
+  accessibility, and redundancy tests, which only kill survivors of the mutator and run apart for Requirement 12. Rule
+  33: `BUGS.md`, a table of the bugs found by a human. Rule 34: the tests of each category (core, accessibility,
+  redundancy, and regression, which only a human may order) are kept in files of their own. Requirement 12: the
+  mutator is used as ub-mode says. `TERMINOLOGY.md` defines "clanker" (question 13), and `.gitignore` names
+  `deletion/`, `DELETION_REQUESTS.md` and `future_feature_ideas.md` (question 15).
+- **No test names Rule 4 alone** (the answer to question 2 of the last sitrep). The 21 tests whose purpose named only
+  Rule 4 are removed: of the filter, the categories and the details of the lists, of the glossary, of the loop of
+  messages, of the build program's modes, and the test that every test defined is run. No test is written until that
+  is allowed again. The crapper, on coverage made afresh: every function covered as before, the highest 9.6. The
+  mutator on the six files of their code: 441 mutants, 220 killed, 189 survived, 32 on lines that no test runs
+  (question 12).
+- **The answers of `instructions_3.md`** are recorded in the log (21:03:39) and in `DECISIONS.md`. The cap of 100 tests
+  is gone, and P10's fixed bounds and count of checks give way to the mutator. The checklist of
+  `.github/ACCESSIBILITY.md` holds only criteria of levels A and AA. The crapper reads coverage made by gcovr.
+- **The bugs found in testing are fixed.** No step is shown as done at startup: nothing was loaded, but a step the base
+  civ fills was taken as done; a step is now done when it differs from the base civ. The lists and the window have
+  classic scroll bars, whose arrows and knob show without hovering. Nothing slides when scrolled. A notch of the wheel
+  and a press on an arrow move a list by one row.
+- **Requirement 10:** with the coverage of the tests, every function of `src/` and of the four files of `tools/build/`
+  (named one by one) is under CRAP 10: 912 functions, the highest `bottom_box` at 9.6, also after the tests that named
+  Rule 4 alone were removed.
+- **Requirement 11:** `..\dryer\dryer.cmd --threshold 0.8` on `src/` and those files finds no two functions alike.
+- **Requirement 12:** the mutator ran on every line changed since 2026-11-17 02:39:14, in 47 files: 695 mutants, 268
+  killed, 146 survived, 281 on lines that no test runs. Then on the lines of the last pass and the survivors its tests
+  were written for, `tools/build/` judged at last, since `norules` now keeps the tests of the build program: 252
+  mutants, 121 killed, 29 survived, 102 on lines that no test runs. Then on every line of the multiplier: 150 mutants,
+  91 killed, 29 survived, 30 on lines that no test runs; and again after the tests its survivors showed: 104, 71 killed,
+  15 survived, 18 on lines that no test runs. Then on every line of the bonuses of requirement techs: 94 mutants, 50
+  killed, 12 survived, 32 on lines that no test runs. Then on the lines of bonus 356: 25 mutants, 14 killed, 4 survived,
+  7 on lines that no test runs; and after its one new survivor was mended: 18, 8 killed, 3 survived, the loop bound that
+  survived before, 7 on lines that no test runs. Then on the lines of the `train` line: 34 mutants, 11 killed, 2
+  survived, at the bound of a unit patch's place, 21 on lines that no test runs; and on the lines of the `cost` line:
+  35, 11 killed, the same 2 survived, 22 on lines that no test runs. Then on the lines of the `look` line: 103 mutants,
+  55 killed, 19 survived, 29 on lines that no test runs; and on `catalog.c` again after the loop of `read_ids` was taken
+  out: 42, 17 killed, 8 survived, each a guard of a line's ids or of the catalog's capacity, 17 on lines that no test
+  runs. Then on the lines of the attack's timing: 12, 6 killed, 1 survived, the guard against a place before byte 23, 5
+  on lines that no test runs. Then on the bound of `patch_fits`, after Test 47 was written: its `<=` made `<` is killed,
+  and `+` made `-` survives. Then on `copy_unit_look`, after Tests 129 to 131 were written: its 5 mutants are killed.
+  Then on the six files whose tests named Rule 4 alone, after those tests were removed: 441 mutants, 220 killed, 189
+  survived, 32 on lines that no test runs.
+- **A bonus's multiplier** in a civ file is applied, scaling each change as the original does: an amount added is
+  multiplied, a factor raised, a spawn made larger, and armor or attack past 255 split. It applies to the bonuses built
+  from changes and to the team bonus; a bonus made of the game's techs counts once, and the build says so. A multiplier
+  is 1 to 10.
+- **Fifteen more civ bonuses are built:** 81 (no buildings needed to advance), 103 (the Cavalier in the Castle Age), 221
+  (the Militia and Spearman upgrades an age early), 247 (Parthian Tactics in the Castle Age), 283 (Chemistry and the
+  Hand Cannoneer in the Castle Age), 286 (the Houfnice), 352 (Siege Engineers in the Castle Age), 356 (Pastures in place
+  of Farms), 222 (Cows from Mills), 460 (Wooden Castles), 451 (the Phalangite), 454 (the Sannahya), 455 (the Hoplite),
+  456 (the Scythian Horse Archer) and 457 (the Palintonon). Eight are built as the game builds the bonus of its own civ:
+  a requirement tech of that civ is copied for the new civ and added to the requirements of the game's tech. 286 is the
+  game's Houfnice, copied; 356 is the game's pasture techs, copied, and a line that disables the Farms and their
+  upgrades at the Mill, since a bonus that names techs now builds its lines too. 222 enables the cow and moves its
+  training from the Town Center to the Mill, by a new kind of line, `train`: a unit patch placed in the unit's first
+  train location. 460 gives the Castle the original's numbers, 300 stone and 500 wood, 175 seconds and 3000 HP, by a
+  `unit` line, a `train` line and `cost` lines, a unit patch placed in the unit's costs. 451 and 454 are the game's
+  techs of those Chronicles units, copied; 454 has the original's hit points by `unit` lines. 455 and 456 are the game's
+  techs of those units, whose requirement of the Chronicles the civ's requirement tech meets; 455 also sets the Hoplite
+  tech's cost of 1 food to 0, as the game does for the Chronicles, since a tech researched nowhere that costs something
+  never fires. 457 multiplies the Trebuchet's two attacks by 115%, as the game packs an attack bonus, and gives the
+  Trebuchets the Athenians' look and the timing of their attack by a new kind of line, `look`. A mod built from the
+  installed game with the fifteen had each in its dat file.
+- **Seven survivors of earlier runs** showed counts of the build's report and copies of effects that no test held;
+  tests hold them now.
+- **A bug the mutator showed:** a number past the largest `long` (2147483647) wrapped round to a negative number and was
+  taken as read. It is now refused.
+- **The build program** is split: `tools/build/build_plan.c` decides, and its tests check it; `build_steps.c` only makes
+  the folders, compiles, links and runs. A build that fails shows the errors of every source at once.
+- **Tests:** 439. There were 363 at the last sitrep, and 460 before the 21 that named Rule 4 alone were removed.
+
+## Not done
+
+- These features of the original are not built: 7 of the 394 civ bonuses (239, 308, 309, 310, 332, 400 and 459, which
+  the build's report names); the names the original writes for the Chronicles units, and its moves of a unit whose
+  button is taken; the Wooden Fort's look of bonus 460; the Palintonon's name; the free Villager of bonus 345 for the
+  pasture upgrades of 356; custom unique units; language and voices; the tech tree screen (`civTechTrees` is not
+  written); the hero's description, flags and overrides; the Royal tiers of bonuses 155 and 261; the multiplier of a
+  bonus made of the game's techs, which the window cannot set either.
+- **The tests do not keep Rules 31 to 34:** 393 tests of the core where about 53 are allowed, categories and files that
+  are not those of Rule 34, and no `BUGS.md` (question 14).
+- Survivors stand on checks of outside data (question 5), on capacities that no design reaches, and on equivalent
+  mutants. Each section of the log lists the survivors of its runs; the gaps that the runs of 04:37:52 showed are
+  covered by the tests of the sections after it.
+- The 189 mutants that survive in the code of the tests removed have no test, since none may be written now
+  (question 12). A wrong size of a suite or start of a group again leaves tests out without a failure (question 3).
+- `tests/` is outside the measure of Requirements 10 to 12 (question 1).
+- `DELETION_REQUESTS.md` still names the places the items were moved from, and the log has no section on the move, on
+  the new rules or on the answers since 10:57:53 (question 15).
+- The window was not tried at a text size of 200% or a scale of 400%, nor with a screen reader. The program was not
+  tried by hand after the last changes, nor the mod in the game.
+
+## Questions to answer now
+
+1. **`tests/` and `tools/build/` in the measure** (question 6 of the last sitrep, explained). The crapper, the dryer and
+   the mutator pass by every folder named `tests` or `build`. Named one by one, the files of `tests/` had, on
+   2026-11-16, 126 functions at CRAP 10 or above and 282 pairs 80% alike, nearly all of them tests; a test needs no test
+   of its own, and a mutant of a test kills nothing. `tools/build/` is now measured by naming its four files, and is
+   under both bars. Proposal: keep it so, and keep `tests/` outside Requirements 10 and 11.
+2. **The pictures moved** into `sitrep&instructions/pictures/`, to keep the folder within 7 files (Rule 14), and their
+   links in `instructions_2.md` were mended. Proposal: keep it so.
+3. **A suite's size is written twice,** in `suites.h` and by the `case`s of the suite. The test that failed when the two
+   differ named Rule 4 only and was removed, so a wrong size again leaves tests out without a failure, as it did twice
+   on 2026-11-16 and 2026-11-17. Proposal: that test comes back as a regression test naming that bug (Rule 34), if it
+   is ordered.
+4. **A press between the arrows.** A notch of the wheel and a press on an arrow move a list by one row; a press on the
+   bar between the arrows still moves a page, as in every program of Windows. Should it move one row too? Proposal: no.
+5. **Survivors at checks of outside data.** The checks of the game's file, the catalog, a civ file and what Windows
+   gives keep their survivors, since no test gives the program such data damaged. Proposal: when tests may be written
+   again, redundancy tests (Rule 32) with a damaged game file and catalog kill them; the capacities that no design
+   reaches stay as survivors.
+6. **The bound of a multiplier.** The original takes any whole number; civbuilder takes 1 to 10, and any other leaves
+   the bonus counting once. Proposal: 10, unless the original's window allows more.
+7. **A resource set, taken twice.** The original multiplies every change of a resource but the spawn limit and the
+   effect function, whatever its mode, so a resource set to 1 is set to 2. civbuilder does the same. Proposal: keep it.
+8. **The game's way or the original's.** Bonuses 81, 103, 221, 247, 283, 352, 356, 455 and 456 are built as the game
+   builds them for its own civs, from its requirement techs or its techs of one civ, copied; the original copies the
+   techs and disables the game's own in the civ's tree. A mod built from the installed game had each in its dat file,
+   but none was tried in the game. Proposal: keep the game's way, and try one such mod in the game.
+9. **Bonus 345 with 356.** The free Villager of 345 does not come with the three pasture upgrades of 356; the
+   original adds three techs for them. Proposal: build them, after the bonuses still skipped.
+10. **The game's words in the glossary.** `TERMINOLOGY.md` defines the project's terms but not the game's words,
+    such as tech and unit; the Glossary of the menu Help explains them to the user while it stays (question 12).
+    Proposal: keep it so.
+11. **The names of the Chronicles units.** The original writes names of its own for the Phalangite, the Sannahya, the
+    Hoplite, the Scythian Horse Archer and the Palintonon in its UI mod; civbuilder leaves the game's ids, whose texts
+    are in `key-value-paphos-strings-utf8.txt`, not in the game's main strings; the original's note calls such ids
+    Chronicles-only. Proposal: write them as the original does, after one such civ is looked at in the game.
+12. **The code whose tests were removed.** No requirement names the details beside the lists, the filter and the
+    categories of a list, the glossary of the menu Help, the loop of messages or the modes of the build program. The
+    details, the filter and the categories are the original's; the glossary was made for two criteria of level AAA,
+    which are gone. Without their tests, 189 mutants survive in the six files of their code, and Requirement 12 now
+    asks that the mutator is used as ub-mode says, which kills survivors. Proposal: keep the original's features, and
+    let a requirement name what civbuilder takes from the original; kill the 189 by redundancy tests (Rule 32) when
+    tests may be written again; take the glossary out.
+13. **The first line of `TERMINOLOGY.md`,** added at 10:48, defines "clanker" in 152 characters; Rule 9 allows 120, so
+    Test 418, the test of that rule, fails and `build.exe` does not pass. The line was left as it is. Proposal:
+    "clanker - a non-human agent: a tool, a large language model (LLM) or an AI agent, e.g. Claude, Codex, Gemini".
+14. **Rules 31 to 34.** There are 35 rules (0 to 34), 12 requirements and 6 bugs found by a human in testing (Bugs 1
+    and 2 of the trial of 2026-11-10, and Bugs 1 to 4 of 2026-11-16), so at most 53 tests of the core. There are 393
+    (354 functional, 39 of maintainability) and 46 of accessibility, in three categories, functional, accessibility
+    and maintainability, whose files do not keep each category apart. Proposal: when tests may be changed again, the
+    core keeps one test per requirement, rule and bug, in files of its own; the 46 of accessibility stay, apart; the
+    rest, which only kill survivors, become redundancy tests in files of their own, run by a mode of `build.exe` for
+    Requirement 12 alone; no regression test unless one is ordered; and `BUGS.md` lists the 6 bugs, each with the test
+    that covers it. The bug the mutator showed, a number past the largest `long`, was found by no human, so Rule 33 lets
+    no agent list it.
+15. **`DELETION_REQUESTS.md` and the log after the move.** The list still names the places the 950 items were moved
+    from. `.gitignore` now names it and `future_feature_ideas.md`, but Git still tracks both, and an ignored file that
+    is tracked stays in the commits until a human takes it out of Git's index. No section of the log records the move,
+    the new rules or the answers since 10:57:53 (Rule 16). Proposal: the list keeps one entry, `deletion/`, with the
+    warning about its junctions; a section of the log records the move, the rules and the answers; and, if the two
+    files are to leave Git, a human runs `git rm --cached documentation/DELETION_REQUESTS.md future_feature_ideas.md`.
+
+## How to test what is new
+
+1. `gcc -o build.exe tools/build/*.c src/core/*.c` first, since `build.exe` is in `deletion/`; then `build.exe`: 439
+   tests, all passed but Test 418 (question 13), no warning.
+2. `.\build.exe coverage`, then `..\crapper\.venv\Scripts\python.exe -m gcovr --root . --lcov
+   target/coverage/c/lcov.info build/obj_coverage`, then `..\crapper\crapper.cmd --use-existing-coverage src
+   tools/build/build.c tools/build/build_steps.c tools/build/build_plan.c tools/build/source_list.c`: no function at 10
+   or more; the highest, `bottom_box`, 9.6.
+3. `..\dryer\dryer.cmd --threshold 0.8 src tools/build/build.c tools/build/build_steps.c tools/build/build_plan.c
+   tools/build/source_list.c`: `No duplicate candidates found.` Name the paths: without them the dryer reads
+   `deletion/` too, until it is deleted.
+4. `build\civbuilder.exe`: no step is marked done. Scroll a list with the wheel: one row a notch, without sliding. The
+   scroll bars show their arrows and knob without the mouse over them. Then make a civ and build it, as in the sitrep of
+   2026-11-10 below; the steps in the game are unchanged.
+5. **The new bonuses in the game.** Build a civ with bonuses 457 (the Palintonon), 460 (Wooden Castles), 222 (Cows from
+   Mills) and 455 (the Hoplite), and play it: the Trebuchet looks like the Athenians', the Castle costs 300 stone and
+   500 wood, the Mill trains cows, and the Barracks trains the Hoplite in the Castle Age. None of this was tried in the
+   game.
+
 # Sitrep, 2026-11-16 05:45
 
 Nothing is committed and nothing is deleted by the run. `build.exe` runs the analyzer, which finds nothing, and 363

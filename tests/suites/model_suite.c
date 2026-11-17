@@ -1,6 +1,5 @@
 #include "suites.h"
 
-#include "../../src/core/check.h"
 #include "../model/present_tests.h"
 #include "../model/wizard_tests.h"
 #include "../model/history_tests.h"
@@ -11,23 +10,18 @@ enum {
     COMMAND_END = 8,
     PICKS_END = 10,
     ROWS_TICK_END = 14,
-    ROWS_PICK_END = 19,
-    FILTER_END = 21,
-    SUMMARY_END = 27,
-    DETAILS_END = 31,
-    REPORT_END = 34,
-    STEP_MADE_END = 39,
+    ROWS_PICK_END = 20,
+    SUMMARY_END = 26,
+    REPORT_END = 30,
+    STEP_MADE_END = 37,
     STEP_PICKED_END = 45,
     HISTORY_FIRST_END = 51,
     HISTORY_MORE_END = 56,
-    DESIGN_END = 62
+    DESIGN_END = 64
 };
 
 static TestOutcome run_command_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a command to pick a unit picks it", test_a_command_to_pick_a_unit_picks_it());
@@ -53,9 +47,6 @@ static TestOutcome run_command_test(int index)
 
 static TestOutcome run_picks_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a civ bonus ticked twice is no longer picked",
@@ -70,9 +61,6 @@ static TestOutcome run_picks_test(int index)
 
 static TestOutcome run_rows_tick_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a row of the tech tree gives the command to tick its node",
@@ -93,9 +81,6 @@ static TestOutcome run_rows_tick_test(int index)
 
 static TestOutcome run_rows_pick_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a row of the units gives the command to pick its unit",
@@ -112,23 +97,9 @@ static TestOutcome run_rows_pick_test(int index)
     case 5:
         return test_outcome_of("a row of the imperial techs gives the command to pick its tech",
                                test_a_row_of_the_imperial_techs_gives_the_command_to_pick_its_tech());
-    default:
-        return test_outcome_missing();
-    }
-}
-
-static TestOutcome run_filter_test(int index)
-{
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
-    switch (index) {
-    case 1:
-        return test_outcome_of("a filter keeps the rows that hold its letters",
-                               test_a_filter_keeps_the_rows_that_hold_its_letters());
-    case 2:
-        return test_outcome_of("a category keeps only the civ bonuses of that category",
-                               test_a_category_keeps_only_the_civ_bonuses_of_that_category());
+    case 6:
+        return test_outcome_of("a row of the castle techs shows its tech's name",
+                               test_a_row_of_the_castle_techs_shows_its_techs_name());
     default:
         return test_outcome_missing();
     }
@@ -136,9 +107,6 @@ static TestOutcome run_filter_test(int index)
 
 static TestOutcome run_summary_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("the summary names the unique unit and the unit it is made from",
@@ -163,34 +131,8 @@ static TestOutcome run_summary_test(int index)
     }
 }
 
-static TestOutcome run_details_test(int index)
-{
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
-    switch (index) {
-    case 1:
-        return test_outcome_of("the details of the unique unit list what it costs",
-                               test_the_details_of_the_unique_unit_list_what_it_costs());
-    case 2:
-        return test_outcome_of("the details of a unit without a cost say so",
-                               test_the_details_of_a_unit_without_a_cost_say_so());
-    case 3:
-        return test_outcome_of("the details say when no unit is selected",
-                               test_the_details_say_when_no_unit_is_selected());
-    case 4:
-        return test_outcome_of("the details say when the catalog lacks the unit",
-                               test_the_details_say_when_the_catalog_lacks_the_unit());
-    default:
-        return test_outcome_missing();
-    }
-}
-
 static TestOutcome run_report_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("the build report counts the civ bonuses built and skipped",
@@ -199,6 +141,9 @@ static TestOutcome run_report_test(int index)
         return test_outcome_of("the build report says when the hero was not built",
                                test_the_build_report_says_when_the_hero_was_not_built());
     case 3:
+        return test_outcome_of("the build report says when a bonus counts only once",
+                               test_the_build_report_says_when_a_bonus_counts_only_once());
+    case 4:
         return test_outcome_of("the build report of a whole civ names the two folders",
                                test_the_build_report_of_a_whole_civ_names_the_two_folders());
     default:
@@ -208,9 +153,6 @@ static TestOutcome run_report_test(int index)
 
 static TestOutcome run_step_made_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("no step of a new design is done", test_no_step_of_a_new_design_is_done());
@@ -226,6 +168,12 @@ static TestOutcome run_step_made_test(int index)
     case 5:
         return test_outcome_of("the team bonus step is done once one is picked",
                                test_the_team_bonus_step_is_done_once_one_is_picked());
+    case 6:
+        return test_outcome_of("a tree that swaps a node of the base civ is changed",
+                               test_a_tree_that_swaps_a_node_of_the_base_civ_is_changed());
+    case 7:
+        return test_outcome_of("bonuses that swap one of the base civ are changed",
+                               test_bonuses_that_swap_one_of_the_base_civ_are_changed());
     default:
         return test_outcome_missing();
     }
@@ -233,9 +181,6 @@ static TestOutcome run_step_made_test(int index)
 
 static TestOutcome run_step_picked_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("the unique unit step is done once a unit is picked",
@@ -254,6 +199,12 @@ static TestOutcome run_step_picked_test(int index)
     case 6:
         return test_outcome_of("back from the second step goes to the first",
                                test_back_from_the_second_step_goes_to_the_first());
+    case 7:
+        return test_outcome_of("a team bonus other than the base civ's is a change",
+                               test_a_team_bonus_other_than_the_base_civs_is_a_change());
+    case 8:
+        return test_outcome_of("the base civ's own team bonus is no change",
+                               test_the_base_civs_own_team_bonus_is_no_change());
     default:
         return test_outcome_missing();
     }
@@ -261,9 +212,6 @@ static TestOutcome run_step_picked_test(int index)
 
 static TestOutcome run_history_first_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a new design has nothing to undo", test_a_new_design_has_nothing_to_undo());
@@ -288,9 +236,6 @@ static TestOutcome run_history_first_test(int index)
 
 static TestOutcome run_history_more_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("undo past the depth brings back the change before",
@@ -314,22 +259,23 @@ static TestOutcome run_history_more_test(int index)
 
 static TestOutcome run_design_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a ticked bonus counts once", test_a_ticked_bonus_counts_once());
     case 2:
         return test_outcome_of("a picked team bonus counts once", test_a_picked_team_bonus_counts_once());
     case 3:
-        return test_outcome_of("a bonus ticked twice is not chosen", test_a_bonus_ticked_twice_is_not_chosen());
+        return test_outcome_of("a multiplier past ten is refused", test_a_multiplier_past_ten_is_refused());
     case 4:
-        return test_outcome_of("a node chosen twice is not chosen", test_a_node_chosen_twice_is_not_chosen());
+        return test_outcome_of("a multiplier below one is refused", test_a_multiplier_below_one_is_refused());
     case 5:
+        return test_outcome_of("a bonus ticked twice is not chosen", test_a_bonus_ticked_twice_is_not_chosen());
+    case 6:
+        return test_outcome_of("a node chosen twice is not chosen", test_a_node_chosen_twice_is_not_chosen());
+    case 7:
         return test_outcome_of("taking a node out keeps the other nodes",
                                test_taking_a_node_out_keeps_the_other_nodes());
-    case 6:
+    case 8:
         return test_outcome_of("a tree takes no more nodes than it holds",
                                test_a_tree_takes_no_more_nodes_than_it_holds());
     default:
@@ -339,9 +285,6 @@ static TestOutcome run_design_test(int index)
 
 static TestOutcome run_saved_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a unit of the game is saved with no custom units index",
@@ -359,9 +302,6 @@ static TestOutcome run_saved_test(int index)
 
 TestOutcome model_suite_run(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     if (index <= COMMAND_END) {
         return run_command_test(index);
     }
@@ -374,17 +314,11 @@ TestOutcome model_suite_run(int index)
     if (index <= ROWS_PICK_END) {
         return run_rows_pick_test(index - ROWS_TICK_END);
     }
-    if (index <= FILTER_END) {
-        return run_filter_test(index - ROWS_PICK_END);
-    }
     if (index <= SUMMARY_END) {
-        return run_summary_test(index - FILTER_END);
-    }
-    if (index <= DETAILS_END) {
-        return run_details_test(index - SUMMARY_END);
+        return run_summary_test(index - ROWS_PICK_END);
     }
     if (index <= REPORT_END) {
-        return run_report_test(index - DETAILS_END);
+        return run_report_test(index - SUMMARY_END);
     }
     if (index <= STEP_MADE_END) {
         return run_step_made_test(index - REPORT_END);

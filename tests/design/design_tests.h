@@ -5,6 +5,8 @@
 
 bool test_a_ticked_bonus_counts_once(void);
 bool test_a_picked_team_bonus_counts_once(void);
+bool test_a_multiplier_past_ten_is_refused(void);
+bool test_a_multiplier_below_one_is_refused(void);
 bool test_a_bonus_ticked_twice_is_not_chosen(void);
 bool test_a_node_chosen_twice_is_not_chosen(void);
 bool test_taking_a_node_out_keeps_the_other_nodes(void);

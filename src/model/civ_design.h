@@ -9,6 +9,7 @@ enum {
     CIV_DESCRIPTION_CAPACITY = 1536,
     CIV_BONUS_CAPACITY = 24,
     CIV_TEAM_BONUS_CAPACITY = 1,
+    CIV_MULTIPLIER_LIMIT = 10,
     CIV_TREE_CAPACITY = 400,
     CIV_NO_CHOICE = -1,
     CIV_DEFAULT_ARCHITECTURE = 2,
@@ -104,6 +105,7 @@ bool civ_design_toggle_bonus(CivDesign *design, int bonus_id);
 bool civ_design_has_bonus(const CivDesign *design, int bonus_id);
 bool civ_design_toggle_team_bonus(CivDesign *design, int bonus_id);
 bool civ_design_has_team_bonus(const CivDesign *design, int bonus_id);
+void civ_design_set_multiplier(CivDesign *design, bool team, int bonus_id, int multiplier);
 bool civ_design_toggle_tree(CivDesign *design, TreeKind kind, int node_id);
 bool civ_design_tree_has(const CivDesign *design, TreeKind kind, int node_id);
 bool civ_design_tree_is_empty(const CivDesign *design);

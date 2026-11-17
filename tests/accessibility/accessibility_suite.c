@@ -5,7 +5,7 @@
 #include "../reflow/reflow_tests.h"
 
 enum { LAYOUT_TEST_COUNT = 6, SCROLL_START = 13, PLACE_START = 19, WINDOW_START = 23, READER_START = 31 };
-enum { NARROW_START = 39 };
+enum { NARROW_START = 38 };
 
 static TestOutcome run_layout_test(int index)
 {
@@ -14,8 +14,8 @@ static TestOutcome run_layout_test(int index)
     }
     switch (index) {
     case 1:
-        return test_outcome_of("every text contrasts at least 7:1 with its background",
-                               test_every_text_contrasts_seven_to_one());
+        return test_outcome_of("every text contrasts at least 4.5:1 with its background",
+                               test_every_text_contrasts_four_and_a_half_to_one());
     case 2:
         return test_outcome_of("every input has a visible label", test_every_input_has_a_visible_label());
     case 3:
@@ -87,15 +87,12 @@ static TestOutcome run_reader_test(int index)
         return test_outcome_of("the text and the layout grow with the text size of Windows, up to 225%",
                                test_the_layout_grows_with_the_text_size_of_windows());
     case 5:
-        return test_outcome_of("the glossary explains every shortened form in capitals of the catalog",
-                               test_the_glossary_explains_every_short_form());
-    case 6:
         return test_outcome_of("the control in focus has a solid frame at least two pixels thick",
                                test_the_control_in_focus_has_a_solid_frame());
-    case 7:
+    case 6:
         return test_outcome_of("a ticked row is drawn with a check, not a filled box",
                                test_a_ticked_row_is_drawn_with_a_check());
-    case 8:
+    case 7:
         return test_outcome_of("after an undo, the base civ shown is the design's again",
                                test_an_undone_choice_shows_the_designs_value_again());
     default:

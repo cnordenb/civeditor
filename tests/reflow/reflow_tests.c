@@ -210,7 +210,7 @@ static int scroll_after(int first, int second, int third)
             window_fixture_act(window, actions[index]);
         }
     }
-    position = GetScrollPos(window, SB_VERT);
+    position = GetScrollPos(GetDlgItem(window, WINDOW_BAR_ID), SB_CTL);
     window_fixture_close(window);
     return position;
 }
@@ -273,7 +273,7 @@ bool test_the_wheel_scrolls_a_short_window(void)
     int position;
 
     (void)SendMessageW(window, WM_MOUSEWHEEL, MAKEWPARAM(0, (WORD)(short)-WHEEL_DELTA), 0);
-    position = GetScrollPos(window, SB_VERT);
+    position = GetScrollPos(GetDlgItem(window, WINDOW_BAR_ID), SB_CTL);
     window_fixture_close(window);
     return position > 0;
 }

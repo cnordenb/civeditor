@@ -10,7 +10,9 @@ enum {
     MONK_CORPSE_UNIT = 134,
     ICON_SET_SIZE = 1,
     TASK_LIMIT = 1024,
-    NO_TASK_GRAPHIC = DAT_TASK_SIZE
+    NO_TASK_GRAPHIC = DAT_TASK_SIZE,
+    TIMING_BEFORE_ATTACK_GRAPHIC = 23,
+    ATTACK_TIMING_SIZE = 14
 };
 
 enum {
@@ -53,8 +55,7 @@ static bool copy_bytes(const DatTarget *target, DatCopy copy)
 {
     const DatBytes *dat;
 
-    if (!CHECK(target != NULL) || !CHECK(copy.at > 0U) || !CHECK(copy.from > 0U) ||
-        !copy_is_inside(target->dat, &copy)) {
+    if (!CHECK(copy.at > 0U) || !CHECK(copy.from > 0U) || !copy_is_inside(target->dat, &copy)) {
         return false;
     }
     dat = target->dat;
@@ -66,7 +67,7 @@ static bool copy_bytes(const DatTarget *target, DatCopy copy)
 
 static bool copy_if_both(const DatTarget *target, DatCopy copy)
 {
-    if (!CHECK(target != NULL) || (copy.at == 0U) || (copy.from == 0U)) {
+    if ((copy.at == 0U) || (copy.from == 0U)) {
         return true;
     }
     return copy_bytes(target, copy);
@@ -74,14 +75,11 @@ static bool copy_if_both(const DatTarget *target, DatCopy copy)
 
 static bool copy_field(const DatTarget *target, size_t to, size_t from)
 {
-    return CHECK(target != NULL) && copy_if_both(target, (DatCopy){ to, from, DAT_GRAPHIC_SIZE });
+    return copy_if_both(target, (DatCopy){ to, from, DAT_GRAPHIC_SIZE });
 }
 
 static bool copy_graphics(const DatTarget *target, const UnitPair *pair)
 {
-    if (!CHECK(target != NULL) || !CHECK(pair != NULL)) {
-        return false;
-    }
     return copy_bytes(target, (DatCopy){ pair->to.at + DAT_UNIT_GRAPHICS_AT, pair->from.at + DAT_UNIT_GRAPHICS_AT,
                                          DAT_UNIT_GRAPHICS_SIZE });
 }
@@ -90,9 +88,6 @@ static bool copy_damage_graphics(const DatTarget *target, const UnitPair *pair)
 {
     size_t width;
 
-    if (!CHECK(target != NULL) || !CHECK(pair != NULL)) {
-        return false;
-    }
     if ((pair->to.damage_graphic_count != pair->from.damage_graphic_count) || (pair->to.damage_graphic_count <= 0)) {
         return true;
     }
@@ -102,9 +97,6 @@ static bool copy_damage_graphics(const DatTarget *target, const UnitPair *pair)
 
 static bool copy_building(const DatTarget *target, const UnitPair *pair)
 {
-    if (!CHECK(target != NULL) || !CHECK(pair != NULL)) {
-        return false;
-    }
     return copy_graphics(target, pair) && copy_damage_graphics(target, pair) &&
            copy_if_both(target, (DatCopy){ pair->to.building_at, pair->from.building_at, DAT_BUILDING_SIZE }) &&
            copy_if_both(target, (DatCopy){ pair->to.garrison_graphic_at, pair->from.garrison_graphic_at,
@@ -118,9 +110,6 @@ static bool copy_task_graphics(const DatTarget *target, const UnitPair *pair, si
     int task;
     bool fine = true;
 
-    if (!CHECK(target != NULL) || !CHECK(pair != NULL) || !CHECK(field_at < DAT_TASK_SIZE)) {
-        return false;
-    }
     count = (pair->to.task_count < pair->from.task_count) ? pair->to.task_count : pair->from.task_count;
     for (task = 0; fine && (task < count) && (task < TASK_LIMIT); ++task) {
         step = (size_t)task * DAT_TASK_SIZE + field_at;
@@ -141,9 +130,6 @@ static bool copy_mobile(const DatTarget *target, const UnitPair *pair)
 {
     size_t field;
 
-    if (!CHECK(target != NULL) || !CHECK(pair != NULL)) {
-        return false;
-    }
     field = task_graphic_of(pair->from.unit_class);
     return copy_graphics(target, pair) &&
            copy_field(target, pair->to.walking_graphic_at, pair->from.walking_graphic_at) &&
@@ -155,12 +141,11 @@ static bool list_both(const DatTarget *target, int from_civ)
 {
     const DatMap *map;
 
-    if (!CHECK(target != NULL) || !CHECK(target->civ > 0) || (from_civ < 0) ||
-        !dat_map_has_civ(target->map, target->civ)) {
+    if (from_civ < 0) {
         return false;
     }
     map = target->map;
-    if ((from_civ >= map->civ_count) || !CHECK(from_civ < DAT_CIV_CAPACITY)) {
+    if (from_civ >= map->civ_count) {
         return false;
     }
     return dat_list_units(target->dat, map->civ_at[target->civ], &to_units) &&
@@ -169,7 +154,7 @@ static bool list_both(const DatTarget *target, int from_civ)
 
 static size_t unit_place(const DatUnitList *list, int unit)
 {
-    if (!CHECK(list != NULL) || (unit < 0) || (unit >= list->count) || (unit >= DAT_UNIT_CAPACITY)) {
+    if ((unit < 0) || (unit >= list->count)) {
         return 0U;
     }
     return list->at[unit];
@@ -180,7 +165,7 @@ static bool read_units(const DatTarget *target, UnitIds ids, UnitPair *pair)
     size_t to = unit_place(&to_units, ids.to);
     size_t from = unit_place(&from_units, ids.from);
 
-    if (!CHECK(target != NULL) || !CHECK(pair != NULL) || (to == 0U) || (from == 0U)) {
+    if ((to == 0U) || (from == 0U)) {
         return false;
     }
     return dat_unit_read(target->dat, to, &pair->to) && dat_unit_read(target->dat, from, &pair->from);
@@ -188,14 +173,14 @@ static bool read_units(const DatTarget *target, UnitIds ids, UnitPair *pair)
 
 static bool read_pair(const DatTarget *target, int unit, UnitPair *pair)
 {
-    return CHECK(target != NULL) && read_units(target, (UnitIds){ unit, unit }, pair);
+    return read_units(target, (UnitIds){ unit, unit }, pair);
 }
 
 static bool copy_rubble(const DatTarget *target, int rubble)
 {
     UnitPair pair;
 
-    if (!CHECK(target != NULL) || !read_pair(target, rubble, &pair)) {
+    if (!read_pair(target, rubble, &pair)) {
         return true;
     }
     if ((pair.from.unit_class != CLASS_TERRAIN) && (pair.from.unit_class != CLASS_MISCELLANEOUS)) {
@@ -219,10 +204,6 @@ static bool copy_building_and_rubble(const DatTarget *target, const UnitPair *pa
 {
     int rubble;
 
-    if (!CHECK(target != NULL) || !CHECK(pair != NULL) ||
-        !CHECK(target->edit != NULL)) {
-        return false;
-    }
     rubble = pair->from.dead_unit;
     if ((rubble < 0) || (rubble >= DAT_UNIT_CAPACITY) || rubble_done[rubble]) {
         return copy_building(target, pair);
@@ -235,7 +216,7 @@ static bool copy_architecture_unit(const DatTarget *target, int unit)
 {
     UnitPair pair;
 
-    if (!CHECK(target != NULL) || !read_pair(target, unit, &pair)) {
+    if (!read_pair(target, unit, &pair)) {
         return true;
     }
     if (check_is_among(pair.from.unit_class, BUILDING_CLASSES, BUILDING_CLASS_COUNT)) {
@@ -248,7 +229,7 @@ static void keep_own_rubble(const DatTarget *target, int unit)
 {
     UnitPair pair;
 
-    if (!CHECK(target != NULL) || !read_pair(target, unit, &pair)) {
+    if (!read_pair(target, unit, &pair)) {
         return;
     }
     if ((pair.to.dead_unit >= 0) && (pair.to.dead_unit < DAT_UNIT_CAPACITY)) {
@@ -262,9 +243,6 @@ static bool copy_icon_set(const DatTarget *target, int from_civ)
     DatCiv to;
     DatCiv from;
 
-    if (!CHECK(target != NULL) || !CHECK(from_civ >= 0) || !CHECK(from_civ < DAT_CIV_CAPACITY)) {
-        return false;
-    }
     map = target->map;
     return dat_civ_read(target->dat, map->civ_at[target->civ], &to) &&
            dat_civ_read(target->dat, map->civ_at[from_civ], &from) &&
@@ -276,11 +254,7 @@ static bool copy_units(const DatTarget *target)
     int unit;
     bool fine = true;
 
-    if (!CHECK(target != NULL) || !CHECK(to_units.count <= DAT_UNIT_CAPACITY) ||
-        !CHECK(target->dat != NULL)) {
-        return false;
-    }
-    for (unit = 0; fine && (unit < to_units.count) && (unit < DAT_UNIT_CAPACITY); ++unit) {
+    for (unit = 0; fine && unit < to_units.count; ++unit) {
         fine = copy_architecture_unit(target, unit);
     }
     return fine;
@@ -290,7 +264,7 @@ static bool copy_monk_corpse(const DatTarget *target)
 {
     UnitPair corpse;
 
-    if (!CHECK(target != NULL) || !read_pair(target, MONK_CORPSE_UNIT, &corpse)) {
+    if (!read_pair(target, MONK_CORPSE_UNIT, &corpse)) {
         return true;
     }
     return copy_graphics(target, &corpse);
@@ -298,7 +272,7 @@ static bool copy_monk_corpse(const DatTarget *target)
 
 static bool copy_architecture(const DatTarget *target, int from_civ)
 {
-    if (!CHECK(target != NULL) || !list_both(target, from_civ)) {
+    if (!list_both(target, from_civ)) {
         return true;
     }
     (void)memset(rubble_done, 0, sizeof rubble_done);
@@ -311,23 +285,44 @@ static bool copy_one_building(const DatTarget *target, int from_civ, int unit)
 {
     UnitPair pair;
 
-    if (!CHECK(target != NULL) || !CHECK(unit >= 0) || !list_both(target, from_civ) ||
-        !read_pair(target, unit, &pair)) {
+    if (!list_both(target, from_civ) || !read_pair(target, unit, &pair)) {
         return true;
     }
     return copy_building(target, &pair) && copy_rubble(target, pair.from.dead_unit);
 }
 
-static bool copy_monk_unit(const DatTarget *target, const UnitPair *pair)
+static bool copy_unit_look(const DatTarget *target, const UnitPair *pair)
 {
-    if (!CHECK(target != NULL) || !CHECK(pair != NULL)) {
-        return false;
-    }
     return copy_graphics(target, pair) &&
            copy_field(target, pair->to.at + DAT_UNIT_ICON_AT, pair->from.at + DAT_UNIT_ICON_AT) &&
            copy_field(target, pair->to.walking_graphic_at, pair->from.walking_graphic_at) &&
-           copy_field(target, pair->to.attack_graphic_at, pair->from.attack_graphic_at) &&
-           copy_task_graphics(target, pair, DAT_TASK_PROCEEDING_GRAPHIC_AT);
+           copy_field(target, pair->to.attack_graphic_at, pair->from.attack_graphic_at);
+}
+
+static bool copy_monk_unit(const DatTarget *target, const UnitPair *pair)
+{
+    return copy_unit_look(target, pair) && copy_task_graphics(target, pair, DAT_TASK_PROCEEDING_GRAPHIC_AT);
+}
+
+static size_t timing_of(const DatUnit *unit)
+{
+    if (unit->attack_graphic_at < TIMING_BEFORE_ATTACK_GRAPHIC) {
+        return 0U;
+    }
+    return unit->attack_graphic_at - TIMING_BEFORE_ATTACK_GRAPHIC;
+}
+
+static bool copy_attack_timing(const DatTarget *target, const UnitPair *pair)
+{
+    return copy_if_both(target, (DatCopy){ timing_of(&pair->to), timing_of(&pair->from), ATTACK_TIMING_SIZE });
+}
+
+bool look_copy_unit(const DatTarget *target, const UnitLook *look)
+{
+    UnitPair pair;
+
+    return !list_both(target, look->from_civ) || !read_pair(target, look->unit, &pair) ||
+           (copy_unit_look(target, &pair) && copy_attack_timing(target, &pair));
 }
 
 static bool copy_monk(const DatTarget *target, const LookMonk *monk)
@@ -336,7 +331,7 @@ static bool copy_monk(const DatTarget *target, const LookMonk *monk)
     int unit;
     bool fine = true;
 
-    if (!CHECK(target != NULL) || !CHECK(monk != NULL) || !list_both(target, monk->civ)) {
+    if (!list_both(target, monk->civ)) {
         return true;
     }
     for (unit = 0; (unit < CATALOG_LOOK_UNITS) && fine; ++unit) {
@@ -353,9 +348,6 @@ static LookMonk monk_of(const LookSources *sources)
     LookMonk monk = { LOOK_NONE, { LOOK_NONE, LOOK_NONE, LOOK_NONE } };
     int unit;
 
-    if (!CHECK(sources != NULL)) {
-        return monk;
-    }
     monk = sources->monk;
     if (monk.civ < 0) {
         monk.civ = sources->architecture;
@@ -376,9 +368,6 @@ bool look_build(const DatTarget *target, const LookSources *sources)
     LookMonk monk;
     int architecture;
 
-    if (!CHECK(target != NULL) || !CHECK(sources != NULL)) {
-        return false;
-    }
     architecture = sources->architecture;
     monk = monk_of(sources);
     return copy_architecture(target, architecture) &&

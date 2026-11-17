@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-enum { BIT_WRITER_PUT_LIMIT = 24 };
-
 typedef struct {
     unsigned char *bytes;
     size_t capacity;

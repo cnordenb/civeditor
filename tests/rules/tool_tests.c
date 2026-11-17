@@ -4,6 +4,7 @@
 
 #include "../../src/core/check.h"
 #include "../../src/core/text.h"
+#include "../../tools/build/build_plan.h"
 #include "../../tools/build/source_list.h"
 
 enum { LINE_CAPACITY = 256, OLDER = 5, NEWER = 9 };
@@ -83,9 +84,35 @@ bool test_the_sources_of_a_folder_include_those_of_its_folders(void)
     return source_list_collect(&list, "tests", ".txt") && lists(BROKEN);
 }
 
+static SourceList fresh;
+
+bool test_a_folder_lists_only_its_own_sources(void)
+{
+    int index;
+
+    if (!source_list_collect(&fresh, "tests", ".txt")) {
+        return false;
+    }
+    for (index = 0; index < fresh.count; ++index) {
+        if (!text_starts_with(fresh.files[index].path, "tests/")) {
+            return false;
+        }
+    }
+    return fresh.count > 0;
+}
+
+static SourceList part;
+
+static int sources_in(const char *root)
+{
+    return source_list_collect(&part, root, ".h") ? part.count : -1;
+}
+
 bool test_the_sources_of_the_project_are_those_of_src_tests_and_tools(void)
 {
-    return source_list_collect_all(&list, ".h") && lists("tools/build/source_list.h");
+    int expected = sources_in("src") + sources_in("tests") + sources_in("tools");
+
+    return source_list_collect_all(&list, ".h") && (list.count == expected);
 }
 
 bool test_the_newest_source_is_the_one_changed_last(void)
@@ -119,13 +146,36 @@ bool test_a_source_changed_when_its_object_was_made_is_built_again(void)
     return !is_fresh_against(source_file_modified(BROKEN), 0LL);
 }
 
-bool test_the_objects_of_the_tests_are_listed_with_the_libraries_of_windows(void)
-{
-    return objects_are(SOURCE_PROGRAM_TESTS, "obj/text.o\n-lgdi32\n-lcomdlg32\n-lshell32\n-ladvapi32\n"
-                                             "-loleacc\n-lole32\n-loleaut32\n");
-}
-
 bool test_the_objects_of_the_build_tool_are_listed_without_libraries(void)
 {
     return objects_are(SOURCE_PROGRAM_BUILD_TOOL, "obj/text.o\nobj/build.o\n");
+}
+
+bool test_a_coverage_build_is_asked_for_by_coverage(void)
+{
+    return build_mode_of("build.exe coverage") == BUILD_MODE_COVERAGE;
+}
+
+bool test_the_tests_are_run_with_the_arguments_given_to_the_build(void)
+{
+    return text_equal(build_test_arguments("build.exe quick nowindow norules"), " nowindow norules");
+}
+
+bool test_a_coverage_build_links_the_tests_alone(void)
+{
+    BuildPrograms programs = build_programs_of(BUILD_MODE_COVERAGE);
+
+    return (programs.first == SOURCE_PROGRAM_TESTS) && (programs.end == SOURCE_PROGRAM_BUILD_TOOL);
+}
+
+bool test_a_coverage_build_links_the_tests_with_coverage(void)
+{
+    return text_contains_folded(build_link_command(SOURCE_PROGRAM_TESTS, BUILD_MODE_COVERAGE),
+                                "gcc -g --coverage -o build/tests.exe");
+}
+
+bool test_a_coverage_build_makes_the_folder_of_its_report(void)
+{
+    return text_equal(build_folder(BUILD_MODE_COVERAGE, build_folder_count(BUILD_MODE_COVERAGE) - 1),
+                      "target/coverage/c");
 }

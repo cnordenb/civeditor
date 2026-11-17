@@ -15,8 +15,7 @@ static CatalogKey key_at(const Catalog *catalog, CatalogTable table, int index)
 {
     CatalogKey key = { 0, CATALOG_MISSING };
 
-    if (!CHECK(catalog != NULL) || !CHECK(index >= 0) ||
-        !CHECK(table < CATALOG_TABLE_COUNT)) {
+    if (!CHECK(index >= 0) || !CHECK(table < CATALOG_TABLE_COUNT)) {
         return key;
     }
     if (table == CATALOG_UNITS) {
@@ -37,7 +36,7 @@ static int table_count(const Catalog *catalog, CatalogTable table)
 {
     int counts[CATALOG_TABLE_COUNT] = { 0, 0, 0, 0, 0 };
 
-    if (!CHECK(catalog != NULL) || !CHECK(table < CATALOG_TABLE_COUNT)) {
+    if (!CHECK(table < CATALOG_TABLE_COUNT)) {
         return 0;
     }
     counts[CATALOG_UNITS] = catalog->unit_count;
@@ -54,8 +53,7 @@ int catalog_find(const Catalog *catalog, CatalogTable table, int kind, int id)
     CatalogKey key;
     int index;
 
-    if (!CHECK(catalog != NULL) || !CHECK(count <= TABLE_CAPACITIES[table]) ||
-        !CHECK(table < CATALOG_TABLE_COUNT)) {
+    if (!CHECK(count <= TABLE_CAPACITIES[table]) || !CHECK(table < CATALOG_TABLE_COUNT)) {
         return CATALOG_MISSING;
     }
     for (index = 0; (index < count) && (index < TABLE_CAPACITIES[table]); ++index) {
@@ -79,10 +77,7 @@ int catalog_string_id(const Catalog *catalog, int slot, CivString kind)
     const AppearanceEntry *entry;
     int index;
 
-    if (!CHECK(catalog != NULL) || !CHECK((kind >= CIV_STRING_CASTLE_TECH) && (kind < CIV_STRING_COUNT))) {
-        return CATALOG_MISSING;
-    }
-    for (index = 0; (index < catalog->appearance_count) && (index < CATALOG_APPEARANCE_CAPACITY); ++index) {
+    for (index = 0; index < catalog->appearance_count; ++index) {
         entry = &catalog->appearance[index];
         if ((entry->kind == APPEARANCE_CIV) && (entry->id == slot) && (entry->string_ids[kind] > 0)) {
             return entry->string_ids[kind];
@@ -96,7 +91,7 @@ int catalog_find_look(const Catalog *catalog, AppearanceKind kind, int id)
     const AppearanceEntry *entry;
     int index;
 
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->appearance_count <= CATALOG_APPEARANCE_CAPACITY)) {
+    if (!CHECK(catalog->appearance_count <= CATALOG_APPEARANCE_CAPACITY)) {
         return CATALOG_MISSING;
     }
     for (index = 0; (index < catalog->appearance_count) && (index < CATALOG_APPEARANCE_CAPACITY); ++index) {
@@ -114,7 +109,7 @@ int catalog_find_bonus(const Catalog *catalog, bool team, int bonus_id)
     int count;
     int index;
 
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->bonus_count <= CATALOG_BONUS_CAPACITY) ||
+    if (!CHECK(catalog->bonus_count <= CATALOG_BONUS_CAPACITY) ||
         !CHECK(catalog->team_bonus_count <= CATALOG_TEAM_BONUS_CAPACITY)) {
         return CATALOG_MISSING;
     }

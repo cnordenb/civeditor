@@ -51,7 +51,7 @@ static long read_hex(const char *text, int available)
     int index;
     int digit;
 
-    if (!CHECK(text != NULL) || !CHECK(available >= 0) || (available < HEX_LENGTH)) {
+    if (available < HEX_LENGTH) {
         return -1L;
     }
     for (index = 0; index < HEX_LENGTH; ++index) {
@@ -66,9 +66,6 @@ static long read_hex(const char *text, int available)
 
 static void put_byte(Utf8Sink *sink, unsigned long value)
 {
-    if (!CHECK(sink != NULL) || !CHECK(value < 256UL)) {
-        return;
-    }
     if (sink->used + 1U >= (size_t)JSON_STRING_LIMIT) {
         sink->overflow = true;
         return;
@@ -79,7 +76,7 @@ static void put_byte(Utf8Sink *sink, unsigned long value)
 
 static void put_code_point(Utf8Sink *sink, unsigned long code)
 {
-    if (!CHECK(sink != NULL) || !CHECK(code <= 0x10FFFFUL)) {
+    if (!CHECK(code <= 0x10FFFFUL)) {
         return;
     }
     if (code < (unsigned long)ONE_BYTE_LIMIT) {
@@ -108,9 +105,6 @@ static int decode_surrogate_pair(Utf8Sink *sink, const char *text, int available
 {
     long second;
 
-    if (!CHECK(sink != NULL) || !CHECK(text != NULL)) {
-        return -1;
-    }
     if ((first >= SURROGATE_LOW) || (available < (2 * HEX_LENGTH) + 2) || (text[HEX_LENGTH] != '\\')) {
         return -1;
     }
@@ -127,7 +121,7 @@ static int decode_unicode_escape(Utf8Sink *sink, const char *text, int available
 {
     long first = read_hex(text, available);
 
-    if (!CHECK(sink != NULL) || !CHECK(text != NULL) || (first < 0L)) {
+    if (first < 0L) {
         return -1;
     }
     if (is_surrogate(first)) {
@@ -153,9 +147,6 @@ static unsigned long control_of(char letter)
 
 static int decode_escape(Utf8Sink *sink, const char *text, int available)
 {
-    if (!CHECK(sink != NULL) || !CHECK(available > 0)) {
-        return -1;
-    }
     if (text[0] == 'u') {
         return 1 + decode_unicode_escape(sink, &text[1], available - 1);
     }
@@ -169,9 +160,6 @@ static int copy_letter(Utf8Sink *sink, const char *text, int available)
 {
     int consumed;
 
-    if (!CHECK(sink != NULL) || !CHECK(text != NULL)) {
-        return 0;
-    }
     if (text[0] != '\\') {
         put_byte(sink, (unsigned long)(unsigned char)text[0]);
         return 1;
@@ -186,9 +174,6 @@ static int copy_letters(Utf8Sink *sink, const char *text, int position, int end)
     int at = position;
     int step;
 
-    if (!CHECK(sink != NULL) || !CHECK(text != NULL)) {
-        return position;
-    }
     for (step = 0; (step < JSON_INPUT_CAPACITY) && (at < end) && (consumed > 0); ++step) {
         consumed = sink->overflow ? 0 : copy_letter(sink, &text[at], end - at);
         at += consumed;
@@ -201,7 +186,7 @@ bool json_copy_string(const JsonDocument *document, int token, char *destination
     static Utf8Sink sink;
     int end;
 
-    if (!CHECK(destination != NULL) || !CHECK(capacity > 0U) || !json_is_kind(document, token, JSON_KIND_STRING)) {
+    if (!json_is_kind(document, token, JSON_KIND_STRING)) {
         return false;
     }
     sink.used = 0U;

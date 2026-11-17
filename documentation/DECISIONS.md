@@ -12,15 +12,17 @@ an earlier one, the earlier one is named after it, with its own link.
 
 ## Rules, and how they are read
 
-- **The rules of `RULES.md` hold, Rules 0 to 36.** Rules 0 to 25 are repo_template's, as amended outside the log,
-  Rules 26 to 30 hold what `instructions.md` asks, and Rules 31 to 36 are derived from ub-mode; Rules 10 to 13 apply
-  to code only (Rule 25). Replaced: Rules 0 to 23, 25 and 26 of repo_template.
+- **The rules of `RULES.md` hold, Rules 0 to 30.** Rules 0 to 25 are repo_template's, as amended outside the log,
+  and Rules 26 to 30 hold what `instructions.md` asks; Rules 10 to 13 apply to code only (Rule 25). Requirements 10
+  to 12 and ub-mode's skill ask for what Rules 31 to 36 asked. Replaced: Rules 0 to 23, 25 and 26 of repo_template;
+  Rules 31 to 36, derived from ub-mode.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
   [2026-11-09 10:06:18](DEVLOG/DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100)
-- **ub-mode's rules as far as they fit C.** Its steps that commit, push or make worktrees are left out (Rules 0 and
-  30). Its dryer, crapper and mutator may be written in C; until they are, Rule 34 is kept by breaking the code by
-  hand.
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
+- **ub-mode as its skill says, as far as Rules 0 and 30 allow.** Its steps that commit, push or make worktrees are
+  left out. Replaced: its rules as Rules 31 to 36, kept by breaking the code by hand.
   [2026-11-09 10:06:18](DEVLOG/DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100)
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
 - **The crapper measures Rule 32.** `build\crapper.exe`, written in C in `tools/crap/`, scores every function:
   complexity is 1 and one more for each `if`, `for`, `while`, `case`, `&&`, `||` and `?`, the branches of `CHECK`
   among them; coverage is the share of branches that gcov, which comes with gcc, saw taken at least once by the
@@ -62,12 +64,14 @@ an earlier one, the earlier one is named after it, with its own link.
 - **An order is read as a requirement to come.** The tests of the base civ cover the order of `instructions_2.md`,
   which `REQUIREMENTS.md` does not hold yet (Rule 24).
   [2026-11-09 10:07:36](DEVLOG/DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first)
-- **P10 is read rule by rule.** No `goto` or recursion, `for` loops bounded by a named constant, no allocation, 60
-  lines a function, two checks a function on average, one level of dereferencing, no function pointers, all warnings.
+- **P10 is read rule by rule, and gives way to ub-mode** (Rule 26). No `goto` or recursion, no allocation, 60 lines
+  a function, one level of dereferencing, no function pointers, all warnings. A loop is bounded by what it walks, and
+  data is checked where it enters; P10's fixed loop bounds and two checks a function (its rules 2 and 5) are given
+  up, since a check no caller can fail and a bound that never ends a loop make mutants no test can kill. Replaced:
+  `for` loops bounded by a named constant, two checks a function on average, and `check.c` left out of the count.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
 - **One function pointer.** The window procedure, in `src/win/app_window.c` only, since Win32 needs it.
-  [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
-- **The checker is not counted.** `src/core/check.c` has no checks of its own, as they would call it again.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
 - **Patterns without objects.** Head First Design Patterns' patterns are built with `enum` and `switch`, one `switch`
   for each choice, since P10 forbids function pointers.
@@ -91,29 +95,39 @@ an earlier one, the earlier one is named after it, with its own link.
 - **Functions that differ only in a literal are made one** (Rule 31), such as `json_begin` for an object and an
   array.
   [2026-11-10 08:27:52](DEVLOG/DEVLOG3.md#082752-answers-recorded-check-left-out-of-the-tools-the-first-merges-unfinished)
-- **Rule 5 names no number of tests.** The cap of 100 in the test "TESTS.md numbers its tests in order"
-  (`TEST_LIMIT` in `tests/rules/log_rules.c`) is left for a human to raise or take out; until then that test fails.
+- **There is no cap on the number of tests.** Each test covers a requirement or catches again a bug found before, and
+  its purpose names the requirement, rule or bug (Rules 5 and 6). Replaced: at most 100 tests; then a cap of 100 in a
+  test, left for a human to raise.
   [2026-11-10 08:27:52](DEVLOG/DEVLOG3.md#082752-answers-recorded-check-left-out-of-the-tools-the-first-merges-unfinished)
   [2026-11-15 21:14:09](DEVLOG/DEVLOG4.md#211409-tests-101-to-103-documented-and-a-cap-of-100-tests-that-still-stops-the-build-and-the-mutator)
-- **Rules 31, 32 and 34 are measured by the original tools only:** the crapper, the dryer and the mutator that
-  lie beside the project, in `..\crapper`, `..\dryer` and `..\mutator`. The project holds no copy of them.
-  Replaced: the three tools written in C in `tools/`, and with them the reading that a `CHECK` is no branch.
-  [2026-11-16 02:13:51](DEVLOG/DEVLOG4.md#021351-rules-31-32-and-34-measured-by-the-original-tools-only-and-no-pair-alike-in-src)
-- **The dryer is run as `..\dryer\dryer --threshold 0.8`,** since Rule 31 says 80% and the tool's own limit is
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
+- **Requirements 10, 11 and 12 are measured by the original tools only:** the crapper, the dryer and the mutator
+  that lie beside the project, in `..\crapper`, `..\dryer` and `..\mutator`. The project holds no copy of them. The
+  crapper and the mutator read the coverage of `build.exe coverage`, made into LCOV by gcovr. Replaced: the three
+  tools written in C in `tools/`, and with them the reading that a `CHECK` is no branch; Rules 31, 32 and 34.
+  [2026-11-16 02:13:51](DEVLOG/DEVLOG5.md#021351-rules-31-32-and-34-measured-by-the-original-tools-only-and-no-pair-alike-in-src)
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
+- **The dryer is run as `..\dryer\dryer --threshold 0.8`,** since Requirement 11 says 0.8 and the tool's own limit is
   0.82. It and the crapper read `src/` only; `.metrics/` and `target/`, which they write, are ignored by Git.
-  [2026-11-16 02:13:51](DEVLOG/DEVLOG4.md#021351-rules-31-32-and-34-measured-by-the-original-tools-only-and-no-pair-alike-in-src)
+  [2026-11-16 02:13:51](DEVLOG/DEVLOG5.md#021351-rules-31-32-and-34-measured-by-the-original-tools-only-and-no-pair-alike-in-src)
 - **A function of one line that only names a call with other values is not kept** when the dryer pairs it with
   another: its callers make the call, or one function takes what differed.
-  [2026-11-16 02:13:51](DEVLOG/DEVLOG4.md#021351-rules-31-32-and-34-measured-by-the-original-tools-only-and-no-pair-alike-in-src)
+  [2026-11-16 02:13:51](DEVLOG/DEVLOG5.md#021351-rules-31-32-and-34-measured-by-the-original-tools-only-and-no-pair-alike-in-src)
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
 - **A `CHECK` is a branch for the original crapper.** A guard of two checks adds 2 to a function's complexity
   and two branches that no test runs, so a function keeps at most four checks, and a longer list of them is a
   function of its own that is a chain of checks.
-  [2026-11-16 02:23:39](DEVLOG/DEVLOG4.md#022339-no-function-of-src-with-a-complexity-of-10-or-more-by-the-original-crapper)
-- **The mutator runs the tests without those of maintainability:** `.\build.exe quick nowindow norules`, or
-  `.\build.exe quick norules` for the folders of the window. A worker's copy of the tree has no files that Git
-  lists, and the tests of the documents judge no mutant. The cap of 100 tests, which only `TESTS.md` breaks, no
-  longer stops the mutator; it still fails `build.exe`.
-  [2026-11-16 02:52:16](DEVLOG/DEVLOG4.md#025216-the-analyzed-build-clean-and-ub-modes-mutator-able-to-run-on-tests-without-the-rules)
+  [2026-11-16 02:23:39](DEVLOG/DEVLOG5.md#022339-no-function-of-src-with-a-complexity-of-10-or-more-by-the-original-crapper)
+- **The mutator runs the tests without those of the rules and the documents:** `.\build.exe quick nowindow
+  norules`, or `.\build.exe quick norules` for the folders of the window. A worker's copy of the tree has no files
+  that Git lists, and the tests of the documents judge no mutant. The tests of the build program run, so that the
+  mutator judges `tools/build/`. Replaced: `norules` left out every test of maintainability.
+  [2026-11-16 02:52:16](DEVLOG/DEVLOG5.md#025216-the-analyzed-build-clean-and-ub-modes-mutator-able-to-run-on-tests-without-the-rules)
+  [2026-11-17 03:54:37](DEVLOG/DEVLOG6.md#035437-the-last-checks-no-caller-can-fail-taken-out-and-ten-tests-of-what-no-test-saw)
+- **Rule 9 asks a line for each of the project's terms, not for the game's words.** "tech", "unit", "Castle" and
+  "Villager" are the game's; a line of `TERMINOLOGY.md` uses only the project's terms defined above it and the
+  game's words.
+  [2026-11-17 05:47:59](DEVLOG/DEVLOG6.md#054759-compliance-with-rulesmd-and-requirementsmd-after-the-bonuses-built-from-the-games-techs)
 
 ## Requirements, and how they are read
 
@@ -132,6 +146,11 @@ an earlier one, the earlier one is named after it, with its own link.
 - **A base civ of the game is also the replaced civ,** until another is picked on the review step; with Generic,
   the replaced civ is the Britons, as in a new design.
   [2026-11-09 10:07:36](DEVLOG/DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first)
+- **A step is done once the user has made it differ from the base civ:** a tree, bonuses, a team bonus, a unique
+  unit or tech other than the base civ's, or a name typed; Identity when the civ has a name, Hero unit when a hero is
+  picked, Review when the civ is complete. Nothing is loaded at the start. Replaced: a step done as soon as it holds
+  anything, so that Generic's tree marked the tech tree done at the start.
+  [2026-11-16 21:18:51](DEVLOG/DEVLOG5.md#211851-no-step-shown-as-done-before-the-user-changed-it)
 - **The review asks what the original's steps ask.** A name, a unique unit, a castle tech, an imperial tech and, for
   a chosen hero, its name; not a civ bonus. An architecture is chosen from the start.
   [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
@@ -142,12 +161,13 @@ an earlier one, the earlier one is named after it, with its own link.
 - **At most 24 civ bonuses** (Requirement 6). The list is fixed, as P10 rule 3 asks; a 25th is refused.
   [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
-- **WCAG 2.2 AAA, read for a window** (Requirements 3 and 4). The 86 success criteria are listed in
+- **WCAG 2.2 AA, read for a window** (Requirements 3 and 4). Its success criteria are listed in
   `.github/ACCESSIBILITY.md`, read as WCAG2ICT reads them for software; a box is ticked only when a test checks the
-  criterion or when civbuilder has nothing it applies to, which counts as met. Contrast of 7:1, targets of 44 by
-  44, a visible label for every input, and the colors of Windows in high contrast.
+  criterion or when civbuilder has nothing it applies to, which counts as met. Contrast of 4.5:1, targets of 44 by
+  44, a visible label for every input, and the colors of Windows in high contrast. Replaced: level AAA, 7:1.
   [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
   [2026-11-09 10:08:11](DEVLOG/DEVLOG2.md#100811-a-checklist-of-wcag-22-for-requirement-4)
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
 - **A drawn mark is checked with the text's contrast.** The frame of a box, the check and the focus frame are drawn
   only in pairs of colors of `palette.c`, which the test of contrast holds at 7:1; so 1.4.11 is ticked by that test.
   3.2.3 is ticked by the test that the list of steps, Back and Next are on every step.
@@ -177,6 +197,66 @@ an earlier one, the earlier one is named after it, with its own link.
   a new effect and a free tech of the civ that fires it, as the original's `_apply_ec_list_entry` does. A team bonus
   whose effect in the game is missing or empty gets its changes.
   [2026-11-09 02:45:35](DEVLOG/DEVLOG1.md#024535-bonuses-built-from-the-originals-lists-of-changes)
+- **A bonus's multiplier scales each of its changes, as the original's `_scale_ec_for_multiplier` does:** an amount
+  added is multiplied by it, a factor raised to it, a spawn's count multiplied; armor and attack past 255 are split
+  into several changes, a percent halfway rounded to the even one; a value set, the spawn limit and the effect function
+  are kept. It applies to the civ bonuses built from changes and to the team bonus. A civ bonus made of the game's
+  techs counts once, and Build says so (Requirement 9).
+  [2026-11-17 04:37:52](DEVLOG/DEVLOG6.md#043752-a-bonuss-multiplier-applied-to-the-bonuses-built-from-changes-and-to-the-team-bonus)
+- **A multiplier is 1 to 10.** Read from a civ file, it is checked where it enters (`civ_design_set_multiplier`); any
+  other value leaves the bonus at 1. The original has no bound.
+  [2026-11-17 04:37:52](DEVLOG/DEVLOG6.md#043752-a-bonuss-multiplier-applied-to-the-bonuses-built-from-changes-and-to-the-team-bonus)
+- **A bonus that brings a tech of the game an age early is built as the game builds its own civs' bonuses.** Bonuses
+  81, 103, 247, 283 and 352 are `require` lines of `bonus_effects.txt`: the requirement tech that the game gives the
+  civ with the bonus, such as 768 for the Cavalier, is copied for the civ, and the copy goes in the first free slot of
+  the requirements of the game's tech. The original copies the Cavalier, the Paladin and Parthian Tactics for 103 and
+  247 and disables the game's own in the civ's tree; the game's way copies no tech that the tree shows, and a tech
+  that the design's tree disables stays disabled.
+  [2026-11-17 05:17:56](DEVLOG/DEVLOG6.md#051756-bonuses-81-103-247-283-and-352-built-from-the-games-requirement-techs)
+- **A tech with no free slot for a requirement leaves its bonus skipped,** and Build says so (Requirement 9). A bonus
+  of requirements counts once whatever its multiplier, as in the original: a tech cannot come two ages early.
+  [2026-11-17 05:17:56](DEVLOG/DEVLOG6.md#051756-bonuses-81-103-247-283-and-352-built-from-the-games-requirement-techs)
+- **Bonuses 221 and 286 are built from the game's own techs.** 221 is five `require` lines, which give the civ the
+  requirement techs 952 to 956 of civ 44 for the upgrades of the Militia and the Spearman; the original copies those
+  upgrades and disables the game's own. 286 names the game's Houfnice, 787, copied as every tech that a bonus names;
+  the Imperial Age that the original adds to its requirements is not added, since 787 already needs it.
+  [2026-11-17 05:27:22](DEVLOG/DEVLOG6.md#052722-bonuses-221-and-286-built-from-the-games-techs)
+- **A civ bonus that names techs builds its lines too, and they count once, as its techs do.** Bonus 356 copies the
+  game's pasture techs 1008, 1012, 1013 and 1014, and its line disables the Farms (216) and their upgrades at the Mill
+  (14, 13 and 12), as the game disables techs from the effect of a tech of one civ. The original copies only the three
+  upgrades, and puts the pasture and the disabled techs in the civ's tech tree.
+  [2026-11-17 05:41:10](DEVLOG/DEVLOG6.md#054110-bonus-356-built-from-the-games-pasture-techs-and-a-line-that-disables-the-farms)
+- **A bonus that moves where a unit is trained is a `train` line: a unit patch placed in the unit's first train
+  location.** Bonus 222 moves the cow from the Town Center to the Mill, as the original does; a unit with no train
+  location leaves the bonus skipped. The `train` line takes the columns of a `unit` line, so the catalog keeps one list
+  of unit patches.
+  [2026-11-17 06:03:49](DEVLOG/DEVLOG6.md#060349-bonus-222-built-the-cow-trained-at-the-mill-by-a-train-line)
+- **A unit patch names the part of the unit its place counts from: its start, its costs or its first train
+  location.** Bonus 460 sets the Castle's costs by `cost` lines, its build time by a `train` line and its hit points by
+  a `unit` line, with the original's numbers. The Wooden Fort's look that the original also gives it is not built:
+  its graphics lie in parts that no line reaches. Replaced: the flag of the train location.
+  [2026-11-17 06:14:20](DEVLOG/DEVLOG6.md#061420-bonus-460-built-the-castles-costs-set-by-cost-lines)
+- **Bonuses 451 and 454 name the game's techs of the Phalangite and the Sannahya,** copied for the civ as every
+  tech a bonus names; the `unit` lines of 454 give the Sannahya the original's hit points, 250 and 300.
+  [2026-11-17 06:18:15](DEVLOG/DEVLOG6.md#061815-bonuses-451-and-454-built-from-the-games-techs-of-the-chronicles-unique-units)
+- **Bonuses 455 and 456 are `require` lines, as the game builds its own civs' bonuses.** The game's techs of the
+  Hoplite (1136) and the Scythian Horse Archer (1336) need 2 techs, one of the Chronicles only; the civ's copy of 638
+  in their free slot meets it, and the Castle Age the other. A `civ` line of 456 disables the Heavy Cavalry Archer
+  (218), as the original takes that line out of the tree. The original copies the techs with the standard ages.
+  [2026-11-17 06:23:23](DEVLOG/DEVLOG6.md#062323-bonuses-455-and-456-built-the-chronicles-requirements-met-by-a-requirement-tech-of-the-civ)
+- **Bonus 457 multiplies the Trebuchet's attacks, as the game writes an attack bonus:** a change of type 5, c 9, for
+  each attack, its d the class times 256 plus 115. The Palintonon's look is left out.
+  [2026-11-17 06:27:31](DEVLOG/DEVLOG6.md#062731-bonus-457-built-the-trebuchets-attacks-multiplied-by-civ-lines)
+- **A look line gives one unit of the civ the look of the same unit of another civ:** its graphics, icon and walking
+  and attack graphics, copied after the other looks, for each bonus of the design that has one; bonus 457 dresses the
+  Trebuchets as the Athenians'. A `require` line and a `look` line are read by one function, `add_id_line`.
+  [2026-11-17 06:49:31](DEVLOG/DEVLOG6.md#064931-the-palintonons-look-of-bonus-457-given-by-look-lines)
+- **Bonus 455 sets the cost of the Hoplite's tech (1136) to 0 for the civ, as the game's tech 1261 does:** a tech
+  researched nowhere that costs something never fires. This corrects the decision on 455 and 456 above.
+  [2026-11-17 06:55:32](DEVLOG/DEVLOG6.md#065532-the-hoplites-tech-of-bonus-455-freed-of-its-cost)
+- **A look line gives its unit the timing of its attack too:** the frame at which it lets go and the place it lets go
+  from, as the original copies them for the Palintonon; the monk's copy is as before.
+  [2026-11-17 07:05:37](DEVLOG/DEVLOG6.md#070537-a-look-line-gives-its-unit-the-timing-of-its-attack-too)
 - **What the original's code fixes is data here.** The bonuses that unlock a unit (405 to 417, 428) name in
   `bonuses.txt` the techs the original copies for them. Bonus 404, and bonuses 123, 125, 131, 133, 137, 138, 155,
   195, 209, 234, 258, 261, 277, 278, 279, 290, 325, 330, 339, 401 and 458, whose code reads the game's data, have in
@@ -234,10 +314,11 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-09 02:15:04](DEVLOG/DEVLOG1.md#021504-a-mod-built-from-the-civ-from-the-catalog-and-the-games-own-data-file)
   [2026-11-09 10:40:46](DEVLOG/DEVLOG2.md#104046-one-rule-for-what-a-civ-keeps-in-the-dat-file-and-the-tech-tree-file-alike)
 - **The accessibility checklist is level AA** (Requirement 3): the 55 criteria of levels A and AA of WCAG 2.2 are
-  its boxes. The 31 criteria of level AAA are kept in a last section without boxes and are not counted. Replaced:
-  all 86 criteria as boxes.
+  its boxes, and no criterion of level AAA is on it. A test names the AA criterion it serves. Replaced: all 86
+  criteria as boxes; then the 31 of level AAA in a last section without boxes.
   [2026-11-15 21:39:11](DEVLOG/DEVLOG4.md#213911-the-accessibility-checklist-at-level-aa-53-of-55-boxes-ticked)
   [2026-11-09 10:08:11](DEVLOG/DEVLOG2.md#100811-a-checklist-of-wcag-22-for-requirement-4)
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
 - **A ticked box that no test settles is flagged "Human review needed."** in the checklist: one that rests on
   "Code" or "Read", or on a test with something left that was not looked at, heard or tried.
   [2026-11-10 08:27:52](DEVLOG/DEVLOG3.md#082752-answers-recorded-check-left-out-of-the-tools-the-first-merges-unfinished)
@@ -246,12 +327,25 @@ an earlier one, the earlier one is named after it, with its own link.
   1.4.10): narrower than 960 units or shorter than 560. The least window is 320 by 256 units. The one column is
   made in `src/reflow/`, a folder of its own, since `src/view/` and `src/win/` hold 7 files each (Rule 14).
   Replaced: a least window of 960 by 560.
-  [2026-11-16 02:45:16](DEVLOG/DEVLOG4.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
+  [2026-11-16 02:45:16](DEVLOG/DEVLOG5.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
 - **The rows of a list wrap** and take the height their text needs; none is cut with three dots.
-  [2026-11-16 02:45:16](DEVLOG/DEVLOG4.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
+  [2026-11-16 02:45:16](DEVLOG/DEVLOG5.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
 - **1.4.4 and 1.4.10 are ticked on their tests and on a look at 100%,** each marked for a human's review at 200%
   and 400%.
-  [2026-11-16 02:45:16](DEVLOG/DEVLOG4.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
+  [2026-11-16 02:45:16](DEVLOG/DEVLOG5.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
+- **A list moves one row a notch of the wheel and one row a press on an arrow of its scroll bar, and never slides**
+  (Bugs 3 and 4 of 2026-11-16). A held arrow moves it again after 400 ms, then every 50 ms. A press between the
+  arrows still moves a page and the knob still follows the mouse, as Windows does. Replaced: Windows' three rows a
+  notch and smooth scrolling.
+  [2026-11-16 23:56:00](DEVLOG/DEVLOG5.md#235600-lists-scroll-a-row-a-notch-and-a-row-an-arrow-without-sliding-under-classic-scroll-bars)
+- **Every control made with a vertical scroll bar has a classic scroll bar,** its arrows and knob shown at all
+  times (Bug 2 of 2026-11-16), by turning the visual styles off for that control alone. The window's own scroll bar
+  is not changed that way, since the window's title bar would then look like that of Windows 2000.
+  [2026-11-16 23:56:00](DEVLOG/DEVLOG5.md#235600-lists-scroll-a-row-a-notch-and-a-row-an-arrow-without-sliding-under-classic-scroll-bars)
+- **The window's scroll bar is a scroll bar control, classic like the lists',** its arrows and knob shown at all
+  times (Bug 2 of 2026-11-16), and the window keeps the visual styles and the title bar of Windows 11. Replaced: the
+  window's own scroll bar left as it was.
+  [2026-11-17 00:25:45](DEVLOG/DEVLOG6.md#002545-the-windows-scroll-bar-a-control-of-its-own-classic-like-the-lists)
 
 ## Code and files
 
@@ -263,6 +357,9 @@ an earlier one, the earlier one is named after it, with its own link.
   `source_in_tests` in `tools/build/source_list.c` say them for the build program and the crapper alike; the test
   program holds the files of `tools/crap/` whose names begin with `crap_`.
   [2026-11-10 04:22:28](DEVLOG/DEVLOG3.md#042228-the-crapper-in-c-and-369-functions-at-crap-10-or-above)
+- **The types of change are named once, in `dat_map.h`** (`DAT_CHANGE_...`), beside `DatChange`, for the bonuses and
+  the recipe alike.
+  [2026-11-17 04:37:52](DEVLOG/DEVLOG6.md#043752-a-bonuss-multiplier-applied-to-the-bonuses-built-from-changes-and-to-the-team-bonus)
 - **Wide paths.** Every path is a wide string, since the user's folder may hold letters outside ASCII.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
 - **Civ files as the original writes them.** `empireforge_v2` is written; it and `civbuilder_v1` are read.
@@ -413,6 +510,49 @@ an earlier one, the earlier one is named after it, with its own link.
 - **The catalog is searched by one function,** `find_key`, for every table. Replaced: a shared key structure
   in the entries, proposed on 2026-11-10 08:27:52.
   [2026-11-15 23:21:05](DEVLOG/DEVLOG4.md#232105-no-two-functions-80-alike-any-more)
+- **The build program makes the coverage.** `build.exe coverage` builds the tests with `--coverage` into
+  `build/obj_coverage`, runs them and makes `target/coverage/c/`; gcovr, beside the crapper, is run by hand after it,
+  so that the build program starts no program but gcc and the tests.
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
+- **A program that is running is renamed, not stopped,** when the build must write over it:
+  `build\civbuilder.exe` became `build\civbuilder_in_use.exe`, and the window the user had open stayed open.
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
+- **A list's wheel and arrows are taken in the loop of messages,** before Windows handles them, not in a window
+  procedure of the list's own: that would need a second function pointer, which the test of P10 rule 9 forbids. A
+  list is known by its class, `LISTBOX`; keys and clicks are left to Windows, which slides no list of civbuilder on
+  them.
+  [2026-11-16 23:56:00](DEVLOG/DEVLOG5.md#235600-lists-scroll-a-row-a-notch-and-a-row-an-arrow-without-sliding-under-classic-scroll-bars)
+- **A list whose arrow is pressed holds the mouse until the button is let go,** as the scroll bar of Windows does,
+  and its arrow repeats only while it holds it.
+  [2026-11-16 23:56:00](DEVLOG/DEVLOG5.md#235600-lists-scroll-a-row-a-notch-and-a-row-an-arrow-without-sliding-under-classic-scroll-bars)
+- **The room of a step is the window's inside less its scroll bar when the bar is shown,** given by `assist_view`;
+  the bar, `app->bar`, is placed and shown by `assist_scroll_range` alone.
+  [2026-11-17 00:25:45](DEVLOG/DEVLOG6.md#002545-the-windows-scroll-bar-a-control-of-its-own-classic-like-the-lists)
+- **A pointer is not checked for `NULL` inside the code.** Only the result of a function that can give a null
+  pointer, of Win32 or of the code, is compared with `NULL`, by its caller and without `CHECK`.
+  [2026-11-17 02:39:14](DEVLOG/DEVLOG6.md#023914-every-function-of-src-under-crap-10-the-checks-no-caller-can-fail-taken-out)
+- **A condition on constants alone is a `_Static_assert`,** which the compiler checks once, not a `CHECK` at each call.
+  [2026-11-17 02:39:14](DEVLOG/DEVLOG6.md#023914-every-function-of-src-under-crap-10-the-checks-no-caller-can-fail-taken-out)
+- **A file of the game cut short is data, not a fault.** `dat_read_unit` returns whether its cursor is still fine,
+  without `CHECK`.
+  [2026-11-17 02:39:14](DEVLOG/DEVLOG6.md#023914-every-function-of-src-under-crap-10-the-checks-no-caller-can-fail-taken-out)
+- **The catalog reads a row apart from adding it.** `read_tech`, `read_unit_patch` and `read_bonus_change` check the
+  fields of a row; the `add_` functions check the room and count it in.
+  [2026-11-17 02:39:14](DEVLOG/DEVLOG6.md#023914-every-function-of-src-under-crap-10-the-checks-no-caller-can-fail-taken-out)
+- **Data from outside is checked where it enters, and its survivors stand** until a test gives the program such data
+  damaged: the game's file, the catalog, a civ file and what Windows gives. A value made from those checks, or from
+  constants, is not checked again.
+  [2026-11-17 02:40:05](DEVLOG/DEVLOG6.md#024005-a-number-past-the-largest-long-refused-and-the-checks-the-mutator-showed-always-true-taken-out)
+- **A number is read up to the largest `long`,** and one past it is no number. Ten digits up to a billion were read
+  before, and let a `long` of 32 bits wrap round.
+  [2026-11-17 02:40:05](DEVLOG/DEVLOG6.md#024005-a-number-past-the-largest-long-refused-and-the-checks-the-mutator-showed-always-true-taken-out)
+- **The decisions of the build program are in `build_plan.c`,** tables and small functions that the tests check;
+  `build_steps.c` only makes folders, runs gcc and runs the tests with them, each of its functions one decision at
+  most, so that the crapper scores it under 10 though no test runs it.
+  [2026-11-17 02:41:02](DEVLOG/DEVLOG6.md#024102-the-build-plan-apart-from-the-steps-that-run-gcc-and-a-test-that-every-test-defined-is-run)
+- **The build compiles and links everything before it fails,** counting failures instead of stopping at the first,
+  so that one build shows the errors of every source.
+  [2026-11-17 02:41:02](DEVLOG/DEVLOG6.md#024102-the-build-plan-apart-from-the-steps-that-run-gcc-and-a-test-that-every-test-defined-is-run)
 
 ## Tests
 
@@ -503,21 +643,44 @@ an earlier one, the earlier one is named after it, with its own link.
 - **What each program is built from is one table,** `PROGRAM_PREFIXES` in `source_list.c`, read by
   `source_in_program`.
   [2026-11-15 23:56:59](DEVLOG/DEVLOG4.md#235659-the-dryer-the-crapper-and-the-builds-plan-run-by-tests-27-functions-of-the-tools-left)
-- **A survivor of the mutator is read before a test is written for it.** One on a line with a `CHECK`, on the
-  `return` under a guard or on a loop's fixed bound is left, until it is decided whether P10 or the mutator
-  gives way; one elsewhere gets a test that calls the code as its user does.
-  [2026-11-16 04:39:06](DEVLOG/DEVLOG4.md#043906-ub-modes-mutator-run-and-read-three-survivors-in-four-are-made-by-p10s-checks-and-bounds)
+- **A test names a requirement or a bug found before, never Rule 4 alone** (Rules 4 to 6, 24). Rule 4 asks only
+  that there are tests; it is no test's purpose. The tests that named Rule 4 alone were removed. Replaced: a test of code
+  that no requirement names names Requirement 10.
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
+  [2026-11-17 10:57:53](DEVLOG/DEVLOG7.md#105753-no-test-names-rule-4-alone-the-21-that-did-are-removed)
+- **No test is written for now,** until writing tests is allowed again.
+  [2026-11-17 10:57:53](DEVLOG/DEVLOG7.md#105753-no-test-names-rule-4-alone-the-21-that-did-are-removed)
+- **A survivor of the mutator is read before a test is written for it.** One on a check that no caller can fail,
+  on the `return` under such a check or on a loop's second bound is taken out with the check or the bound; one
+  elsewhere gets a test that calls the code as its user does. Replaced: such survivors left until P10 or the
+  mutator gave way.
+  [2026-11-16 04:39:06](DEVLOG/DEVLOG5.md#043906-ub-modes-mutator-run-and-read-three-survivors-in-four-are-made-by-p10s-checks-and-bounds)
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
 - **A test of an order uses values that differ,** such as numbered changes, not one value put on and off.
-  [2026-11-16 04:39:06](DEVLOG/DEVLOG4.md#043906-ub-modes-mutator-run-and-read-three-survivors-in-four-are-made-by-p10s-checks-and-bounds)
+  [2026-11-16 04:39:06](DEVLOG/DEVLOG5.md#043906-ub-modes-mutator-run-and-read-three-survivors-in-four-are-made-by-p10s-checks-and-bounds)
+- **A test may measure time when what it checks is a time,** as Test 351 does for sliding: each move must take less
+  than 150 ms, where sliding takes 190 ms or more. It shows the window on the screen for a moment, since Windows
+  slides only what can be seen.
+  [2026-11-16 23:56:00](DEVLOG/DEVLOG5.md#235600-lists-scroll-a-row-a-notch-and-a-row-an-arrow-without-sliding-under-classic-scroll-bars)
+- **A test of writing and reading back compares what is read,** not only two writings, since two writings by the same
+  writer agree even when both lose something, as Test 6 does.
+  [2026-11-17 02:40:05](DEVLOG/DEVLOG6.md#024005-a-number-past-the-largest-long-refused-and-the-checks-the-mutator-showed-always-true-taken-out)
+- **No test checks that every test defined is run.** The test that compared the tests run with the `case`s of the
+  suites named Rule 4 alone and was removed, so a wrong size of a suite or start of a group leaves tests out without
+  a failure. Replaced: the last test checks that every test defined is run.
+  [2026-11-17 02:41:02](DEVLOG/DEVLOG6.md#024102-the-build-plan-apart-from-the-steps-that-run-gcc-and-a-test-that-every-test-defined-is-run)
+  [2026-11-17 10:57:53](DEVLOG/DEVLOG7.md#105753-no-test-names-rule-4-alone-the-21-that-did-are-removed)
 
 ## Documents
 
 - **repo_template's documents, without its setup.** `.claude/skills/project-setup` is not copied: the project is set
   up. [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
-- **The instructions, the answers and the sitrep are in `sitrep&instructions/`,** with the pictures of the trial,
-  a folder of 7 files. Replaced: `sitrep.md` stays in the main folder, as Rule 14 allowed.
+- **The instructions, the answers and the sitrep are in `sitrep&instructions/`,** with the pictures of the trials
+  in `pictures/`, so that the folder keeps within 7 files. Replaced: `sitrep.md` stays in the main folder, as Rule
+  14 allowed.
   [2026-11-10 04:21:27](DEVLOG/DEVLOG3.md#042127-the-instructions-in-a-folder-of-their-own-pictures-as-documents-and-a-night-stopped-by-the-usage-limit)
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
+  [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
 - **The checklist of accessibility is `.github/ACCESSIBILITY.md`,** repo_template's file of that name, since
   `documentation/` holds the 7 files that Rule 14 allows and Rule 15 allows one file of a name.
   [2026-11-09 10:08:11](DEVLOG/DEVLOG2.md#100811-a-checklist-of-wcag-22-for-requirement-4)

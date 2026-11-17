@@ -6,7 +6,8 @@
 #include "../rules/gate_tests.h"
 #include "../rules/tool_tests.h"
 
-enum { P10_RULE_START = 4, DOCUMENT_RULE_START = 12, GATE_START = 20, SOURCE_START = 28, PLAN_START = 31 };
+enum { P10_RULE_START = 4, DOCUMENT_RULE_START = 10, GATE_START = 18 };
+enum { SOURCE_START = 25, PLAN_START = 29, STEP_START = 34, LAST_START = 37 };
 
 static TestOutcome run_form_rule_test(int index)
 {
@@ -45,16 +46,12 @@ static TestOutcome run_p10_rule_test(int index)
     case 2:
         return test_outcome_of("no recursion, direct or indirect", code_has_no_recursion());
     case 3:
-        return test_outcome_of("every loop has a fixed upper bound", code_rule_holds(CODE_RULE_BOUNDED_LOOPS));
-    case 4:
         return test_outcome_of("no dynamic memory allocation", code_rule_holds(CODE_RULE_NO_ALLOCATION));
-    case 5:
-        return test_outcome_of("at least two checks per function", code_has_two_checks_per_function());
-    case 6:
+    case 4:
         return test_outcome_of("preprocessor only includes and guards", code_rule_holds(CODE_RULE_SIMPLE_PREPROCESSOR));
-    case 7:
+    case 5:
         return test_outcome_of("one level of pointer dereferencing", code_rule_holds(CODE_RULE_POINTER_DEPTH));
-    case 8:
+    case 6:
         return test_outcome_of("no function pointers but the window procedure",
                                code_rule_holds(CODE_RULE_NO_FUNCTION_POINTERS));
     default:
@@ -102,21 +99,18 @@ static TestOutcome run_gate_test(int index)
         return test_outcome_of("the rule against allocation names the line of a malloc",
                                test_the_rule_against_allocation_names_the_line_of_a_malloc());
     case 3:
-        return test_outcome_of("the rule of bounded loops names a loop without a fixed bound",
-                               test_the_rule_of_bounded_loops_names_a_loop_without_a_fixed_bound());
-    case 4:
         return test_outcome_of("the rule of the preprocessor names a macro with arguments",
                                test_the_rule_of_the_preprocessor_names_a_macro_with_arguments());
-    case 5:
+    case 4:
         return test_outcome_of("the rule of one dereference names two arrows in a row",
                                test_the_rule_of_one_dereference_names_two_arrows_in_a_row());
-    case 6:
+    case 5:
         return test_outcome_of("the rule against function pointers names one",
                                test_the_rule_against_function_pointers_names_one());
-    case 7:
+    case 6:
         return test_outcome_of("the rule against comments names the line of a comment",
                                test_the_rule_against_comments_names_the_line_of_a_comment());
-    case 8:
+    case 7:
         return test_outcome_of("the rule against recursion names a function that calls itself",
                                test_the_rule_against_recursion_names_a_function_that_calls_itself());
     default:
@@ -134,9 +128,11 @@ static TestOutcome run_source_test(int index)
         return test_outcome_of("the sources of a folder include those of its folders",
                                test_the_sources_of_a_folder_include_those_of_its_folders());
     case 2:
+        return test_outcome_of("a folder lists only its own sources", test_a_folder_lists_only_its_own_sources());
+    case 3:
         return test_outcome_of("the sources of the project are those of src, tests and tools",
                                test_the_sources_of_the_project_are_those_of_src_tests_and_tools());
-    case 3:
+    case 4:
         return test_outcome_of("the newest source is the one changed last",
                                test_the_newest_source_is_the_one_changed_last());
     default:
@@ -163,11 +159,38 @@ static TestOutcome run_plan_test(int index)
         return test_outcome_of("a source changed when its object was made is built again",
                                test_a_source_changed_when_its_object_was_made_is_built_again());
     case 5:
-        return test_outcome_of("the objects of the tests are listed with the libraries of Windows",
-                               test_the_objects_of_the_tests_are_listed_with_the_libraries_of_windows());
-    case 6:
         return test_outcome_of("the objects of the build tool are listed without libraries",
                                test_the_objects_of_the_build_tool_are_listed_without_libraries());
+    default:
+        return test_outcome_missing();
+    }
+}
+
+static TestOutcome run_step_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("a coverage build is asked for by coverage",
+                               test_a_coverage_build_is_asked_for_by_coverage());
+    case 2:
+        return test_outcome_of("the tests are run with the arguments given to the build",
+                               test_the_tests_are_run_with_the_arguments_given_to_the_build());
+    case 3:
+        return test_outcome_of("a coverage build links the tests alone", test_a_coverage_build_links_the_tests_alone());
+    default:
+        return test_outcome_missing();
+    }
+}
+
+static TestOutcome run_last_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("a coverage build links the tests with coverage",
+                               test_a_coverage_build_links_the_tests_with_coverage());
+    case 2:
+        return test_outcome_of("a coverage build makes the folder of its report",
+                               test_a_coverage_build_makes_the_folder_of_its_report());
     default:
         return test_outcome_missing();
     }
@@ -184,7 +207,13 @@ static TestOutcome run_later_test(int index)
     if (index <= PLAN_START) {
         return run_source_test(index - SOURCE_START);
     }
-    return run_plan_test(index - PLAN_START);
+    if (index <= STEP_START) {
+        return run_plan_test(index - PLAN_START);
+    }
+    if (index <= LAST_START) {
+        return run_step_test(index - STEP_START);
+    }
+    return run_last_test(index - LAST_START);
 }
 
 TestOutcome maintainability_suite_run(int index)
@@ -202,4 +231,9 @@ TestOutcome maintainability_suite_run(int index)
         return run_document_rule_test(index - DOCUMENT_RULE_START);
     }
     return run_later_test(index);
+}
+
+TestOutcome maintainability_tools_run(int index)
+{
+    return run_later_test(index + SOURCE_START);
 }

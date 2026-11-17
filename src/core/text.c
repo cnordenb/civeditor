@@ -1,5 +1,7 @@
 #include "text.h"
 
+#include <limits.h>
+
 #include "check.h"
 
 enum {
@@ -34,13 +36,11 @@ typedef struct {
     size_t capacity;
 } WideText;
 
-static const long NUMBER_LIMIT = 999999999L;
-
 size_t text_length(const char *text, size_t capacity)
 {
     size_t index;
 
-    if (!CHECK(text != NULL) || !CHECK(capacity <= (size_t)TEXT_SCAN_LIMIT)) {
+    if (!CHECK(capacity <= (size_t)TEXT_SCAN_LIMIT)) {
         return 0U;
     }
     for (index = 0U; (index < capacity) && (index < (size_t)TEXT_SCAN_LIMIT); ++index) {
@@ -55,7 +55,7 @@ bool text_copy_span(char *destination, size_t capacity, const char *source, size
 {
     size_t index;
 
-    if (!CHECK(destination != NULL) || !CHECK(source != NULL) || !CHECK(capacity > 0U)) {
+    if (!CHECK(capacity > 0U)) {
         return false;
     }
     for (index = 0U; (index < length) && (index < (size_t)TEXT_SCAN_LIMIT); ++index) {
@@ -71,9 +71,6 @@ bool text_copy_span(char *destination, size_t capacity, const char *source, size
 
 bool text_copy(char *destination, size_t capacity, const char *source)
 {
-    if (!CHECK(destination != NULL) || !CHECK(source != NULL)) {
-        return false;
-    }
     return text_copy_span(destination, capacity, source, text_length(source, (size_t)TEXT_SCAN_LIMIT));
 }
 
@@ -81,7 +78,7 @@ bool text_append(char *destination, size_t capacity, const char *source)
 {
     size_t used;
 
-    if (!CHECK(destination != NULL) || !CHECK(source != NULL) || !CHECK(capacity > 0U)) {
+    if (!CHECK(capacity > 0U)) {
         return false;
     }
     used = text_length(destination, capacity);
@@ -100,7 +97,7 @@ bool text_append_number(char *destination, size_t capacity, long value)
     int count = 0;
     int index;
 
-    if (!CHECK(destination != NULL) || !CHECK(capacity > 0U)) {
+    if (!CHECK(capacity > 0U)) {
         return false;
     }
     for (index = 0; index < TEXT_NUMBER_CAPACITY - 1; ++index) {
@@ -123,9 +120,6 @@ bool text_starts_with(const char *text, const char *prefix)
 {
     size_t index;
 
-    if (!CHECK(text != NULL) || !CHECK(prefix != NULL)) {
-        return false;
-    }
     for (index = 0U; index < (size_t)TEXT_SCAN_LIMIT; ++index) {
         if (prefix[index] == '\0') {
             return true;
@@ -154,9 +148,6 @@ static bool matches_at(const char *text, const char *needle)
 {
     size_t index;
 
-    if (!CHECK(text != NULL) || !CHECK(needle != NULL)) {
-        return false;
-    }
     for (index = 0U; index < (size_t)TEXT_SCAN_LIMIT; ++index) {
         if (needle[index] == '\0') {
             return true;
@@ -172,9 +163,6 @@ bool text_contains_folded(const char *text, const char *needle)
 {
     size_t start;
 
-    if (!CHECK(text != NULL) || !CHECK(needle != NULL)) {
-        return false;
-    }
     for (start = 0U; start < (size_t)TEXT_SCAN_LIMIT; ++start) {
         if (matches_at(&text[start], needle)) {
             return true;
@@ -188,10 +176,12 @@ bool text_contains_folded(const char *text, const char *needle)
 
 static bool take_digit(TextNumber *number, char letter)
 {
-    if (!CHECK(number != NULL) || !text_is_digit(letter) || (number->value > NUMBER_LIMIT)) {
+    long digit = (long)(letter - '0');
+
+    if (!text_is_digit(letter) || (number->value > (LONG_MAX - digit) / DECIMAL_BASE)) {
         return false;
     }
-    number->value = (number->value * DECIMAL_BASE) + (long)(letter - '0');
+    number->value = (number->value * DECIMAL_BASE) + digit;
     number->valid = true;
     return true;
 }
@@ -202,11 +192,8 @@ TextNumber text_to_number(const char *text, size_t length)
     size_t index;
     bool negative;
 
-    if (!CHECK(text != NULL) || !CHECK(length < (size_t)TEXT_NUMBER_CAPACITY)) {
-        return result;
-    }
     negative = (length > 0U) && (text[0] == '-');
-    for (index = negative ? 1U : 0U; (index < length) && (index < (size_t)TEXT_NUMBER_CAPACITY); ++index) {
+    for (index = negative ? 1U : 0U; index < length; ++index) {
         if (!take_digit(&result, text[index])) {
             result.valid = false;
             return result;
@@ -239,7 +226,7 @@ static TextCode utf8_decode(const char *text, size_t at)
     int length;
     int index;
 
-    if (!CHECK(text != NULL) || !CHECK(text[at] != '\0')) {
+    if (!CHECK(text[at] != '\0')) {
         return decoded;
     }
     byte = (unsigned char)text[at];
@@ -260,9 +247,6 @@ static bool put_wide(WideText *wide, unsigned long code)
 {
     unsigned long rest;
 
-    if (!CHECK(wide != NULL) || !CHECK(wide->used < wide->capacity)) {
-        return false;
-    }
     if (code < UTF16_PLANE) {
         wide->text[wide->used] = (wchar_t)code;
         ++wide->used;
@@ -283,12 +267,8 @@ bool text_widen(const char *text, wchar_t *wide, size_t capacity)
     WideText out = { wide, 0U, capacity };
     TextCode decoded;
     size_t in = 0U;
-    int step;
 
-    if (!CHECK(text != NULL) || !CHECK((wide != NULL) && (capacity > 0U))) {
-        return false;
-    }
-    for (step = 0; (step < TEXT_SCAN_LIMIT) && (text[in] != '\0'); ++step) {
+    while (text[in] != '\0') {
         decoded = utf8_decode(text, in);
         if ((decoded.length == 0) || (out.used + 1U >= capacity) || !put_wide(&out, decoded.code)) {
             wide[out.used] = L'\0';
@@ -297,7 +277,7 @@ bool text_widen(const char *text, wchar_t *wide, size_t capacity)
         in += (size_t)decoded.length;
     }
     wide[out.used] = L'\0';
-    return text[in] == '\0';
+    return true;
 }
 
 bool text_is_between(char letter, char first, char last)
@@ -326,18 +306,13 @@ bool text_append_two(char *destination, size_t capacity, const char *first, cons
 
 bool text_append_three(char *destination, size_t capacity, const char *first, const char *second, const char *third)
 {
-    if (!CHECK(destination != NULL) || !CHECK(first != NULL) || !CHECK(second != NULL) || !CHECK(third != NULL)) {
-        return false;
-    }
     return text_append(destination, capacity, first) && text_append(destination, capacity, second) &&
            text_append(destination, capacity, third);
 }
 
 bool text_join(char *destination, size_t capacity, const char *first, const char *second)
 {
-    if (!CHECK(destination != NULL) || !CHECK(capacity > 0U) ||
-        !CHECK(first != NULL) ||
-        !CHECK(second != NULL)) {
+    if (!CHECK(capacity > 0U)) {
         return false;
     }
     destination[0] = '\0';

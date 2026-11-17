@@ -1,20 +1,13 @@
 #include "command.h"
 
-#include "../core/check.h"
 #include "../core/text.h"
 
 enum { NO_TEXT_FIELD = -1 };
 
 Command command_of(CommandKind kind, int field, int value)
 {
-    Command command = { COMMAND_KIND_COUNT, 0, CIV_NO_CHOICE, "" };
+    Command command = { kind, field, value, "" };
 
-    if (!CHECK((int)kind >= 0) || !CHECK(kind < COMMAND_KIND_COUNT)) {
-        return command;
-    }
-    command.kind = kind;
-    command.field = field;
-    command.value = value;
     return command;
 }
 
@@ -29,8 +22,7 @@ Command command_set_text(TextField field, const char *text)
 {
     Command command = command_of(COMMAND_SET_TEXT, (int)field, 0);
 
-    if (!CHECK(text != NULL) || !CHECK(((int)field >= 0) && (field < TEXT_FIELD_COUNT)) ||
-        !text_copy(command.text, sizeof command.text, text)) {
+    if (!text_copy(command.text, sizeof command.text, text)) {
         command.kind = COMMAND_KIND_COUNT;
     }
     return command;
@@ -38,9 +30,6 @@ Command command_set_text(TextField field, const char *text)
 
 static bool apply_pick(CivDesign *design, const Command *command)
 {
-    if (!CHECK(design != NULL) || !CHECK(command != NULL)) {
-        return false;
-    }
     if (command->kind == COMMAND_PICK_UNIT) {
         return civ_design_pick_unit(design, (UnitOrigin)command->field, command->value);
     }
@@ -52,9 +41,6 @@ static bool apply_pick(CivDesign *design, const Command *command)
 
 static bool apply_toggle(CivDesign *design, const Command *command)
 {
-    if (!CHECK(design != NULL) || !CHECK(command != NULL)) {
-        return false;
-    }
     if (command->kind == COMMAND_TOGGLE_BONUS) {
         return civ_design_toggle_bonus(design, command->value);
     }
@@ -67,9 +53,6 @@ static bool apply_toggle(CivDesign *design, const Command *command)
 
 bool command_apply(CivDesign *design, const Command *command)
 {
-    if (!CHECK(design != NULL) || !CHECK(command != NULL)) {
-        return false;
-    }
     if (command->kind == COMMAND_SET_TEXT) {
         return civ_design_set_text(design, (TextField)command->field, command->text);
     }
@@ -86,8 +69,5 @@ static int text_field_of(const Command *command)
 
 bool command_joins(const Command *earlier, const Command *later)
 {
-    if (!CHECK(earlier != NULL) || !CHECK(later != NULL)) {
-        return false;
-    }
     return (text_field_of(earlier) != NO_TEXT_FIELD) && (text_field_of(earlier) == text_field_of(later));
 }

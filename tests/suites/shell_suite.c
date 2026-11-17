@@ -1,21 +1,19 @@
 #include "suites.h"
 
-#include "../../src/core/check.h"
 #include "../shell/dialog_tests.h"
 
 enum {
     SAVE_END = 5,
-    VIEW_END = 11,
-    CLOSE_END = 14,
-    BUILD_END = 18,
-    DRAW_END = 21
+    VIEW_END = 9,
+    CLOSE_END = 12,
+    BUILD_END = 16,
+    DRAW_END = 19,
+    LOOP_END = 20,
+    BAR_TEST_COUNT = 6
 };
 
 static TestOutcome run_save_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a new civ is saved as civbuilder civ by default",
@@ -37,26 +35,18 @@ static TestOutcome run_save_test(int index)
 
 static TestOutcome run_view_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
-        return test_outcome_of("the glossary is shown with its words", test_the_glossary_is_shown_with_its_words());
-    case 2:
         return test_outcome_of("the next button goes to the next step", test_the_next_button_goes_to_the_next_step());
-    case 3:
-        return test_outcome_of("a filter empties a list that holds no such text",
-                               test_a_filter_empties_a_list_that_holds_no_such_text());
-    case 4:
+    case 2:
         return test_outcome_of("a typed name is shown in the title of the window",
                                test_a_typed_name_is_shown_in_the_title_of_the_window());
-    case 5:
-        return test_outcome_of("a category narrows the list of civ bonuses",
-                               test_a_category_narrows_the_list_of_civ_bonuses());
-    case 6:
+    case 3:
         return test_outcome_of("redo says when there is nothing to redo",
                                test_redo_says_when_there_is_nothing_to_redo());
+    case 4:
+        return test_outcome_of("no step is shown as done when the window opens",
+                               test_no_step_is_shown_as_done_when_the_window_opens());
     default:
         return test_outcome_missing();
     }
@@ -64,9 +54,6 @@ static TestOutcome run_view_test(int index)
 
 static TestOutcome run_close_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("closing is stopped when the question of saving is cancelled",
@@ -84,9 +71,6 @@ static TestOutcome run_close_test(int index)
 
 static TestOutcome run_build_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("build is refused when the game is not found",
@@ -107,9 +91,6 @@ static TestOutcome run_build_test(int index)
 
 static TestOutcome run_draw_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("the help line is written in the muted colour",
@@ -127,26 +108,67 @@ static TestOutcome run_draw_test(int index)
 
 static TestOutcome run_loop_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("picking the picked row again makes no new change",
                                test_picking_the_picked_row_again_makes_no_new_change());
-    case 2:
-        return test_outcome_of("the program ends with the code of the message that ends it",
-                               test_the_program_ends_with_the_code_of_the_message_that_ends_it());
     default:
         return test_outcome_missing();
     }
 }
 
-TestOutcome shell_suite_run(int index)
+static TestOutcome run_list_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
+    switch (index) {
+    case 1:
+        return test_outcome_of("each wheel notch moves a list one row its way",
+                               test_each_wheel_notch_moves_a_list_one_row_its_way());
+    case 2:
+        return test_outcome_of("a press on either arrow moves a list one row its way",
+                               test_a_press_on_either_arrow_moves_a_list_one_row_its_way());
+    case 3:
+        return test_outcome_of("a shown list scrolls without animation", test_a_shown_list_scrolls_without_animation());
+    case 4:
+        return test_outcome_of("a held arrow keeps scrolling a list", test_a_held_arrow_keeps_scrolling_a_list());
+    case 5:
+        return test_outcome_of("a press between a list's arrows moves it a page",
+                               test_a_press_between_a_lists_arrows_moves_it_a_page());
+    case 6:
+        return test_outcome_of("a key in a list moves its caret one row",
+                               test_a_key_in_a_list_moves_its_caret_one_row());
+    default:
         return test_outcome_missing();
     }
+}
+
+static TestOutcome run_scroll_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("a list's scroll bar shows its arrows while the mouse is away",
+                               test_a_lists_scroll_bar_shows_its_arrows_while_the_mouse_is_away());
+    case 2:
+        return test_outcome_of("the window's scroll bar shows its arrows while the mouse is away",
+                               test_the_windows_scroll_bar_shows_its_arrows_while_the_mouse_is_away());
+    case 3:
+        return test_outcome_of("a step ends a margin from the window's scroll bar",
+                               test_a_step_ends_a_margin_from_the_windows_scroll_bar());
+    case 4:
+        return test_outcome_of("the knob of the window's scroll bar reaches its end with the step",
+                               test_the_knob_of_the_windows_scroll_bar_reaches_its_end_with_the_step());
+    case 5:
+        return test_outcome_of("a step that just fits the window shows no scroll bar",
+                               test_a_step_that_just_fits_the_window_shows_no_scroll_bar());
+    case 6:
+        return test_outcome_of("the up arrow of the window's scroll bar moves the step up a line",
+                               test_the_up_arrow_of_the_windows_scroll_bar_moves_the_step_up_a_line());
+    default:
+        return run_list_test(index - BAR_TEST_COUNT);
+    }
+}
+
+TestOutcome shell_suite_run(int index)
+{
     if (index <= SAVE_END) {
         return run_save_test(index);
     }
@@ -162,5 +184,8 @@ TestOutcome shell_suite_run(int index)
     if (index <= DRAW_END) {
         return run_draw_test(index - BUILD_END);
     }
-    return run_loop_test(index - DRAW_END);
+    if (index <= LOOP_END) {
+        return run_loop_test(index - DRAW_END);
+    }
+    return run_scroll_test(index - LOOP_END);
 }

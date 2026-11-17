@@ -10,8 +10,8 @@
 #include "../mod/mod_tests.h"
 #include "../pack/pack_tests.h"
 
-enum { FILE_GROUP_SIZE = 6, MODEL_GROUP_SIZE = 8, PACK_GROUP_SIZE = 5, MOD_GROUP_SIZE = 8, UNIQUE_GROUP_SIZE = 6 };
-enum { CIV_LIST_GROUP_SIZE = 6, BASE_GROUP_SIZE = 8, TREE_GROUP_SIZE = 7 };
+enum { FILE_GROUP_SIZE = 7, MODEL_GROUP_SIZE = 8, PACK_GROUP_SIZE = 5, MOD_GROUP_SIZE = 9, UNIQUE_GROUP_SIZE = 8 };
+enum { CIV_LIST_GROUP_SIZE = 12, BASE_GROUP_SIZE = 8, TREE_GROUP_SIZE = 7 };
 enum {
     MODEL_START = FILE_GROUP_SIZE,
     PACK_START = MODEL_START + MODEL_GROUP_SIZE,
@@ -45,6 +45,9 @@ static TestOutcome run_file_test(int index)
                                test_original_example_civ_keeps_its_language());
     case 6:
         return test_outcome_of("a saved civ loads back unchanged", test_saved_civ_loads_back_unchanged());
+    case 7:
+        return test_outcome_of("a bonus's multiplier is read back from a civ file",
+                               test_a_bonus_multiplier_is_read_back_from_a_civ_file());
     default:
         return test_outcome_missing();
     }
@@ -118,15 +121,18 @@ static TestOutcome run_mod_test(int index)
         return test_outcome_of("a bonus without techs is built from its changes",
                                test_a_bonus_without_techs_is_built_from_its_changes());
     case 5:
+        return test_outcome_of("a bonus taken twice is built with its changes doubled",
+                               test_a_bonus_taken_twice_is_built_with_its_changes_doubled());
+    case 6:
         return test_outcome_of("the name is written under the replaced civ's name id",
                                test_the_name_is_written_under_the_replaced_civs_name_id());
-    case 6:
+    case 7:
         return test_outcome_of("the civ descriptions are written in id order",
                                test_the_civ_descriptions_are_written_in_id_order());
-    case 7:
+    case 8:
         return test_outcome_of("the mod's folder name is made from the civ's name",
                                test_the_mod_folder_name_is_made_from_the_civ_name());
-    case 8:
+    case 9:
         return test_outcome_of("a mod is not built from an unfinished civ",
                                test_a_mod_is_not_built_from_an_unfinished_civ());
     default:
@@ -156,6 +162,12 @@ static TestOutcome run_unique_test(int index)
         return test_outcome_of("a monk takes the look of its monk skin", test_a_monk_takes_the_look_of_its_monk_skin());
     case 6:
         return test_outcome_of("a hero trains at the castle", test_a_hero_trains_at_the_castle());
+    case 7:
+        return test_outcome_of("a unique tech's changes of one attribute by two amounts are one target",
+                               test_a_unique_techs_changes_of_one_attribute_by_two_amounts_are_one_target());
+    case 8:
+        return test_outcome_of("a unique tech's changes of two armor classes are two targets",
+                               test_a_unique_techs_changes_of_two_armor_classes_are_two_targets());
     default:
         return test_outcome_missing();
     }
@@ -181,8 +193,26 @@ static TestOutcome run_civ_list_test(int index)
     case 5:
         return test_outcome_of("a unit patch changes its civ's unit", test_a_unit_patch_changes_its_civs_unit());
     case 6:
+        return test_outcome_of("a train line moves where its civ's unit is trained",
+                               test_a_train_line_moves_where_its_civs_unit_is_trained());
+    case 7:
+        return test_outcome_of("a train line sets the button of its civ's unit",
+                               test_a_train_line_sets_the_button_of_its_civs_unit());
+    case 8:
+        return test_outcome_of("a unit with nowhere to train leaves its bonus skipped",
+                               test_a_unit_with_nowhere_to_train_leaves_its_bonus_skipped());
+    case 9:
+        return test_outcome_of("a cost line sets a cost of its civ's unit",
+                               test_a_cost_line_sets_a_cost_of_its_civs_unit());
+    case 10:
+        return test_outcome_of("a cost line reaches the last field of the costs",
+                               test_a_cost_line_reaches_the_last_field_of_the_costs());
+    case 11:
         return test_outcome_of("the civ list points at the civ's own description",
                                test_the_civ_list_points_at_the_civs_own_description());
+    case 12:
+        return test_outcome_of("a value the civ keeps stays the game's in the civ list",
+                               test_a_value_the_civ_keeps_stays_the_games_in_the_civ_list());
     default:
         return test_outcome_missing();
     }
@@ -264,9 +294,6 @@ static TestOutcome run_window_suite_test(int index)
 
 static TestOutcome run_suite_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     if (index <= BUILD_SUITE_SIZE) {
         return build_suite_run(index);
     }
@@ -284,9 +311,6 @@ static TestOutcome run_suite_test(int index)
 
 TestOutcome functional_suite_run(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     if (index <= MODEL_START) {
         return run_file_test(index);
     }

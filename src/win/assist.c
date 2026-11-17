@@ -1,11 +1,14 @@
 #include "win_parts.h"
 
 #include <oleacc.h>
+#include <uxtheme.h>
+#include <windowsx.h>
 
 #include "../core/check.h"
 
 enum { LIVE_POLITE = 1, TEXT_PERCENT_PLAIN = 100, FRAME_REACH = 3, FRAME_WIDTH = 2, FRAME_LIMIT = 64 };
 enum { WHEEL_LINES = 3, BAR_MOVES = 4, ROW_TEXT_ROOM = 512, ROW_PAD = 12, ROW_MOST = 255 };
+enum { REPEAT_FIRST = 400, REPEAT_NEXT = 50, CLASS_ROOM = 16 };
 
 typedef struct {
     int index;
@@ -21,8 +24,7 @@ void assist_mark_live(HWND status)
     IAccPropServices *service;
     VARIANT polite;
 
-    if (!CHECK(status != NULL) ||
-        (CoCreateInstance(&SERVICE, NULL, CLSCTX_INPROC_SERVER, &PROPERTIES, &object) != S_OK)) {
+    if (CoCreateInstance(&SERVICE, NULL, CLSCTX_INPROC_SERVER, &PROPERTIES, &object) != S_OK) {
         return;
     }
     service = object;
@@ -38,9 +40,6 @@ static int text_percent(void)
     DWORD percent = TEXT_PERCENT_PLAIN;
     DWORD size = sizeof percent;
 
-    if (!CHECK(size == sizeof(DWORD)) || !CHECK(TEXT_PERCENT_PLAIN > 0)) {
-        return TEXT_PERCENT_PLAIN;
-    }
     if (RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Accessibility", L"TextScaleFactor",
                      RRF_RT_REG_DWORD, NULL, &percent, &size) != ERROR_SUCCESS) {
         return TEXT_PERCENT_PLAIN;
@@ -57,7 +56,7 @@ int assist_dpi(HWND window)
         dpi = GetDeviceCaps(screen, LOGPIXELSY);
         (void)ReleaseDC(window, screen);
     }
-    if (!CHECK(dpi > 0) || !CHECK(LAYOUT_BASE_DPI > 0)) {
+    if (!CHECK(dpi > 0)) {
         return LAYOUT_BASE_DPI;
     }
     return layout_text_dpi(dpi, text_percent());
@@ -67,9 +66,6 @@ void assist_move_focus(AppState *app, WPARAM wparam, LPARAM lparam)
 {
     HWND target;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return;
-    }
     target = (LOWORD(lparam) != 0) ? (HWND)wparam : GetNextDlgTabItem(app->window, GetFocus(), wparam != 0);
     if (target != NULL) {
         (void)SetFocus(target);
@@ -80,9 +76,6 @@ void assist_show_help(AppState *app)
 {
     int control = GetDlgCtrlID(GetFocus()) - CONTROL_ID_BASE;
 
-    if (!CHECK(app != NULL) || !CHECK(app->step < STEP_COUNT)) {
-        return;
-    }
     if ((control >= 0) && (control < CONTROL_COUNT) && (layout_help((ControlId)control)[0] != '\0')) {
         dialogs_status(app, layout_help((ControlId)control));
     } else {
@@ -94,7 +87,7 @@ static bool focus_ring(const AppState *app, HWND control, RECT *ring)
 {
     int reach;
 
-    if (!CHECK(app != NULL) || !CHECK(ring != NULL) || (control == NULL) || (GetParent(control) != app->window)) {
+    if ((control == NULL) || (GetParent(control) != app->window)) {
         return false;
     }
     if (GetWindowRect(control, ring) == 0) {
@@ -108,11 +101,8 @@ static bool focus_ring(const AppState *app, HWND control, RECT *ring)
 
 static int view_height(const AppState *app)
 {
-    RECT client = { 0, 0, 0, 0 };
+    RECT client;
 
-    if (!CHECK(app != NULL) || !CHECK(app->dpi > 0)) {
-        return 1;
-    }
     (void)GetClientRect(app->window, &client);
     return MulDiv(client.bottom, LAYOUT_BASE_DPI, app->dpi);
 }
@@ -120,19 +110,38 @@ static int view_height(const AppState *app)
 int assist_scroll_range(AppState *app, int content, int view)
 {
     SCROLLINFO bar;
+    RECT client;
+    int width = GetSystemMetrics(SM_CXVSCROLL);
 
-    if (!CHECK(app != NULL) || !CHECK(content >= 0) || !CHECK(view >= 0)) {
-        return 0;
-    }
+    ZeroMemory(&bar, sizeof bar);
     bar.cbSize = sizeof bar;
     bar.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
-    bar.nMin = 0;
     bar.nMax = content - 1;
     bar.nPage = (UINT)view;
     bar.nPos = reflow_scroll_within(app->scroll, content, view);
-    bar.nTrackPos = 0;
-    (void)SetScrollInfo(app->window, SB_VERT, &bar, TRUE);
+    (void)SetScrollInfo(app->bar, SB_CTL, &bar, TRUE);
+    (void)GetClientRect(app->window, &client);
+    (void)MoveWindow(app->bar, client.right - width, client.top, width, client.bottom, TRUE);
+    (void)ShowWindow(app->bar, (content > view) ? SW_SHOWNA : SW_HIDE);
     return bar.nPos;
+}
+
+RECT assist_view(const AppState *app)
+{
+    RECT view;
+
+    (void)GetClientRect(app->window, &view);
+    if ((GetWindowStyle(app->bar) & WS_VISIBLE) == WS_VISIBLE) {
+        view.right -= GetSystemMetrics(SM_CXVSCROLL);
+    }
+    return view;
+}
+
+void assist_make_bar(AppState *app)
+{
+    app->bar = CreateWindowExW(WS_EX_LEFT, L"SCROLLBAR", L"", WS_CHILD | SBS_VERT, CW_USEDEFAULT, CW_USEDEFAULT,
+                               CW_USEDEFAULT, CW_USEDEFAULT, app->window, (HMENU)(INT_PTR)WINDOW_BAR_ID,
+                               app->instance, NULL);
 }
 
 static int bar_target(const AppState *app, int code, int view)
@@ -140,7 +149,7 @@ static int bar_target(const AppState *app, int code, int view)
     static const int MOVES[BAR_MOVES] = { -REFLOW_LINE, REFLOW_LINE, -1, 1 };
     SCROLLINFO bar;
 
-    if (!CHECK(app != NULL) || !CHECK(code >= 0) || (code > SB_THUMBTRACK)) {
+    if (code > SB_THUMBTRACK) {
         return app->scroll;
     }
     if (code < BAR_MOVES) {
@@ -149,7 +158,7 @@ static int bar_target(const AppState *app, int code, int view)
     bar.cbSize = sizeof bar;
     bar.fMask = SIF_TRACKPOS;
     bar.nTrackPos = app->scroll;
-    (void)GetScrollInfo(app->window, SB_VERT, &bar);
+    (void)GetScrollInfo(app->bar, SB_CTL, &bar);
     return bar.nTrackPos;
 }
 
@@ -157,7 +166,7 @@ void assist_scroll(AppState *app, UINT message, WPARAM wparam)
 {
     int view = view_height(app);
 
-    if (!CHECK(app != NULL) || !CHECK(view > 0)) {
+    if (!CHECK(view > 0)) {
         return;
     }
     if (message == WM_MOUSEWHEEL) {
@@ -168,13 +177,133 @@ void assist_scroll(AppState *app, UINT message, WPARAM wparam)
     controls_place(app);
 }
 
+static bool is_list(HWND window)
+{
+    wchar_t kind[CLASS_ROOM] = L"";
+
+    (void)GetClassNameW(window, kind, CLASS_ROOM);
+    return lstrcmpiW(kind, L"LISTBOX") == 0;
+}
+
+static void move_list(HWND list, int rows)
+{
+    int moved;
+
+    SetWindowRedraw(list, FALSE);
+    for (moved = 0; moved < rows; ++moved) {
+        (void)SendMessageW(list, WM_VSCROLL, SB_LINEDOWN, (LPARAM)NULL);
+    }
+    for (moved = 0; moved > rows; --moved) {
+        (void)SendMessageW(list, WM_VSCROLL, SB_LINEUP, (LPARAM)NULL);
+    }
+    SetWindowRedraw(list, TRUE);
+    (void)InvalidateRect(list, NULL, TRUE);
+}
+
+static void turn_wheel(AppState *app, const MSG *message)
+{
+    int rows;
+
+    app->wheel_rest += GET_WHEEL_DELTA_WPARAM(message->wParam);
+    rows = app->wheel_rest / WHEEL_DELTA;
+    app->wheel_rest %= WHEEL_DELTA;
+    move_list(message->hwnd, -rows);
+}
+
+static int arrow_rows(HWND list, int y)
+{
+    SCROLLBARINFO bar;
+    bool up;
+    bool down;
+
+    bar.cbSize = sizeof bar;
+    (void)GetScrollBarInfo(list, OBJID_VSCROLL, &bar);
+    up = y < bar.rcScrollBar.top + bar.dxyLineButton;
+    down = y >= bar.rcScrollBar.bottom - bar.dxyLineButton;
+    return (int)down - (int)up;
+}
+
+static bool press_arrow(AppState *app, const MSG *message)
+{
+    int rows = arrow_rows(message->hwnd, GET_Y_LPARAM(message->lParam));
+
+    if (rows != 0) {
+        move_list(message->hwnd, rows);
+        app->held_list = message->hwnd;
+        app->held_rows = rows;
+        (void)SetCapture(message->hwnd);
+        (void)SetTimer(app->window, LIST_REPEAT_TIMER, REPEAT_FIRST, NULL);
+    }
+    return rows != 0;
+}
+
+static bool holds_arrow(const AppState *app)
+{
+    return GetCapture() == app->held_list;
+}
+
+static void repeat_arrow(AppState *app)
+{
+    if (!holds_arrow(app)) {
+        (void)KillTimer(app->window, LIST_REPEAT_TIMER);
+        return;
+    }
+    move_list(app->held_list, app->held_rows);
+    (void)SetTimer(app->window, LIST_REPEAT_TIMER, REPEAT_NEXT, NULL);
+}
+
+static void follow_arrow(AppState *app, const MSG *message)
+{
+    if ((message->message == WM_LBUTTONUP) && holds_arrow(app)) {
+        (void)KillTimer(app->window, LIST_REPEAT_TIMER);
+        (void)ReleaseCapture();
+    }
+    if ((message->message == WM_TIMER) && (message->wParam == LIST_REPEAT_TIMER) && (message->hwnd == app->window)) {
+        repeat_arrow(app);
+    }
+}
+
+static bool is_arrow_press(const MSG *message)
+{
+    return ((message->message == WM_NCLBUTTONDOWN) || (message->message == WM_NCLBUTTONDBLCLK)) &&
+           (message->wParam == HTVSCROLL) && is_list(message->hwnd);
+}
+
+static bool takes_list_input(AppState *app, const MSG *message)
+{
+    follow_arrow(app, message);
+    if ((message->message == WM_MOUSEWHEEL) && is_list(message->hwnd)) {
+        turn_wheel(app, message);
+        return true;
+    }
+    return is_arrow_press(message) && press_arrow(app, message);
+}
+
+void assist_run_message(AppState *app, MSG *message)
+{
+    if (takes_list_input(app, message) || (TranslateAcceleratorW(app->window, app->accelerators, message) != 0) ||
+        (IsDialogMessageW(app->window, message) != 0)) {
+        return;
+    }
+    (void)TranslateMessage(message);
+    (void)DispatchMessageW(message);
+}
+
+void assist_plain_bar(HWND control)
+{
+    COMBOBOXINFO choice;
+
+    choice.cbSize = sizeof choice;
+    (void)SetWindowTheme((GetComboBoxInfo(control, &choice) != 0) ? choice.hwndList : control, L"", L"");
+}
+
 static void show_focus(AppState *app, HWND focus)
 {
     Box box = { 0, 0, 0, 0 };
     RECT place;
     int target;
 
-    if (!CHECK(app != NULL) || !CHECK(app->dpi > 0) || (focus == NULL) || (GetParent(focus) != app->window) ||
+    if ((focus == NULL) || (GetParent(focus) != app->window) ||
         (GetWindowRect(focus, &place) == 0)) {
         return;
     }
@@ -192,7 +321,7 @@ UINT assist_row_format(const AppState *app, const DRAWITEMSTRUCT *item, const wc
 {
     RECT lines;
 
-    if (!CHECK(app != NULL) || !CHECK(area != NULL) || (item->CtlType == ODT_COMBOBOX)) {
+    if (item->CtlType == ODT_COMBOBOX) {
         return DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX;
     }
     area->right -= MulDiv(TEXT_INSET, app->dpi, LAYOUT_BASE_DPI);
@@ -211,8 +340,7 @@ static int row_height(const AppState *app, HWND list, HDC context, RowPlace row)
     int least = controls_row_height(app);
     int height;
 
-    if (!CHECK(app != NULL) || !CHECK(row.width > 0) ||
-        (SendMessageW(list, LB_GETTEXTLEN, (WPARAM)row.index, 0) >= ROW_TEXT_ROOM)) {
+    if (!CHECK(row.width > 0) || (SendMessageW(list, LB_GETTEXTLEN, (WPARAM)row.index, 0) >= ROW_TEXT_ROOM)) {
         return least;
     }
     (void)SendMessageW(list, LB_GETTEXT, (WPARAM)row.index, (LPARAM)text);
@@ -229,9 +357,6 @@ static int row_text_width(const AppState *app, HWND list, bool boxed)
     int taken = boxed ? (3 * TEXT_INSET) + BOX_SIZE : 2 * TEXT_INSET;
     int bar = ((GetWindowLongPtrW(list, GWL_STYLE) & WS_VSCROLL) != 0) ? 0 : GetSystemMetrics(SM_CXVSCROLL);
 
-    if (!CHECK(app != NULL) || !CHECK(app->dpi > 0)) {
-        return 1;
-    }
     (void)GetClientRect(list, &client);
     return client.right - bar - MulDiv(taken, app->dpi, LAYOUT_BASE_DPI);
 }
@@ -245,8 +370,7 @@ void assist_wrap_rows(const AppState *app, ControlId control)
     HGDIOBJ before;
     int count;
 
-    if (!CHECK(app != NULL) || !CHECK(control < CONTROL_COUNT) ||
-        ((kind != WIDGET_LIST) && (kind != WIDGET_CHECKLIST))) {
+    if ((kind != WIDGET_LIST) && (kind != WIDGET_CHECKLIST)) {
         return;
     }
     list = app->controls[control];
@@ -266,9 +390,6 @@ void assist_placed(const AppState *app)
 {
     int control;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return;
-    }
     for (control = 0; control < CONTROL_COUNT; ++control) {
         assist_wrap_rows(app, (ControlId)control);
     }
@@ -280,7 +401,7 @@ void assist_follow_focus(AppState *app)
     HWND focus = GetFocus();
     RECT ring;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL) || (focus == app->framed)) {
+    if (focus == app->framed) {
         return;
     }
     if (focus_ring(app, app->framed, &ring)) {
@@ -299,7 +420,7 @@ void assist_draw_focus(const AppState *app, HDC context)
     int width;
     int drawn;
 
-    if (!CHECK(app != NULL) || !CHECK(context != NULL) || !focus_ring(app, GetFocus(), &ring)) {
+    if (!focus_ring(app, GetFocus(), &ring)) {
         return;
     }
     width = MulDiv(FRAME_WIDTH, app->dpi, LAYOUT_BASE_DPI);

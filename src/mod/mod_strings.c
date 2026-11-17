@@ -21,9 +21,6 @@ static char elite_name[CIV_LINE_CAPACITY];
 
 static void put_span(ModStrings *strings, const char *text, size_t length)
 {
-    if (!CHECK(strings != NULL) || !CHECK(text != NULL)) {
-        return;
-    }
     if (length >= sizeof strings->text - strings->length) {
         strings->failed = true;
         return;
@@ -35,17 +32,11 @@ static void put_span(ModStrings *strings, const char *text, size_t length)
 
 static void put(ModStrings *strings, const char *text)
 {
-    if (!CHECK(strings != NULL) || !CHECK(text != NULL)) {
-        return;
-    }
     put_span(strings, text, strlen(text));
 }
 
 static void put_escaped_letter(ModStrings *strings, const char *text, size_t index)
 {
-    if (!CHECK(strings != NULL) || !CHECK(text != NULL)) {
-        return;
-    }
     if (text_is_line_break(text[index])) {
         put(strings, "\\n");
     } else if ((text[index] == '"') && ((index == 0U) || (text[index - 1U] != '\\'))) {
@@ -59,9 +50,6 @@ static void put_escaped(ModStrings *strings, const char *text)
 {
     size_t index;
 
-    if (!CHECK(strings != NULL) || !CHECK(text != NULL)) {
-        return;
-    }
     for (index = 0U; (index < (size_t)MOD_TEXT_CAPACITY) && (text[index] != '\0'); ++index) {
         if ((text[index] != '\r') || (text[index + 1U] != '\n')) {
             put_escaped_letter(strings, text, index);
@@ -71,9 +59,6 @@ static void put_escaped(ModStrings *strings, const char *text)
 
 static void put_entry(ModStrings *strings, const char *key, const char *text)
 {
-    if (!CHECK(key != NULL) || !CHECK(text != NULL)) {
-        return;
-    }
     put(strings, key);
     put(strings, " \"");
     put_escaped(strings, text);
@@ -84,9 +69,6 @@ static void put_numbered(ModStrings *strings, long id, const char *text)
 {
     char key[KEY_CAPACITY] = "";
 
-    if (!CHECK(strings != NULL) || !CHECK(id >= 0L)) {
-        return;
-    }
     (void)text_append_number(key, sizeof key, id);
     put_entry(strings, key, text);
 }
@@ -96,9 +78,6 @@ static long line_id(const char *line)
     TextNumber number;
     size_t length = 0U;
 
-    if (!CHECK(line != NULL) || !CHECK(line[0] != '\0')) {
-        return -1L;
-    }
     for (length = 0U; (length < (size_t)ID_DIGITS) && text_is_digit(line[length]); ++length) {
         continue;
     }
@@ -114,9 +93,6 @@ static void put_vanilla(ModStrings *strings, const char *line)
     const char *end;
     size_t length;
 
-    if (!CHECK(strings != NULL) || !CHECK(line != NULL)) {
-        return;
-    }
     end = strchr(line, '\n');
     length = (end == NULL) ? strlen(line) : (size_t)(end - line);
     length -= ((length > 0U) && (line[length - 1U] == '\r')) ? 1U : 0U;
@@ -141,9 +117,6 @@ static void find_descriptions(const char *vanilla)
     const char *line = vanilla;
     int count;
 
-    if (!CHECK(vanilla != NULL) || !CHECK(DESCRIPTION_SPAN > 0)) {
-        return;
-    }
     for (count = 0; count < DESCRIPTION_SPAN; ++count) {
         description_at[count] = -1L;
     }
@@ -158,9 +131,6 @@ static void put_descriptions(ModStrings *strings, const char *vanilla, long ours
 {
     int index;
 
-    if (!CHECK(strings != NULL) || !CHECK(vanilla != NULL)) {
-        return;
-    }
     find_descriptions(vanilla);
     for (index = 0; index < DESCRIPTION_SPAN; ++index) {
         if (FIRST_DESCRIPTION + index == ours) {
@@ -176,7 +146,7 @@ static void put_descriptions(ModStrings *strings, const char *vanilla, long ours
 
 static bool make_tip_key(char *key, size_t capacity, int slot, int index)
 {
-    if (!CHECK(key != NULL) || !CHECK(capacity > 0U)) {
+    if (!CHECK(capacity > 0U)) {
         return false;
     }
     key[0] = '\0';
@@ -189,9 +159,6 @@ static void put_tips(ModStrings *strings, const ModCiv *civ)
     char key[KEY_CAPACITY];
     int index;
 
-    if (!CHECK(strings != NULL) || !CHECK(civ != NULL)) {
-        return;
-    }
     for (index = 0; index < MOD_TIP_COUNT; ++index) {
         if (!make_tip_key(key, sizeof key, civ->slot, index) || !mod_tip(civ, index, part, sizeof part)) {
             strings->failed = true;
@@ -203,9 +170,6 @@ static void put_tips(ModStrings *strings, const ModCiv *civ)
 
 static bool make_part(const char *first, const char *second, const char *third)
 {
-    if (!CHECK(first != NULL) || !CHECK(second != NULL) || !CHECK(third != NULL)) {
-        return false;
-    }
     part[0] = '\0';
     return text_append_three(part, sizeof part, first, second, third);
 }
@@ -214,7 +178,7 @@ static bool make_tech_label(const char *name, const char *description)
 {
     size_t length;
 
-    if (!CHECK(name != NULL) || !CHECK(description != NULL) || !make_part("Research ", name, "")) {
+    if (!make_part("Research ", name, "")) {
         return false;
     }
     if (description[0] == '\0') {
@@ -232,8 +196,7 @@ static bool make_tech_label(const char *name, const char *description)
 
 static bool make_tooltip(const char *verb, const char *name, const char *description)
 {
-    if (!CHECK((verb != NULL) && (name != NULL)) || !CHECK(description != NULL) ||
-        !make_part(verb, " <b>", name) || !text_append(part, sizeof part, "<b> (<cost>)")) {
+    if (!make_part(verb, " <b>", name) || !text_append(part, sizeof part, "<b> (<cost>)")) {
         return false;
     }
     return (description[0] == '\0') || text_append_two(part, sizeof part, "\n", description);
@@ -241,9 +204,6 @@ static bool make_tooltip(const char *verb, const char *name, const char *descrip
 
 static bool put_tech_lines(ModStrings *strings, int sid, const char *name, const char *description)
 {
-    if (!CHECK(strings != NULL) || !CHECK(name != NULL) || !CHECK(sid + MOD_LABEL_OFFSET > 0)) {
-        return false;
-    }
     put_numbered(strings, sid, name);
     put_numbered(strings, sid + MOD_TECH_TREE_OFFSET, name);
     if (!make_tech_label(name, description)) {
@@ -263,9 +223,6 @@ static void put_tech_names(ModStrings *strings, const ModCiv *civ)
     int tier;
     int sid;
 
-    if (!CHECK(strings != NULL) || !CHECK(civ != NULL)) {
-        return;
-    }
     for (tier = 0; tier < TECH_TIER_COUNT; ++tier) {
         sid = catalog_string_id(civ->catalog, civ->slot, (CivString)tier);
         name = mod_tech_text(civ, (TechTier)tier, true);
@@ -281,7 +238,7 @@ static void put_tech_names(ModStrings *strings, const ModCiv *civ)
 
 static void put_unit_lines(ModStrings *strings, int sid, const char *name, const char *description)
 {
-    if (!CHECK(strings != NULL) || !CHECK(name != NULL) || (sid == CATALOG_MISSING) || (name[0] == '\0')) {
+    if ((sid == CATALOG_MISSING) || (name[0] == '\0')) {
         return;
     }
     put_numbered(strings, sid, name);
@@ -303,7 +260,7 @@ static void put_unit_names(ModStrings *strings, const ModCiv *civ)
     const CivDesign *design;
     const char *name;
 
-    if (!CHECK(strings != NULL) || !CHECK(civ != NULL) || !mod_unit_has_own_texts(civ->design)) {
+    if (!mod_unit_has_own_texts(civ->design)) {
         return;
     }
     design = civ->design;
@@ -323,9 +280,6 @@ static void put_hero_name(ModStrings *strings, const ModCiv *civ)
 {
     const CivDesign *design;
 
-    if (!CHECK(strings != NULL) || !CHECK(civ != NULL)) {
-        return;
-    }
     design = civ->design;
     if ((design->hero_unit >= 0) && !civ->hero_skipped) {
         put_unit_lines(strings, catalog_string_id(civ->catalog, civ->slot, CIV_STRING_HERO),
@@ -338,9 +292,6 @@ bool mod_strings_write(ModStrings *strings, const ModCiv *civ, const char *vanil
     const CivDesign *design;
     const char *alias;
 
-    if (!CHECK(strings != NULL) || !CHECK(civ != NULL) || !CHECK(vanilla != NULL)) {
-        return false;
-    }
     design = civ->design;
     alias = design->texts[TEXT_FIELD_NAME];
     strings->length = 0U;

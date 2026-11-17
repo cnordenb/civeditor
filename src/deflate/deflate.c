@@ -98,9 +98,6 @@ static void fill_symbols(int *symbols, const int *bases, int base_count, int fir
     int index = 0;
     int value;
 
-    if (!CHECK(symbols != NULL) || !CHECK(bases != NULL)) {
-        return;
-    }
     for (value = first; (value < limit) && (value < WINDOW_SIZE); ++value) {
         index += ((index + 1 < base_count) && (bases[index + 1] <= value)) ? 1 : 0;
         symbols[value] = index;
@@ -215,9 +212,6 @@ static Match longest_match(Plain plain, int position)
 
 static void put_literal(BitWriter *writer, int value)
 {
-    if (!CHECK(writer != NULL) || !CHECK((value >= 0) && (value < LITERAL_SYMBOLS))) {
-        return;
-    }
     bit_writer_put(writer, literal_codes[value].bits, literal_codes[value].length);
 }
 
@@ -245,12 +239,8 @@ static void pack_symbols(Plain plain, BitWriter *writer)
     Match match;
     int position = 0;
     int covered;
-    int step;
 
-    if (!CHECK(writer != NULL) || !CHECK(plain.size >= 0)) {
-        return;
-    }
-    for (step = 0; (step < PLAIN_LIMIT) && (position < plain.size); ++step) {
+    while (position < plain.size) {
         match = longest_match(plain, position);
         if (match.length == 0) {
             put_literal(writer, plain.bytes[position]);
@@ -272,8 +262,7 @@ bool deflate_pack(ByteSpan span, ByteBuffer *packed)
     Plain plain;
     int index;
 
-    if (!CHECK(packed != NULL) || !CHECK(packed->bytes != NULL) || !CHECK((span.bytes != NULL) || (span.size == 0U)) ||
-        (span.size >= (size_t)PLAIN_LIMIT) || !make_codes()) {
+    if ((span.size >= (size_t)PLAIN_LIMIT) || !make_codes()) {
         return false;
     }
     for (index = 0; index < HASH_SIZE; ++index) {

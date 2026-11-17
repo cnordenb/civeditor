@@ -102,6 +102,35 @@ bool test_a_unique_tech_is_aimed_at_the_civs_own_unique_unit(void)
     return (unique_aim(&swap, &change) == UNIQUE_SWAP) && (change.a == LONGBOWMAN);
 }
 
+enum { HIT_POINTS = 0, ARMOR = 8 };
+
+static const float FIVE_MORE_PIERCE_ARMOR = (3.0F * 256.0F) + 5.0F;
+static const float FIVE_MORE_MELEE_ARMOR = (4.0F * 256.0F) + 5.0F;
+static const float TEN_MORE = 10.0F;
+static const float THREE_HUNDRED_MORE = 300.0F;
+
+static bool one_target(int attribute, float first, float second)
+{
+    DatChange left = { ADD_ATTRIBUTE, LONGBOWMAN, NO_CLASS, HIT_POINTS, 0.0F };
+    DatChange right = { ADD_ATTRIBUTE, LONGBOWMAN, NO_CLASS, HIT_POINTS, 0.0F };
+
+    left.c = attribute;
+    right.c = attribute;
+    left.d = first;
+    right.d = second;
+    return unique_same_target(&left, &right);
+}
+
+bool test_a_unique_techs_changes_of_one_attribute_by_two_amounts_are_one_target(void)
+{
+    return one_target(HIT_POINTS, TEN_MORE, THREE_HUNDRED_MORE);
+}
+
+bool test_a_unique_techs_changes_of_two_armor_classes_are_two_targets(void)
+{
+    return !one_target(ARMOR, FIVE_MORE_PIERCE_ARMOR, FIVE_MORE_MELEE_ARMOR);
+}
+
 enum { CASTLE_TECH = 11, CASTLE_TECH_SID = 44008 };
 
 static const char CASTLE_TECH_LINE[] = "\n44008 \"Testing Axes\"\n";
@@ -241,6 +270,15 @@ static const CivListEntry DESCRIBED_ENTRY = { LIST_SLOT,     CIV_LIST_KEEP, CIV_
 bool test_the_civ_list_points_at_the_civs_own_description(void)
 {
     return list_written_as(DESCRIBED_LIST, &DESCRIBED_ENTRY, OWN_DESCRIPTION);
+}
+
+static const CivListEntry KEEPING_ENTRY = { LIST_SLOT,     CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP,
+                                            CIV_LIST_KEEP, false,         CIV_LIST_KEEP, CIV_LIST_KEEP,
+                                            CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP };
+
+bool test_a_value_the_civ_keeps_stays_the_games_in_the_civ_list(void)
+{
+    return list_written_as(DESCRIBED_LIST, &KEEPING_ENTRY, DESCRIBED_LIST);
 }
 
 enum { STABLE = 101, KEEP = 235, BARRACKS_NODE = 12, VILLAGER = 83, NOTHING_TICKED = -1 };

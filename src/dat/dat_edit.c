@@ -1,7 +1,6 @@
 #include "dat_edit.h"
 
 #include <limits.h>
-#include <stdint.h>
 #include <string.h>
 
 #include "../core/check.h"
@@ -16,7 +15,7 @@ static bool map_is_in_order(const DatMap *map)
 
 bool dat_edit_start(DatEdit *edit, const DatMap *map)
 {
-    if (!CHECK(edit != NULL) || !CHECK(map != NULL) || !map_is_in_order(map)) {
+    if (!map_is_in_order(map)) {
         return false;
     }
     edit->effect_count_at = map->effect_count_at;
@@ -50,16 +49,12 @@ static bool counts_are_clear(const DatEdit *edit, size_t at, size_t end)
 
 static bool range_fits(const DatEdit *edit, size_t at, size_t width)
 {
-    if (!CHECK(edit != NULL) || !CHECK(width > 0U) || !CHECK(at <= SIZE_MAX - width)) {
-        return false;
-    }
     return counts_are_clear(edit, at, at + width);
 }
 
 bool dat_edit_patch(DatEdit *edit, const DatPatch *patch)
 {
-    if (!CHECK(edit != NULL) || !CHECK(patch != NULL) || !CHECK(edit->patch_count < DAT_PATCH_CAPACITY) ||
-        !CHECK(patch->width <= DAT_PATCH_WIDTH_LIMIT) || !range_fits(edit, patch->at, patch->width)) {
+    if (!CHECK(edit->patch_count < DAT_PATCH_CAPACITY) || !range_fits(edit, patch->at, patch->width)) {
         return false;
     }
     edit->patches[edit->patch_count] = *patch;
@@ -75,7 +70,7 @@ static bool copy_fits(const DatEdit *edit, const DatCopy *copy)
 
 bool dat_edit_copy(DatEdit *edit, const DatCopy *copy)
 {
-    if (!CHECK(edit != NULL) || !CHECK(copy != NULL) || !copy_fits(edit, copy)) {
+    if (!copy_fits(edit, copy)) {
         return false;
     }
     edit->copies[edit->copy_count] = *copy;
@@ -87,7 +82,7 @@ bool dat_edit_patch_u8(DatEdit *edit, size_t at, int value)
 {
     DatPatch patch = { 0U, 1U, { 0U } };
 
-    if (!CHECK(edit != NULL) || !CHECK((value >= 0) && (value <= UCHAR_MAX))) {
+    if (!CHECK((value >= 0) && (value <= UCHAR_MAX))) {
         return false;
     }
     patch.at = at;
@@ -97,7 +92,7 @@ bool dat_edit_patch_u8(DatEdit *edit, size_t at, int value)
 
 bool dat_edit_patch_sunk(DatEdit *edit, size_t at, DatPatch *patch, const DatSink *sink)
 {
-    if (!CHECK(edit != NULL) || !CHECK(patch != NULL) || !CHECK(sink != NULL) || !CHECK(sink->fine)) {
+    if (!CHECK(sink->fine)) {
         return false;
     }
     patch->at = at;
@@ -110,7 +105,7 @@ static bool patch_whole(DatEdit *edit, size_t at, long value, size_t width)
     DatPatch patch = { 0U, 0U, { 0U } };
     DatSink sink = dat_sink_over(patch.bytes, sizeof patch.bytes, 0U);
 
-    if (!CHECK(edit != NULL) || !CHECK((width == DAT_SHORT_WIDTH) || (width == DAT_LONG_WIDTH))) {
+    if (!CHECK((width == DAT_SHORT_WIDTH) || (width == DAT_LONG_WIDTH))) {
         return false;
     }
     if (width == DAT_SHORT_WIDTH) {
@@ -145,8 +140,7 @@ int dat_edit_add_effect(DatEdit *edit, const char *name)
     DatSink sink;
     size_t count_at;
 
-    if (!CHECK(edit != NULL) || !CHECK(name != NULL) ||
-        !CHECK(edit->old_effect_count + edit->effect_count < DAT_EFFECT_CAPACITY)) {
+    if (!CHECK(edit->old_effect_count + edit->effect_count < DAT_EFFECT_CAPACITY)) {
         return DAT_NO_ID;
     }
     sink = dat_sink_over(edit->effects, DAT_ADDED_EFFECTS_CAPACITY, edit->effects_length);
@@ -175,9 +169,6 @@ bool dat_edit_add_change(DatEdit *edit, const DatChange *change)
 {
     DatSink sink;
 
-    if (!CHECK(edit != NULL) || !CHECK(change != NULL) || !CHECK(edit->effect_count > 0)) {
-        return false;
-    }
     sink = dat_sink_over(edit->effects, DAT_ADDED_EFFECTS_CAPACITY, edit->effects_length);
     dat_sink_u8(&sink, change->type);
     dat_sink_i16(&sink, change->a);
@@ -196,9 +187,6 @@ static void sink_tech_head(DatSink *sink, const DatTech *tech)
 {
     int slot;
 
-    if (!CHECK(sink != NULL) || !CHECK(tech != NULL)) {
-        return;
-    }
     for (slot = 0; slot < DAT_REQUIRED_TECH_SLOTS; ++slot) {
         dat_sink_i16(sink, tech->required_techs[slot]);
     }
@@ -221,9 +209,6 @@ static void sink_tech_head(DatSink *sink, const DatTech *tech)
 
 static void sink_research_location(DatSink *sink, const DatResearchLocation *location)
 {
-    if (!CHECK(sink != NULL) || !CHECK(location != NULL)) {
-        return;
-    }
     dat_sink_i16(sink, location->location_id);
     dat_sink_i16(sink, location->research_time);
     dat_sink_u8(sink, location->button_id);
@@ -242,7 +227,7 @@ int dat_edit_add_tech(DatEdit *edit, const DatTech *tech)
     DatSink sink;
     int location;
 
-    if (!CHECK(edit != NULL) || !CHECK(tech != NULL) || !tech_fits(edit, tech)) {
+    if (!tech_fits(edit, tech)) {
         return DAT_NO_ID;
     }
     sink = dat_sink_over(edit->techs, DAT_ADDED_TECHS_CAPACITY, edit->techs_length);
@@ -273,8 +258,7 @@ static bool edit_fits(const DatEdit *edit, const DatBytes *original)
     DatCursor effects;
     DatCursor techs;
 
-    if (!CHECK(edit != NULL) || !CHECK(original != NULL) || !CHECK(edit->techs_end_at <= original->size) ||
-        !dat_cursor_start(&effects, original, edit->effect_count_at) ||
+    if (!dat_cursor_start(&effects, original, edit->effect_count_at) ||
         !dat_cursor_start(&techs, original, edit->tech_count_at)) {
         return false;
     }
@@ -285,8 +269,7 @@ static bool output_append(DatOutput *output, const unsigned char *from, size_t l
 {
     unsigned char *data;
 
-    if (!CHECK(output != NULL) || !CHECK(from != NULL) || !CHECK(output->length <= output->capacity) ||
-        !CHECK(length <= output->capacity - output->length)) {
+    if (!CHECK(length <= output->capacity - output->length)) {
         return false;
     }
     data = output->data;
@@ -299,9 +282,6 @@ static bool output_pieces(const DatEdit *edit, const DatBytes *original, DatOutp
 {
     const unsigned char *data;
 
-    if (!CHECK(edit != NULL) || !CHECK(original != NULL) || !CHECK(output != NULL)) {
-        return false;
-    }
     data = original->data;
     output->length = 0U;
     return output_append(output, data, edit->effects_end_at) &&
@@ -315,9 +295,6 @@ static size_t shifted_at(const DatEdit *edit, size_t at)
 {
     size_t shift = 0U;
 
-    if (!CHECK(edit != NULL) || !CHECK(edit->effects_end_at <= edit->techs_end_at)) {
-        return at;
-    }
     shift += (at >= edit->effects_end_at) ? edit->effects_length : 0U;
     shift += (at >= edit->techs_end_at) ? edit->techs_length : 0U;
     return at + shift;
@@ -328,9 +305,6 @@ static bool output_counts(const DatEdit *edit, DatOutput *output)
     DatSink effects;
     DatSink techs;
 
-    if (!CHECK(edit != NULL) || !CHECK(output != NULL)) {
-        return false;
-    }
     effects = dat_sink_over(output->data, output->length, edit->effect_count_at);
     dat_sink_i32(&effects, (long)edit->old_effect_count + (long)edit->effect_count);
     techs = dat_sink_over(output->data, output->length, shifted_at(edit, edit->tech_count_at));
@@ -340,13 +314,12 @@ static bool output_counts(const DatEdit *edit, DatOutput *output)
 
 static bool patch_lands(const DatOutput *output, const DatPatch *patch, size_t at)
 {
-    return CHECK(patch->width <= DAT_PATCH_WIDTH_LIMIT) && CHECK(at <= output->length) &&
-           CHECK(patch->width <= output->length - at);
+    return CHECK(at <= output->length) && CHECK(patch->width <= output->length - at);
 }
 
 static bool output_patch(DatOutput *output, const DatPatch *patch, size_t at)
 {
-    if (!CHECK(output != NULL) || !CHECK(patch != NULL) || !patch_lands(output, patch, at)) {
+    if (!patch_lands(output, patch, at)) {
         return false;
     }
     (void)memcpy(&output->data[at], patch->bytes, patch->width);
@@ -357,10 +330,7 @@ static bool output_patches(const DatEdit *edit, DatOutput *output)
 {
     int index;
 
-    if (!CHECK(edit != NULL) || !CHECK(edit->patch_count <= DAT_PATCH_CAPACITY)) {
-        return false;
-    }
-    for (index = 0; (index < edit->patch_count) && (index < DAT_PATCH_CAPACITY); ++index) {
+    for (index = 0; index < edit->patch_count; ++index) {
         if (!output_patch(output, &edit->patches[index], shifted_at(edit, edit->patches[index].at))) {
             return false;
         }
@@ -380,9 +350,6 @@ static bool output_copies(const DatEdit *edit, const DatBytes *original, DatOutp
     size_t at;
     int index;
 
-    if (!CHECK(edit != NULL) || !CHECK(original != NULL) || !CHECK(output != NULL)) {
-        return false;
-    }
     for (index = 0; (index < edit->copy_count) && (index < DAT_COPY_CAPACITY); ++index) {
         copy = &edit->copies[index];
         at = shifted_at(edit, copy->at);
@@ -396,16 +363,13 @@ static bool output_copies(const DatEdit *edit, const DatBytes *original, DatOutp
 
 static bool output_all(const DatEdit *edit, const DatBytes *original, DatOutput *output)
 {
-    if (!CHECK(edit != NULL) || !CHECK(output != NULL)) {
-        return false;
-    }
     return output_pieces(edit, original, output) && output_counts(edit, output) &&
            output_copies(edit, original, output) && output_patches(edit, output);
 }
 
 bool dat_edit_write(const DatEdit *edit, const DatBytes *original, DatOutput *output)
 {
-    if (!CHECK(output != NULL) || !CHECK(output->data != NULL) || !edit_fits(edit, original)) {
+    if (!edit_fits(edit, original)) {
         return false;
     }
     if (output_all(edit, original, output)) {

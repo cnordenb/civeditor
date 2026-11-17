@@ -6,9 +6,6 @@ static void stack_push(DesignStack *stack, const CivDesign *design)
 {
     int slot;
 
-    if (!CHECK(stack != NULL) || !CHECK(design != NULL)) {
-        return;
-    }
     if (stack->count >= HISTORY_DEPTH) {
         stack->first = (stack->first + 1) % HISTORY_DEPTH;
         stack->count = HISTORY_DEPTH - 1;
@@ -20,7 +17,7 @@ static void stack_push(DesignStack *stack, const CivDesign *design)
 
 static bool stack_pop(DesignStack *stack, CivDesign *design)
 {
-    if (!CHECK(stack != NULL) || !CHECK(design != NULL) || (stack->count <= 0)) {
+    if (stack->count <= 0) {
         return false;
     }
     --stack->count;
@@ -30,9 +27,6 @@ static bool stack_pop(DesignStack *stack, CivDesign *design)
 
 void history_start(History *history)
 {
-    if (!CHECK(history != NULL) || !CHECK(HISTORY_DEPTH > 1)) {
-        return;
-    }
     civ_design_reset(&history->present);
     history->past.first = 0;
     history->past.count = 0;
@@ -46,9 +40,6 @@ bool history_do(History *history, const Command *command)
 {
     static CivDesign before;
 
-    if (!CHECK(history != NULL) || !CHECK(command != NULL)) {
-        return false;
-    }
     before = history->present;
     if (!command_apply(&history->present, command)) {
         history->present = before;
@@ -65,9 +56,6 @@ bool history_do(History *history, const Command *command)
 
 bool history_replace(History *history, const CivDesign *design)
 {
-    if (!CHECK(history != NULL) || !CHECK(design != NULL)) {
-        return false;
-    }
     stack_push(&history->past, &history->present);
     history->present = *design;
     history->future.count = 0;
@@ -80,7 +68,7 @@ bool history_step(History *history, bool back)
     DesignStack *from;
     DesignStack *to;
 
-    if (!CHECK(history != NULL) || !CHECK(history->past.count <= HISTORY_DEPTH)) {
+    if (!CHECK(history->past.count <= HISTORY_DEPTH)) {
         return false;
     }
     from = back ? &history->past : &history->future;

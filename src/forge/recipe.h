@@ -19,6 +19,7 @@ typedef struct {
 typedef struct {
     int bonuses_built;
     int bonuses_skipped;
+    int multipliers_skipped;
     int team_bonuses_built;
     int team_bonuses_skipped;
     int unit_techs_built;

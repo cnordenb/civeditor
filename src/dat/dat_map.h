@@ -99,6 +99,16 @@ typedef struct {
     size_t changes_at;
 } DatEffect;
 
+enum {
+    DAT_CHANGE_RESOURCE = 1,
+    DAT_CHANGE_ADD = 4,
+    DAT_CHANGE_MULTIPLY = 5,
+    DAT_CHANGE_MULTIPLY_RESOURCE = 6,
+    DAT_CHANGE_SPAWN = 7,
+    DAT_CHANGE_TECH_COST = 101,
+    DAT_CHANGE_TECH_TIME = 103
+};
+
 typedef struct {
     int type;
     int a;
@@ -142,7 +152,6 @@ typedef struct {
 } DatTech;
 
 bool dat_map_read(const unsigned char *data, size_t size, DatMap *map);
-bool dat_map_has_civ(const DatMap *map, int civ);
 bool dat_civ_read(const DatBytes *dat, size_t at, DatCiv *civ);
 bool dat_find_unit(const DatBytes *dat, size_t civ_at, int unit_id, size_t *unit_at);
 bool dat_list_units(const DatBytes *dat, size_t civ_at, DatUnitList *list);

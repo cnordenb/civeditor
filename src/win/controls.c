@@ -55,11 +55,14 @@ typedef struct {
 
 static HWND create_child(AppState *app, ChildSpec child)
 {
-    if (!CHECK(app != NULL) || !CHECK(child.kind != NULL)) {
-        return NULL;
+    HWND window = CreateWindowExW(WS_EX_LEFT, child.kind, L"", WS_CHILD | child.style, CW_USEDEFAULT, CW_USEDEFAULT,
+                                  CW_USEDEFAULT, CW_USEDEFAULT, app->window, (HMENU)(INT_PTR)child.identifier,
+                                  app->instance, NULL);
+
+    if ((child.style & WS_VSCROLL) == WS_VSCROLL) {
+        assist_plain_bar(window);
     }
-    return CreateWindowExW(0, child.kind, L"", WS_CHILD | child.style, 0, 0, 0, 0, app->window,
-                           (HMENU)(INT_PTR)child.identifier, app->instance, NULL);
+    return window;
 }
 
 static bool create_control(AppState *app, ControlId control)
@@ -68,7 +71,7 @@ static bool create_control(AppState *app, ControlId control)
     ChildSpec child = { L"STATIC", SS_LEFT | SS_NOPREFIX, 0 };
     wchar_t label[LAYOUT_LABEL_WIDTH];
 
-    if (!CHECK(app != NULL) || !dialogs_widen(spec.label, label, LAYOUT_LABEL_WIDTH)) {
+    if (!dialogs_widen(spec.label, label, LAYOUT_LABEL_WIDTH)) {
         return false;
     }
     if (layout_has_label(control)) {
@@ -96,9 +99,6 @@ static void apply_fonts(AppState *app)
 {
     int control;
 
-    if (!CHECK(app != NULL) || !CHECK(app->font != NULL)) {
-        return;
-    }
     for (control = 0; control < CONTROL_COUNT; ++control) {
         HFONT font = (control == (int)CONTROL_TITLE) ? app->title_font : app->font;
         (void)SendMessageW(app->controls[control], WM_SETFONT, (WPARAM)font, TRUE);
@@ -128,15 +128,12 @@ static COLORREF color_of(const AppState *app, ColorRole role)
                                                          COLOR_HIGHLIGHT };
     Rgb color = palette_color(role);
 
-    if (!CHECK(app != NULL) || !CHECK(role < COLOR_ROLE_COUNT)) {
-        return RGB(0, 0, 0);
-    }
     return app->high_contrast ? GetSysColor(SYSTEM_COLORS[role]) : RGB(color.red, color.green, color.blue);
 }
 
 static void replace_brush(HBRUSH *brush, COLORREF color)
 {
-    if (!CHECK(brush != NULL) || !CHECK(color != CLR_INVALID)) {
+    if (!CHECK(color != CLR_INVALID)) {
         return;
     }
     if (*brush != NULL) {
@@ -147,9 +144,6 @@ static void replace_brush(HBRUSH *brush, COLORREF color)
 
 static void make_fonts(AppState *app)
 {
-    if (!CHECK(app != NULL) || !CHECK(app->dpi > 0)) {
-        return;
-    }
     if (app->font != NULL) {
         (void)DeleteObject(app->font);
         (void)DeleteObject(app->title_font);
@@ -163,9 +157,6 @@ void controls_refresh_style(AppState *app)
     HIGHCONTRASTW contrast;
     int dpi;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return;
-    }
     contrast.cbSize = sizeof contrast;
     app->high_contrast = (SystemParametersInfoW(SPI_GETHIGHCONTRAST, sizeof contrast, &contrast, 0) != 0) &&
                          ((contrast.dwFlags & HCF_HIGHCONTRASTON) != 0);
@@ -185,9 +176,6 @@ bool controls_create(AppState *app)
 {
     int position;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return false;
-    }
     for (position = 0; position < CREATION_COUNT; ++position) {
         if (!create_control(app, creation_order(position))) {
             return false;
@@ -200,9 +188,6 @@ bool controls_create(AppState *app)
 
 static void move_to(const AppState *app, HWND window, Box box)
 {
-    if (!CHECK(app != NULL) || !CHECK(window != NULL)) {
-        return;
-    }
     (void)MoveWindow(window, MulDiv(box.left, app->dpi, LAYOUT_BASE_DPI), MulDiv(box.top, app->dpi, LAYOUT_BASE_DPI),
                      MulDiv(box.width, app->dpi, LAYOUT_BASE_DPI),
                      MulDiv(box.height, app->dpi, LAYOUT_BASE_DPI), TRUE);
@@ -216,14 +201,11 @@ typedef struct {
 
 static Room room_of(const AppState *app)
 {
-    Room room = { REFLOW_MIN_WIDTH, REFLOW_MIN_HEIGHT, true };
-    RECT client;
+    RECT view = assist_view(app);
+    Room room;
 
-    if (!CHECK(app != NULL) || !CHECK(app->dpi > 0) || (GetClientRect(app->window, &client) == 0)) {
-        return room;
-    }
-    room.width = MulDiv(client.right - client.left, LAYOUT_BASE_DPI, app->dpi);
-    room.height = MulDiv(client.bottom - client.top, LAYOUT_BASE_DPI, app->dpi);
+    room.width = MulDiv(view.right, LAYOUT_BASE_DPI, app->dpi);
+    room.height = MulDiv(view.bottom, LAYOUT_BASE_DPI, app->dpi);
     room.narrow = reflow_is_needed(room.width, room.height);
     room.width = (room.width < REFLOW_MIN_WIDTH) ? REFLOW_MIN_WIDTH : room.width;
     return room;
@@ -247,9 +229,6 @@ void controls_place(AppState *app)
     Room room = room_of(app);
     int control;
 
-    if (!CHECK(app != NULL) || !CHECK(app->dpi > 0)) {
-        return;
-    }
     app->scroll = assist_scroll_range(app, room.narrow ? reflow_height(app->step) : room.height, room.height);
     room = room_of(app);
     for (control = 0; control < CONTROL_COUNT; ++control) {
@@ -268,9 +247,6 @@ void controls_show_step(AppState *app)
     int control;
     int show;
 
-    if (!CHECK(app != NULL) || !CHECK(app->step < STEP_COUNT)) {
-        return;
-    }
     for (control = 0; control < CONTROL_COUNT; ++control) {
         show = layout_shows((ControlId)control, app->step) ? SW_SHOW : SW_HIDE;
         (void)ShowWindow(app->controls[control], show);
@@ -293,9 +269,6 @@ HBRUSH controls_color(const AppState *app, HDC context, HWND control)
     bool field;
     bool muted;
 
-    if (!CHECK(app != NULL) || !CHECK(context != NULL)) {
-        return NULL;
-    }
     identifier = GetDlgCtrlID(control) - CONTROL_ID_BASE;
     field = is_field(identifier);
     muted = (control == app->controls[CONTROL_HELP]);
@@ -306,9 +279,6 @@ HBRUSH controls_color(const AppState *app, HDC context, HWND control)
 
 static int scaled(const AppState *app, int units)
 {
-    if (!CHECK(app != NULL) || !CHECK(app->dpi > 0)) {
-        return units;
-    }
     return MulDiv(units, app->dpi, LAYOUT_BASE_DPI);
 }
 
@@ -322,9 +292,6 @@ static void frame_rect(HDC context, RECT area, COLORREF color, int thickness)
     HBRUSH brush;
     int ring;
 
-    if (!CHECK(context != NULL) || !CHECK(thickness > 0)) {
-        return;
-    }
     brush = CreateSolidBrush(color);
     if (brush == NULL) {
         return;
@@ -343,7 +310,7 @@ static void draw_check(HDC context, RECT box, COLORREF color, int width)
     HPEN pen = CreatePen(PS_SOLID, width, color);
     HGDIOBJ previous;
 
-    if (!CHECK(context != NULL) || !CHECK((across > 0) && (down > 0)) || (pen == NULL)) {
+    if (pen == NULL) {
         return;
     }
     previous = SelectObject(context, pen);
@@ -359,9 +326,6 @@ static RECT check_box(const AppState *app, RECT row)
     RECT box;
     int size = scaled(app, BOX_SIZE);
 
-    if (!CHECK(app != NULL) || !CHECK(size > 0)) {
-        return row;
-    }
     box.left = row.left + scaled(app, TEXT_INSET);
     box.top = ((row.top + row.bottom) - size) / 2;
     box.right = box.left + size;
@@ -374,9 +338,6 @@ static bool item_text(const DRAWITEMSTRUCT *item, wchar_t *text, int capacity)
     bool combo = (item->CtlType == ODT_COMBOBOX);
     LRESULT length;
 
-    if (!CHECK(item != NULL) || !CHECK(capacity > 0)) {
-        return false;
-    }
     text[0] = L'\0';
     length = SendMessageW(item->hwndItem, combo ? CB_GETLBTEXTLEN : LB_GETTEXTLEN, item->itemID, 0);
     if ((length < 0) || (length >= capacity)) {
@@ -387,7 +348,7 @@ static bool item_text(const DRAWITEMSTRUCT *item, wchar_t *text, int capacity)
 
 static bool is_checklist(int control)
 {
-    if (!CHECK(CONTROL_COUNT > 0) || (control < 0) || (control >= CONTROL_COUNT)) {
+    if ((control < 0) || (control >= CONTROL_COUNT)) {
         return false;
     }
     return layout_spec((ControlId)control).kind == WIDGET_CHECKLIST;
@@ -398,9 +359,6 @@ static int draw_box(const AppState *app, const DRAWITEMSTRUCT *item, bool chosen
     RECT box;
     int right;
 
-    if (!CHECK(app != NULL) || !CHECK(item != NULL)) {
-        return 0;
-    }
     box = check_box(app, item->rcItem);
     right = box.right;
     frame_rect(item->hDC, box, color_of(app, chosen ? COLOR_ROLE_CHOSEN_INK : COLOR_ROLE_INK), scaled(app, BOX_LINE));
@@ -413,7 +371,7 @@ static int draw_box(const AppState *app, const DRAWITEMSTRUCT *item, bool chosen
 
 static void draw_row_focus(const AppState *app, const DRAWITEMSTRUCT *item, bool chosen)
 {
-    if (!CHECK(app != NULL) || !CHECK(item != NULL) || ((item->itemState & ODS_FOCUS) == 0)) {
+    if ((item->itemState & ODS_FOCUS) == 0) {
         return;
     }
     frame_rect(item->hDC, item->rcItem, color_of(app, chosen ? COLOR_ROLE_CHOSEN_INK : COLOR_ROLE_FOCUS),
@@ -427,7 +385,7 @@ void controls_draw_item(const AppState *app, const DRAWITEMSTRUCT *item)
     bool checklist;
     RECT area;
 
-    if (!CHECK(app != NULL) || !CHECK(item != NULL) || (item->itemID == (UINT)-1)) {
+    if (item->itemID == (UINT)-1) {
         return;
     }
     chosen = ((item->itemState & ODS_SELECTED) != 0) && ((item->itemState & ODS_COMBOBOXEDIT) == 0);

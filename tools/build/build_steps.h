@@ -3,10 +3,7 @@
 
 #include <stdbool.h>
 
-typedef enum {
-    BUILD_MODE_ANALYZED,
-    BUILD_MODE_QUICK
-} BuildMode;
+#include "build_plan.h"
 
 bool build_prepare_folders(BuildMode mode);
 bool build_compile_sources(BuildMode mode);

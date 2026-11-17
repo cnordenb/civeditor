@@ -4,8 +4,7 @@ This project strives to be compliant with [WCAG 2.2](https://www.w3.org/TR/WCAG2
 
 When every box below is ticked, civbuilder is WCAG 2.2 AA compliant (Requirements 3 and 4). Level AA asks for every
 success criterion of levels A and AA, so those 55 of WCAG 2.2 are the checklist: 31 of level A and 24 of level AA;
-4.1.1 Parsing is obsolete in WCAG 2.2. The 31 criteria of level AAA are not asked for any more; what is known of
-them is kept in [the last section](#beyond-the-requirement-level-aaa), without boxes.
+4.1.1 Parsing is obsolete in WCAG 2.2. No criterion of level AAA is on the list.
 
 civbuilder is a program for Windows, not a web page, so each criterion is read as
 [WCAG2ICT](https://www.w3.org/TR/wcag2ict/) reads it for software: a page is the window and its dialogs, a link or a
@@ -54,15 +53,15 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
 - [x] **1.3.5 Identify Input Purpose (AA).** Read, 2026-11-10: no field asks for a fact about the user; every field
   names or describes a part of the civ.
   Human review needed.
-- [x] **1.4.1 Use of Color (A).** Test: every text contrasts at least 7:1 with its background. A ticked row has a
-  check, not only a color; the chosen row of a plain list is darker than the rows around it by more than 7:1, the
+- [x] **1.4.1 Use of Color (A).** Test: every text contrasts at least 4.5:1 with its background. A ticked row has a
+  check, not only a color; the chosen row of a plain list is darker than the rows around it by 4.5:1 or more, the
   pair of the focus color on a field in that test, which is a difference of lightness and not of hue alone. Not
   looked at in the high contrast of Windows.
 - [x] **1.4.2 Audio Control (A).** Code: civbuilder plays no audio; a message box gives only the short sound that
   Windows is set to give.
   Human review needed.
-- [x] **1.4.3 Contrast (Minimum) (AA).** Test: every text contrasts at least 7:1 with its background, more than the
-  4.5:1 asked here. In high contrast, the colors of Windows are used.
+- [x] **1.4.3 Contrast (Minimum) (AA).** Test: every text contrasts at least 4.5:1 with its background, as asked
+  here. In high contrast, the colors of Windows are used.
 - [x] **1.4.4 Resize Text (AA).** Test: the text and the layout grow with the text size of Windows, up to 225%; a
   window shorter than the wide layout reflows; the control in focus is scrolled into a short window; a long row of
   a narrow list is higher than a short one. The text and the layout follow the scale of the display and the text
@@ -80,7 +79,7 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
   largest scales a row of many lines can be cut; and the text beside a list is 132 high in the one column, which
   a long summary such as 24 chosen bonuses passes. To check by hand at 400% on a screen 1280 wide. Human review
   needed.
-- [x] **1.4.11 Non-text Contrast (AA).** Test: every text contrasts at least 7:1 with its background. The test
+- [x] **1.4.11 Non-text Contrast (AA).** Test: every text contrasts at least 4.5:1 with its background. The test
   checks every pair of colors the window draws with: the frame of a box, the check and the focus frame are drawn
   in those same pairs (`controls_draw_item` in `controls.c`), so each has more than the 3:1 asked here. The frames
   of the standard controls are Windows' own; in high contrast the colors of Windows are used.
@@ -193,57 +192,3 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
   focus moving. Not heard with a screen reader.
   Human review needed.
 
-## Beyond the requirement: level AAA
-
-- Met. **1.2.6 Sign Language (Prerecorded) (AAA).** Code: no audio or video.
-- Met. **1.2.7 Extended Audio Description (Prerecorded) (AAA).** Code: no video.
-- Met. **1.2.8 Media Alternative (Prerecorded) (AAA).** Code: no video.
-- Met. **1.2.9 Audio-only (Live) (AAA).** Code: no live audio.
-- Met. **1.3.6 Identify Purpose (AAA).** Code: the criterion is about content made in a markup language; the window
-  is made of the standard controls of Windows, whose roles Windows reports.
-- Met. **1.4.6 Contrast (Enhanced) (AAA).** Test: every text contrasts at least 7:1 with its background.
-- Met. **1.4.7 Low or No Background Audio (AAA).** Code: no audio.
-- Not met. **1.4.8 Visual Presentation (AAA).** The colors of high contrast are followed; the text is not justified. Not
-  yet checked: lines of at most 80 characters, line spacing of 1.5, and text at 200% without scrolling sideways.
-- Met. **1.4.9 Images of Text (No Exception) (AAA).** Code: no pictures of text.
-- Met. **2.1.3 Keyboard (No Exception) (AAA).** Test: the Tab key reaches every control of every step. Code: as
-  2.1.1; no command or control is for the mouse alone.
-- Met. **2.2.3 No Timing (AAA).** Code: no timer.
-- Met. **2.2.4 Interruptions (AAA).** Code: a message box opens only in answer to a command of the user.
-- Met. **2.2.5 Re-authenticating (AAA).** Code: civbuilder asks for no account or password.
-- Met. **2.2.6 Timeouts (AAA).** Code: nothing is lost by waiting; civbuilder has no timeout.
-- Met. **2.3.2 Three Flashes (AAA).** Code: nothing flashes.
-- Met. **2.3.3 Animation from Interactions (AAA).** Code: civbuilder has no animation of its own.
-- Met. **2.4.8 Location (AAA).** Test: the list of steps shows the current step as the chosen one; the window's title
-  names the civ and the step.
-- Met. **2.4.9 Link Purpose (Link Only) (AAA).** Code: no links.
-- Met. **2.4.10 Section Headings (AAA).** Code: each of the nine steps has a title (`TITLES` in `wizard.c`), shown
-  at its head on every step (`CONTROL_TITLE` in `layout.c`); the window has no other sections.
-- Met. **2.4.12 Focus Not Obscured (Enhanced) (AAA).** Test: no two controls of a step overlap, even in the smallest
-  window.
-- Met. **2.4.13 Focus Appearance (AAA).** Test: the control in focus has a solid frame at least two pixels thick;
-  every text contrasts at least 7:1 with its background. The frame is solid, two pixels at 100% and more as the
-  scale grows, in the focus color, which the test of contrast holds at more than 7:1 against the window's paper.
-- Met. **2.5.5 Target Size (Enhanced) (AAA).** Test: every control one acts on is at least 44 by 44.
-- Met. **2.5.6 Concurrent Input Mechanisms (AAA).** Code: civbuilder takes the mouse, the keyboard, touch and the pen
-  as Windows gives them, and turns none of them off.
-- Met. **3.1.3 Unusual Words (AAA).** Read, 2026-11-10: Glossary in the menu Help explains the words of the game that
-  the window's own texts use (civ, tech, tech tree, unique unit, team bonus, hero, base civ, mod, the ages) and
-  Folwark, Krepost and Mule Cart (`GLOSSARY` in `control_help.c`). The names of the game's units, buildings and
-  techs are proper names; the text beside a list says what the picked one costs and does.
-- Met. **3.1.4 Abbreviations (AAA).** Test: the glossary explains every shortened form in capitals of the catalog.
-  Read, 2026-11-10: the other shortened forms found in the catalog, vs., Skirms, vils, Cav, H., E., max and min,
-  are in the glossary too.
-- Not met. **3.1.5 Reading Level (AAA).** The texts are kept short and plain. To check against the level of lower
-  secondary education.
-- Met. **3.1.6 Pronunciation (AAA).** Read, 2026-11-10: no word of the window has a meaning that depends on how it
-  is said.
-- Met. **3.2.5 Change on Request (AAA).** Test: moving the focus through every control changes nothing. Code: a
-  dialog opens only in a command of the user (`run_action` in `app_window.c`), a step changes only by a command
-  or a pick in the list of steps, and civbuilder has no timer.
-- Met. **3.3.5 Help (AAA).** Test: the help key says what the control in focus is for. F1, or Help in the menu, puts
-  one or two sentences about the control that has the focus into the status line (`layout_help` in
-  `control_help.c`); each step has its help line under its title.
-- Met. **3.3.6 Error Prevention (All) (AAA).** Test: undo brings back the civ before a change, and redo makes an undone
-  change again (Requirement 5); Build asks before it writes.
-- Met. **3.3.9 Accessible Authentication (Enhanced) (AAA).** Code: no login.

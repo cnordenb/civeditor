@@ -102,6 +102,7 @@ bool test_an_added_tech_is_written_as_the_game_holds_it(void)
 }
 
 enum { BONUS_SLOT = 1, BONUS_ID = 55, BONUS_AGE = 102, ARMOR_CHANGE = 4, CAVALRY = 12, CAMELS = 47, PIERCE = 8 };
+enum { PIERCE_PLUS_TWO = 770 };
 
 static const float PIERCE_PLUS_ONE = 769.0F;
 
@@ -137,7 +138,7 @@ bool test_a_bonus_without_techs_is_built_from_its_changes(void)
     put_bonus_change(0, CAVALRY);
     put_bonus_change(1, CAMELS);
     bonus_catalog.bonus_change_count = 2;
-    if (!CHECK(small_dat_start(SMALL_NO_CIVS)) || !CHECK(bonus_build_civ(&build, BONUS_ID) == 1) ||
+    if (!CHECK(small_dat_start(SMALL_NO_CIVS)) || !CHECK(bonus_build_civ(&build, BONUS_ID, 1) == 1) ||
         !CHECK(small_dat_write(&result)) || !CHECK(small.written_map.tech_count == 1) ||
         !CHECK(dat_tech_read(&result, small.written_map.tech_at[0], &tech)) ||
         !CHECK(dat_effect_read(&result, small.written_map.effect_at[0], &effect))) {
@@ -145,6 +146,24 @@ bool test_a_bonus_without_techs_is_built_from_its_changes(void)
     }
     return (tech.civ == BONUS_SLOT) && (tech.effect_id == 0) && (tech.required_techs[0] == BONUS_AGE) &&
            (tech.required_tech_count == 1) && (effect.change_count == 2);
+}
+
+bool test_a_bonus_taken_twice_is_built_with_its_changes_doubled(void)
+{
+    BonusBuild build = { &bonus_catalog, { &small.bytes, &small.map, &small.edit, BONUS_SLOT } };
+    DatBytes result;
+    DatEffect effect;
+    DatChange change;
+
+    put_bonus_change(0, CAVALRY);
+    bonus_catalog.bonus_change_count = 1;
+    if (!CHECK(small_dat_start(SMALL_NO_CIVS)) || !CHECK(bonus_build_civ(&build, BONUS_ID, 2) == 1) ||
+        !CHECK(small_dat_write(&result)) ||
+        !CHECK(dat_effect_read(&result, small.written_map.effect_at[0], &effect)) ||
+        !CHECK(dat_change_read(&result, effect.changes_at, &change))) {
+        return false;
+    }
+    return (int)change.d == PIERCE_PLUS_TWO;
 }
 
 enum { LOOK_CIVS = 2, LOOK_SLOT = 1, ARCHITECTURE_CIV = 0 };
@@ -215,7 +234,7 @@ bool test_a_hero_trains_at_the_castle(void)
 
 enum { PATCH_SLOT = 1, FARM_BONUS = 330, COLLISION_X_AT = 29 };
 
-static const UnitPatch FARM_PATCH = { FARM_BONUS, 0, COLLISION_X_AT, UNIT_FIELD_F32, 1.0F };
+static const UnitPatch FARM_PATCH = { FARM_BONUS, 0, COLLISION_X_AT, UNIT_FIELD_F32, 1.0F, UNIT_PART_START };
 static const unsigned char ONE_TILE_BYTES[] = { 0x00, 0x00, 0x80, 0x3F };
 
 bool test_a_unit_patch_changes_its_civs_unit(void)
@@ -226,11 +245,95 @@ bool test_a_unit_patch_changes_its_civs_unit(void)
     bonus_catalog.bonus_change_count = 0;
     bonus_catalog.unit_patches[0] = FARM_PATCH;
     bonus_catalog.unit_patch_count = 1;
-    if (!small_dat_start(LOOK_CIVS) || !CHECK(bonus_build_civ(&build, FARM_BONUS) == 1) || !small_dat_write(&result) ||
+    if (!small_dat_start(LOOK_CIVS) || !CHECK(bonus_build_civ(&build, FARM_BONUS, 1) == 1) ||
+        !small_dat_write(&result) ||
         !CHECK(dat_list_units(&result, small.written_map.civ_at[PATCH_SLOT], &written_units))) {
         return false;
     }
     return written_bytes_are(written_units.at[0] + COLLISION_X_AT, ONE_TILE_BYTES, sizeof ONE_TILE_BYTES);
+}
+
+enum { COW_BONUS = 222, MILL = 68, MILL_BUTTON = 3, COW_LINES = 2, CASTLE_BONUS = 460, STONE_AT = 2, STONE = 300 };
+enum { LAST_COST_FLAG_AT = 16 };
+
+static const UnitPatch COW_TRAIN[COW_LINES] = {
+    { COW_BONUS, HERO, DAT_TRAIN_BUILDING_AT, UNIT_FIELD_I16, (float)MILL, UNIT_PART_TRAIN_LOCATION },
+    { COW_BONUS, HERO, DAT_TRAIN_BUTTON_AT, UNIT_FIELD_U8, (float)MILL_BUTTON, UNIT_PART_TRAIN_LOCATION }
+};
+
+static const UnitPatch STONE_COST = { CASTLE_BONUS, HERO, STONE_AT, UNIT_FIELD_I16, (float)STONE, UNIT_PART_COSTS };
+static const UnitPatch LAST_COST_FLAG = { CASTLE_BONUS, HERO, LAST_COST_FLAG_AT, UNIT_FIELD_I16, 1.0F,
+                                         UNIT_PART_COSTS };
+
+static bool read_trained(DatUnit *unit)
+{
+    DatBytes result;
+
+    return small_dat_write(&result) &&
+           CHECK(dat_list_units(&result, small.written_map.civ_at[HERO_SLOT], &written_units)) &&
+           CHECK(dat_unit_read(&result, written_units.at[HERO], unit));
+}
+
+static int patch_hero(const UnitPatch *patches, int count, bool creatable, DatUnit *unit)
+{
+    BonusBuild build = { &bonus_catalog, { &small.bytes, &small.map, &small.edit, HERO_SLOT } };
+    int built = BONUS_BUILD_FAILED;
+    int index;
+
+    bonus_catalog.bonus_change_count = 0;
+    for (index = 0; (index < count) && (index < COW_LINES); ++index) {
+        bonus_catalog.unit_patches[index] = patches[index];
+    }
+    bonus_catalog.unit_patch_count = count;
+    small.unit.index = HERO;
+    small.unit.type = creatable ? SMALL_CREATABLE_TYPE : SMALL_BUILDING_TYPE;
+    if (small_dat_start(LOOK_CIVS)) {
+        built = bonus_build_civ(&build, patches[0].bonus_id, 1);
+    }
+    if ((built != BONUS_BUILD_FAILED) && !read_trained(unit)) {
+        built = BONUS_BUILD_FAILED;
+    }
+    small.unit.index = 0;
+    small.unit.type = SMALL_BUILDING_TYPE;
+    bonus_catalog.unit_patch_count = 0;
+    return built;
+}
+
+bool test_a_train_line_moves_where_its_civs_unit_is_trained(void)
+{
+    DatUnit unit;
+
+    return (patch_hero(COW_TRAIN, COW_LINES, true, &unit) == COW_LINES) &&
+           (written_i16(unit.train_locations_at + DAT_TRAIN_BUILDING_AT) == MILL);
+}
+
+bool test_a_train_line_sets_the_button_of_its_civs_unit(void)
+{
+    DatUnit unit;
+
+    return (patch_hero(COW_TRAIN, COW_LINES, true, &unit) == COW_LINES) &&
+           (small.written[unit.train_locations_at + DAT_TRAIN_BUTTON_AT] == MILL_BUTTON);
+}
+
+bool test_a_unit_with_nowhere_to_train_leaves_its_bonus_skipped(void)
+{
+    DatUnit unit;
+
+    return patch_hero(COW_TRAIN, COW_LINES, false, &unit) == BONUS_BUILD_FAILED;
+}
+
+bool test_a_cost_line_sets_a_cost_of_its_civs_unit(void)
+{
+    DatUnit unit;
+
+    return (patch_hero(&STONE_COST, 1, true, &unit) == 1) && (written_i16(unit.costs_at + STONE_AT) == STONE);
+}
+
+bool test_a_cost_line_reaches_the_last_field_of_the_costs(void)
+{
+    DatUnit unit;
+
+    return (patch_hero(&LAST_COST_FLAG, 1, true, &unit) == 1) && (written_i16(unit.costs_at + LAST_COST_FLAG_AT) == 1);
 }
 
 enum { KEPT_UNIT = 4, LACKED_UNIT = 7, OTHER_UNIT = 9, VILLAGER = 83, BARRACKS = 12, FIRST_TECH = 0, SECOND_TECH = 1 };

@@ -5,14 +5,12 @@
 #include "../../src/core/check.h"
 #include "../../src/model/command.h"
 #include "../../src/present/binding.h"
-#include "../../src/present/details.h"
 #include "../../src/present/summary.h"
 #include "../dat/recipe_tests.h"
 
-enum { FIRST_ROW = 0, SECOND_ROW = 1, THIRD_ROW = 2, FIRST_BONUS = 5, SECOND_BONUS = 9, NODE = 12, MONK_CATEGORY = 1 };
+enum { FIRST_ROW = 0, SECOND_ROW = 1, THIRD_ROW = 2, FIRST_BONUS = 5, SECOND_BONUS = 9, NODE = 12 };
 
 static CivDesign own;
-static ListModel model;
 static SummaryText summary;
 
 static bool applied(CommandKind kind, int field, int value)
@@ -34,35 +32,12 @@ static bool row_gives(ControlId control, int row, CommandKind kind, int field, i
     return (command.kind == kind) && (command.field == field) && (command.value == value);
 }
 
-static int rows_kept(const char *filter, int category)
-{
-    ListQuery query = { CONTROL_BONUS_LIST, "", LIST_ALL_CATEGORIES };
-
-    if (!CHECK(filter != NULL) || !CHECK(strlen(filter) < sizeof query.filter)) {
-        return -1;
-    }
-    (void)strcpy(query.filter, filter);
-    query.category = category;
-    return list_model_fill(&model, recipe_game_catalog(), &query) ? model.count : -1;
-}
-
 static bool summary_holds(Scenario scenario, const char *words)
 {
     if (!CHECK(words != NULL) || !summary_write(&summary, recipe_game_design(scenario), recipe_game_catalog())) {
         return false;
     }
     return strstr(summary.text, words) != NULL;
-}
-
-static bool unit_details_hold(const CivDesign *design, const char *words)
-{
-    DetailText detail;
-
-    if (!CHECK(design != NULL) || !CHECK(words != NULL)) {
-        return false;
-    }
-    detail = details_of(design, recipe_game_catalog(), CONTROL_UNIT_INFO);
-    return strstr(detail.text, words) != NULL;
 }
 
 bool test_a_command_to_pick_a_unit_picks_it(void)
@@ -169,14 +144,11 @@ bool test_a_row_of_the_imperial_techs_gives_the_command_to_pick_its_tech(void)
     return row_gives(CONTROL_IMPERIAL_TECH_LIST, SECOND_ROW, COMMAND_PICK_TECH, TECH_TIER_IMPERIAL, PICKED_TECH);
 }
 
-bool test_a_filter_keeps_the_rows_that_hold_its_letters(void)
+bool test_a_row_of_the_castle_techs_shows_its_techs_name(void)
 {
-    return rows_kept("INFANTRY", LIST_ALL_CATEGORIES) == 1;
-}
+    ListItem item = { CONTROL_CASTLE_TECH_LIST, FIRST_ROW };
 
-bool test_a_category_keeps_only_the_civ_bonuses_of_that_category(void)
-{
-    return rows_kept("", MONK_CATEGORY) == 0;
+    return strcmp(list_item_text(recipe_game_catalog(), item).text, "Bulwark") == 0;
 }
 
 bool test_the_summary_names_the_unique_unit_and_the_unit_it_is_made_from(void)
@@ -209,31 +181,10 @@ bool test_the_summary_says_when_the_catalog_lacks_a_unique_tech(void)
     return summary_holds(BARE_CIV, "Castle tech: an unknown tech");
 }
 
-bool test_the_details_of_the_unique_unit_list_what_it_costs(void)
-{
-    return unit_details_hold(recipe_game_design(FULL_CIV), "Own\r\nCost: 60 food, 20 gold");
-}
-
-bool test_the_details_of_a_unit_without_a_cost_say_so(void)
-{
-    own = *recipe_game_design(FULL_CIV);
-    return civ_design_pick_unit(&own, UNIT_ORIGIN_VANILLA, OLD_PICK) && unit_details_hold(&own, "Cost: nothing");
-}
-
-bool test_the_details_say_when_no_unit_is_selected(void)
-{
-    civ_design_reset(&own);
-    return unit_details_hold(&own, "No unit is selected yet.");
-}
-
-bool test_the_details_say_when_the_catalog_lacks_the_unit(void)
-{
-    return unit_details_hold(recipe_game_design(BARE_CIV), "The selected unit is not in the catalog.");
-}
-
-static const RecipeReport SKIPPED_BONUS = { 3, 1, 0, 0, 0, 0, 0, 0, false, false, false, { 0, 0 } };
-static const RecipeReport SKIPPED_HERO = { 0, 0, 0, 0, 0, 0, 0, 0, false, false, true, { 0, 0 } };
-static const RecipeReport WHOLE_CIV = { 2, 0, 1, 0, 2, 2, 0, 0, false, false, false, { 0, 0 } };
+static const RecipeReport SKIPPED_BONUS = { 3, 1, 0, 0, 0, 0, 0, 0, 0, false, false, false, { 0, 0 } };
+static const RecipeReport SKIPPED_HERO = { 0, 0, 0, 0, 0, 0, 0, 0, 0, false, false, true, { 0, 0 } };
+static const RecipeReport WHOLE_CIV = { 2, 0, 0, 1, 0, 2, 2, 0, 0, false, false, false, { 0, 0 } };
+static const RecipeReport ONCE_ONLY = { 1, 0, 1, 0, 0, 0, 0, 0, 0, false, false, false, { 0, 0 } };
 
 static bool build_report_holds(const RecipeReport *report, const char *words)
 {
@@ -251,6 +202,11 @@ bool test_the_build_report_counts_the_civ_bonuses_built_and_skipped(void)
 bool test_the_build_report_says_when_the_hero_was_not_built(void)
 {
     return build_report_holds(&SKIPPED_HERO, "The hero is not built: the civ lacks its unit.");
+}
+
+bool test_the_build_report_says_when_a_bonus_counts_only_once(void)
+{
+    return build_report_holds(&ONCE_ONLY, "A bonus made of the game's techs counts only once.");
 }
 
 bool test_the_build_report_of_a_whole_civ_names_the_two_folders(void)

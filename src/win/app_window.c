@@ -9,7 +9,7 @@ enum {
     MESSAGE_LIMIT = 2147483647,
     START_WIDTH = 1200,
     START_HEIGHT = 760,
-    WINDOW_STYLE = WS_OVERLAPPEDWINDOW | WS_VSCROLL,
+    WINDOW_STYLE = WS_OVERLAPPEDWINDOW,
     WINDOW_EXTRA_STYLE = WS_EX_CONTROLPARENT,
     BUTTON_COUNT = 5,
     NO_ACTION = -1
@@ -27,9 +27,6 @@ static void focus_step(void)
 {
     int control;
 
-    if (!CHECK(app.step < STEP_COUNT) || !CHECK(app.window != NULL)) {
-        return;
-    }
     for (control = 0; control < CONTROL_COUNT; ++control) {
         if ((layout_spec((ControlId)control).step == app.step) && layout_is_focusable((ControlId)control)) {
             (void)SetFocus(app.controls[control]);
@@ -55,7 +52,7 @@ static void move_in_history(bool undo)
 {
     bool moved = history_step(&app.history, undo);
 
-    if (!CHECK(app.window != NULL) || !CHECK(app.history.past.count <= HISTORY_DEPTH) || !moved) {
+    if (!moved) {
         dialogs_status(&app, undo ? "There is nothing to undo." : "There is nothing to redo.");
         return;
     }
@@ -151,7 +148,7 @@ static int button_action(int control)
                                                   { CONTROL_BUILD, ACTION_BUILD } };
     int button;
 
-    if (!CHECK(BUTTON_COUNT > 0) || (control < 0) || (control >= CONTROL_COUNT)) {
+    if ((control < 0) || (control >= CONTROL_COUNT)) {
         return NO_ACTION;
     }
     for (button = 0; button < BUTTON_COUNT; ++button) {
@@ -179,9 +176,6 @@ static void on_command(WPARAM wparam, LPARAM lparam)
     int control = identifier - CONTROL_ID_BASE;
     int clicked = (code == BN_CLICKED) ? button_action(control) : NO_ACTION;
 
-    if (!CHECK(identifier >= 0) || !CHECK(code >= 0)) {
-        return;
-    }
     assist_follow_focus(&app);
     if (is_menu_action(identifier, lparam)) {
         run_action(identifier - ACTION_ID_BASE);
@@ -196,10 +190,8 @@ static void on_command(WPARAM wparam, LPARAM lparam)
 
 static bool on_create(HWND window)
 {
-    if (!CHECK(window != NULL) || !CHECK(app.instance != NULL)) {
-        return false;
-    }
     app.window = window;
+    assist_make_bar(&app);
     if (!controls_create(&app)) {
         return false;
     }
@@ -218,9 +210,6 @@ static void limit_size(MINMAXINFO *limits)
 {
     RECT frame = { 0, 0, 0, 0 };
 
-    if (!CHECK(limits != NULL) || !CHECK(app.dpi > 0)) {
-        return;
-    }
     frame.right = MulDiv(REFLOW_MIN_WIDTH, app.dpi, LAYOUT_BASE_DPI);
     frame.bottom = MulDiv(REFLOW_MIN_HEIGHT, app.dpi, LAYOUT_BASE_DPI);
     (void)AdjustWindowRectEx(&frame, WINDOW_STYLE, TRUE, WINDOW_EXTRA_STYLE);
@@ -232,7 +221,7 @@ static LRESULT paint_background(HWND window, HDC context)
 {
     RECT client;
 
-    if (!CHECK(window != NULL) || !CHECK(context != NULL) || (GetClientRect(window, &client) == 0)) {
+    if (GetClientRect(window, &client) == 0) {
         return 0;
     }
     (void)FillRect(context, &client, app.paper_brush);
@@ -244,9 +233,6 @@ static LRESULT color_control(WPARAM wparam, LPARAM lparam)
 {
     HBRUSH brush = controls_color(&app, (HDC)wparam, (HWND)lparam);
 
-    if (!CHECK(brush != NULL) || !CHECK(app.window != NULL)) {
-        return 0;
-    }
     return (LRESULT)brush;
 }
 
@@ -272,9 +258,6 @@ static Handled handle_drawing(HWND window, UINT message, WPARAM wparam, LPARAM l
 {
     const Handled passed = { false, 0 };
 
-    if (!CHECK(window != NULL) || !CHECK(app.instance != NULL)) {
-        return passed;
-    }
     if (is_color_message(message)) {
         return handled_with(color_control(wparam, lparam));
     }
@@ -293,9 +276,6 @@ static Handled handle_frame(HWND window, UINT message, WPARAM wparam, LPARAM lpa
 {
     const Handled passed = { false, 0 };
 
-    if (!CHECK(window != NULL) || !CHECK(app.instance != NULL)) {
-        return passed;
-    }
     if (message == WM_CREATE) {
         return handled_with(on_create(window) ? 0 : -1);
     }
@@ -318,7 +298,7 @@ static Handled handle_ending(HWND window, UINT message)
 {
     const Handled passed = { false, 0 };
 
-    if (!CHECK(window != NULL) || ((message != WM_CLOSE) && (message != WM_DESTROY))) {
+    if ((message != WM_CLOSE) && (message != WM_DESTROY)) {
         return passed;
     }
     if (message == WM_DESTROY) {
@@ -333,9 +313,6 @@ static Handled handle_input(HWND window, UINT message, WPARAM wparam, LPARAM lpa
 {
     const Handled passed = { false, 0 };
 
-    if (!CHECK(window != NULL) || !CHECK(app.instance != NULL)) {
-        return passed;
-    }
     if (message == WM_COMMAND) {
         on_command(wparam, lparam);
         return handled_with(0);
@@ -356,9 +333,6 @@ static LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM wpara
 {
     Handled handled;
 
-    if (!CHECK(window != NULL)) {
-        return 0;
-    }
     handled = handle_frame(window, message, wparam, lparam);
     if (!handled.done) {
         handled = handle_drawing(window, message, wparam, lparam);
@@ -376,9 +350,6 @@ static bool register_class(HINSTANCE instance)
 {
     WNDCLASSEXW window_class = { 0 };
 
-    if (!CHECK(instance != NULL) || !CHECK(sizeof window_class > 0U)) {
-        return false;
-    }
     window_class.cbSize = sizeof window_class;
     window_class.lpfnWndProc = window_procedure;
     window_class.hInstance = instance;
@@ -394,27 +365,19 @@ int app_run_messages(void)
     BOOL received;
     int step;
 
-    if (!CHECK(app.window != NULL) || !CHECK(app.accelerators != NULL)) {
-        return 1;
-    }
     for (step = 0; step < MESSAGE_LIMIT; ++step) {
         received = GetMessageW(&message, NULL, 0, 0);
         if (received <= 0) {
             return (received == 0) ? (int)message.wParam : 1;
         }
-        if ((TranslateAcceleratorW(app.window, app.accelerators, &message) != 0) ||
-            (IsDialogMessageW(app.window, &message) != 0)) {
-            continue;
-        }
-        (void)TranslateMessage(&message);
-        (void)DispatchMessageW(&message);
+        assist_run_message(&app, &message);
     }
     return 0;
 }
 
 HWND app_open(HINSTANCE instance)
 {
-    if (!CHECK(instance != NULL) || !register_class(instance)) {
+    if (!register_class(instance)) {
         return NULL;
     }
     app.instance = instance;
@@ -434,7 +397,7 @@ HWND app_open(HINSTANCE instance)
 
 int app_run(HINSTANCE instance, int show)
 {
-    if (!CHECK(instance != NULL) || !CHECK(app_open(instance) != NULL)) {
+    if (!CHECK(app_open(instance) != NULL)) {
         return 1;
     }
     (void)ShowWindow(app.window, show);

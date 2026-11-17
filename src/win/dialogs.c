@@ -3,7 +3,6 @@
 #include <commdlg.h>
 #include <wchar.h>
 
-#include "../core/check.h"
 #include "../core/text.h"
 #include "../forge/forge.h"
 #include "../mod/mod_places.h"
@@ -31,18 +30,12 @@ typedef struct {
 
 bool dialogs_widen(const char *text, wchar_t *wide, int capacity)
 {
-    if (!CHECK(text != NULL) || !CHECK((wide != NULL) && (capacity > 0))) {
-        return false;
-    }
     wide[0] = L'\0';
     return MultiByteToWideChar(CP_UTF8, 0, text, -1, wide, capacity) > 0;
 }
 
 bool dialogs_narrow(const wchar_t *wide, char *text, int capacity)
 {
-    if (!CHECK(wide != NULL) || !CHECK((text != NULL) && (capacity > 0))) {
-        return false;
-    }
     text[0] = '\0';
     return WideCharToMultiByte(CP_UTF8, 0, wide, -1, text, capacity, NULL, NULL) > 0;
 }
@@ -51,9 +44,6 @@ void dialogs_status(AppState *app, const char *text)
 {
     wchar_t status[STATUS_CAPACITY];
 
-    if (!CHECK(app != NULL) || !CHECK(text != NULL)) {
-        return;
-    }
     if (dialogs_widen(text, status, STATUS_CAPACITY)) {
         (void)SetWindowTextW(app->controls[CONTROL_STATUS], status);
         NotifyWinEvent(LIVE_REGION_CHANGED, app->controls[CONTROL_STATUS], OBJID_CLIENT, CHILDID_SELF);
@@ -65,14 +55,11 @@ static bool exe_folder(wchar_t *folder, DWORD capacity)
     DWORD length;
     DWORD index;
 
-    if (!CHECK(folder != NULL) || !CHECK(capacity > 1U)) {
-        return false;
-    }
     length = GetModuleFileNameW(NULL, folder, capacity);
     if ((length == 0U) || (length >= capacity)) {
         return false;
     }
-    for (index = length; (index > 0U) && (index < (DWORD)FILE_PATH_CAPACITY); --index) {
+    for (index = length; index > 0U; --index) {
         if (folder[index - 1U] == L'\\') {
             folder[index - 1U] = L'\0';
             return true;
@@ -87,7 +74,7 @@ bool dialogs_load_catalog(AppState *app)
     wchar_t data[FILE_PATH_CAPACITY];
     int attempt;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL) || !exe_folder(folder, FILE_PATH_CAPACITY)) {
+    if (!exe_folder(folder, FILE_PATH_CAPACITY)) {
         return false;
     }
     for (attempt = 0; (attempt < FOLDER_TRIES) && (DATA_FOLDERS[attempt][0] != L'\0'); ++attempt) {
@@ -105,9 +92,6 @@ static void suggest_name(const AppState *app)
 {
     char name[NAME_LIMIT] = "";
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return;
-    }
     (void)text_copy_span(name, sizeof name, civ_design_text(&app->history.present, TEXT_FIELD_NAME), NAME_LIMIT / 2);
     (void)text_append(name, sizeof name, (name[0] != '\0') ? ".civbuilder.json" : "civbuilder_civ.civbuilder.json");
     if (!dialogs_widen(name, chosen_path, FILE_PATH_CAPACITY)) {
@@ -119,9 +103,6 @@ static OPENFILENAMEW file_dialog(const AppState *app)
 {
     OPENFILENAMEW dialog = { 0 };
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return dialog;
-    }
     dialog.lStructSize = sizeof dialog;
     dialog.hwndOwner = app->window;
     dialog.lpstrFilter = FILTER;
@@ -135,9 +116,6 @@ bool dialogs_save(AppState *app)
 {
     OPENFILENAMEW dialog;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return false;
-    }
     suggest_name(app);
     dialog = file_dialog(app);
     dialog.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
@@ -159,7 +137,7 @@ bool dialogs_open(AppState *app)
 {
     OPENFILENAMEW dialog;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL) || !dialogs_may_discard(app)) {
+    if (!dialogs_may_discard(app)) {
         return false;
     }
     chosen_path[0] = L'\0';
@@ -183,7 +161,7 @@ bool dialogs_open(AppState *app)
 
 static bool tell(const AppState *app, const char *text, UINT icon)
 {
-    if (!CHECK(app != NULL) || !CHECK(text != NULL) || !dialogs_widen(text, wide_message, MESSAGE_CAPACITY)) {
+    if (!dialogs_widen(text, wide_message, MESSAGE_CAPACITY)) {
         return false;
     }
     (void)ask_message(app->window, wide_message, TITLE, MB_OK | icon);
@@ -194,7 +172,7 @@ static bool may_build_into(const AppState *app, const wchar_t *mods)
 {
     char folder[FILE_PATH_CAPACITY];
 
-    if (!CHECK(app != NULL) || !CHECK(mods != NULL) || !dialogs_narrow(mods, folder, FILE_PATH_CAPACITY)) {
+    if (!dialogs_narrow(mods, folder, FILE_PATH_CAPACITY)) {
         return false;
     }
     message[0] = '\0';
@@ -208,10 +186,6 @@ static bool may_build_into(const AppState *app, const wchar_t *mods)
 
 static bool can_build(AppState *app, BuildPlaces *places)
 {
-    if (!CHECK(app != NULL) || !CHECK(places != NULL) ||
-        !CHECK(app->window != NULL)) {
-        return false;
-    }
     if (!app->catalog_loaded || !ask_game_folders(places->game, places->mods) ||
         !forge_prefix(app->history.present.texts[TEXT_FIELD_NAME], places->prefix, sizeof places->prefix)) {
         return tell(app, "A mod cannot be built: the data folder, the game or its mods folder was not found on "
@@ -232,7 +206,7 @@ bool dialogs_build(AppState *app)
     HCURSOR previous;
     bool done;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL) || !can_build(app, &places)) {
+    if (!can_build(app, &places)) {
         return false;
     }
     job.design = &app->history.present;
@@ -256,9 +230,6 @@ bool dialogs_may_discard(AppState *app)
 {
     int answer;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return false;
-    }
     if (!app->unsaved) {
         return true;
     }
@@ -277,9 +248,6 @@ void dialogs_glossary(AppState *app)
     GlossaryEntry entry;
     int index;
 
-    if (!CHECK(app != NULL) || !CHECK(app->window != NULL)) {
-        return;
-    }
     text[0] = '\0';
     for (index = 0; index < LAYOUT_GLOSSARY_COUNT; ++index) {
         entry = layout_glossary(index);

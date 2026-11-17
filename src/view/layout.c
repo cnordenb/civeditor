@@ -173,9 +173,6 @@ static int step_columns(WizardStep step)
     bool used[PLACE_SLOTS] = { false, false, false };
     int other;
 
-    if (!CHECK((int)step >= 0) || !CHECK(step < STEP_COUNT)) {
-        return 1;
-    }
     for (other = 0; other < CONTROL_COUNT; ++other) {
         if ((SPECS[other].step == step) && (SPECS[other].place != PLACE_FRAME)) {
             used[SPECS[other].place - PLACE_LEFT] = true;

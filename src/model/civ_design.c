@@ -16,9 +16,6 @@ void civ_design_reset(CivDesign *design)
 {
     int index;
 
-    if (!CHECK(design != NULL)) {
-        return;
-    }
     for (index = 0; index < (int)TEXT_FIELD_COUNT; ++index) {
         design->texts[index][0] = '\0';
     }
@@ -50,25 +47,16 @@ int civ_text_capacity(TextField field)
         CIV_DESCRIPTION_CAPACITY, CIV_NAME_CAPACITY, CIV_NAME_CAPACITY, CIV_NAME_CAPACITY
     };
 
-    if (!CHECK((int)field >= 0) || !CHECK((int)field < (int)TEXT_FIELD_COUNT)) {
-        return 0;
-    }
     return CAPACITIES[field];
 }
 
 bool civ_design_set_text(CivDesign *design, TextField field, const char *text)
 {
-    if (!CHECK(design != NULL) || !CHECK(text != NULL) || !in_range((int)field, TEXT_FIELD_COUNT)) {
-        return false;
-    }
     return text_copy(design->texts[field], (size_t)civ_text_capacity(field), text);
 }
 
 const char *civ_design_text(const CivDesign *design, TextField field)
 {
-    if (!CHECK(design != NULL) || !CHECK((int)field >= 0) || !CHECK(field < TEXT_FIELD_COUNT)) {
-        return "";
-    }
     return design->texts[field];
 }
 
@@ -79,8 +67,7 @@ static bool is_choice_value(int value)
 
 bool civ_design_set_choice(CivDesign *design, ChoiceField field, int value)
 {
-    if (!CHECK(design != NULL) || !CHECK((int)field >= 0) || !CHECK(field < CHOICE_COUNT) ||
-        !is_choice_value(value)) {
+    if (!is_choice_value(value)) {
         return false;
     }
     design->choices[field] = value;
@@ -91,10 +78,7 @@ static int find_pick(const BonusPick *picks, int count, int bonus_id)
 {
     int index;
 
-    if (!CHECK(picks != NULL) || !CHECK(count <= CIV_BONUS_CAPACITY)) {
-        return -1;
-    }
-    for (index = 0; (index < count) && (index < CIV_BONUS_CAPACITY); ++index) {
+    for (index = 0; index < count; ++index) {
         if (picks[index].id == bonus_id) {
             return index;
         }
@@ -106,10 +90,7 @@ static int remove_pick(BonusPick *picks, int count, int position)
 {
     int index;
 
-    if (!CHECK(picks != NULL) || !CHECK((position >= 0) && (position < count))) {
-        return count;
-    }
-    for (index = position; (index + 1 < count) && (index + 1 < CIV_BONUS_CAPACITY); ++index) {
+    for (index = position; index + 1 < count; ++index) {
         picks[index] = picks[index + 1];
     }
     return count - 1;
@@ -119,7 +100,7 @@ bool civ_design_toggle_bonus(CivDesign *design, int bonus_id)
 {
     int position;
 
-    if (!CHECK(design != NULL) || !CHECK((bonus_id >= 0) && (bonus_id < ID_LIMIT))) {
+    if (!CHECK((bonus_id >= 0) && (bonus_id < ID_LIMIT))) {
         return false;
     }
     position = find_pick(design->bonuses, design->bonus_count, bonus_id);
@@ -138,15 +119,12 @@ bool civ_design_toggle_bonus(CivDesign *design, int bonus_id)
 
 bool civ_design_has_bonus(const CivDesign *design, int bonus_id)
 {
-    if (!CHECK(design != NULL) || !CHECK(design->bonus_count <= CIV_BONUS_CAPACITY)) {
-        return false;
-    }
     return find_pick(design->bonuses, design->bonus_count, bonus_id) >= 0;
 }
 
 bool civ_design_toggle_team_bonus(CivDesign *design, int bonus_id)
 {
-    if (!CHECK(design != NULL) || !CHECK((bonus_id >= 0) && (bonus_id < ID_LIMIT))) {
+    if (!CHECK((bonus_id >= 0) && (bonus_id < ID_LIMIT))) {
         return false;
     }
     if ((design->team_bonus_count > 0) && (design->team_bonuses[0].id == bonus_id)) {
@@ -161,20 +139,24 @@ bool civ_design_toggle_team_bonus(CivDesign *design, int bonus_id)
 
 bool civ_design_has_team_bonus(const CivDesign *design, int bonus_id)
 {
-    if (!CHECK(design != NULL) || !CHECK(design->team_bonus_count <= CIV_TEAM_BONUS_CAPACITY)) {
-        return false;
-    }
     return (design->team_bonus_count > 0) && (design->team_bonuses[0].id == bonus_id);
+}
+
+void civ_design_set_multiplier(CivDesign *design, bool team, int bonus_id, int multiplier)
+{
+    BonusPick *picks = team ? design->team_bonuses : design->bonuses;
+    int position = find_pick(picks, team ? design->team_bonus_count : design->bonus_count, bonus_id);
+
+    if ((position >= 0) && (multiplier >= 1) && (multiplier <= CIV_MULTIPLIER_LIMIT)) {
+        picks[position].multiplier = multiplier;
+    }
 }
 
 static int find_in_set(const IdSet *set, int node_id)
 {
     int index;
 
-    if (!CHECK(set != NULL) || !CHECK(set->count <= CIV_TREE_CAPACITY)) {
-        return -1;
-    }
-    for (index = 0; (index < set->count) && (index < CIV_TREE_CAPACITY); ++index) {
+    for (index = 0; index < set->count; ++index) {
         if (set->ids[index] == node_id) {
             return index;
         }
@@ -187,7 +169,7 @@ bool civ_design_toggle_tree(CivDesign *design, TreeKind kind, int node_id)
     int position;
     IdSet *set;
 
-    if (!CHECK(design != NULL) || !in_range((int)kind, TREE_KIND_COUNT) || !in_range(node_id, ID_LIMIT)) {
+    if (!in_range(node_id, ID_LIMIT)) {
         return false;
     }
     set = &design->tree[kind];
@@ -207,15 +189,12 @@ bool civ_design_toggle_tree(CivDesign *design, TreeKind kind, int node_id)
 
 bool civ_design_tree_has(const CivDesign *design, TreeKind kind, int node_id)
 {
-    if (!CHECK(design != NULL) || !CHECK(node_id >= 0) || !in_range((int)kind, TREE_KIND_COUNT)) {
-        return false;
-    }
     return find_in_set(&design->tree[kind], node_id) >= 0;
 }
 
 bool civ_design_pick_unit(CivDesign *design, UnitOrigin origin, int unit_id)
 {
-    if (!CHECK(design != NULL) || !CHECK((unit_id >= CIV_NO_CHOICE) && (unit_id < ID_LIMIT))) {
+    if (!CHECK((unit_id >= CIV_NO_CHOICE) && (unit_id < ID_LIMIT))) {
         return false;
     }
     if (!CHECK((origin == UNIT_ORIGIN_NONE) == (unit_id == CIV_NO_CHOICE))) {
@@ -228,9 +207,6 @@ bool civ_design_pick_unit(CivDesign *design, UnitOrigin origin, int unit_id)
 
 bool civ_design_pick_tech(CivDesign *design, TechTier tier, int km_index)
 {
-    if (!CHECK(design != NULL) || !CHECK((tier == TECH_TIER_CASTLE) || (tier == TECH_TIER_IMPERIAL))) {
-        return false;
-    }
     if (!CHECK((km_index >= CIV_NO_CHOICE) && (km_index < ID_LIMIT))) {
         return false;
     }
@@ -240,7 +216,7 @@ bool civ_design_pick_tech(CivDesign *design, TechTier tier, int km_index)
 
 bool civ_design_pick_hero(CivDesign *design, int unit_id)
 {
-    if (!CHECK(design != NULL) || !CHECK((unit_id >= CIV_NO_CHOICE) && (unit_id < ID_LIMIT))) {
+    if (!CHECK((unit_id >= CIV_NO_CHOICE) && (unit_id < ID_LIMIT))) {
         return false;
     }
     design->hero_unit = unit_id;
@@ -249,9 +225,6 @@ bool civ_design_pick_hero(CivDesign *design, int unit_id)
 
 bool civ_design_is_complete(const CivDesign *design)
 {
-    if (!CHECK(design != NULL) || !CHECK(design->bonus_count <= CIV_BONUS_CAPACITY)) {
-        return false;
-    }
     return (design->texts[TEXT_FIELD_NAME][0] != '\0') && (design->unique_unit.origin != UNIT_ORIGIN_NONE) &&
            (design->techs[TECH_TIER_CASTLE].km_index != CIV_NO_CHOICE) &&
            (design->techs[TECH_TIER_IMPERIAL].km_index != CIV_NO_CHOICE) && !civ_design_hero_lacks_name(design);
@@ -259,17 +232,11 @@ bool civ_design_is_complete(const CivDesign *design)
 
 bool civ_design_hero_lacks_name(const CivDesign *design)
 {
-    if (!CHECK(design != NULL) || !CHECK(design->hero_unit >= CIV_NO_CHOICE)) {
-        return false;
-    }
     return (design->hero_unit != CIV_NO_CHOICE) && (design->texts[TEXT_FIELD_HERO_NAME][0] == '\0');
 }
 
 bool civ_design_tree_is_empty(const CivDesign *design)
 {
-    if (!CHECK(design != NULL)) {
-        return false;
-    }
     return (design->tree[TREE_UNITS].count == 0) && (design->tree[TREE_BUILDINGS].count == 0) &&
            (design->tree[TREE_TECHS].count == 0);
 }
@@ -278,9 +245,6 @@ bool civ_design_tree_keeps(const CivDesign *design, TreeKind kind, int node_id)
 {
     int index;
 
-    if (!CHECK(design != NULL) || !in_range((int)kind, TREE_KIND_COUNT)) {
-        return false;
-    }
     if (civ_design_tree_is_empty(design) || civ_design_tree_has(design, kind, node_id)) {
         return true;
     }

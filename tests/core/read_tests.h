@@ -5,10 +5,12 @@
 
 bool test_a_number_with_a_minus_sign_is_negative(void);
 bool test_a_number_with_a_letter_in_it_is_no_number(void);
-bool test_a_number_beyond_a_billion_is_no_number(void);
+bool test_a_number_past_the_largest_long_is_no_number(void);
+bool test_the_largest_number_a_long_holds_is_read(void);
 bool test_a_letter_of_two_bytes_is_widened_to_one_wide_letter(void);
 bool test_a_letter_of_three_bytes_is_widened_to_one_wide_letter(void);
 bool test_a_letter_beyond_the_basic_plane_is_widened_to_two(void);
+bool test_the_first_letter_beyond_the_basic_plane_is_widened_to_two(void);
 bool test_a_byte_that_starts_no_letter_is_not_widened(void);
 bool test_a_text_that_starts_inside_a_letter_is_not_widened(void);
 bool test_a_letter_cut_short_is_not_widened(void);

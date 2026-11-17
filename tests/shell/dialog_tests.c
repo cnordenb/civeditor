@@ -19,13 +19,6 @@ typedef struct {
     const wchar_t *steam;
 } Answers;
 
-typedef enum {
-    CHANGE_NOTHING,
-    CHANGE_TYPE,
-    CHANGE_CHOOSE,
-    CHANGE_CLICK
-} Change;
-
 static const wchar_t BUILD[] = L"build";
 static const wchar_t DEFAULT_FILE[] = L"build\\civbuilder_civ.civbuilder.json";
 static const wchar_t NAMED_FILE[] = L"build\\Testonia.civbuilder.json";
@@ -179,23 +172,14 @@ static bool window_stays(const Answers *answers, const wchar_t *name, int action
     return closed(window, IsWindow(window) != 0);
 }
 
-static LRESULT rows_after(ControlId list, ControlId changed, Change change)
+static LRESULT step_after_next(void)
 {
     HWND window = opened(&YES);
-    LRESULT rows;
+    LRESULT step;
 
-    if (change == CHANGE_TYPE) {
-        type_into(window, changed, L"zzzz");
-    }
-    if (change == CHANGE_CHOOSE) {
-        (void)SendMessageW(control_of(window, changed), CB_SETCURSEL, 1, 0);
-        notify(window, changed, CBN_SELCHANGE);
-    }
-    if (change == CHANGE_CLICK) {
-        notify(window, changed, BN_CLICKED);
-    }
-    rows = SendMessageW(control_of(window, list), (list == CONTROL_STEPS) ? LB_GETCURSEL : LB_GETCOUNT, 0, 0);
-    return closed(window, true) ? rows : -1;
+    notify(window, CONTROL_NEXT, BN_CLICKED);
+    step = SendMessageW(control_of(window, CONTROL_STEPS), LB_GETCURSEL, 0, 0);
+    return closed(window, true) ? step : -1;
 }
 
 static COLORREF colour_of(ColorRole role)
@@ -243,19 +227,9 @@ bool test_a_file_that_is_no_civ_file_is_refused_with_a_message(void)
     return message_after(&OPENING_NO_CIV, ACTION_OPEN, L"not a civ file");
 }
 
-bool test_the_glossary_is_shown_with_its_words(void)
-{
-    return message_after(&YES, ACTION_GLOSSARY, L"HP: ");
-}
-
 bool test_the_next_button_goes_to_the_next_step(void)
 {
-    return rows_after(CONTROL_STEPS, CONTROL_NEXT, CHANGE_CLICK) == 1;
-}
-
-bool test_a_filter_empties_a_list_that_holds_no_such_text(void)
-{
-    return rows_after(CONTROL_TREE_LIST, CONTROL_TREE_FILTER, CHANGE_TYPE) == 0;
+    return step_after_next() == 1;
 }
 
 bool test_a_typed_name_is_shown_in_the_title_of_the_window(void)
@@ -263,16 +237,26 @@ bool test_a_typed_name_is_shown_in_the_title_of_the_window(void)
     return title_after(&YES, NO_ACTION, L"Testonia - Step 1");
 }
 
-bool test_a_category_narrows_the_list_of_civ_bonuses(void)
-{
-    LRESULT narrowed = rows_after(CONTROL_BONUS_LIST, CONTROL_BONUS_CATEGORY, CHANGE_CHOOSE);
-
-    return (narrowed > 0) && (narrowed < rows_after(CONTROL_BONUS_LIST, CONTROL_BONUS_CATEGORY, CHANGE_NOTHING));
-}
-
 bool test_redo_says_when_there_is_nothing_to_redo(void)
 {
     return status_after(&YES, ACTION_REDO, L"There is nothing to redo.");
+}
+
+bool test_no_step_is_shown_as_done_when_the_window_opens(void)
+{
+    HWND window = opened(&YES);
+    wchar_t row[STATUS_CAPACITY] = L"";
+    bool none = true;
+    int step;
+
+    for (step = 0; (step < STEP_COUNT) && none; ++step) {
+        none = (SendMessageW(control_of(window, CONTROL_STEPS), LB_GETTEXT, (WPARAM)step, (LPARAM)row) > 0) &&
+               (wcsstr(row, L"(done)") == NULL);
+        if (!none) {
+            test_note("a step shown as done");
+        }
+    }
+    return closed(window, none);
 }
 
 bool test_closing_is_stopped_when_the_question_of_saving_is_cancelled(void)
@@ -357,15 +341,4 @@ bool test_picking_the_picked_row_again_makes_no_new_change(void)
     window_fixture_act(window, ACTION_UNDO);
     window_fixture_act(window, ACTION_UNDO);
     return closed(window, text_holds(control_of(window, CONTROL_STATUS), L"There is nothing to undo."));
-}
-
-bool test_the_program_ends_with_the_code_of_the_message_that_ends_it(void)
-{
-    HWND window = opened(&YES);
-    int code;
-
-    (void)PostMessageW(window, WM_COMMAND, (WPARAM)(ACTION_ID_BASE + ACTION_REDO), 0);
-    PostQuitMessage(PUMP_LIMIT);
-    code = app_run_messages();
-    return closed(window, (code == PUMP_LIMIT) && text_holds(control_of(window, CONTROL_STATUS), L"nothing to redo"));
 }

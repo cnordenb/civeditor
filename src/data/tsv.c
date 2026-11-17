@@ -24,9 +24,6 @@ bool tsv_open(TsvFile *file, const wchar_t *path)
 {
     FileRead read;
 
-    if (!CHECK(file != NULL) || !CHECK(path != NULL)) {
-        return false;
-    }
     read = file_read_all(path, file->data, sizeof file->data);
     file->length = read.length;
     file->position = 0U;
@@ -37,9 +34,6 @@ static void split_fields(TsvRecord *record, int length)
 {
     int index;
 
-    if (!CHECK(record != NULL) || !CHECK(length < TSV_LINE_CAPACITY)) {
-        return;
-    }
     record->field_count = 1;
     record->starts[0] = 0;
     for (index = 0; (index < length) && (index < TSV_LINE_CAPACITY); ++index) {
@@ -59,7 +53,7 @@ bool tsv_next(TsvFile *file, TsvRecord *record)
     int step;
     char letter;
 
-    if (!CHECK(file != NULL) || !CHECK(record != NULL) || (file->position >= file->length)) {
+    if (file->position >= file->length) {
         return false;
     }
     for (step = 0; (step < TSV_LINE_CAPACITY - 1) && (file->position < file->length); ++step) {
@@ -80,15 +74,12 @@ bool tsv_next(TsvFile *file, TsvRecord *record)
 
 static bool has_field(const TsvRecord *record, int field)
 {
-    if (!CHECK(record != NULL) || !CHECK(record->field_count <= TSV_FIELD_LIMIT)) {
-        return false;
-    }
     return (field >= 0) && (field < record->field_count);
 }
 
 bool tsv_text(const TsvRecord *record, int field, char *destination, size_t capacity)
 {
-    if (!CHECK(record != NULL) || !CHECK(destination != NULL) || !CHECK(capacity > 0U)) {
+    if (!CHECK(capacity > 0U)) {
         return false;
     }
     destination[0] = '\0';
@@ -105,7 +96,7 @@ int tsv_number(const TsvRecord *record, int field)
 {
     TextNumber number;
 
-    if (!CHECK(record != NULL) || !has_field(record, field)) {
+    if (!has_field(record, field)) {
         return TSV_MISSING;
     }
     number = text_to_number(&record->text[record->starts[field]], (size_t)record->lengths[field]);
@@ -114,7 +105,7 @@ int tsv_number(const TsvRecord *record, int field)
 
 static bool take_hundredths_letter(Hundredths *number, char letter)
 {
-    if (!CHECK(number != NULL) || !CHECK(number->fraction_digits <= FRACTION_DIGITS)) {
+    if (!CHECK(number->fraction_digits <= FRACTION_DIGITS)) {
         return false;
     }
     if ((letter == '.') && (number->fraction_digits < 0)) {
@@ -144,7 +135,7 @@ int tsv_hundredths(const TsvRecord *record, int field)
     Hundredths number = { 0, -1 };
     int index;
 
-    if (!CHECK(record != NULL) || !has_field(record, field) || (record->lengths[field] < 1)) {
+    if (!has_field(record, field) || (record->lengths[field] < 1)) {
         return TSV_MISSING;
     }
     for (index = 0; (index < record->lengths[field]) && (index < TEXT_NUMBER_CAPACITY); ++index) {
@@ -184,7 +175,7 @@ TsvNumberList tsv_number_list(const TsvRecord *record, int field)
 
 static bool take_decimal_letter(Decimal *number, char letter)
 {
-    if (!CHECK(number != NULL) || !CHECK(number->digit_count >= 0)) {
+    if (!CHECK(number->digit_count >= 0)) {
         return false;
     }
     if ((letter == '.') && !number->fraction) {
@@ -206,9 +197,6 @@ static bool take_decimal(Decimal *number, const char *text, int length)
 {
     int index;
 
-    if (!CHECK(number != NULL) || !CHECK(text != NULL)) {
-        return false;
-    }
     for (index = 0; (index < length) && (index < TEXT_NUMBER_CAPACITY); ++index) {
         if (!take_decimal_letter(number, text[index])) {
             return false;
@@ -224,7 +212,7 @@ bool tsv_decimal(const TsvRecord *record, int field, float *value)
     int start;
     int sign;
 
-    if (!CHECK(value != NULL) || !has_field(record, field) || (record->lengths[field] < 1)) {
+    if (!has_field(record, field) || (record->lengths[field] < 1)) {
         return false;
     }
     start = record->starts[field];
@@ -241,9 +229,6 @@ static uint64_t bit_of(const char *text, int length)
 {
     TextNumber number;
 
-    if (!CHECK(text != NULL) || !CHECK(length >= 0)) {
-        return 0U;
-    }
     number = text_to_number(text, (size_t)length);
     if (!number.valid || (number.value < 0) || (number.value >= TSV_BIT_LIMIT)) {
         return 0U;
@@ -258,7 +243,7 @@ uint64_t tsv_bits(const TsvRecord *record, int field)
     int start = 0;
     int index;
 
-    if (!CHECK(record != NULL) || !tsv_text(record, field, text, sizeof text)) {
+    if (!tsv_text(record, field, text, sizeof text)) {
         return bits;
     }
     for (index = 0; (index < TSV_LINE_CAPACITY) && CHECK(start <= index); ++index) {

@@ -1,3 +1,4 @@
+clanker - non-human agent, tool, large language model (LLM), artificial intelligence (AI), AI agent (eg. Claude, Claude Code, Codex, Gemini, Grok, etc.)
 requirement - a numbered statement in REQUIREMENTS.md of what the project must do, e.g. "Requirement 4"
 rule - a numbered statement in RULES.md of how the project must be made and kept, e.g. "Rule 12"
 chief developer - the person who alone writes the requirements, named in Rule 2
@@ -33,6 +34,10 @@ Generic - the base civ that is no civ of the game: every universal node and noth
 catalog - the lists civbuilder offers in the steps, read from data/*.txt: looks, bonuses, units, techs, nodes
 control - one part of a step that the user reads or acts on, e.g. the list of bonuses; each has a visible label
 checklist - a control whose rows are ticked and unticked, e.g. the bonuses; in a plain list one row is picked
+notch - one step of the mouse wheel; a notch over a list moves it one row
+smooth scrolling - Windows sliding a list as it scrolls; civbuilder moves its lists at once instead
+knob - the part of a scroll bar that shows how far it is scrolled and can be dragged; Windows calls it the thumb
+classic scroll bar - a scroll bar that shows its arrows and knob at all times, as every scroll bar of civbuilder does
 command - one change to a design, e.g. ticking a bonus, made through history_do in src/model/history.c
 undo - taking back the last command, with Ctrl+Z; redo makes it again, with Ctrl+Y
 civ file - a design saved as JSON in the format empireforge_v2 of the original; civbuilder_v1 files also open
@@ -45,6 +50,11 @@ change - one entry of an effect: a type and four values, e.g. type 102 disables 
 patch - up to 8 bytes of the dat file written over at an offset, e.g. the team bonus of a civ
 copy - bytes of the dat file written over others of the same size, e.g. the graphics of another civ's castle
 unit patch - a patch that a bonus makes to one field of a unit of its civ in the dat file, e.g. a farm's size
+train line - a unit patch placed in the first train location of its unit, e.g. the cow of bonus 222 trained at the Mill
+cost line - a unit patch placed in the three costs of its unit, e.g. the 300 stone of the Castle of bonus 460
+look line - a line of a bonus giving a unit of its civ the look of that unit of another civ, e.g. the Palintonon of 457
+requirement tech - a tech of one civ, researched by itself, that a tech of every civ requires, e.g. 768 for the Cavalier
+multiplier - how many times a bonus counts, 1 to 10, kept in the civ file; each change of the bonus is scaled to it
 mod - a folder the game loads from its local mods folder; civbuilder makes a data mod and a UI mod
 mods folder - the game's local mods folder, mods\local in the user's newest profile, where a mod is built
 data mod - the mod with a changed dat file that holds the new civ
@@ -58,17 +68,19 @@ review - the last step: the whole design, and what it still needs before a mod c
 replaced civ - the civ of the game whose slot the design takes, chosen in the review; the Britons at first
 recipe - what is done to the dat file to put a design in the slot of its replaced civ, in src/forge/recipe.c
 aim - to turn what a unique tech does to another civ's unique unit to the design's own, as the recipe does
-check - a condition the code asserts with CHECK, as P10 rule 5 asks; a failed check is counted and named
+check - a condition the code asserts with CHECK where data enters it; a failed check is counted and named
 build program - build.exe, made from tools/build/, which compiles, links and runs the tests in one step
 analyzed build - the build that also runs the static analyzer of gcc: build.exe
 quick build - the build without the static analyzer: build.exe quick
+coverage build - the tests built with gcc's --coverage and run, so that gcovr can tell what ran: build.exe coverage
+build plan - what the build program does, from its command line: analyzed, quick or coverage build, folders, commands
 complexity - one more than the branches of a function: each if, loop, case, default, ?:, && and ||, a check's too
-CRAP score - complexity squared times the cube of the share of branches no test takes, plus complexity (Rule 32)
-crapper - ub-mode's program for Rule 32, kept beside the project in ..\crapper: the CRAP score of each function of src/
+CRAP score - complexity squared times the cube of the share of branches no test takes, plus complexity (Req. 10)
+crapper - ub-mode's program for Requirement 10, in ..\crapper: the CRAP score of each function it reads
 shape - what is left of a function without its names and values: its calls, its operators and how it is built
-dryer - ub-mode's program for Rule 31, in ..\dryer: finds every two functions of src/ whose shapes are 80% alike or more
-mutant - the code with one operator or constant changed, which a test should catch (Rule 34)
-mutator - ub-mode's program for Rule 34, in ..\mutator: makes each mutant of src/ and runs the tests on it
+dryer - ub-mode's program for Requirement 11, in ..\dryer: finds every two functions whose shapes are 80% alike or more
+mutant - the code with one operator or constant changed, which a test should catch (Req. 12)
+mutator - ub-mode's program for Requirement 12, in ..\mutator: makes each mutant of src/ and runs the tests on it
 suite - the tests of one kind or subject, run in order by one file, e.g. tests/suites/mod_suite.c
 group - at most eight tests of a suite, held in one switch, e.g. run_gate_test
 fixture - a file or a small game that a test reads or builds, e.g. tests/fixtures/broken_rules.txt

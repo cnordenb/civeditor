@@ -23,7 +23,7 @@ static int add_token(JsonDocument *document, JsonKind kind, int start, int end)
 {
     JsonToken *token;
 
-    if (!CHECK(document != NULL) || !CHECK(document->count < JSON_TOKEN_CAPACITY)) {
+    if (!CHECK(document->count < JSON_TOKEN_CAPACITY)) {
         return JSON_NONE;
     }
     token = &document->tokens[document->count];
@@ -39,9 +39,6 @@ static int string_end(const JsonDocument *document, int opening)
 {
     int index;
 
-    if (!CHECK(document != NULL) || !CHECK((opening >= 0) && (opening < document->length))) {
-        return JSON_NONE;
-    }
     for (index = opening + 1; (index < document->length) && (index < JSON_INPUT_CAPACITY); ++index) {
         if (document->text[index] == '\\') {
             ++index;
@@ -56,7 +53,7 @@ static bool literal_at(const JsonDocument *document, int position, const char *w
 {
     int index;
 
-    if (!CHECK(document != NULL) || !CHECK(word != NULL) || (position + length > document->length)) {
+    if (position + length > document->length) {
         return false;
     }
     for (index = 0; (index < length) && (index < JSON_READER_DEPTH); ++index) {
@@ -71,7 +68,7 @@ static bool open_container(JsonDocument *document, ParseState *state, JsonKind k
 {
     int token;
 
-    if (!CHECK(state != NULL) || !CHECK(state->depth < JSON_READER_DEPTH)) {
+    if (!CHECK(state->depth < JSON_READER_DEPTH)) {
         return false;
     }
     token = add_token(document, kind, state->position, state->position + 1);
@@ -88,7 +85,7 @@ static bool close_container(JsonDocument *document, ParseState *state, JsonKind 
 {
     JsonToken *token;
 
-    if (!CHECK(document != NULL) || !CHECK(state != NULL) || (state->depth <= 0)) {
+    if (state->depth <= 0) {
         return false;
     }
     --state->depth;
@@ -106,9 +103,6 @@ static bool read_string(JsonDocument *document, ParseState *state)
 {
     int closing;
 
-    if (!CHECK(document != NULL) || !CHECK(state != NULL)) {
-        return false;
-    }
     closing = string_end(document, state->position);
     if ((closing == JSON_NONE) ||
         (add_token(document, JSON_KIND_STRING, state->position + 1, closing) == JSON_NONE)) {
@@ -122,9 +116,6 @@ static bool read_number(JsonDocument *document, ParseState *state)
 {
     int end;
 
-    if (!CHECK(document != NULL) || !CHECK(state != NULL)) {
-        return false;
-    }
     for (end = state->position; (end < document->length) && (end < JSON_INPUT_CAPACITY); ++end) {
         if (!is_number_part(document->text[end])) {
             break;
@@ -141,9 +132,6 @@ static bool read_literal(JsonDocument *document, ParseState *state, const char *
 {
     int length = (kind == JSON_KIND_FALSE) ? 5 : 4;
 
-    if (!CHECK(document != NULL) || !CHECK(state != NULL)) {
-        return false;
-    }
     if (!literal_at(document, state->position, word, length) ||
         (add_token(document, kind, state->position, state->position + length) == JSON_NONE)) {
         return false;
@@ -154,9 +142,6 @@ static bool read_literal(JsonDocument *document, ParseState *state, const char *
 
 static bool read_bracket(JsonDocument *document, ParseState *state, char letter)
 {
-    if (!CHECK(document != NULL) || !CHECK(state != NULL)) {
-        return false;
-    }
     switch (letter) {
     case '{':
         return open_container(document, state, JSON_KIND_OBJECT);
@@ -171,9 +156,6 @@ static bool read_bracket(JsonDocument *document, ParseState *state, char letter)
 
 static bool read_word(JsonDocument *document, ParseState *state, char letter)
 {
-    if (!CHECK(document != NULL) || !CHECK(state != NULL)) {
-        return false;
-    }
     switch (letter) {
     case 't':
         return read_literal(document, state, "true", JSON_KIND_TRUE);
@@ -188,9 +170,6 @@ static bool read_word(JsonDocument *document, ParseState *state, char letter)
 
 static bool read_item(JsonDocument *document, ParseState *state, char letter)
 {
-    if (!CHECK(document != NULL) || !CHECK(state != NULL)) {
-        return false;
-    }
     if (check_is_among(letter, BRACKETS, BRACKET_COUNT)) {
         return read_bracket(document, state, letter);
     }
@@ -209,9 +188,6 @@ static bool read_item(JsonDocument *document, ParseState *state, char letter)
 
 static bool is_one_object(const JsonDocument *document, const ParseState *state)
 {
-    if (!CHECK(document != NULL) || !CHECK(state != NULL)) {
-        return false;
-    }
     return (state->depth == 0) && (document->count > 0) && json_is_kind(document, 0, JSON_KIND_OBJECT);
 }
 
@@ -220,9 +196,6 @@ bool json_parse(JsonDocument *document)
     ParseState state = { 0, { 0 }, 0 };
     int step;
 
-    if (!CHECK(document != NULL) || !CHECK((document->length >= 0) && (document->length < JSON_INPUT_CAPACITY))) {
-        return false;
-    }
     document->count = 0;
     for (step = 0; (step < JSON_INPUT_CAPACITY) && (state.position < document->length); ++step) {
         if (check_is_among(document->text[state.position], SPACES, SPACE_COUNT)) {
@@ -236,9 +209,6 @@ bool json_parse(JsonDocument *document)
 
 bool json_is_kind(const JsonDocument *document, int token, JsonKind kind)
 {
-    if (!CHECK(document != NULL) || !CHECK(token >= JSON_NONE) || !CHECK(document->count <= JSON_TOKEN_CAPACITY)) {
-        return false;
-    }
     if ((token < 0) || (token >= document->count)) {
         return false;
     }
@@ -247,10 +217,6 @@ bool json_is_kind(const JsonDocument *document, int token, JsonKind kind)
 
 int json_first_child(const JsonDocument *document, int container)
 {
-    if (!CHECK(document != NULL) || !CHECK(container >= JSON_NONE) || (container < 0) ||
-        (container >= document->count)) {
-        return JSON_NONE;
-    }
     if (!json_is_kind(document, container, JSON_KIND_OBJECT) && !json_is_kind(document, container, JSON_KIND_ARRAY)) {
         return JSON_NONE;
     }
@@ -261,10 +227,6 @@ int json_next_sibling(const JsonDocument *document, int container, int child)
 {
     int next;
 
-    if (!CHECK(document != NULL) || !CHECK(child >= JSON_NONE) || (container < 0) || (child <= container) ||
-        (child >= document->count)) {
-        return JSON_NONE;
-    }
     next = document->tokens[child].after;
     return (next < document->tokens[container].after) ? next : JSON_NONE;
 }
@@ -274,7 +236,7 @@ static bool key_matches(const JsonDocument *document, int token, const char *key
     int index;
     int length;
 
-    if (!CHECK(document != NULL) || !CHECK(key != NULL) || !json_is_kind(document, token, JSON_KIND_STRING)) {
+    if (!json_is_kind(document, token, JSON_KIND_STRING)) {
         return false;
     }
     length = document->tokens[token].end - document->tokens[token].start;
@@ -292,7 +254,7 @@ int json_member(const JsonDocument *document, int object, const char *key)
     int value;
     int step;
 
-    if (!CHECK(key != NULL) || !CHECK(object >= JSON_NONE) || !json_is_kind(document, object, JSON_KIND_OBJECT)) {
+    if (!json_is_kind(document, object, JSON_KIND_OBJECT)) {
         return JSON_NONE;
     }
     for (step = 0; (step < JSON_TOKEN_CAPACITY) && (name != JSON_NONE); ++step) {
@@ -314,7 +276,7 @@ TextNumber json_number(const JsonDocument *document, int token)
     int length;
     int index;
 
-    if (!CHECK(document != NULL) || !CHECK(token >= JSON_NONE) || !json_is_kind(document, token, JSON_KIND_NUMBER)) {
+    if (!json_is_kind(document, token, JSON_KIND_NUMBER)) {
         return missing;
     }
     length = document->tokens[token].end - document->tokens[token].start;

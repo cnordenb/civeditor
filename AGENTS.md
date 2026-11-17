@@ -6,14 +6,16 @@ the Win32 API.
 - Stack: C11, the Win32 API, gcc from MinGW-w64; nothing else (`sitrep&instructions/instructions.md`)
 - Build the build program once: `gcc -o build.exe tools/build/*.c src/core/*.c`
 - Build and run the tests: `build.exe` (with the static analyzer) or `build.exe quick`
-- Rules 31, 32 and 34 are measured by ub-mode's dryer, crapper and mutator only, which lie beside the project in
-  `..\dryer`, `..\crapper` and `..\mutator` and read `src/`. Run them from the project's folder.
-- Measure Rule 31: `..\dryer\dryer.cmd --threshold 0.8` lists every two functions 80% alike or more
-  (`.metrics\dry.edn`)
-- Measure Rule 32: `..\crapper\crapper.cmd` scores every function (`.metrics\crap.edn`); it reads coverage from
-  `target\coverage\c\lcov.info`, and `--no-coverage` gives the complexity alone
-- Measure Rule 34: `..\mutator\mutator.cmd --no-coverage --test-command ".\build.exe quick nowindow norules" src/<folder>`
-  lists the mutants that survive (`.metrics\mutate\`); leave `nowindow` out for the folders of the window
+- Requirements 10, 11 and 12 are measured by ub-mode's crapper, dryer and mutator only, which lie beside the project
+  in `..\crapper`, `..\dryer` and `..\mutator`. Run them from the project's folder. They pass by every folder named
+  `tests` or `build`; name the files of `tools/build/` to measure them.
+- Measure Requirement 10: `.\build.exe coverage`, then
+  `..\crapper\.venv\Scripts\python.exe -m gcovr --root . --lcov target/coverage/c/lcov.info build/obj_coverage`,
+  then `..\crapper\crapper.cmd --use-existing-coverage` scores every function (`.metrics\crap.edn`)
+- Measure Requirement 11: `..\dryer\dryer.cmd --threshold 0.8` lists every two functions 80% alike or more
+- Requirement 12: `..\mutator\mutator.cmd --use-existing-coverage --test-command ".\build.exe quick nowindow norules"
+  src/<folder>` after every change lists the mutants that survive (`.metrics\mutate\`); leave `nowindow` out for the
+  folders of the window
 
 ## Read before changing anything
 
@@ -38,7 +40,7 @@ the Win32 API.
 
 ## A change is done when
 
-1. The tests pass, and what changed is tested, within the 100 tests Rule 5 allows.
+1. The tests pass, and a test of a requirement or of a bug found before covers what changed (Rules 5, 6).
 2. `TESTS.md` matches the tests: their numbers, files, lines and purposes (Rule 6).
 3. `MAINTAINER.md` still explains the code and how to maintain it, its first chapter still first (Rules 7 and 8).
 4. `TERMINOLOGY.md` defines every new term (Rule 9).

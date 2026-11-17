@@ -1,6 +1,5 @@
 #include "civ_file.h"
 
-#include "../core/check.h"
 #include "../core/file_io.h"
 #include "../core/text.h"
 
@@ -9,9 +8,6 @@ const char CIV_FILE_RESOURCE_KEYS[RESOURCE_KIND_COUNT][CIV_FILE_KEY_WIDTH] = { "
 
 static void write_optional(JsonWriter *writer, const char *key, int value)
 {
-    if (!CHECK(writer != NULL) || !CHECK(key != NULL)) {
-        return;
-    }
     if (value == CIV_NO_CHOICE) {
         json_write_null(writer, key);
     } else {
@@ -26,18 +22,12 @@ static int civ_index_of_slot(int slot)
 
 static void write_empty(JsonWriter *writer, const char *key, const char *brackets)
 {
-    if (!CHECK(writer != NULL) || !CHECK(key != NULL) || !CHECK(brackets != NULL)) {
-        return;
-    }
     json_begin(writer, key, brackets[0]);
     json_end(writer, brackets[1]);
 }
 
 static void write_identity(const CivDesign *design, JsonWriter *writer)
 {
-    if (!CHECK(design != NULL) || !CHECK(writer != NULL)) {
-        return;
-    }
     json_write_string(writer, "format", "empireforge_v2");
     json_write_number(writer, "schema_version", CIV_FILE_SCHEMA_VERSION);
     json_write_number(writer, "_draftVer", CIV_FILE_DRAFT_VERSION);
@@ -56,9 +46,6 @@ static void write_identity(const CivDesign *design, JsonWriter *writer)
 
 static void write_hero(const CivDesign *design, JsonWriter *writer)
 {
-    if (!CHECK(design != NULL) || !CHECK(writer != NULL)) {
-        return;
-    }
     if (design->hero_unit == CIV_NO_CHOICE) {
         json_write_null(writer, "hero_unit");
         return;
@@ -76,9 +63,6 @@ static void write_unique_unit(const CivDesign *design, JsonWriter *writer)
 {
     UnitOrigin origin;
 
-    if (!CHECK(design != NULL) || !CHECK(writer != NULL)) {
-        return;
-    }
     origin = design->unique_unit.origin;
     json_begin(writer, "unique_unit", '{');
     write_optional(writer, "km_idx", (origin == UNIT_ORIGIN_CUSTOM) ? design->unique_unit.id : CIV_NO_CHOICE);
@@ -94,9 +78,6 @@ static void write_bonus_list(JsonWriter *writer, const char *key, const BonusPic
 {
     int index;
 
-    if (!CHECK(writer != NULL) || !CHECK(picks != NULL)) {
-        return;
-    }
     json_begin(writer, key, '[');
     for (index = 0; (index < count) && (index < CIV_BONUS_CAPACITY); ++index) {
         json_begin(writer, NULL, '{');
@@ -111,9 +92,6 @@ static void write_tech(JsonWriter *writer, const char *key, const TechPick *tech
 {
     int resource;
 
-    if (!CHECK(writer != NULL) || !CHECK(tech != NULL)) {
-        return;
-    }
     json_begin(writer, key, '{');
     json_write_string(writer, "mode", "vanilla");
     write_optional(writer, "vanilla_km_idx", tech->km_index);
@@ -135,9 +113,6 @@ static void write_tree(const CivDesign *design, JsonWriter *writer)
     int kind;
     int index;
 
-    if (!CHECK(design != NULL) || !CHECK(writer != NULL)) {
-        return;
-    }
     json_begin(writer, "tree", '{');
     for (kind = 0; kind < (int)TREE_KIND_COUNT; ++kind) {
         json_begin(writer, CIV_FILE_TREE_KEYS[kind], '[');
@@ -151,9 +126,6 @@ static void write_tree(const CivDesign *design, JsonWriter *writer)
 
 static void write_trailer(const CivDesign *design, JsonWriter *writer)
 {
-    if (!CHECK(design != NULL) || !CHECK(writer != NULL)) {
-        return;
-    }
     json_write_null(writer, "long_range_ship");
     json_write_bool(writer, "long_range_ship_elite", true);
     write_optional(writer, "starting_scout", design->choices[CHOICE_SCOUT]);
@@ -168,9 +140,6 @@ static void write_trailer(const CivDesign *design, JsonWriter *writer)
 
 bool civ_file_compose(const CivDesign *design, JsonWriter *writer)
 {
-    if (!CHECK(design != NULL) || !CHECK(writer != NULL)) {
-        return false;
-    }
     json_writer_start(writer);
     json_begin(writer, NULL, '{');
     write_identity(design, writer);
@@ -194,9 +163,6 @@ bool civ_file_save(const CivDesign *design, const wchar_t *path)
 {
     static JsonWriter writer;
 
-    if (!CHECK(design != NULL) || !CHECK(path != NULL)) {
-        return false;
-    }
     if (!civ_file_compose(design, &writer)) {
         return false;
     }

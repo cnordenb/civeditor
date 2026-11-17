@@ -21,9 +21,6 @@ static bool lengths_fit(const HuffmanCode *code)
     int left = 1;
     int bits;
 
-    if (!CHECK(code != NULL) || !CHECK(HUFFMAN_MAX_BITS > 0)) {
-        return false;
-    }
     for (bits = 1; bits <= HUFFMAN_MAX_BITS; ++bits) {
         left = (left << 1) - code->count[bits];
         if (left < 0) {
@@ -38,9 +35,6 @@ static bool count_lengths(HuffmanCode *code, const short *length, int symbols)
     int bits;
     int symbol;
 
-    if (!CHECK(code != NULL) || !CHECK(length != NULL)) {
-        return false;
-    }
     for (bits = 0; bits <= HUFFMAN_MAX_BITS; ++bits) {
         code->count[bits] = 0;
     }
@@ -66,7 +60,7 @@ bool huffman_build(HuffmanCode *code, const short *length, int symbols)
     for (bits = 1; bits < HUFFMAN_MAX_BITS; ++bits) {
         offsets[bits + 1] = (short)(offsets[bits] + code->count[bits]);
     }
-    for (symbol = 0; (symbol < symbols) && (symbol < HUFFMAN_SYMBOL_LIMIT); ++symbol) {
+    for (symbol = 0; symbol < symbols; ++symbol) {
         if (length[symbol] != 0) {
             code->symbol[offsets[length[symbol]]] = (short)symbol;
             ++offsets[length[symbol]];
@@ -97,7 +91,7 @@ bool huffman_build_fixed(HuffmanCode *code, bool literals)
     int kind = (int)literals;
     int symbol;
 
-    if (!CHECK(code != NULL) || !CHECK(LIMITS[kind] <= HUFFMAN_SYMBOL_LIMIT)) {
+    if (!CHECK(LIMITS[kind] <= HUFFMAN_SYMBOL_LIMIT)) {
         return false;
     }
     for (symbol = 0; (symbol < LIMITS[kind]) && (symbol < HUFFMAN_SYMBOL_LIMIT); ++symbol) {

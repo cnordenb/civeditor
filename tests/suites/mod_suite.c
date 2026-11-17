@@ -1,6 +1,5 @@
 #include "suites.h"
 
-#include "../../src/core/check.h"
 #include "../mod/forge_tests.h"
 #include "../mod/strings_tests.h"
 #include "../places/places_tests.h"
@@ -10,14 +9,11 @@ enum {
     FORGE_REPORT_END = 13,
     STRINGS_ESCAPE_END = 17,
     STRINGS_LABEL_END = 20,
-    STRINGS_TIP_END = 24
+    STRINGS_TIP_END = 25
 };
 
 static TestOutcome run_forge_mod_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a built mod has a data folder named after the civ",
@@ -48,9 +44,6 @@ static TestOutcome run_forge_mod_test(int index)
 
 static TestOutcome run_forge_report_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("the ui mod is written for the last language of the game",
@@ -74,9 +67,6 @@ static TestOutcome run_forge_report_test(int index)
 
 static TestOutcome run_strings_escape_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a line break in a text is written as an escape",
@@ -96,9 +86,6 @@ static TestOutcome run_strings_escape_test(int index)
 
 static TestOutcome run_strings_label_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("a unique tech's label ends its description without a full stop",
@@ -116,9 +103,6 @@ static TestOutcome run_strings_label_test(int index)
 
 static TestOutcome run_strings_tip_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("the first tip names the first civ bonus",
@@ -131,6 +115,9 @@ static TestOutcome run_strings_tip_test(int index)
                                test_the_tip_of_a_unique_tech_says_where_it_is_researched());
     case 4:
         return test_outcome_of("the second tip names the unique unit", test_the_second_tip_names_the_unique_unit());
+    case 5:
+        return test_outcome_of("a line break in a tip is written as a space",
+                               test_a_line_break_in_a_tip_is_written_as_a_space());
     default:
         return test_outcome_missing();
     }
@@ -138,9 +125,6 @@ static TestOutcome run_strings_tip_test(int index)
 
 static TestOutcome run_places_test(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     switch (index) {
     case 1:
         return test_outcome_of("the game is found in the folder of steam",
@@ -164,9 +148,6 @@ static TestOutcome run_places_test(int index)
 
 TestOutcome mod_suite_run(int index)
 {
-    if (!CHECK(index > 0) || !CHECK(index <= SUITE_TEST_LIMIT)) {
-        return test_outcome_missing();
-    }
     if (index <= FORGE_MOD_END) {
         return run_forge_mod_test(index);
     }

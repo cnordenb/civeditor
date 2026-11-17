@@ -81,9 +81,29 @@ static bool composed_civ_is_parsed(void)
     return text_copy(document.text, sizeof document.text, first_text.data) && json_parse(&document);
 }
 
+static bool texts_match(const CivDesign *first, const CivDesign *second)
+{
+    int field;
+
+    for (field = 0; field < TEXT_FIELD_COUNT; ++field) {
+        if (!text_equal(civ_design_text(first, (TextField)field), civ_design_text(second, (TextField)field))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool test_saved_civ_loads_back_unchanged(void)
 {
     design_a_civ(&loaded);
-    return composed_civ_is_parsed() && civ_file_interpret(&document, &reloaded) &&
+    return composed_civ_is_parsed() && civ_file_interpret(&document, &reloaded) && texts_match(&loaded, &reloaded) &&
            civ_file_compose(&reloaded, &second_text) && text_equal(first_text.data, second_text.data);
+}
+
+bool test_a_bonus_multiplier_is_read_back_from_a_civ_file(void)
+{
+    design_a_civ(&loaded);
+    civ_design_set_multiplier(&loaded, false, 17, CIV_MULTIPLIER_LIMIT);
+    return composed_civ_is_parsed() && civ_file_interpret(&document, &reloaded) &&
+           (reloaded.bonuses[1].multiplier == CIV_MULTIPLIER_LIMIT);
 }

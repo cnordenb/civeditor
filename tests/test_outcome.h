@@ -17,5 +17,6 @@ bool test_window_is_left_out(void);
 TestOutcome functional_suite_run(int index);
 TestOutcome accessibility_suite_run(int index);
 TestOutcome maintainability_suite_run(int index);
+TestOutcome maintainability_tools_run(int index);
 
 #endif

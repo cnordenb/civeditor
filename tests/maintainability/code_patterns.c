@@ -6,14 +6,12 @@
 enum {
     WORD_WIDTH = 24,
     FLOW_WORD_COUNT = 3,
-    LOOP_WORD_COUNT = 2,
     ALLOCATION_WORD_COUNT = 11,
     CALLBACK_WORD_COUNT = 9,
     DIRECTIVE_COUNT = 4
 };
 
 static const char FLOW_WORDS[FLOW_WORD_COUNT][WORD_WIDTH] = { "goto", "setjmp", "longjmp" };
-static const char LOOP_WORDS[LOOP_WORD_COUNT][WORD_WIDTH] = { "while", "do" };
 static const char ALLOCATION_WORDS[ALLOCATION_WORD_COUNT][WORD_WIDTH] = {
     "malloc", "calloc", "realloc", "free", "alloca", "strdup", "_strdup",
     "HeapAlloc", "VirtualAlloc", "GlobalAlloc", "LocalAlloc"
@@ -85,101 +83,6 @@ int pattern_forbidden_flow_line(const ScannedSource *source)
 int pattern_allocation_line(const ScannedSource *source)
 {
     return first_word_line(source, ALLOCATION_WORDS, ALLOCATION_WORD_COUNT);
-}
-
-static bool word_is_constant(const ScannedSource *source, int start, int stop)
-{
-    int index;
-
-    if (!CHECK(source != NULL) || !CHECK(start <= stop)) {
-        return false;
-    }
-    if ((stop - start < 2) || !text_is_between(source->cleaned[start], 'A', 'Z')) {
-        return false;
-    }
-    for (index = start; (index < stop) && (index < SCAN_TEXT_CAPACITY); ++index) {
-        if (!text_is_between(source->cleaned[index], 'A', 'Z') && (source->cleaned[index] != '_') &&
-            !text_is_digit(source->cleaned[index])) {
-            return false;
-        }
-    }
-    return true;
-}
-
-static bool has_constant_name(const ScannedSource *source, int start, int end)
-{
-    int index = start;
-    int stop;
-    int step;
-
-    if (!CHECK(source != NULL) || !CHECK(start <= end)) {
-        return false;
-    }
-    for (step = 0; (index < end) && (step < SCAN_TEXT_CAPACITY); ++step) {
-        stop = source_word_end(source->cleaned, index, end);
-        if (word_is_constant(source, index, stop)) {
-            return true;
-        }
-        index = (stop > index) ? stop : index + 1;
-    }
-    return false;
-}
-
-static int depth_change(char letter)
-{
-    if (letter == '(') {
-        return 1;
-    }
-    return (letter == ')') ? -1 : 0;
-}
-
-static bool loop_is_bounded(const ScannedSource *source, int keyword)
-{
-    int depth = 0;
-    int semicolons = 0;
-    int condition_start = -1;
-    int index;
-
-    if (!CHECK(source != NULL) || !CHECK(keyword >= 0)) {
-        return false;
-    }
-    for (index = keyword + 3; (index < source->length) && (index < SCAN_TEXT_CAPACITY); ++index) {
-        char letter = source->cleaned[index];
-        depth += depth_change(letter);
-        if ((letter == ';') && (depth == 1)) {
-            ++semicolons;
-            if (semicolons == 2) {
-                return has_constant_name(source, condition_start, index);
-            }
-            condition_start = index + 1;
-        }
-        if ((depth == 0) && (letter == ')')) {
-            return false;
-        }
-    }
-    return false;
-}
-
-int pattern_unbounded_loop_line(const ScannedSource *source)
-{
-    int found = 0;
-    int step;
-    int loop_line = first_word_line(source, LOOP_WORDS, LOOP_WORD_COUNT);
-
-    if (!CHECK(source != NULL) || (loop_line > 0)) {
-        return loop_line;
-    }
-    for (step = 0; (step < SCAN_TEXT_CAPACITY) && (found >= 0); ++step) {
-        found = find_word(source, found, "for");
-        if (found < 0) {
-            break;
-        }
-        if (!loop_is_bounded(source, found)) {
-            return line_at(source, found);
-        }
-        ++found;
-    }
-    return 0;
 }
 
 static bool is_header_guard(const ScannedSource *source, int name_start, int end)

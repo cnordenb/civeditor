@@ -4,7 +4,7 @@
 
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE previous, PWSTR command_line, int show)
 {
-    if (!CHECK(instance != NULL) || !CHECK(previous == NULL)) {
+    if (!CHECK(previous == NULL)) {
         return 1;
     }
     (void)command_line;

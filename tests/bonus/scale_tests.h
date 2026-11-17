@@ -1,0 +1,25 @@
+#ifndef SCALE_TESTS_H
+#define SCALE_TESTS_H
+
+#include <stdbool.h>
+
+bool test_an_added_amount_taken_three_times_is_tripled(void);
+bool test_a_multiplied_attribute_taken_twice_is_squared(void);
+bool test_a_multiplied_resource_taken_twice_is_squared(void);
+bool test_a_tech_cost_multiplied_in_mode_two_taken_twice_is_squared(void);
+bool test_a_tech_time_multiplied_in_mode_two_taken_twice_is_squared(void);
+bool test_a_tech_cost_added_in_mode_one_is_kept(void);
+bool test_a_spawn_taken_twice_makes_twice_the_units(void);
+bool test_a_resource_taken_twice_is_doubled(void);
+bool test_the_spawn_limit_is_kept(void);
+bool test_the_effect_function_is_kept(void);
+bool test_a_set_attribute_is_kept(void);
+bool test_an_armor_added_past_255_is_split_in_two(void);
+bool test_an_armor_taken_away_keeps_its_sign(void);
+bool test_an_attack_multiplied_past_255_percent_is_split_in_two(void);
+bool test_a_multiplied_attack_halfway_is_rounded_to_even(void);
+bool test_a_multiplied_attack_past_a_half_is_rounded_up(void);
+bool test_a_multiplied_attack_below_a_half_is_rounded_down(void);
+bool test_an_armor_added_to_255_is_one_change(void);
+
+#endif

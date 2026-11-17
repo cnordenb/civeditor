@@ -14,17 +14,11 @@ static const char STAT_NAMES[UNIT_STAT_COUNT][STAT_NAME_WIDTH] = {
 
 static void add_number(DetailText *detail, long value)
 {
-    if (!CHECK(detail != NULL) || !CHECK(value > -HUNDRED * HUNDRED * HUNDRED)) {
-        return;
-    }
     (void)text_append_number(detail->text, sizeof detail->text, value);
 }
 
 static void add_hundredths(DetailText *detail, int value)
 {
-    if (!CHECK(detail != NULL) || !CHECK(value >= 0)) {
-        return;
-    }
     add_number(detail, value / HUNDRED);
     summary_add(detail, ".");
     add_number(detail, (value % HUNDRED) / TENTH);
@@ -35,9 +29,6 @@ static void add_cost(DetailText *detail, const int cost[RESOURCE_KIND_COUNT])
     int resource;
     bool first = true;
 
-    if (!CHECK(detail != NULL) || !CHECK(cost != NULL)) {
-        return;
-    }
     summary_add(detail, "Cost:");
     for (resource = 0; resource < RESOURCE_KIND_COUNT; ++resource) {
         if (cost[resource] > 0) {
@@ -55,7 +46,7 @@ static void add_unit(DetailText *detail, const CivDesign *design, const Catalog 
     int found;
     int stat;
 
-    if (!CHECK(design != NULL) || !CHECK(catalog != NULL) || (design->unique_unit.origin == UNIT_ORIGIN_NONE)) {
+    if (design->unique_unit.origin == UNIT_ORIGIN_NONE) {
         summary_add(detail, "No unit is selected yet.");
         return;
     }
@@ -81,7 +72,7 @@ static void add_unit(DetailText *detail, const CivDesign *design, const Catalog 
 
 static void add_tech(DetailText *detail, const Catalog *catalog, int found)
 {
-    if (!CHECK(detail != NULL) || !CHECK(catalog != NULL) || (found == CATALOG_MISSING)) {
+    if (found == CATALOG_MISSING) {
         summary_add(detail, "No tech is selected yet.");
         return;
     }
@@ -100,9 +91,6 @@ static void add_bonuses(DetailText *detail, const CivDesign *design, const Catal
     int pick;
     int found;
 
-    if (!CHECK(design != NULL) || !CHECK(catalog != NULL)) {
-        return;
-    }
     add_number(detail, design->bonus_count);
     summary_add(detail, " of 24 chosen.\r\n");
     for (pick = 0; (pick < design->bonus_count) && (pick < CIV_BONUS_CAPACITY); ++pick) {
@@ -117,9 +105,6 @@ static void add_team_bonus(DetailText *detail, const CivDesign *design, const Ca
 {
     int found = CATALOG_MISSING;
 
-    if (!CHECK(design != NULL) || !CHECK(catalog != NULL)) {
-        return;
-    }
     if (design->team_bonus_count > 0) {
         found = catalog_find_bonus(catalog, true, design->team_bonuses[0].id);
     }
@@ -131,9 +116,6 @@ static void add_picked_tech(DetailText *detail, const CivDesign *design, const C
 {
     TechTier tier = (control == CONTROL_CASTLE_TECH_INFO) ? TECH_TIER_CASTLE : TECH_TIER_IMPERIAL;
 
-    if (!CHECK(detail != NULL) || !CHECK(design != NULL) || !CHECK(catalog != NULL)) {
-        return;
-    }
     if ((control == CONTROL_CASTLE_TECH_INFO) || (control == CONTROL_IMPERIAL_TECH_INFO)) {
         add_tech(detail, catalog, catalog_find(catalog, CATALOG_TECHS, (int)tier, design->techs[tier].km_index));
     }
@@ -144,9 +126,6 @@ DetailText details_of(const CivDesign *design, const Catalog *catalog, ControlId
     DetailText detail;
 
     detail.text[0] = '\0';
-    if (!CHECK(design != NULL) || !CHECK(catalog != NULL)) {
-        return detail;
-    }
     switch ((int)control) {
     case CONTROL_TREE_INFO:
         summary_add_tree(&detail, design, " buildings and ", " techs are in the tree.");
@@ -189,9 +168,6 @@ DetailText details_window_title(const CivDesign *design, WizardStep step)
     const char *name;
 
     detail.text[0] = '\0';
-    if (!CHECK(design != NULL) || !CHECK(title.text[0] != '\0')) {
-        return detail;
-    }
     name = civ_design_text(design, TEXT_FIELD_NAME);
     summary_add(&detail, (name[0] != '\0') ? name : "A new civ");
     summary_add(&detail, " - ");

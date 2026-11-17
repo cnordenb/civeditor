@@ -1,67 +1,24 @@
 #include "check.h"
 
-#include <stddef.h>
-
-enum { DIGIT_CAPACITY = 12, DECIMAL_BASE = 10 };
+#include "text.h"
 
 static int failure_count;
 static char last_failure[CHECK_MESSAGE_CAPACITY];
 
-static size_t append_text(size_t used, const char *text)
+static bool append(const char *text)
 {
-    size_t index;
-
-    if (text == NULL) {
-        return used;
-    }
-    for (index = 0U; (index < CHECK_MESSAGE_CAPACITY) && (text[index] != '\0'); ++index) {
-        if (used + 1U >= (size_t)CHECK_MESSAGE_CAPACITY) {
-            break;
-        }
-        last_failure[used] = text[index];
-        ++used;
-    }
-    last_failure[used] = '\0';
-    return used;
-}
-
-static size_t append_line_number(size_t used, int line)
-{
-    char digits[DIGIT_CAPACITY];
-    int count = 0;
-    int remaining = (line < 0) ? 0 : line;
-    int index;
-
-    for (index = 0; index < DIGIT_CAPACITY - 1; ++index) {
-        digits[count] = (char)('0' + (remaining % DECIMAL_BASE));
-        ++count;
-        remaining /= DECIMAL_BASE;
-        if (remaining == 0) {
-            break;
-        }
-    }
-    for (index = count - 1; (index >= 0) && (index < DIGIT_CAPACITY); --index) {
-        char single[2] = { digits[index], '\0' };
-        used = append_text(used, single);
-    }
-    return used;
+    return text_append(last_failure, sizeof last_failure, text);
 }
 
 bool check_report(bool holds, const char *file, int line, const char *condition_text)
 {
-    size_t used = 0U;
-
     if (holds) {
         return true;
     }
-    if (failure_count < CHECK_MESSAGE_CAPACITY * CHECK_MESSAGE_CAPACITY) {
-        ++failure_count;
-    }
-    used = append_text(used, file);
-    used = append_text(used, ":");
-    used = append_line_number(used, line);
-    used = append_text(used, ": check failed: ");
-    (void)append_text(used, condition_text);
+    ++failure_count;
+    last_failure[0] = '\0';
+    (void)(append(file) && append(":") && text_append_number(last_failure, sizeof last_failure, line) &&
+           append(": check failed: ") && append(condition_text));
     return false;
 }
 
@@ -85,11 +42,7 @@ bool check_is_among(int value, const int *values, int count)
 {
     int index;
 
-    if (!CHECK(values != NULL) || !CHECK(count <= CHECK_AMONG_LIMIT) ||
-        !CHECK(count > 0)) {
-        return false;
-    }
-    for (index = 0; (index < count) && (index < CHECK_AMONG_LIMIT); ++index) {
+    for (index = 0; index < count; ++index) {
         if (values[index] == value) {
             return true;
         }

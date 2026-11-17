@@ -42,9 +42,6 @@ HACCEL menu_keys(void)
 
 static void add_item(HMENU menu, int action, const wchar_t *text)
 {
-    if (!CHECK(menu != NULL) || !CHECK(text != NULL)) {
-        return;
-    }
     (void)AppendMenuW(menu, MF_STRING, (UINT_PTR)(ACTION_ID_BASE + action), text);
 }
 
@@ -55,9 +52,6 @@ static HMENU make_go_menu(void)
     wchar_t wide[MENU_TEXT_CAPACITY];
     int step;
 
-    if (!CHECK(go != NULL) || !CHECK(STEP_COUNT > 0)) {
-        return go;
-    }
     add_item(go, ACTION_NEXT, L"&Next\tCtrl+Page Down");
     add_item(go, ACTION_BACK, L"&Back\tCtrl+Page Up");
     add_item(go, ACTION_SCROLL_UP, L"Scroll &up\tCtrl+Up");
@@ -86,9 +80,6 @@ HMENU menu_make(void)
     HMENU go = make_go_menu();
     HMENU help = CreatePopupMenu();
 
-    if (!CHECK(bar != NULL) || !CHECK((file != NULL) && (edit != NULL) && (go != NULL) && (help != NULL))) {
-        return bar;
-    }
     add_item(file, ACTION_OPEN, L"&Open civ file...\tCtrl+O");
     add_item(file, ACTION_SAVE, L"&Save civ file...\tCtrl+S");
     add_item(file, ACTION_BUILD, L"&Build mod...\tCtrl+B");

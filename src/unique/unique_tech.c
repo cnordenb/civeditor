@@ -1,6 +1,5 @@
 #include "../forge/recipe_parts.h"
 
-#include "../core/check.h"
 #include "../mod/mod_strings.h"
 
 enum { CASTLE_BUILDING = 82, DEFAULT_TECH_TIME = 60, PAID = 1, KEPT_CAPACITY = 512, UNIQUE_PASSES = 2, SWAP_PASS = 1 };
@@ -20,10 +19,7 @@ static bool already_kept(const DatChange *change, int kept_count)
 {
     int index;
 
-    if (!CHECK(change != NULL) || !CHECK(kept_count <= KEPT_CAPACITY)) {
-        return false;
-    }
-    for (index = 0; (index < kept_count) && (index < KEPT_CAPACITY); ++index) {
+    for (index = 0; index < kept_count; ++index) {
         if (unique_same_target(&kept[index], change)) {
             return true;
         }
@@ -33,9 +29,6 @@ static bool already_kept(const DatChange *change, int kept_count)
 
 static bool add_unique_change(DatEdit *edit, const DatChange *change, int *kept_count)
 {
-    if (!CHECK(change != NULL) || !CHECK(kept_count != NULL)) {
-        return false;
-    }
     if (*kept_count < KEPT_CAPACITY) {
         kept[*kept_count] = *change;
         ++*kept_count;
@@ -45,9 +38,6 @@ static bool add_unique_change(DatEdit *edit, const DatChange *change, int *kept_
 
 static bool wanted_in_pass(const UniquePass *pass, UniqueAim aim, const DatChange *change)
 {
-    if (!CHECK(pass != NULL) || !CHECK(change != NULL)) {
-        return false;
-    }
     if (pass->number != SWAP_PASS) {
         return aim == UNIQUE_KEEP;
     }
@@ -62,10 +52,6 @@ static bool copy_unique_pass(const RecipeInput *input, DatEdit *edit, UniquePass
     int index;
     bool fine = true;
 
-    if (!CHECK(input != NULL) || !CHECK(pass != NULL) ||
-        !CHECK(pass->copy != NULL)) {
-        return false;
-    }
     copy = pass->copy;
     for (index = 0; fine && (index < pass->effect.change_count) && (index < RECIPE_CHANGE_LIMIT); ++index) {
         found = recipe_change_at(input, &pass->effect, index);
@@ -85,7 +71,7 @@ static int copy_unique_effect(const RecipeInput *input, DatEdit *edit, const Rec
     int added;
     bool fine = true;
 
-    if (!CHECK(input != NULL) || !CHECK(copy != NULL) || !recipe_read_effect(input, copy->effect_id, &pass.effect)) {
+    if (!recipe_read_effect(input, copy->effect_id, &pass.effect)) {
         return DAT_NO_ID;
     }
     pass.copy = copy;
@@ -102,9 +88,6 @@ static bool any_cost(const TechPick *pick)
     bool chosen = false;
     int resource;
 
-    if (!CHECK(pick != NULL) || !CHECK(RESOURCE_KIND_COUNT > 0)) {
-        return false;
-    }
     for (resource = 0; resource < RESOURCE_KIND_COUNT; ++resource) {
         chosen = chosen || (pick->cost[resource] > 0);
     }
@@ -115,9 +98,6 @@ static void clear_costs(DatTech *tech)
 {
     int slot;
 
-    if (!CHECK(tech != NULL) || !CHECK(DAT_TECH_COST_SLOTS > 0)) {
-        return;
-    }
     for (slot = 0; slot < DAT_TECH_COST_SLOTS; ++slot) {
         tech->costs[slot].type = DAT_NO_ID;
         tech->costs[slot].amount = 0;
@@ -131,9 +111,6 @@ static void set_costs(DatTech *tech, const TechPick *pick, const TechEntry *entr
     int resource;
     int slot = 0;
 
-    if (!CHECK(tech != NULL) || !CHECK(pick != NULL) || !CHECK(entry != NULL)) {
-        return;
-    }
     costs = any_cost(pick) ? pick->cost : entry->cost;
     clear_costs(tech);
     for (resource = 0; (resource < RESOURCE_KIND_COUNT) && (slot < DAT_TECH_COST_SLOTS); ++resource) {
@@ -150,9 +127,6 @@ static void place_in_castle(DatTech *tech, TechTier tier, int time)
 {
     long hot_key;
 
-    if (!CHECK(tech != NULL) || !CHECK((tier == TECH_TIER_CASTLE) || (tier == TECH_TIER_IMPERIAL))) {
-        return;
-    }
     hot_key = (tech->research_location_count > 0) ? tech->research_locations[0].hot_key_id : 0L;
     tech->research_location_count = 1;
     tech->research_locations[0].location_id = CASTLE_BUILDING;
@@ -165,9 +139,6 @@ static void name_unique_tech(const RecipeInput *input, TechTier tier, DatTech *t
 {
     int sid;
 
-    if (!CHECK(input != NULL) || !CHECK(tech != NULL)) {
-        return;
-    }
     sid = catalog_string_id(input->catalog, input->slot, (CivString)tier);
     if (sid == CATALOG_MISSING) {
         return;
@@ -180,9 +151,6 @@ static void name_unique_tech(const RecipeInput *input, TechTier tier, DatTech *t
 
 static int research_time(const TechPick *pick, const TechEntry *entry)
 {
-    if (!CHECK(pick != NULL) || !CHECK(entry != NULL)) {
-        return DEFAULT_TECH_TIME;
-    }
     if (pick->time > 0) {
         return pick->time;
     }
@@ -197,9 +165,6 @@ static bool shape_unique_tech(const RecipeInput *input, TechTier tier, DatTech *
     int found;
     int slot;
 
-    if (!CHECK(input != NULL) || !CHECK(tech != NULL)) {
-        return false;
-    }
     design = input->design;
     catalog = input->catalog;
     found = catalog_find(catalog, CATALOG_TECHS, (int)tier, design->techs[tier].km_index);
@@ -227,9 +192,6 @@ bool recipe_add_unique_tech(const RecipeInput *input, DatEdit *edit, RecipeRepor
     RecipeUniqueCopy copy;
     DatTech tech;
 
-    if (!CHECK(input != NULL) || !CHECK(edit != NULL) || !CHECK(report != NULL)) {
-        return false;
-    }
     if (!shape_unique_tech(input, tier, &tech)) {
         ++report->unique_techs_skipped;
         return true;

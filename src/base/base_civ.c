@@ -8,9 +8,6 @@ static CivDesign fresh;
 
 static bool item_belongs(const TreeEntry *entry, int base_id)
 {
-    if (!CHECK(entry != NULL) || !CHECK((base_id >= 0) && (base_id < TSV_BIT_LIMIT))) {
-        return false;
-    }
     if (base_id == CIV_GENERIC_BASE) {
         return entry->universal;
     }
@@ -22,10 +19,7 @@ static void set_tree(CivDesign *design, const Catalog *catalog, int base_id)
     const TreeEntry *entry;
     int index;
 
-    if (!CHECK(design != NULL) || !CHECK(catalog->tree_count <= CATALOG_TREE_CAPACITY)) {
-        return;
-    }
-    for (index = 0; (index < catalog->tree_count) && (index < CATALOG_TREE_CAPACITY); ++index) {
+    for (index = 0; index < catalog->tree_count; ++index) {
         entry = &catalog->tree[index];
         if (item_belongs(entry, base_id)) {
             (void)civ_design_toggle_tree(design, entry->kind, entry->id);
@@ -37,10 +31,7 @@ static void set_bonuses(CivDesign *design, const BaseCiv *base)
 {
     int index;
 
-    if (!CHECK(design != NULL) || !CHECK(base->bonuses.count <= TSV_LIST_LIMIT)) {
-        return;
-    }
-    for (index = 0; (index < base->bonuses.count) && (index < TSV_LIST_LIMIT); ++index) {
+    for (index = 0; index < base->bonuses.count; ++index) {
         (void)civ_design_toggle_bonus(design, base->bonuses.values[index]);
     }
     if (base->values[BASE_TEAM_BONUS] >= 0) {
@@ -50,9 +41,6 @@ static void set_bonuses(CivDesign *design, const BaseCiv *base)
 
 static void set_looks(CivDesign *design, const BaseCiv *base)
 {
-    if (!CHECK(design != NULL) || !CHECK(base != NULL)) {
-        return;
-    }
     (void)civ_design_set_choice(design, CHOICE_LANGUAGE, base->id);
     (void)civ_design_set_choice(design, CHOICE_WONDER, base->id);
     (void)civ_design_set_choice(design, CHOICE_CASTLE, base->id);
@@ -64,9 +52,6 @@ static void set_looks(CivDesign *design, const BaseCiv *base)
 
 static void set_uniques(CivDesign *design, const BaseCiv *base)
 {
-    if (!CHECK(design != NULL) || !CHECK(base != NULL)) {
-        return;
-    }
     if (base->values[BASE_UNIT] >= 0) {
         (void)civ_design_pick_unit(design, UNIT_ORIGIN_VANILLA, base->values[BASE_UNIT]);
     }
@@ -78,11 +63,8 @@ bool base_civ_apply(CivDesign *design, const Catalog *catalog, int base_id)
 {
     int found;
 
-    if (!CHECK(design != NULL) || !CHECK(catalog != NULL)) {
-        return false;
-    }
     found = catalog_find_base(catalog, base_id);
-    if ((found == CATALOG_MISSING) || !CHECK(found < CATALOG_BASE_CAPACITY)) {
+    if (found == CATALOG_MISSING) {
         return false;
     }
     civ_design_reset(&fresh);

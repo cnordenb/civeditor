@@ -9,9 +9,11 @@ enum {
     RECORD_LIMIT = 4096,
     NAME_WIDTH = 16,
     FILE_NAME_WIDTH = 24,
-    CHANGE_KIND_COUNT = 3,
+    CHANGE_KIND_COUNT = 7,
     TEAM_KIND = 1,
-    UNIT_KIND = 2,
+    REQUIRE_KIND = 3,
+    LOOK_KIND = 6,
+    ID_FIELD_COUNT = 3,
     FIELD_TYPE_FIELD = 4,
     PATCH_VALUE_FIELD = 5,
     FIRST_STRING_FIELD = 3,
@@ -49,7 +51,8 @@ static const char APPEARANCE_NAMES[APPEARANCE_KIND_COUNT][NAME_WIDTH] = {
 static const char TREE_NAMES[TREE_KIND_COUNT][NAME_WIDTH] = { "unit", "building", "tech" };
 static const char REGION_NAMES[1][NAME_WIDTH] = { "universal" };
 static const char STATUS_NAMES[1][NAME_WIDTH] = { "required" };
-static const char CHANGE_KINDS[CHANGE_KIND_COUNT][NAME_WIDTH] = { "civ", "team", "unit" };
+static const char CHANGE_KINDS[CHANGE_KIND_COUNT][NAME_WIDTH] = { "civ", "team", "unit", "require",
+                                                                  "train", "cost", "look" };
 static const char FIELD_TYPES[UNIT_FIELD_TYPE_COUNT][NAME_WIDTH] = { "u8", "i16", "f32" };
 
 static TsvFile source;
@@ -59,9 +62,6 @@ static int name_index(const char names[][NAME_WIDTH], int count, const char *wan
 {
     int index;
 
-    if (!CHECK(names != NULL) || !CHECK(wanted != NULL)) {
-        return CATALOG_MISSING;
-    }
     for (index = 0; (index < count) && (index < BONUS_CATEGORY_COUNT); ++index) {
         if (text_equal(names[index], wanted)) {
             return index;
@@ -74,7 +74,7 @@ static int field_index(int field, const char names[][NAME_WIDTH], int count)
 {
     char kind[KIND_CAPACITY] = "";
 
-    if (!CHECK(field >= 0) || !CHECK(names != NULL) || !tsv_text(&record, field, kind, sizeof kind)) {
+    if (!tsv_text(&record, field, kind, sizeof kind)) {
         return CATALOG_MISSING;
     }
     return name_index(names, count, kind);
@@ -85,8 +85,7 @@ static bool add_base(Catalog *catalog)
     BaseCiv base;
     int value;
 
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->base_count <= CATALOG_BASE_CAPACITY) ||
-        (catalog->base_count >= CATALOG_BASE_CAPACITY)) {
+    if (catalog->base_count >= CATALOG_BASE_CAPACITY) {
         return false;
     }
     base.id = tsv_number(&record, 1);
@@ -96,7 +95,7 @@ static bool add_base(Catalog *catalog)
     }
     catalog->bases[catalog->base_count] = base;
     ++catalog->base_count;
-    return CHECK(base.id != TSV_MISSING);
+    return (base.id >= 0) && (base.id < TSV_BIT_LIMIT);
 }
 
 static void read_looks(AppearanceEntry *entry)
@@ -104,9 +103,6 @@ static void read_looks(AppearanceEntry *entry)
     int string;
     int unit;
 
-    if (!CHECK(entry != NULL) || !CHECK(entry->kind < APPEARANCE_KIND_COUNT)) {
-        return;
-    }
     for (string = 0; string < CIV_STRING_COUNT; ++string) {
         entry->string_ids[string] = tsv_number(&record, FIRST_STRING_FIELD + string);
     }
@@ -122,8 +118,7 @@ static bool add_appearance(Catalog *catalog)
     AppearanceEntry entry;
     int kind = field_index(0, APPEARANCE_NAMES, APPEARANCE_KIND_COUNT);
 
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->appearance_count <= CATALOG_APPEARANCE_CAPACITY) ||
-        (kind == CATALOG_MISSING) || (catalog->appearance_count >= CATALOG_APPEARANCE_CAPACITY)) {
+    if ((kind == CATALOG_MISSING) || (catalog->appearance_count >= CATALOG_APPEARANCE_CAPACITY)) {
         return false;
     }
     entry.kind = (AppearanceKind)kind;
@@ -142,7 +137,7 @@ static bool read_bonus(BonusEntry *entry, bool team)
     int category = team ? (int)BONUS_GENERAL : field_index(1, CATEGORY_NAMES, BONUS_CATEGORY_COUNT);
     int text_field = team ? 1 : 3;
 
-    if (!CHECK(entry != NULL) || (category == CATALOG_MISSING)) {
+    if (category == CATALOG_MISSING) {
         return false;
     }
     entry->id = tsv_number(&record, 0);
@@ -158,9 +153,6 @@ static bool read_bonus(BonusEntry *entry, bool team)
 
 static bool add_bonus(Catalog *catalog, bool team)
 {
-    if (!CHECK(catalog != NULL) || !CHECK(catalog->bonus_count <= CATALOG_BONUS_CAPACITY)) {
-        return false;
-    }
     if (team) {
         if (catalog->team_bonus_count >= CATALOG_TEAM_BONUS_CAPACITY) {
             return false;
@@ -183,13 +175,12 @@ static UnitRole role_of(char letter)
     return (letter == 'H') ? UNIT_ROLE_HERO : UNIT_ROLE_VANILLA;
 }
 
+_Static_assert(UNIT_STAT_SPEED < UNIT_STAT_COUNT, "the speed is among the stats of a unit");
+
 static void read_stats(UnitEntry *entry)
 {
     int stat;
 
-    if (!CHECK(entry != NULL) || !CHECK(UNIT_STAT_SPEED < UNIT_STAT_COUNT)) {
-        return;
-    }
     for (stat = 0; stat < UNIT_STAT_COUNT; ++stat) {
         entry->stats[stat] = (stat >= (int)UNIT_STAT_SPEED) ? tsv_hundredths(&record, 3 + stat)
                                                              : tsv_number(&record, 3 + stat);
@@ -201,8 +192,7 @@ static bool add_unit(Catalog *catalog)
     UnitEntry entry;
     char role[KIND_CAPACITY] = "";
 
-    if (!CHECK(catalog != NULL) || (catalog->unit_count >= CATALOG_UNIT_CAPACITY) ||
-        !tsv_text(&record, 0, role, sizeof role)) {
+    if ((catalog->unit_count >= CATALOG_UNIT_CAPACITY) || !tsv_text(&record, 0, role, sizeof role)) {
         return false;
     }
     entry.role = role_of(role[0]);
@@ -218,25 +208,30 @@ static bool add_unit(Catalog *catalog)
     return true;
 }
 
-static bool add_tech(Catalog *catalog)
+static bool read_tech(TechEntry *entry)
 {
-    TechEntry entry;
     char tier[KIND_CAPACITY] = "";
     int resource;
 
-    if (!CHECK(catalog != NULL) || (catalog->tech_count >= CATALOG_TECH_CAPACITY) ||
-        !tsv_text(&record, 0, tier, sizeof tier)) {
+    if (!tsv_text(&record, 0, tier, sizeof tier)) {
         return false;
     }
-    entry.tier = text_equal(tier, "imperial") ? TECH_TIER_IMPERIAL : TECH_TIER_CASTLE;
-    entry.id = tsv_number(&record, 1);
+    entry->tier = text_equal(tier, "imperial") ? TECH_TIER_IMPERIAL : TECH_TIER_CASTLE;
+    entry->id = tsv_number(&record, 1);
     for (resource = 0; resource < RESOURCE_KIND_COUNT; ++resource) {
-        entry.cost[resource] = tsv_number(&record, 4 + resource);
+        entry->cost[resource] = tsv_number(&record, 4 + resource);
     }
-    entry.time = tsv_number(&record, 8);
-    entry.effects = tsv_number_list(&record, 9);
-    if (!CHECK(entry.id != TSV_MISSING) || !tsv_text(&record, 2, entry.name, sizeof entry.name) ||
-        !tsv_text(&record, 3, entry.description, sizeof entry.description)) {
+    entry->time = tsv_number(&record, 8);
+    entry->effects = tsv_number_list(&record, 9);
+    return CHECK(entry->id >= 0) && tsv_text(&record, 2, entry->name, sizeof entry->name) &&
+           tsv_text(&record, 3, entry->description, sizeof entry->description);
+}
+
+static bool add_tech(Catalog *catalog)
+{
+    TechEntry entry;
+
+    if ((catalog->tech_count >= CATALOG_TECH_CAPACITY) || !read_tech(&entry)) {
         return false;
     }
     catalog->techs[catalog->tech_count] = entry;
@@ -249,7 +244,7 @@ static bool add_tree_node(Catalog *catalog)
     TreeEntry entry;
     int kind = field_index(0, TREE_NAMES, TREE_KIND_COUNT);
 
-    if (!CHECK(catalog != NULL) || (kind == CATALOG_MISSING) || (catalog->tree_count >= CATALOG_TREE_CAPACITY)) {
+    if ((kind == CATALOG_MISSING) || (catalog->tree_count >= CATALOG_TREE_CAPACITY)) {
         return false;
     }
     entry.kind = (TreeKind)kind;
@@ -269,41 +264,56 @@ static bool add_tree_node(Catalog *catalog)
     return true;
 }
 
-static bool add_unit_patch(Catalog *catalog)
+static bool read_unit_patch(UnitPatch *patch, int type, UnitPart part)
 {
-    int type = field_index(FIELD_TYPE_FIELD, FIELD_TYPES, UNIT_FIELD_TYPE_COUNT);
-    UnitPatch *patch;
-
-    if (!CHECK(catalog != NULL) || (type == CATALOG_MISSING) ||
-        !CHECK(catalog->unit_patch_count < CATALOG_UNIT_PATCH_CAPACITY)) {
-        return false;
-    }
-    patch = &catalog->unit_patches[catalog->unit_patch_count];
+    patch->part = part;
     patch->bonus_id = tsv_number(&record, 1);
     patch->unit = tsv_number(&record, 2);
     patch->offset = tsv_number(&record, 3);
     patch->type = (UnitFieldType)type;
-    if (!tsv_decimal(&record, PATCH_VALUE_FIELD, &patch->value) || !CHECK(patch->bonus_id != TSV_MISSING) ||
-        (patch->unit < 0) || (patch->offset < 0)) {
+    return tsv_decimal(&record, PATCH_VALUE_FIELD, &patch->value) && CHECK(patch->bonus_id != TSV_MISSING) &&
+           (patch->unit >= 0) && (patch->offset >= 0);
+}
+
+static bool add_unit_patch(Catalog *catalog, UnitPart part)
+{
+    int type = field_index(FIELD_TYPE_FIELD, FIELD_TYPES, UNIT_FIELD_TYPE_COUNT);
+
+    if ((type == CATALOG_MISSING) || !CHECK(catalog->unit_patch_count < CATALOG_UNIT_PATCH_CAPACITY) ||
+        !read_unit_patch(&catalog->unit_patches[catalog->unit_patch_count], type, part)) {
         return false;
     }
     ++catalog->unit_patch_count;
     return true;
 }
 
-static bool add_bonus_change(Catalog *catalog)
+static bool read_ids(int ids[ID_FIELD_COUNT])
 {
-    int kind = field_index(0, CHANGE_KINDS, CHANGE_KIND_COUNT);
-    BonusChange *entry;
+    ids[0] = tsv_number(&record, 1);
+    ids[1] = tsv_number(&record, 2);
+    ids[2] = tsv_number(&record, ID_FIELD_COUNT);
+    return CHECK(ids[0] != TSV_MISSING) && (ids[1] >= 0) && (ids[2] >= 0);
+}
 
-    if (kind == UNIT_KIND) {
-        return add_unit_patch(catalog);
-    }
-    if (!CHECK(catalog != NULL) || (kind == CATALOG_MISSING) ||
-        !CHECK(catalog->bonus_change_count < CATALOG_BONUS_CHANGE_CAPACITY)) {
+static bool add_id_line(Catalog *catalog, bool look)
+{
+    int ids[ID_FIELD_COUNT];
+    int *count = look ? &catalog->unit_look_count : &catalog->requirement_count;
+
+    if (!read_ids(ids) || !CHECK(*count < (look ? CATALOG_UNIT_LOOK_CAPACITY : CATALOG_REQUIREMENT_CAPACITY))) {
         return false;
     }
-    entry = &catalog->bonus_changes[catalog->bonus_change_count];
+    if (look) {
+        catalog->unit_looks[*count] = (UnitLook){ ids[0], ids[1], ids[2] };
+    } else {
+        catalog->requirements[*count] = (BonusRequirement){ ids[0], ids[1], ids[2] };
+    }
+    ++*count;
+    return true;
+}
+
+static bool read_bonus_change(BonusChange *entry, int kind)
+{
     entry->team = (kind == TEAM_KIND);
     entry->bonus_id = tsv_number(&record, 1);
     entry->entry = tsv_number(&record, 2);
@@ -312,8 +322,32 @@ static bool add_bonus_change(Catalog *catalog)
     entry->a = tsv_number(&record, 5);
     entry->b = tsv_number(&record, 6);
     entry->c = tsv_number(&record, 7);
-    if (!tsv_decimal(&record, 8, &entry->d) || !CHECK(entry->bonus_id != TSV_MISSING) ||
-        (entry->entry == TSV_MISSING) || (entry->type == TSV_MISSING)) {
+    return tsv_decimal(&record, 8, &entry->d) && CHECK(entry->bonus_id != TSV_MISSING) &&
+           (entry->entry != TSV_MISSING) && (entry->type >= 0);
+}
+
+static UnitPart part_of(int kind)
+{
+    static const UnitPart PARTS[CHANGE_KIND_COUNT] = { UNIT_PART_COUNT, UNIT_PART_COUNT, UNIT_PART_START,
+                                                       UNIT_PART_COUNT, UNIT_PART_TRAIN_LOCATION, UNIT_PART_COSTS,
+                                                       UNIT_PART_COUNT };
+
+    return (kind == CATALOG_MISSING) ? UNIT_PART_COUNT : PARTS[kind];
+}
+
+static bool add_bonus_change(Catalog *catalog)
+{
+    int kind = field_index(0, CHANGE_KINDS, CHANGE_KIND_COUNT);
+    UnitPart part = part_of(kind);
+
+    if (part != UNIT_PART_COUNT) {
+        return add_unit_patch(catalog, part);
+    }
+    if ((kind == REQUIRE_KIND) || (kind == LOOK_KIND)) {
+        return add_id_line(catalog, kind == LOOK_KIND);
+    }
+    if ((kind == CATALOG_MISSING) || !CHECK(catalog->bonus_change_count < CATALOG_BONUS_CHANGE_CAPACITY) ||
+        !read_bonus_change(&catalog->bonus_changes[catalog->bonus_change_count], kind)) {
         return false;
     }
     ++catalog->bonus_change_count;
@@ -322,9 +356,6 @@ static bool add_bonus_change(Catalog *catalog)
 
 static bool add_choice_record(Catalog *catalog, CatalogFile file)
 {
-    if (!CHECK(catalog != NULL) || !CHECK(file < CATALOG_FILE_COUNT)) {
-        return false;
-    }
     switch ((int)file) {
     case CATALOG_FILE_APPEARANCE:
         return add_appearance(catalog);
@@ -337,9 +368,6 @@ static bool add_choice_record(Catalog *catalog, CatalogFile file)
 
 static bool add_record(Catalog *catalog, CatalogFile file)
 {
-    if (!CHECK(catalog != NULL) || !CHECK(file < CATALOG_FILE_COUNT)) {
-        return false;
-    }
     switch ((int)file) {
     case CATALOG_FILE_UNITS:
         return add_unit(catalog);
@@ -359,8 +387,7 @@ static bool load_file(Catalog *catalog, const wchar_t *folder, CatalogFile file)
     wchar_t path[FILE_PATH_CAPACITY];
     int step;
 
-    if (!CHECK(catalog != NULL) || !file_join_path(path, FILE_PATH_CAPACITY, folder, FILE_NAMES[file]) ||
-        !tsv_open(&source, path)) {
+    if (!file_join_path(path, FILE_PATH_CAPACITY, folder, FILE_NAMES[file]) || !tsv_open(&source, path)) {
         return false;
     }
     for (step = 0; (step < RECORD_LIMIT) && tsv_next(&source, &record); ++step) {
@@ -375,9 +402,6 @@ bool catalog_load(Catalog *catalog, const wchar_t *folder)
 {
     int file;
 
-    if (!CHECK(catalog != NULL) || !CHECK(folder != NULL)) {
-        return false;
-    }
     catalog->appearance_count = 0;
     catalog->bonus_count = 0;
     catalog->team_bonus_count = 0;
@@ -387,6 +411,8 @@ bool catalog_load(Catalog *catalog, const wchar_t *folder)
     catalog->base_count = 0;
     catalog->bonus_change_count = 0;
     catalog->unit_patch_count = 0;
+    catalog->requirement_count = 0;
+    catalog->unit_look_count = 0;
     for (file = 0; file < (int)CATALOG_FILE_COUNT; ++file) {
         if (!load_file(catalog, folder, (CatalogFile)file)) {
             return false;

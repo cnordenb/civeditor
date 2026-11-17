@@ -9,7 +9,7 @@ static const char HEX[HEX_DIGITS + 1] = "0123456789abcdef";
 
 static void put_char(JsonWriter *writer, char letter)
 {
-    if (!CHECK(writer != NULL) || writer->failed) {
+    if (writer->failed) {
         return;
     }
     if (!CHECK(writer->length + 1U < (size_t)JSON_OUTPUT_CAPACITY)) {
@@ -23,9 +23,6 @@ static void put_char(JsonWriter *writer, char letter)
 
 static void put_escape(JsonWriter *writer, char letter)
 {
-    if (!CHECK(writer != NULL) || !CHECK(letter != '\0')) {
-        return;
-    }
     put_char(writer, '\\');
     put_char(writer, letter);
 }
@@ -34,9 +31,6 @@ static void put_escaped_char(JsonWriter *writer, char letter)
 {
     unsigned int code = (unsigned int)(unsigned char)letter;
 
-    if (!CHECK(writer != NULL) || !CHECK(code < 256U)) {
-        return;
-    }
     if ((letter == '"') || (letter == '\\')) {
         put_escape(writer, letter);
     } else if (letter == '\n') {
@@ -58,9 +52,6 @@ static void put_letters(JsonWriter *writer, const char *text, bool escaped)
 {
     size_t index;
 
-    if (!CHECK(writer != NULL) || !CHECK(text != NULL)) {
-        return;
-    }
     for (index = 0U; (index < (size_t)TEXT_SCAN_LIMIT) && (text[index] != '\0'); ++index) {
         if (escaped) {
             put_escaped_char(writer, text[index]);
@@ -72,9 +63,6 @@ static void put_letters(JsonWriter *writer, const char *text, bool escaped)
 
 static void put_string(JsonWriter *writer, const char *value)
 {
-    if (!CHECK(writer != NULL) || !CHECK(value != NULL)) {
-        return;
-    }
     put_char(writer, '"');
     put_letters(writer, value, true);
     put_char(writer, '"');
@@ -84,24 +72,14 @@ static void put_indent(JsonWriter *writer)
 {
     int column;
 
-    if (!CHECK(writer != NULL) || !CHECK(writer->depth <= JSON_WRITER_DEPTH)) {
-        return;
-    }
     put_char(writer, '\n');
-    for (column = 0; (column < writer->depth * INDENT_WIDTH) && (column < JSON_WRITER_DEPTH * INDENT_WIDTH);
-         ++column) {
+    for (column = 0; column < writer->depth * INDENT_WIDTH; ++column) {
         put_char(writer, ' ');
     }
 }
 
 static void start_item(JsonWriter *writer, const char *key)
 {
-    if (!CHECK(writer != NULL) || !CHECK((writer->depth > 0) && (writer->depth <= JSON_WRITER_DEPTH))) {
-        if (writer != NULL) {
-            writer->failed = true;
-        }
-        return;
-    }
     if (writer->has_items[writer->depth - 1]) {
         put_char(writer, ',');
     }
@@ -115,29 +93,16 @@ static void start_item(JsonWriter *writer, const char *key)
 
 void json_begin(JsonWriter *writer, const char *key, char bracket)
 {
-    if (!CHECK(writer != NULL) || !CHECK((bracket == '{') || (bracket == '['))) {
-        return;
-    }
     if (writer->depth > 0) {
         start_item(writer, key);
     }
     put_char(writer, bracket);
-    if (!CHECK(writer->depth < JSON_WRITER_DEPTH)) {
-        writer->failed = true;
-        return;
-    }
     writer->has_items[writer->depth] = false;
     ++writer->depth;
 }
 
 void json_end(JsonWriter *writer, char bracket)
 {
-    if (!CHECK(writer != NULL) || !CHECK(writer->depth > 0)) {
-        if (writer != NULL) {
-            writer->failed = true;
-        }
-        return;
-    }
     --writer->depth;
     if (writer->has_items[writer->depth]) {
         put_indent(writer);
@@ -147,9 +112,6 @@ void json_end(JsonWriter *writer, char bracket)
 
 void json_writer_start(JsonWriter *writer)
 {
-    if (!CHECK(writer != NULL) || !CHECK(JSON_OUTPUT_CAPACITY > 0)) {
-        return;
-    }
     writer->length = 0U;
     writer->depth = 0;
     writer->failed = false;
@@ -158,9 +120,6 @@ void json_writer_start(JsonWriter *writer)
 
 void json_write_string(JsonWriter *writer, const char *key, const char *value)
 {
-    if (!CHECK(writer != NULL) || !CHECK(value != NULL)) {
-        return;
-    }
     start_item(writer, key);
     put_string(writer, value);
 }
@@ -169,35 +128,24 @@ void json_write_number(JsonWriter *writer, const char *key, long value)
 {
     char digits[TEXT_NUMBER_CAPACITY] = "";
 
-    if (!CHECK(writer != NULL) || !CHECK(writer->depth > 0) || !text_append_number(digits, sizeof digits, value)) {
-        return;
-    }
+    (void)text_append_number(digits, sizeof digits, value);
     start_item(writer, key);
     put_letters(writer, digits, false);
 }
 
 void json_write_bool(JsonWriter *writer, const char *key, bool value)
 {
-    if (!CHECK(writer != NULL) || !CHECK(writer->depth > 0)) {
-        return;
-    }
     start_item(writer, key);
     put_letters(writer, value ? "true" : "false", false);
 }
 
 void json_write_null(JsonWriter *writer, const char *key)
 {
-    if (!CHECK(writer != NULL) || !CHECK(writer->depth > 0)) {
-        return;
-    }
     start_item(writer, key);
     put_letters(writer, "null", false);
 }
 
 bool json_writer_succeeded(const JsonWriter *writer)
 {
-    if (!CHECK(writer != NULL) || !CHECK(writer->length < (size_t)JSON_OUTPUT_CAPACITY)) {
-        return false;
-    }
     return !writer->failed && (writer->depth == 0);
 }

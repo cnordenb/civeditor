@@ -8,7 +8,6 @@
 enum {
     GOTO_LINE = 5,
     MALLOC_LINE = 12,
-    WHILE_LINE = 17,
     DEFINE_LINE = 23,
     DEEP_LINE = 27,
     POINTER_LINE = 30,
@@ -35,11 +34,6 @@ bool test_the_rule_against_goto_names_the_line_of_a_goto(void)
 bool test_the_rule_against_allocation_names_the_line_of_a_malloc(void)
 {
     return pattern_allocation_line(broken()) == MALLOC_LINE;
-}
-
-bool test_the_rule_of_bounded_loops_names_a_loop_without_a_fixed_bound(void)
-{
-    return pattern_unbounded_loop_line(broken()) == WHILE_LINE;
 }
 
 bool test_the_rule_of_the_preprocessor_names_a_macro_with_arguments(void)

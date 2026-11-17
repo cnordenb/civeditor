@@ -14,9 +14,6 @@ const char *mod_unit_name(const ModCiv *civ)
     UnitRole role;
     int found;
 
-    if (!CHECK(civ != NULL) || !CHECK(civ->design != NULL)) {
-        return "";
-    }
     design = civ->design;
     catalog = civ->catalog;
     if (design->texts[TEXT_FIELD_UNIT_NAME][0] != '\0') {
@@ -32,9 +29,6 @@ bool mod_unit_has_own_texts(const CivDesign *design)
     bool named;
     bool described;
 
-    if (!CHECK(design != NULL) || !CHECK(design->unique_unit.origin <= UNIT_ORIGIN_CUSTOM)) {
-        return false;
-    }
     named = design->texts[TEXT_FIELD_UNIT_NAME][0] != '\0';
     described = design->texts[TEXT_FIELD_UNIT_DESCRIPTION][0] != '\0';
     return (design->unique_unit.origin == UNIT_ORIGIN_VANILLA) && (named || described);
@@ -46,7 +40,7 @@ const char *mod_tech_text(const ModCiv *civ, TechTier tier, bool want_name)
     const Catalog *catalog;
     int found;
 
-    if (!CHECK(civ != NULL) || !CHECK((tier == TECH_TIER_CASTLE) || (tier == TECH_TIER_IMPERIAL))) {
+    if (!CHECK((tier == TECH_TIER_CASTLE) || (tier == TECH_TIER_IMPERIAL))) {
         return "";
     }
     design = civ->design;
@@ -67,9 +61,6 @@ static const char *bonus_text(const ModCiv *civ, int pick)
     const Catalog *catalog;
     int found;
 
-    if (!CHECK(civ != NULL) || !CHECK((pick >= 0) && (pick < CIV_BONUS_CAPACITY))) {
-        return "";
-    }
     design = civ->design;
     catalog = civ->catalog;
     found = catalog_find_bonus(catalog, false, design->bonuses[pick].id);
@@ -82,9 +73,6 @@ static const char *team_text(const ModCiv *civ)
     const Catalog *catalog;
     int found;
 
-    if (!CHECK(civ != NULL) || !CHECK(civ->design != NULL)) {
-        return "";
-    }
     design = civ->design;
     catalog = civ->catalog;
     if (design->team_bonus_count == 0) {
@@ -96,9 +84,6 @@ static const char *team_text(const ModCiv *civ)
 
 static const char *head_text(const CivDesign *design)
 {
-    if (!CHECK(design != NULL) || !CHECK(design->texts[TEXT_FIELD_NAME][0] != '\0')) {
-        return "";
-    }
     if (design->texts[TEXT_FIELD_TAGLINE][0] != '\0') {
         return design->texts[TEXT_FIELD_TAGLINE];
     }
@@ -110,9 +95,6 @@ static const char *head_text(const CivDesign *design)
 
 static bool add_detail(char *text, size_t capacity, const char *open, const char *detail)
 {
-    if (!CHECK(text != NULL) || !CHECK(open != NULL) || !CHECK(detail != NULL)) {
-        return false;
-    }
     return (detail[0] == '\0') || text_append_two(text, capacity, open, detail);
 }
 
@@ -120,7 +102,7 @@ static bool add_tech_line(const ModCiv *civ, TechTier tier, char *text, size_t c
 {
     const char *detail = mod_tech_text(civ, tier, false);
 
-    if (!CHECK(text != NULL) || !CHECK(capacity > 0U)) {
+    if (!CHECK(capacity > 0U)) {
         return false;
     }
     if (!text_append_three(text, capacity, "\n", BULLET, mod_tech_text(civ, tier, true))) {
@@ -135,9 +117,6 @@ static bool add_bonus_lines(const ModCiv *civ, char *text, size_t capacity)
     bool fits = true;
     int pick;
 
-    if (!CHECK(civ != NULL) || !CHECK(text != NULL)) {
-        return false;
-    }
     design = civ->design;
     for (pick = 0; fits && (pick < design->bonus_count) && (pick < CIV_BONUS_CAPACITY); ++pick) {
         fits = text_append_three(text, capacity, (pick == 0) ? "" : "\n", BULLET, bonus_text(civ, pick));
@@ -148,12 +127,8 @@ static bool add_bonus_lines(const ModCiv *civ, char *text, size_t capacity)
 static void trim_end(char *text, size_t capacity)
 {
     size_t length = text_length(text, capacity);
-    size_t step;
 
-    if (!CHECK(text != NULL) || !CHECK(length < capacity)) {
-        return;
-    }
-    for (step = 0U; (step < (size_t)MOD_TEXT_CAPACITY) && (length > 0U); ++step) {
+    while (length > 0U) {
         if ((text[length - 1U] != ' ') && !text_is_line_break(text[length - 1U])) {
             return;
         }
@@ -164,9 +139,6 @@ static void trim_end(char *text, size_t capacity)
 
 static bool add_unique_parts(const ModCiv *civ, char *text, size_t capacity)
 {
-    if (!CHECK(civ != NULL) || !CHECK(text != NULL)) {
-        return false;
-    }
     return text_append_three(text, capacity, "\n\n<b>Unique Unit:<b> \n", mod_unit_name(civ),
                              "\n\n<b>Unique Techs:<b> ") &&
            add_tech_line(civ, TECH_TIER_CASTLE, text, capacity) &&
@@ -177,9 +149,6 @@ static bool add_team_part(const ModCiv *civ, char *text, size_t capacity)
 {
     const char *team = team_text(civ);
 
-    if (!CHECK(civ != NULL) || !CHECK(text != NULL)) {
-        return false;
-    }
     return text_append_two(text, capacity, "\n\n<b>Team Bonus:<b> \n", (team[0] != '\0') ? team : "None");
 }
 
@@ -187,7 +156,7 @@ bool mod_description(const ModCiv *civ, char *text, size_t capacity)
 {
     bool fits;
 
-    if (!CHECK(civ != NULL) || !CHECK(text != NULL) || !CHECK(capacity > 0U)) {
+    if (!CHECK(capacity > 0U)) {
         return false;
     }
     text[0] = '\0';
@@ -200,7 +169,7 @@ bool mod_description(const ModCiv *civ, char *text, size_t capacity)
 
 static bool tip_of_tech(const ModCiv *civ, TechTier tier, char *text, size_t capacity)
 {
-    if (!CHECK(text != NULL) || !CHECK(capacity > 0U)) {
+    if (!CHECK(capacity > 0U)) {
         return false;
     }
     return text_join(text, capacity, "Research ", mod_tech_text(civ, tier, true)) &&
@@ -211,9 +180,6 @@ static bool tip_of_tech(const ModCiv *civ, TechTier tier, char *text, size_t cap
 
 static bool tip_of_unit(const ModCiv *civ, char *text, size_t capacity)
 {
-    if (!CHECK(civ != NULL) || !CHECK(text != NULL)) {
-        return false;
-    }
     return text_join(text, capacity, "Your unique unit is the ", mod_unit_name(civ));
 }
 
@@ -221,9 +187,6 @@ static bool first_tip(const ModCiv *civ, char *text, size_t capacity)
 {
     const CivDesign *design;
 
-    if (!CHECK(civ != NULL) || !CHECK(text != NULL)) {
-        return false;
-    }
     design = civ->design;
     if (design->bonus_count > 0) {
         return text_join(text, capacity, "Civilization bonus: ", bonus_text(civ, 0));
@@ -236,9 +199,6 @@ static bool first_tip(const ModCiv *civ, char *text, size_t capacity)
 
 static bool tip_text(const ModCiv *civ, int index, char *text, size_t capacity)
 {
-    if (!CHECK(civ != NULL) || !CHECK(text != NULL)) {
-        return false;
-    }
     if (index == 0) {
         return first_tip(civ, text, capacity);
     }
@@ -252,10 +212,7 @@ static void put_on_one_line(char *text)
 {
     size_t at;
 
-    if (!CHECK(text != NULL) || !CHECK(MOD_TEXT_CAPACITY > 0)) {
-        return;
-    }
-    for (at = 0U; (at < (size_t)MOD_TEXT_CAPACITY) && (text[at] != '\0'); ++at) {
+    for (at = 0U; text[at] != '\0'; ++at) {
         if (text_is_line_break(text[at])) {
             text[at] = ' ';
         }
@@ -270,8 +227,7 @@ bool mod_tip(const ModCiv *civ, int index, char *text, size_t capacity)
 {
     size_t length;
 
-    if (!CHECK((index >= 0) && (index < MOD_TIP_COUNT)) || !CHECK(capacity > 1U) ||
-        !tip_text(civ, index, text, capacity)) {
+    if (!tip_text(civ, index, text, capacity)) {
         return false;
     }
     put_on_one_line(text);

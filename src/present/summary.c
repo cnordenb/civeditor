@@ -1,6 +1,5 @@
 #include "summary.h"
 
-#include "../core/check.h"
 #include "../core/text.h"
 
 enum { LOOK_LABEL_WIDTH = 16, LOOK_COUNT = (int)CHOICE_SCOUT + 1 };
@@ -18,17 +17,11 @@ static const AppearanceKind LOOK_KINDS[LOOK_COUNT] = {
 
 void summary_add(SummaryText *summary, const char *text)
 {
-    if (!CHECK(summary != NULL) || !CHECK(text != NULL)) {
-        return;
-    }
     (void)text_append(summary->text, sizeof summary->text, text);
 }
 
 static void add_line(SummaryText *summary, const char *label, const char *value)
 {
-    if (!CHECK(label != NULL) || !CHECK(value != NULL)) {
-        return;
-    }
     summary_add(summary, label);
     summary_add(summary, (value[0] != '\0') ? value : NOTHING);
     summary_add(summary, NEW_LINE);
@@ -38,9 +31,6 @@ static void add_number(SummaryText *summary, const char *before, int value)
 {
     char digits[TEXT_NUMBER_CAPACITY] = "";
 
-    if (!CHECK(summary != NULL) || !CHECK(before != NULL)) {
-        return;
-    }
     (void)text_append_number(digits, sizeof digits, value);
     summary_add(summary, before);
     summary_add(summary, digits);
@@ -50,9 +40,6 @@ static void add_choice(SummaryText *summary, const Catalog *catalog, AppearanceK
 {
     const char *name;
 
-    if (!CHECK(summary != NULL) || !CHECK(catalog != NULL)) {
-        return;
-    }
     name = catalog_appearance_name(catalog, kind, value);
     summary_add(summary, name);
     if (name[0] == '\0') {
@@ -64,9 +51,6 @@ static void add_looks(SummaryText *summary, const CivDesign *design, const Catal
 {
     int choice;
 
-    if (!CHECK(design != NULL) || !CHECK(catalog != NULL)) {
-        return;
-    }
     summary_add(summary, "Looks: ");
     for (choice = 0; choice < LOOK_COUNT; ++choice) {
         summary_add(summary, LOOK_LABELS[choice]);
@@ -82,9 +66,6 @@ static void add_bonuses(SummaryText *summary, const CivDesign *design, const Cat
     int pick;
     int found;
 
-    if (!CHECK(design != NULL) || !CHECK(catalog != NULL)) {
-        return;
-    }
     add_number(summary, "\r\nCiv bonuses: ", design->bonus_count);
     add_number(summary, " of ", CIV_BONUS_CAPACITY);
     summary_add(summary, NEW_LINE);
@@ -108,7 +89,7 @@ static const char *unit_name(const CivDesign *design, const Catalog *catalog)
     UnitRole role;
     int found;
 
-    if (!CHECK(design != NULL) || !CHECK(catalog != NULL) || (design->unique_unit.origin == UNIT_ORIGIN_NONE)) {
+    if (design->unique_unit.origin == UNIT_ORIGIN_NONE) {
         return "";
     }
     role = (design->unique_unit.origin == UNIT_ORIGIN_CUSTOM) ? UNIT_ROLE_CUSTOM : UNIT_ROLE_VANILLA;
@@ -120,7 +101,7 @@ static const char *tech_name(const CivDesign *design, const Catalog *catalog, Te
 {
     int found;
 
-    if (!CHECK(design != NULL) || !CHECK(catalog != NULL) || (design->techs[tier].km_index == CIV_NO_CHOICE)) {
+    if (design->techs[tier].km_index == CIV_NO_CHOICE) {
         return "";
     }
     found = catalog_find(catalog, CATALOG_TECHS, (int)tier, design->techs[tier].km_index);
@@ -129,9 +110,6 @@ static const char *tech_name(const CivDesign *design, const Catalog *catalog, Te
 
 static void add_named(SummaryText *summary, const char *given, const char *base)
 {
-    if (!CHECK(given != NULL) || !CHECK(base != NULL)) {
-        return;
-    }
     summary_add(summary, (given[0] != '\0') ? given : ((base[0] != '\0') ? base : NOTHING));
     if ((given[0] != '\0') && (base[0] != '\0')) {
         summary_add(summary, ", from ");
@@ -143,10 +121,6 @@ static void add_named(SummaryText *summary, const char *given, const char *base)
 void summary_add_tree(SummaryText *summary, const CivDesign *design, const char *before_techs,
                       const char *after_techs)
 {
-    if (!CHECK(summary != NULL) || !CHECK(design != NULL) || !CHECK(before_techs != NULL) ||
-        !CHECK(after_techs != NULL)) {
-        return;
-    }
     add_number(summary, "", design->tree[TREE_UNITS].count);
     add_number(summary, " units, ", design->tree[TREE_BUILDINGS].count);
     add_number(summary, before_techs, design->tree[TREE_TECHS].count);
@@ -155,7 +129,7 @@ void summary_add_tree(SummaryText *summary, const CivDesign *design, const char 
 
 static void add_when(SummaryText *summary, bool wanted, const char *text)
 {
-    if (!CHECK(summary != NULL) || !CHECK(text != NULL) || !wanted) {
+    if (!wanted) {
         return;
     }
     summary_add(summary, text);
@@ -163,7 +137,7 @@ static void add_when(SummaryText *summary, bool wanted, const char *text)
 
 static void add_missing(SummaryText *summary, const CivDesign *design)
 {
-    if (!CHECK(summary != NULL) || !CHECK(design != NULL) || civ_design_is_complete(design)) {
+    if (civ_design_is_complete(design)) {
         return;
     }
     summary_add(summary, "\r\nStill needed before a mod can be built:");
@@ -179,9 +153,6 @@ bool summary_write(SummaryText *summary, const CivDesign *design, const Catalog 
 {
     int hero;
 
-    if (!CHECK(summary != NULL) || !CHECK(design != NULL) || !CHECK(catalog != NULL)) {
-        return false;
-    }
     summary->text[0] = '\0';
     add_line(summary, "Name: ", design->texts[TEXT_FIELD_NAME]);
     add_line(summary, "Tagline: ", design->texts[TEXT_FIELD_TAGLINE]);
@@ -209,9 +180,6 @@ bool summary_write(SummaryText *summary, const CivDesign *design, const Catalog 
 
 bool summary_write_build(SummaryText *summary, const char *prefix, const RecipeReport *report)
 {
-    if (!CHECK(summary != NULL) || !CHECK(prefix != NULL) || !CHECK(report != NULL)) {
-        return false;
-    }
     summary->text[0] = '\0';
     summary_add(summary, "The mod was built as ");
     summary_add(summary, prefix);
@@ -221,6 +189,7 @@ bool summary_write_build(SummaryText *summary, const char *prefix, const RecipeR
     add_number(summary, " of ", report->bonuses_built + report->bonuses_skipped);
     summary_add(summary, (report->bonuses_skipped > 0) ? "; the others are not built yet." : ".");
     add_when(summary, report->team_bonuses_skipped > 0, "\nThe team bonus is not built yet.");
+    add_when(summary, report->multipliers_skipped > 0, "\nA bonus made of the game's techs counts only once.");
     add_when(summary, report->unit_skipped, "\nOnly the game's own unique units are built.");
     add_when(summary, report->unique_techs_skipped > 0, "\nA unique tech is not built yet.");
     add_when(summary, report->tree_overflowed, "\nThe tech tree needed too many changes.");
