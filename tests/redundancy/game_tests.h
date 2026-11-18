@@ -1,0 +1,18 @@
+#ifndef GAME_TESTS_H
+#define GAME_TESTS_H
+
+#include <stdbool.h>
+
+bool test_the_game_gives_a_civ_its_tagline(void);
+bool test_the_description_of_a_civ_starts_after_its_tagline(void);
+bool test_a_line_break_of_the_game_breaks_the_description(void);
+bool test_a_quote_of_the_game_is_kept_in_the_description(void);
+bool test_a_civ_the_game_does_not_describe_keeps_no_tagline(void);
+bool test_texts_are_read_from_a_game_that_is_found(void);
+bool test_a_civ_the_game_does_not_describe_keeps_no_description(void);
+bool test_a_text_without_its_closing_quote_ends_with_its_line(void);
+bool test_the_spaces_and_breaks_at_the_end_of_a_text_are_cut(void);
+bool test_a_first_line_without_civilization_is_the_whole_tagline(void);
+bool test_a_tagline_longer_than_its_room_is_cut_to_fit(void);
+
+#endif

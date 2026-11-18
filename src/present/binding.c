@@ -18,7 +18,7 @@ static const Binding BINDINGS[CONTROL_COUNT] = {
     { SOURCE_NONE, NO, NO, NO },
     { SOURCE_NONE, NO, NO, NO },
     { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_APPEARANCE, NO, CHOICE_BASE, APPEARANCE_BASE },
+    { SOURCE_APPEARANCE, NO, CHOICE_REPLACE, APPEARANCE_BASE },
     { SOURCE_NONE, TEXT_FIELD_NAME, NO, NO },
     { SOURCE_NONE, TEXT_FIELD_TAGLINE, NO, NO },
     { SOURCE_NONE, TEXT_FIELD_DESCRIPTION, NO, NO },
@@ -50,7 +50,6 @@ static const Binding BINDINGS[CONTROL_COUNT] = {
     { SOURCE_HERO, NO, NO, NO },
     { SOURCE_NONE, TEXT_FIELD_HERO_NAME, NO, NO },
     { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_APPEARANCE, NO, CHOICE_REPLACE, APPEARANCE_CIV },
     { SOURCE_NONE, NO, NO, NO },
     { SOURCE_NONE, NO, NO, NO },
     { SOURCE_NONE, NO, NO, NO }
@@ -271,14 +270,16 @@ static Command pick_command(const Catalog *catalog, ListItem item, ListSource so
     const UnitEntry *unit;
 
     if (pick_kind(source) == PICK_TECH) {
-        return command_of(COMMAND_PICK_TECH, tier_of(source), catalog->techs[item.item].id);
+        return command_pick(COMMAND_PICK_TECH, tier_of(source), catalog->techs[item.item].id,
+                            catalog->techs[item.item].name);
     }
     unit = &catalog->units[item.item];
     if (source == SOURCE_HERO) {
-        return command_of(COMMAND_PICK_HERO, 0, unit->id);
+        return command_pick(COMMAND_PICK_HERO, 0, unit->id, unit->name);
     }
-    return command_of(COMMAND_PICK_UNIT,
-                      (unit->role == UNIT_ROLE_CUSTOM) ? (int)UNIT_ORIGIN_CUSTOM : (int)UNIT_ORIGIN_VANILLA, unit->id);
+    return command_pick(COMMAND_PICK_UNIT,
+                        (unit->role == UNIT_ROLE_CUSTOM) ? (int)UNIT_ORIGIN_CUSTOM : (int)UNIT_ORIGIN_VANILLA, unit->id,
+                        unit->name);
 }
 
 static Command tick_command(const Catalog *catalog, ListItem item, ListSource source)

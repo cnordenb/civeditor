@@ -28,15 +28,30 @@ Command command_set_text(TextField field, const char *text)
     return command;
 }
 
+Command command_pick(CommandKind kind, int field, int value, const char *name)
+{
+    Command command = command_of(kind, field, value);
+
+    if (!text_copy(command.text, sizeof command.text, name)) {
+        command.kind = COMMAND_KIND_COUNT;
+    }
+    return command;
+}
+
+static const TextField TECH_NAMES[TECH_TIER_COUNT] = { TEXT_FIELD_CASTLE_TECH_NAME, TEXT_FIELD_IMPERIAL_TECH_NAME };
+
 static bool apply_pick(CivDesign *design, const Command *command)
 {
     if (command->kind == COMMAND_PICK_UNIT) {
-        return civ_design_pick_unit(design, (UnitOrigin)command->field, command->value);
+        return civ_design_pick_unit(design, (UnitOrigin)command->field, command->value) &&
+               civ_design_set_text(design, TEXT_FIELD_UNIT_NAME, command->text);
     }
     if (command->kind == COMMAND_PICK_TECH) {
-        return civ_design_pick_tech(design, (TechTier)command->field, command->value);
+        return civ_design_pick_tech(design, (TechTier)command->field, command->value) &&
+               civ_design_set_text(design, TECH_NAMES[command->field], command->text);
     }
-    return (command->kind == COMMAND_PICK_HERO) && civ_design_pick_hero(design, command->value);
+    return (command->kind == COMMAND_PICK_HERO) && civ_design_pick_hero(design, command->value) &&
+           civ_design_set_text(design, TEXT_FIELD_HERO_NAME, command->text);
 }
 
 static bool apply_toggle(CivDesign *design, const Command *command)

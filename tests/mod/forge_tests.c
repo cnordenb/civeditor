@@ -84,9 +84,9 @@ bool game_folder_is_made(void)
 
 static bool build_mod(Scenario scenario, const wchar_t *game_folder)
 {
-    ForgeJob job = { recipe_game_design(scenario), recipe_game_catalog(), game_folder, MODS };
+    ForgeJob job = { { recipe_game_design(scenario) }, 1, "Testonia", recipe_game_catalog(), game_folder, MODS };
 
-    if (!CHECK(game_folder != NULL) || !CHECK(job.design != NULL)) {
+    if (!CHECK(game_folder != NULL) || !CHECK(job.designs[0] != NULL)) {
         return false;
     }
     return forge_build(&job, &built);
@@ -201,5 +201,5 @@ bool test_a_game_without_the_civs_tech_tree_file_is_reported(void)
 
 bool test_a_civ_with_parts_the_catalog_lacks_is_built_and_reported(void)
 {
-    return make_game_folder() && build_mod(BARE_CIV, GAME) && built.recipe.unit_skipped;
+    return make_game_folder() && build_mod(BARE_CIV, GAME) && built.recipes[0].unit_skipped;
 }

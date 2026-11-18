@@ -1,0 +1,259 @@
+#include "review_tests.h"
+
+#include <wchar.h>
+
+#include "../../src/core/check.h"
+#include "../../src/core/file_io.h"
+#include "../../src/mod/mod_places.h"
+#include "../../src/shell/shell.h"
+#include "../../src/win/win_parts.h"
+#include "../accessibility/window_fixture.h"
+#include "../mod/game_folder.h"
+#include "../test_outcome.h"
+
+enum { SHOWN_CAPACITY = 512, FRANKS_ROW = 1, ROW_LIMIT = 4096, SAVED_CAPACITY = 16384 };
+
+static const wchar_t ROOT[] = L"build";
+static const wchar_t HOME[] = L"build\\test_home";
+static const wchar_t PROFILE[] = L"test_home\\Games\\Age of Empires 2 DE\\7656\\mods\\local";
+static const wchar_t LONG_NAME[] = L"AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghij";
+static const wchar_t CUT_FILE[] = L"build\\AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefgh.civbuilder.json";
+static const char STALE[] = "stale";
+
+static wchar_t shown[SHOWN_CAPACITY];
+static char saved[SAVED_CAPACITY];
+
+static HWND control_of(HWND window, ControlId control)
+{
+    return GetDlgItem(window, CONTROL_ID_BASE + (int)control);
+}
+
+static void notify(HWND window, ControlId control, int code)
+{
+    HWND sender = control_of(window, control);
+
+    (void)SendMessageW(window, WM_COMMAND, MAKEWPARAM(CONTROL_ID_BASE + (int)control, code), (LPARAM)sender);
+}
+
+static void type_into(HWND window, ControlId control, const wchar_t *text)
+{
+    (void)SetWindowTextW(control_of(window, control), text);
+    notify(window, control, EN_CHANGE);
+}
+
+static void choose_row(HWND window, ControlId control, int row, UINT message, int code)
+{
+    (void)SendMessageW(control_of(window, control), message, (WPARAM)row, 0);
+    notify(window, control, code);
+}
+
+static HWND opened_with(const wchar_t *steam, const wchar_t *mod_name)
+{
+    AskScript script = { true, IDOK, ROOT, NULL, NULL, HOME, NULL };
+
+    script.steam = steam;
+    script.text = mod_name;
+    ask_script(&script);
+    return app_open(GetModuleHandleW(NULL));
+}
+
+static HWND opened_with_game(const wchar_t *mod_name)
+{
+    if (!CHECK(mod_make_folders(ROOT, PROFILE)) || !CHECK(game_folder_is_made())) {
+        return NULL;
+    }
+    return opened_with(GAME_FOLDER_STEAM, mod_name);
+}
+
+static const wchar_t *text_of(HWND window, ControlId control)
+{
+    shown[0] = L'\0';
+    (void)GetWindowTextW(control_of(window, control), shown, SHOWN_CAPACITY);
+    return shown;
+}
+
+static bool closed(HWND window, bool passed)
+{
+    window_fixture_close(window);
+    ask_script(NULL);
+    return passed && CHECK(window != NULL);
+}
+
+static bool review_says(HWND window, ControlId control, const wchar_t *words)
+{
+    window_fixture_act(window, ACTION_FIRST_STEP + STEP_REVIEW);
+    return closed(window, wcsstr(text_of(window, control), words) != NULL);
+}
+
+bool test_the_window_opens_with_the_britons_to_edit(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+    HWND civ = control_of(window, CONTROL_CIV);
+    LRESULT row = SendMessageW(civ, CB_GETCURSEL, 0, 0);
+
+    shown[0] = L'\0';
+    if ((row >= 0) && (SendMessageW(civ, CB_GETLBTEXTLEN, (WPARAM)row, 0) < SHOWN_CAPACITY)) {
+        (void)SendMessageW(civ, CB_GETLBTEXT, (WPARAM)row, (LPARAM)shown);
+    }
+    return closed(window, wcscmp(shown, L"Britons") == 0);
+}
+
+bool test_the_name_field_holds_the_name_of_the_civ_to_edit(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+
+    return closed(window, wcscmp(text_of(window, CONTROL_NAME), L"Britons") == 0);
+}
+
+bool test_another_civ_keeps_the_edits_of_the_civ_before(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+
+    type_into(window, CONTROL_NAME, L"Testonia");
+    choose_row(window, CONTROL_CIV, FRANKS_ROW, CB_SETCURSEL, CBN_SELCHANGE);
+    choose_row(window, CONTROL_CIV, 0, CB_SETCURSEL, CBN_SELCHANGE);
+    return closed(window, wcscmp(text_of(window, CONTROL_NAME), L"Testonia") == 0);
+}
+
+bool test_the_review_counts_no_civ_changed_at_first(void)
+{
+    return review_says(app_open(GetModuleHandleW(NULL)), CONTROL_CHANGED, L"0 civs changed");
+}
+
+bool test_save_civ_counts_the_civ_it_puts_in_the_mod(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+
+    type_into(window, CONTROL_NAME, L"Testonia");
+    window_fixture_act(window, ACTION_ADD);
+    return review_says(window, CONTROL_CHANGED, L"1 civ changed");
+}
+
+bool test_save_civ_leaves_a_civ_as_the_game_has_it_out_of_the_mod(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+
+    window_fixture_act(window, ACTION_ADD);
+    return review_says(window, CONTROL_STATUS, L"leaves it out");
+}
+
+bool test_the_review_text_shows_no_caret_when_clicked(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+    HWND summary = control_of(window, CONTROL_SUMMARY);
+    GUITHREADINFO caret = { 0 };
+
+    caret.cbSize = sizeof caret;
+    window_fixture_act(window, ACTION_FIRST_STEP + STEP_REVIEW);
+    (void)SetFocus(summary);
+    (void)GetGUIThreadInfo(GetCurrentThreadId(), &caret);
+    return closed(window, (GetFocus() == summary) && ((caret.flags & GUI_CARETBLINKING) == 0U));
+}
+
+bool test_a_text_field_shows_its_caret_when_it_takes_the_focus(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+    HWND name = control_of(window, CONTROL_NAME);
+    GUITHREADINFO caret = { 0 };
+
+    caret.cbSize = sizeof caret;
+    (void)SetFocus(control_of(window, CONTROL_CIV));
+    (void)SetFocus(name);
+    (void)GetGUIThreadInfo(GetCurrentThreadId(), &caret);
+    return closed(window, (GetFocus() == name) && ((caret.flags & GUI_CARETBLINKING) != 0U));
+}
+
+bool test_a_build_with_no_civ_saved_says_so(void)
+{
+    HWND window = opened_with_game(NULL);
+
+    window_fixture_act(window, ACTION_BUILD);
+    return closed(window, wcsstr(ask_last_message(), L"No civ is saved in the mod") != NULL);
+}
+
+static void save_a_whole_civ(HWND window)
+{
+    type_into(window, CONTROL_NAME, L"Testonia");
+    choose_row(window, CONTROL_UNIT_LIST, 0, LB_SETCURSEL, LBN_SELCHANGE);
+    choose_row(window, CONTROL_CASTLE_TECH_LIST, 0, LB_SETCURSEL, LBN_SELCHANGE);
+    choose_row(window, CONTROL_IMPERIAL_TECH_LIST, 0, LB_SETCURSEL, LBN_SELCHANGE);
+    window_fixture_act(window, ACTION_ADD);
+}
+
+bool test_a_mod_is_named_civbuilder_mod_unless_named_otherwise(void)
+{
+    HWND window = opened_with_game(NULL);
+
+    save_a_whole_civ(window);
+    window_fixture_act(window, ACTION_BUILD);
+    return closed(window, wcsstr(ask_last_message(), L"built as civbuilder_mod-data") != NULL);
+}
+
+bool test_an_empty_mod_name_builds_no_mod(void)
+{
+    HWND window = opened_with_game(L"");
+
+    save_a_whole_civ(window);
+    window_fixture_act(window, ACTION_BUILD);
+    return closed(window, wcscmp(text_of(window, CONTROL_STATUS), L"No mod was built.") == 0);
+}
+
+bool test_a_long_civ_name_is_cut_in_the_name_of_its_file(void)
+{
+    HWND window = opened_with(NULL, NULL);
+    FileRead read;
+
+    (void)CHECK(file_write_all(CUT_FILE, STALE, sizeof STALE - 1U));
+    type_into(window, CONTROL_NAME, LONG_NAME);
+    window_fixture_act(window, ACTION_SAVE);
+    read = file_read_all(CUT_FILE, saved, sizeof saved);
+    return closed(window, (read.length > 0U) && (saved[0] == '{'));
+}
+
+static LRESULT bonus_rows(HWND window)
+{
+    return SendMessageW(control_of(window, CONTROL_BONUS_LIST), LB_GETCOUNT, 0, 0);
+}
+
+static int rows_holding(HWND list, const wchar_t *words)
+{
+    static wchar_t row[SHOWN_CAPACITY];
+    LRESULT count = SendMessageW(list, LB_GETCOUNT, 0, 0);
+    LRESULT index;
+    int holding = 0;
+
+    for (index = 0; (index < count) && (index < ROW_LIMIT); ++index) {
+        row[0] = L'\0';
+        if (SendMessageW(list, LB_GETTEXTLEN, (WPARAM)index, 0) < SHOWN_CAPACITY) {
+            (void)SendMessageW(list, LB_GETTEXT, (WPARAM)index, (LPARAM)row);
+        }
+        (void)CharLowerBuffW(row, (DWORD)wcslen(row));
+        holding += (wcsstr(row, words) != NULL) ? 1 : 0;
+    }
+    return holding;
+}
+
+bool test_a_filter_leaves_the_bonuses_that_hold_it_and_no_other(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+    HWND list = control_of(window, CONTROL_BONUS_LIST);
+    int holding = rows_holding(list, L"food");
+
+    type_into(window, CONTROL_BONUS_FILTER, L"food");
+    return closed(window, (holding > 0) && (bonus_rows(window) == holding) && (rows_holding(list, L"food") == holding));
+}
+
+bool test_the_categories_together_hold_every_bonus_once(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+    LRESULT all = bonus_rows(window);
+    LRESULT rows = SendMessageW(control_of(window, CONTROL_BONUS_CATEGORY), CB_GETCOUNT, 0, 0);
+    LRESULT sum = 0;
+    LRESULT row;
+
+    for (row = 1; (row < rows) && (row < ROW_LIMIT); ++row) {
+        choose_row(window, CONTROL_BONUS_CATEGORY, (int)row, CB_SETCURSEL, CBN_SELCHANGE);
+        sum += bonus_rows(window);
+    }
+    return closed(window, (rows > 2) && (sum == all));
+}

@@ -135,22 +135,27 @@ an earlier one, the earlier one is named after it, with its own link.
   settles what they leave open. Replaced: the original was the requirement until `REQUIREMENTS.md` was written.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
-- **The default name is `civbuilder_civ`.** Requirement 1 is read as the name offered for a civ that has none,
-  `civbuilder_civ.civbuilder.json`; the format inside stays `empireforge_v2`.
+- **The default name is `civbuilder_civ`.** Requirement 1 is read as the name offered for a civ that has none, or
+  that keeps the name of its civ of the game, `civbuilder_civ.civbuilder.json`; the format inside stays
+  `empireforge_v2`.
   [2026-11-09 10:06:18](DEVLOG/DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100)
-- **A design starts from a base civ,** picked first in the step "Identity": its tech tree, bonuses, team bonus,
-  unique unit, unique techs and looks, all of which can be changed after; picking one can be undone.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **A design is a civ of the game, edited.** The first list of the step "Identity" is the civ to edit, the Britons
+  at first; every step shows that civ as the game has it, its names, tagline and description in their fields, ready
+  to change; choosing another can be undone. Replaced: a design started from a base civ, Generic at first, with
+  every universal node and nothing else; a base civ of the game was the replaced civ until another was picked on the
+  review step.
   [2026-11-09 10:07:36](DEVLOG/DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first)
-- **Generic at first.** A new design has every universal node of the tech tree and nothing else.
-  [2026-11-09 10:07:36](DEVLOG/DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first)
-- **A base civ of the game is also the replaced civ,** until another is picked on the review step; with Generic,
-  the replaced civ is the Britons, as in a new design.
-  [2026-11-09 10:07:36](DEVLOG/DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first)
-- **A step is done once the user has made it differ from the base civ:** a tree, bonuses, a team bonus, a unique
-  unit or tech other than the base civ's, or a name typed; Identity when the civ has a name, Hero unit when a hero is
-  picked, Review when the civ is complete. Nothing is loaded at the start. Replaced: a step done as soon as it holds
-  anything, so that Generic's tree marked the tech tree done at the start.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **Each civ edited keeps its edits.** Choosing another civ to edit keeps the design shown as the draft of its civ,
+  and shows the draft again when that civ is chosen again, until the window closes.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **A step is done once the user has made it differ from the civ of the game:** a name, tagline, description or
+  look in Identity, and a tree, bonuses, a team bonus, a unique unit, tech or hero other than its civ's; the review
+  once the mod holds the civ as it is and the civ is complete. Nothing is loaded at the start. Replaced: Identity when
+  the civ had a name, Review when the civ was complete; before that, a step done as soon as it held anything.
   [2026-11-16 21:18:51](DEVLOG/DEVLOG5.md#211851-no-step-shown-as-done-before-the-user-changed-it)
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **The review asks what the original's steps ask.** A name, a unique unit, a castle tech, an imperial tech and, for
   a chosen hero, its name; not a civ bonus. An architecture is chosen from the start.
   [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
@@ -179,10 +184,26 @@ an earlier one, the earlier one is named after it, with its own link.
 - **The window's title names the civ and the step** (Requirement 3, WCAG 2.2 SC 2.4.2), as "Testonia - Step 2 of
   9: Tech tree - civbuilder", with "A new civ" before the civ has a name.
   [2026-11-09 10:27:22](DEVLOG/DEVLOG2.md#102722-a-windows-title-that-names-the-civ-and-the-step-and-the-base-civ-tried-in-the-window)
-- **A mod takes the slot of one civ** (Requirement 8). The replaced civ is picked on the review step, the Britons at
-  first, and is kept in the civ file as `replace_civ`.
+- **A mod changes every civ saved in it, each in its own slot** (Requirement 8, read for several civs). The
+  replaced civ is the civ to edit that the design was made from, kept in the civ file as `replace_civ`. Replaced: a
+  mod took the slot of one civ, picked on the review step, the Britons at first.
   [2026-11-09 02:15:04](DEVLOG/DEVLOG1.md#021504-a-mod-built-from-the-civ-from-the-catalog-and-the-games-own-data-file)
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **Save civ puts the civ in the mod.** Nothing is written to the disk; only the civs saved so are built, as they were
+  when saved, and the label at the top right of the review counts them. A civ as the game has it is left out, and
+  taken out if it was in.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **Save civ file... and Open civ file... are in the menu only.** The review's buttons are Save civ and Build mod... .
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **The mod is named when Build mod is pressed:** `civbuilder_mod` at first, then the name given last. The folders'
+  prefix is made from it as it was from the civ's name, and both `info.json` take it as their title.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **The texts of a civ of the game are the game's.** Its tagline and description are read from the English strings
+  of the installed game when the window opens, and are empty without the game; no text of the game is kept here.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **The review's text takes no caret.** It cannot be typed in, so it shows no blinking caret when it has the focus.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **Two folders, written after asking** (Requirements 2 and 7). Build writes `<prefix>-data` and `<prefix>-ui` into
   the mods folder it finds, where the original gives a zip to unpack by hand.
   [2026-11-09 02:15:04](DEVLOG/DEVLOG1.md#021504-a-mod-built-from-the-civ-from-the-catalog-and-the-games-own-data-file)
@@ -472,9 +493,20 @@ an earlier one, the earlier one is named after it, with its own link.
 - **The civ's description has a description id of its own,** 990100 plus its slot, which the game's strings do not
   use. The UI mod writes the description under it and under the game's id, and the civ list points at it.
   [2026-11-09 10:06:47](DEVLOG/DEVLOG2.md#100647-the-civs-description-under-a-description-id-of-its-own)
-- **A base civ is a line of the catalog.** A `base` line of `appearance.txt` gives a civ's bonuses, team bonus,
-  unique unit, unique techs and looks by the catalog's ids; Generic is base 0, and every other base has its slot.
+- **A base civ is a line of the catalog.** A `base` line of `appearance.txt` gives a civ's name, bonuses, team
+  bonus, unique unit, unique techs and looks by the catalog's ids, under the civ's slot. Replaced: Generic was base 0.
   [2026-11-09 10:07:36](DEVLOG/DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first)
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **The civs of a session are a roster,** `src/roster/civ_roster.c`: for each of 64 slots a draft, the design saved
+  in the mod and whether the mod holds it.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **Several civs, one data file.** The recipes of the civs saved are applied one after another to one `DatEdit`: the
+  techs each adds are numbered after those of the civs before it, a requirement added to a tech of the game takes a
+  slot that no civ before has patched, the civ list is written civ by civ, and one strings file holds every civ.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **A question answered with a text is a dialog made in memory** (`text_dialog.c`): its template is built while the
+  program runs, since a resource file would be a language other than C (Rule 29).
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **What is universal is the game's word.** The region of a node, and the civs that have it, are read once from the
   game's own `CivTechTrees` files into the last two columns of `tree.txt`; the civs are bits of one 64-bit number.
   [2026-11-09 10:07:36](DEVLOG/DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first)
@@ -533,6 +565,9 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-17 02:39:14](DEVLOG/DEVLOG6.md#023914-every-function-of-src-under-crap-10-the-checks-no-caller-can-fail-taken-out)
 - **A condition on constants alone is a `_Static_assert`,** which the compiler checks once, not a `CHECK` at each call.
   [2026-11-17 02:39:14](DEVLOG/DEVLOG6.md#023914-every-function-of-src-under-crap-10-the-checks-no-caller-can-fail-taken-out)
+- **A line of the game's strings is read by the digits it starts with and its first quote,** whatever lies between
+  them: the game writes a space there on most lines and a tab on 4331, and a line without digits is passed by.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **A file of the game cut short is data, not a fault.** `dat_read_unit` returns whether its cursor is still fine,
   without `CHECK`.
   [2026-11-17 02:39:14](DEVLOG/DEVLOG6.md#023914-every-function-of-src-under-crap-10-the-checks-no-caller-can-fail-taken-out)
@@ -585,8 +620,10 @@ an earlier one, the earlier one is named after it, with its own link.
   smallest window, 960 by 560, so they run in the build without Win32.
   [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
 - **No test needs the game.** The tests make small data files in memory; the installed game was read only by check
-  programs outside the project.
+  programs outside the project. A window that a test opens without a script reads the texts of an installed game,
+  which no test reads.
   [2026-11-09 02:15:04](DEVLOG/DEVLOG1.md#021504-a-mod-built-from-the-civ-from-the-catalog-and-the-games-own-data-file)
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **A new group before 60 lines.** When a suite's `switch` would pass 60 lines (Rule 11), its later cases move to a
   new group, and every test keeps its number.
   [2026-11-09 05:46:17](DEVLOG/DEVLOG1.md#054617-bonuses-330-339-and-458-built-from-unit-patches)
@@ -648,14 +685,38 @@ an earlier one, the earlier one is named after it, with its own link.
   that no requirement names names Requirement 10.
   [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
   [2026-11-17 10:57:53](DEVLOG/DEVLOG7.md#105753-no-test-names-rule-4-alone-the-21-that-did-are-removed)
-- **No test is written for now,** until writing tests is allowed again.
+- **Tests may be written again; a test that only ub-mode needs is a redundancy test.** It is kept in
+  `tests/redundancy/`, which no other test shares (Rule 34), runs after the other tests only when `redundancy` is
+  given, as the measures of Requirements 10 and 12 give it, and is numbered on its own, "Redundancy test 3".
+  Replaced: no test is written for now.
   [2026-11-17 10:57:53](DEVLOG/DEVLOG7.md#105753-no-test-names-rule-4-alone-the-21-that-did-are-removed)
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **The crapper measures a coverage built anew.** Every `.c` file is touched before `build.exe coverage redundancy`,
+  since gcc adds the counts of a run to those of the runs before while an object stays the same.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **A survivor of the mutator is read before a test is written for it.** One on a check that no caller can fail,
   on the `return` under such a check or on a loop's second bound is taken out with the check or the bound; one
   elsewhere gets a test that calls the code as its user does. Replaced: such survivors left until P10 or the
   mutator gave way.
   [2026-11-16 04:39:06](DEVLOG/DEVLOG5.md#043906-ub-modes-mutator-run-and-read-three-survivors-in-four-are-made-by-p10s-checks-and-bounds)
   [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
+- **A survivor that no user of the game and no caller meets is left,** named in the log with the state that would
+  tell it from the code, such as slot 0 or a civ list of exactly 524288 bytes; where a shape of the code makes it, as a
+  `return true` that only stops the chain of actions, that shape is put as a question.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **An uncovered mutant is read as a survivor is.** One on a line that a user reaches, such as a tech whose free
+  places for requirements the civs before have taken, gets a test; one on a line that no user reaches is named in
+  the log with the state that would reach it; one on a declaration, which holds no code to run, is named alone.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **A result that the sizes of its texts make certain is cast to `(void)`,** and a `_Static_assert` states the
+  sizes, as for the picker's text of a civ's name in `put_name`; a check that could never fail is not kept.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **A text that is built up starts from `text_copy` or from an empty initializer,** not from its first letter
+  emptied before the appends: a mutant of that letter keeps the start of an older text, which no test sees.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+- **The mutator runs one file at a time** while its cleanup can stop a run with "being used by another process": a
+  run that stops loses only its file, which is run again.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **A test of an order uses values that differ,** such as numbered changes, not one value put on and off.
   [2026-11-16 04:39:06](DEVLOG/DEVLOG5.md#043906-ub-modes-mutator-run-and-read-three-survivors-in-four-are-made-by-p10s-checks-and-bounds)
 - **A test may measure time when what it checks is a time,** as Test 351 does for sliding: each move must take less
@@ -673,6 +734,9 @@ an earlier one, the earlier one is named after it, with its own link.
 
 ## Documents
 
+- **`TESTS.md` lists the redundancy tests apart,** after the other tests, under headings "Redundancy test N" that
+  its checks of the other tests do not count.
+  [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **repo_template's documents, without its setup.** `.claude/skills/project-setup` is not copied: the project is set
   up. [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
 - **The instructions, the answers and the sitrep are in `sitrep&instructions/`,** with the pictures of the trials

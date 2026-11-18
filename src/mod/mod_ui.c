@@ -62,7 +62,7 @@ static bool write_language(const ModUi *ui, int language)
     wchar_t path[FILE_PATH_CAPACITY];
 
     read_vanilla(ui, language);
-    return mod_strings_write(&strings, ui->civ, vanilla) && language_file(ui, language, path) &&
+    return mod_strings_write(&strings, ui->civs, ui->civ_count, vanilla) && language_file(ui, language, path) &&
            file_write_all(path, strings.text, strings.length);
 }
 
@@ -70,14 +70,10 @@ bool mod_ui_write(const ModUi *ui)
 {
     char folder[FILE_PATH_CAPACITY];
     char title[FILE_PATH_CAPACITY];
-    const ModCiv *civ;
-    const CivDesign *design;
     int language;
     bool fine;
 
-    civ = ui->civ;
-    design = civ->design;
-    fine = mod_join(folder, ui->prefix, "-ui") && mod_join(title, design->texts[TEXT_FIELD_NAME], " (UI)") &&
+    fine = mod_join(folder, ui->prefix, "-ui") && mod_join(title, ui->title, " (UI)") &&
            mod_write_info(ui->mods, folder, title);
     for (language = 0; fine && (language < LANGUAGE_COUNT); ++language) {
         fine = write_language(ui, language);

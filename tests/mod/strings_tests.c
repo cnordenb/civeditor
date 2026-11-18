@@ -21,7 +21,7 @@ static bool written_with(Scenario scenario, TextField field, const char *text)
         return false;
     }
     own = *recipe_game_design(scenario);
-    return civ_design_set_text(&own, field, text) && mod_strings_write(&strings, &civ, NO_VANILLA);
+    return civ_design_set_text(&own, field, text) && mod_strings_write(&strings, &civ, 1, NO_VANILLA);
 }
 
 static bool strings_hold(Scenario scenario, TextField field, const char *text, const char *expected)

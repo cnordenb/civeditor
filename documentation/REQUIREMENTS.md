@@ -10,4 +10,4 @@
 9. Build says what it could not build.
 10. CRAP score for all code must be lower than 10.
 11. DRY score for all code must be lower than 0.8.
-12. Mutator must be run after every code change and used in accordance with ub-mode.
+12. Mutator must be run after every time code has been added.

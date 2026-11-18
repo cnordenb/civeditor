@@ -9,12 +9,13 @@ the Win32 API.
 - Requirements 10, 11 and 12 are measured by ub-mode's crapper, dryer and mutator only, which lie beside the project
   in `..\crapper`, `..\dryer` and `..\mutator`. Run them from the project's folder. They pass by every folder named
   `tests` or `build`; name the files of `tools/build/` to measure them.
-- Measure Requirement 10: `.\build.exe coverage`, then
+- Measure Requirement 10: every `.c` file touched (`find src tests tools -name "*.c" -exec touch {} +`), then
+  `.\build.exe coverage redundancy`, then
   `..\crapper\.venv\Scripts\python.exe -m gcovr --root . --lcov target/coverage/c/lcov.info build/obj_coverage`,
   then `..\crapper\crapper.cmd --use-existing-coverage` scores every function (`.metrics\crap.edn`)
 - Measure Requirement 11: `..\dryer\dryer.cmd --threshold 0.8` lists every two functions 80% alike or more
-- Requirement 12: `..\mutator\mutator.cmd --use-existing-coverage --test-command ".\build.exe quick nowindow norules"
-  src/<folder>` after every change lists the mutants that survive (`.metrics\mutate\`); leave `nowindow` out for the
+- Requirement 12: `..\mutator\mutator.cmd --use-existing-coverage --test-command ".\build.exe quick nowindow norules
+  redundancy" src/<folder>` after every change lists the mutants that survive (`.metrics\mutate\`); leave `nowindow` out for the
   folders of the window
 
 ## Read before changing anything

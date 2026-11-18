@@ -188,7 +188,16 @@ static const RecipeReport ONCE_ONLY = { 1, 0, 1, 0, 0, 0, 0, 0, 0, false, false,
 
 static bool build_report_holds(const RecipeReport *report, const char *words)
 {
-    if (!CHECK(report != NULL) || !CHECK(words != NULL) || !summary_write_build(&summary, "testonia", report)) {
+    static CivDesign built_civ;
+    static BuiltCivs built;
+
+    built.designs[0] = &built_civ;
+    built.count = 1;
+
+    built.reports = report;
+    civ_design_reset(&built_civ);
+    (void)CHECK(civ_design_set_text(&built_civ, TEXT_FIELD_NAME, "Testonia"));
+    if (!CHECK(report != NULL) || !CHECK(words != NULL) || !summary_write_build(&summary, "testonia", &built)) {
         return false;
     }
     return strstr(summary.text, words) != NULL;
@@ -212,5 +221,5 @@ bool test_the_build_report_says_when_a_bonus_counts_only_once(void)
 bool test_the_build_report_of_a_whole_civ_names_the_two_folders(void)
 {
     return build_report_holds(&WHOLE_CIV, "built as testonia-data and testonia-ui in the game's mods folder.\n\n"
-                                          "Civ bonuses built: 2 of 2.\n\nTurn on");
+                                          "Testonia\nCiv bonuses built: 2 of 2.\n\nTurn on");
 }

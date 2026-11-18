@@ -11,6 +11,7 @@
 enum { BYTES_PER_CHARACTER = 3, CATEGORY_ROWS = BONUS_CATEGORY_COUNT + 1, STEP_ROW_CAPACITY = 64 };
 
 _Static_assert(CBN_SELCHANGE == LBN_SELCHANGE, "a choice and a list say alike that their row changed");
+_Static_assert((int)ROSTER_SLOT_LIMIT == (int)TSV_BIT_LIMIT, "the roster has a slot for every civ the catalog names");
 
 static wchar_t wide[WIDE_TEXT_CAPACITY];
 static wchar_t shown[WIDE_TEXT_CAPACITY];
@@ -170,8 +171,10 @@ static void sync_steps(AppState *app)
     char row[STEP_ROW_CAPACITY];
     int step;
 
+    bool in_mod = roster_holds(&app->roster, &app->history.present);
+
     base_design = app->history.present;
-    (void)base_civ_apply(&base_design, &app->catalog, app->history.present.choices[CHOICE_BASE]);
+    (void)base_civ_apply(&base_design, &app->catalog, app->history.present.choices[CHOICE_REPLACE]);
     (void)SendMessageW(app->controls[CONTROL_STEPS], WM_SETREDRAW, FALSE, 0);
     (void)SendMessageW(app->controls[CONTROL_STEPS], LB_RESETCONTENT, 0, 0);
     for (step = 0; step < STEP_COUNT; ++step) {
@@ -180,7 +183,9 @@ static void sync_steps(AppState *app)
         (void)text_append(row, sizeof row, ". ");
         (void)text_append(row, sizeof row, wizard_page((WizardStep)step)->title);
         (void)text_append(row, sizeof row,
-                          wizard_step_is_done(&app->history.present, &base_design, (WizardStep)step) ? " (done)" : "");
+                          wizard_step_is_done(&app->history.present, &base_design, in_mod, (WizardStep)step)
+                              ? " (done)"
+                              : "");
         if (dialogs_widen(row, wide, WIDE_TEXT_CAPACITY)) {
             (void)SendMessageW(app->controls[CONTROL_STEPS], LB_ADDSTRING, 0, (LPARAM)wide);
         }
@@ -195,6 +200,7 @@ void sync_details(AppState *app)
     int control;
 
     app->syncing = true;
+    roster_keep(&app->roster, &app->history.present);
     detail = details_window_title(&app->history.present, app->step);
     show_text(app->window, detail.text);
     detail = details_title(app->step);
@@ -202,7 +208,9 @@ void sync_details(AppState *app)
     show_text(app->controls[CONTROL_HELP], wizard_page(app->step)->help);
     for (control = (int)CONTROL_TREE_INFO; control < CONTROL_COUNT; ++control) {
         if ((layout_spec((ControlId)control).kind == WIDGET_TEXT) && layout_shows((ControlId)control, app->step)) {
-            detail = details_of(&app->history.present, &app->catalog, (ControlId)control);
+            detail = (control == (int)CONTROL_CHANGED)
+                         ? details_changed(roster_count(&app->roster))
+                         : details_of(&app->history.present, &app->catalog, (ControlId)control);
             show_text(app->controls[control], detail.text);
         }
     }
@@ -277,18 +285,42 @@ static void on_text_change(AppState *app, ControlId control)
     apply(app, &command);
 }
 
-static void apply_base(AppState *app, int base_id)
+static void choose_civ(AppState *app, int slot)
 {
-    static CivDesign based;
+    static CivDesign chosen;
 
-    based = app->history.present;
-    if (!base_civ_apply(&based, &app->catalog, base_id) || !history_replace(&app->history, &based)) {
-        dialogs_status(app, "That base civ is not in the catalog.");
+    roster_keep(&app->roster, &app->history.present);
+    if (!roster_draft(&app->roster, slot, &chosen) && !base_civ_apply(&chosen, &app->catalog, slot)) {
+        dialogs_status(app, "That civ is not in the catalog.");
         return;
     }
-    app->unsaved = true;
+    (void)history_replace(&app->history, &chosen);
     sync_design(app, false);
-    dialogs_status(app, "The civ now has the tech tree, bonuses and looks of its base civ.");
+    (void)text_copy(narrow, sizeof narrow, "Now editing the ");
+    (void)text_append(narrow, sizeof narrow, catalog_appearance_name(&app->catalog, APPEARANCE_BASE, slot));
+    (void)text_append(narrow, sizeof narrow, ".");
+    dialogs_status(app, narrow);
+}
+
+static const char SAVINGS[ROSTER_LEFT_OUT + 1][STATUS_CAPACITY] = {
+    "The civ is saved in the mod. Build mod builds it with every other civ saved.",
+    "The mod now holds the civ as it is now.",
+    "The civ is as the game has it again, so the mod no longer changes it.",
+    "The civ is as the game has it, so the mod leaves it out."
+};
+
+void sync_save_civ(AppState *app)
+{
+    static CivDesign game;
+    RosterSaving saving;
+
+    if (!base_civ_apply(&game, &app->catalog, app->history.present.choices[CHOICE_REPLACE])) {
+        dialogs_status(app, "That civ is not in the catalog.");
+        return;
+    }
+    saving = roster_save(&app->roster, &app->history.present, &game);
+    sync_details(app);
+    dialogs_status(app, SAVINGS[saving]);
 }
 
 static void on_pick(AppState *app, ControlId control, int row)
@@ -305,8 +337,8 @@ static void on_pick(AppState *app, ControlId control, int row)
         (layout_spec(control).kind != WIDGET_CHECKLIST)) {
         return;
     }
-    if (control == CONTROL_BASE) {
-        apply_base(app, app->catalog.appearance[item.item].id);
+    if (control == CONTROL_CIV) {
+        choose_civ(app, app->catalog.appearance[item.item].id);
         return;
     }
     command = list_item_command(&app->catalog, item);

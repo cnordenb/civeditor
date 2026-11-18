@@ -12,34 +12,36 @@ civbuilder designs a new civilization for Age of Empires II: Definitive Edition 
 can load. It is a remake of [aoe2-empire-forge](https://github.com/napkingcole/aoe2-empire-forge) in C alone, with a
 window of its own made with the Win32 API: no browser, no Python, nothing to install but the program.
 
-A civ is made in nine steps: its name and looks, its tech tree, its bonuses, its team bonus, its unique unit, its two
-unique techs and its hero. Then it is reviewed, saved as a civ file that the original also opens, and built into a
-mod.
+A civ of the game is changed in nine steps: its name and looks, its tech tree, its bonuses, its team bonus, its unique
+unit, its two unique techs and its hero. Then it is reviewed and saved in the mod, and every civ saved is built into
+one mod. A civ can also be saved as a civ file that the original also opens.
 
 ## Usage
 
 1. **Build it.** With [MinGW-w64](https://www.mingw-w64.org/) gcc on the `PATH`, in the project's folder, once:
    `gcc -o build.exe tools/build/*.c src/core/*.c`. Then `build.exe` builds civbuilder and runs the tests.
 2. **Start it.** Run `build\civbuilder.exe`.
-3. **Pick a base civ.** The first control of the first step is Base civ. The new civ takes the tech tree, the
-   bonuses, the unique unit and techs and the looks of the civ picked there, and every later step can change them.
-   At first it is Generic: every unit, building and tech that all civs of the game share, and nothing else.
+3. **Choose the civ to edit.** The first control of the first step is Civ to edit, the Britons at first. Every step
+   then shows that civ as the game has it, ready to change: its name, tech tree, bonuses, unique unit and techs and
+   looks, and, when the game is installed, its tagline and description; it has no hero until one is picked. Choosing another civ keeps the edits of
+   the one before, and shows them again when it is chosen again.
 4. **Make a civ.** Go through the steps with the mouse or the keyboard: Tab moves between the controls, the arrow
    keys pick in a list, and Space ticks or unticks in a list of bonuses or of the tech tree. Ctrl+Page Down and
    Ctrl+Page Up go to the next and the previous step, Ctrl+1 to Ctrl+9 to a step. F1 says in the status line what the control in focus is
-   for, and Glossary in the menu Help explains the game's words and shortened forms. Ctrl+Z undoes a change, Ctrl+Y
-   redoes it. Every command is also in the menu (Alt).
-5. **Save it.** Save the civ as a `.civbuilder.json` file with Ctrl+S, or open one saved before with Ctrl+O. A civ
-   without a name is offered the name `civbuilder_civ`. The last step shows what the civ still needs before a mod
-   can be built from it.
-6. **Build the mod.** On the last step, pick the civ of the game that the new civ replaces: at first the base civ,
-   or the Britons for Generic. Then press Build mod... or Ctrl+B. civbuilder asks before it writes two folders,
+   for. Ctrl+Z undoes a change, Ctrl+Y redoes it. Every command is also in the menu (Alt).
+5. **Save it in the mod.** The last step shows what the civ still needs before a mod can be built from it. Save civ
+   there puts the civ, as it is, in the mod, and the label at the top right says how many civs the mod changes; a civ
+   as the game has it is left out. Save civ file... (Ctrl+S) in the menu File saves the civ shown as a
+   `.civbuilder.json` file, and Open civ file... (Ctrl+O) opens one saved before. A civ that keeps the game's name is
+   offered the name `civbuilder_civ`.
+6. **Build the mod.** Press Build mod... or Ctrl+B and give the mod a name, `civbuilder_mod` at first. Each civ saved
+   in the mod takes the place of the civ of the game it was made from. civbuilder asks before it writes two folders,
    `<name>-data` and `<name>-ui`, into the game's `mods\local` folder, and then says what it built. In the game,
    turn on the UI mod in the mod manager and pick the data mod in the lobby. The game must be installed through
    Steam; civbuilder reads its data file and never changes it. Turn the UI mod off before you play a campaign: the
    names of the unique techs, the unique unit and the hero take the place of a few lines of the game's campaigns.
 7. **Give the UI mod the highest priority.** Another mod that changes the game's texts, such as a mod of tooltips,
-   can cover the civ's texts if the mod manager gives it a higher priority than the UI mod. The civ's description
+   can cover the civs' texts if the mod manager gives it a higher priority than the UI mod. Each civ's description
    has a string id of its own, which other mods do not use, but its name and the names of its unique unit, unique
    techs and hero keep the game's ids.
 

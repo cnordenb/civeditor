@@ -306,7 +306,7 @@ bool test_a_short_row_of_a_list_is_as_high_as_a_target(void)
 
 bool test_the_first_control_of_a_step_comes_under_the_help(void)
 {
-    return reflow_box(CONTROL_BASE, STEP_IDENTITY, NARROW).top == BASE_TOP;
+    return reflow_box(CONTROL_CIV, STEP_IDENTITY, NARROW).top == BASE_TOP;
 }
 
 bool test_back_and_next_come_under_the_status_line(void)

@@ -175,3 +175,12 @@ DetailText details_window_title(const CivDesign *design, WizardStep step)
     summary_add(&detail, " - civbuilder");
     return detail;
 }
+
+DetailText details_changed(int count)
+{
+    DetailText detail = { .text = "" };
+
+    add_number(&detail, (long)count);
+    summary_add(&detail, (count == 1) ? " civ changed" : " civs changed");
+    return detail;
+}

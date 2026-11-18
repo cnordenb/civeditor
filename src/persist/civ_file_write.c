@@ -135,7 +135,6 @@ static void write_trailer(const CivDesign *design, JsonWriter *writer)
     write_empty(writer, "button_moves", "[]");
     write_empty(writer, "free_techs", "[]");
     json_write_number(writer, "replace_civ", design->choices[CHOICE_REPLACE]);
-    json_write_number(writer, "base_civ", design->choices[CHOICE_BASE]);
 }
 
 bool civ_file_compose(const CivDesign *design, JsonWriter *writer)

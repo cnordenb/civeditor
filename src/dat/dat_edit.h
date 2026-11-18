@@ -7,9 +7,9 @@
 #include "dat_map.h"
 
 enum {
-    DAT_PATCH_CAPACITY = 4096,
+    DAT_PATCH_CAPACITY = 32768,
     DAT_PATCH_WIDTH_LIMIT = 8,
-    DAT_COPY_CAPACITY = 2048,
+    DAT_COPY_CAPACITY = 16384,
     DAT_ADDED_EFFECTS_CAPACITY = 4194304,
     DAT_ADDED_TECHS_CAPACITY = 2097152,
     DAT_NO_ID = -1
@@ -63,6 +63,7 @@ typedef struct {
 
 bool dat_edit_start(DatEdit *edit, const DatMap *map);
 bool dat_edit_patch(DatEdit *edit, const DatPatch *patch);
+bool dat_edit_is_patched(const DatEdit *edit, size_t at);
 bool dat_edit_patch_u8(DatEdit *edit, size_t at, int value);
 bool dat_edit_patch_i16(DatEdit *edit, size_t at, int value);
 bool dat_edit_patch_i32(DatEdit *edit, size_t at, long value);

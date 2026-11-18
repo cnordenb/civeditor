@@ -37,7 +37,7 @@ bool test_the_name_is_written_under_the_replaced_civs_name_id(void)
 {
     ModCiv civ = named_civ();
 
-    if (!CHECK(mod_strings_write(&strings, &civ, VANILLA))) {
+    if (!CHECK(mod_strings_write(&strings, &civ, 1, VANILLA))) {
         return false;
     }
     return strncmp(strings.text, NAME_LINE, strlen(NAME_LINE)) == 0;
@@ -49,7 +49,7 @@ bool test_the_civ_descriptions_are_written_in_id_order(void)
     const char *jurchens;
     const char *khitans;
 
-    if (!CHECK(mod_strings_write(&strings, &civ, VANILLA))) {
+    if (!CHECK(mod_strings_write(&strings, &civ, 1, VANILLA))) {
         return false;
     }
     jurchens = strstr(strings.text, "\n120200 ");
@@ -57,7 +57,7 @@ bool test_the_civ_descriptions_are_written_in_id_order(void)
     return (jurchens != NULL) && (khitans != NULL) && (jurchens < khitans);
 }
 
-bool test_the_mod_folder_name_is_made_from_the_civ_name(void)
+bool test_the_mod_folder_name_is_made_from_the_mod_name(void)
 {
     char prefix[FORGE_PREFIX_CAPACITY];
 
@@ -73,7 +73,9 @@ bool test_a_mod_is_not_built_from_an_unfinished_civ(void)
 
     civ_design_reset(&design);
     (void)CHECK(civ_design_set_text(&design, TEXT_FIELD_NAME, "Testonia"));
-    job.design = &design;
+    job.designs[0] = &design;
+    job.design_count = 1;
+    job.mod_name = "Testonia";
     job.catalog = &catalog;
     job.game_folder = L".";
     job.mods_folder = L".";
@@ -145,7 +147,7 @@ static bool written_under(CivString kind, int sid, const char *line)
     catalog.appearance[0].string_ids[CIV_STRING_IMPERIAL_TECH] = CATALOG_MISSING;
     catalog.appearance[0].string_ids[kind] = sid;
     catalog.appearance_count = 1;
-    written = CHECK(mod_strings_write(&strings, &civ, VANILLA)) && (strstr(strings.text, line) != NULL);
+    written = CHECK(mod_strings_write(&strings, &civ, 1, VANILLA)) && (strstr(strings.text, line) != NULL);
     catalog.appearance_count = 0;
     catalog.tech_count = 0;
     return written;
@@ -190,7 +192,7 @@ static bool write_hero_strings(bool hero_skipped)
     catalog.appearance_count = 1;
     (void)CHECK(civ_design_pick_hero(&design, LIU_BEI));
     (void)CHECK(civ_design_set_text(&design, TEXT_FIELD_HERO_NAME, "Testhero"));
-    written = CHECK(mod_strings_write(&strings, &civ, VANILLA));
+    written = CHECK(mod_strings_write(&strings, &civ, 1, VANILLA));
     catalog.appearance_count = 0;
     return written;
 }

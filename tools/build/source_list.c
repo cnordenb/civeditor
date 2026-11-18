@@ -229,16 +229,21 @@ bool source_is_fresh(const SourceFile *source, const char *built_path, long long
     return (built > source->modified) && (built > newest_header);
 }
 
-bool source_write_objects(FILE *out, const SourceList *list, SourceProgram program, const char *folder)
+static bool write_object(FILE *out, const char *folder, const char *path)
 {
     char object[SOURCE_PATH_CAPACITY];
+
+    return source_built_path(object, folder, path, ".o") && (fputs(object, out) != EOF) && (fputc('\n', out) != EOF);
+}
+
+bool source_write_objects(FILE *out, const SourceList *list, SourceProgram program, const char *folder)
+{
+    const char *path;
     int index;
 
     for (index = 0; index < list->count; ++index) {
-        if (!source_in_program(program, list->files[index].path)) {
-            continue;
-        }
-        if (!source_built_path(object, folder, list->files[index].path, ".o") || (fprintf(out, "%s\n", object) < 0)) {
+        path = list->files[index].path;
+        if (source_in_program(program, path) && !write_object(out, folder, path)) {
             return false;
         }
     }

@@ -9,6 +9,7 @@
 #include "../model/history.h"
 #include "../present/binding.h"
 #include "../reflow/reflow.h"
+#include "../roster/civ_roster.h"
 #include "../view/layout.h"
 #include "../view/palette.h"
 
@@ -18,6 +19,7 @@ enum {
     ACTION_ID_BASE = 500,
     WIDE_TEXT_CAPACITY = 16384,
     STATUS_CAPACITY = 320,
+    MOD_NAME_CAPACITY = 96,
     BOX_SIZE = 18,
     TEXT_INSET = 8,
     LIST_REPEAT_TIMER = 1,
@@ -32,9 +34,9 @@ typedef enum {
     ACTION_UNDO,
     ACTION_REDO,
     ACTION_BUILD,
+    ACTION_ADD,
     ACTION_EXIT,
     ACTION_HELP,
-    ACTION_GLOSSARY,
     ACTION_SCROLL_UP,
     ACTION_SCROLL_DOWN,
     ACTION_FIRST_STEP,
@@ -65,10 +67,12 @@ typedef struct {
     HWND held_list;
     int held_rows;
     History history;
+    CivRoster roster;
     Catalog catalog;
     ListModel lists[CONTROL_COUNT];
     int bonus_category;
     wchar_t file_path[FILE_PATH_CAPACITY];
+    wchar_t mod_name[MOD_NAME_CAPACITY];
 } AppState;
 
 bool controls_create(AppState *app);
@@ -99,6 +103,7 @@ void sync_design(AppState *app, bool refill);
 void sync_list(AppState *app, ControlId control);
 void sync_on_notify(AppState *app, int control, int code);
 void sync_details(AppState *app);
+void sync_save_civ(AppState *app);
 
 bool dialogs_widen(const char *text, wchar_t *wide, int capacity);
 bool dialogs_narrow(const wchar_t *wide, char *text, int capacity);
@@ -108,7 +113,6 @@ bool dialogs_open(AppState *app);
 bool dialogs_load_catalog(AppState *app);
 bool dialogs_may_discard(AppState *app);
 bool dialogs_build(AppState *app);
-void dialogs_glossary(AppState *app);
 
 HWND app_open(HINSTANCE instance);
 int app_run(HINSTANCE instance, int show);

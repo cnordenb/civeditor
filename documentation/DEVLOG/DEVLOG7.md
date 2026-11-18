@@ -1,6 +1,7 @@
 # Development log, part 7
 
 - [2026-11-17](#2026-11-17)
+- [2026-11-18](#2026-11-18)
 
 Part 7 of the development log. It follows [part 6](DEVLOG6.md). The decisions made in the log are listed in
 [DECISIONS.md](../DECISIONS.md).
@@ -127,3 +128,246 @@ The day goes on from [part 6](DEVLOG6.md#2026-11-17), which holds its sections u
    rule, requirement and bug, the tests that kill mutants move to a redundancy suite that `build.exe redundancy` runs,
    and `BUGS.md` lists the bugs found in testing, Bugs 1 and 2 of 2026-11-10 and 1 to 4 of 2026-11-16; this when tests
    may be changed again.
+
+## 2026-11-18
+
+### 07:24:48: civs of the game edited and saved into one named mod
+
+#### What changed
+
+- **Why.** The window was to start from the Britons instead of Generic, each field holding what the game gives; the
+  first step was to say that it chooses which civ to edit; the review was to have Save civ and, at its top right, how
+  many civs are changed, with Save civ file... and Open civ file... in the menu only; the review's text was to show no
+  caret; and Build mod was to ask for the mod's name, which names the mod's folders instead of the civ's name.
+- **Answers.** Four questions were put while the work was done, and answered. A mod changes every civ that was
+  changed and saved, each in its own slot, so the review's choice of the civ it replaces goes. Save civ puts the civ
+  in the mod and writes nothing to the disk; only the civs saved so are built and counted. The tagline and the
+  description are read from the game when the window opens, empty without the game, and no text of the game is kept
+  in the project. Tests may be written again, and a test that only ub-mode needs is a redundancy test; that answers
+  question 4 of [10:57:53](#105753-no-test-names-rule-4-alone-the-21-that-did-are-removed) in part.
+- **Civ to edit.** Generic, base 0, is gone from `appearance.txt` and the catalog (`CATALOG_GENERIC_BASE`). The first
+  list of the step Identity is Civ to edit (`CONTROL_CIV`, before `CONTROL_BASE`), the Britons at first, and the step
+  says "Choose which civ to edit. Every step then shows it as the game has it, ready to change." `base_civ_apply` now
+  also gives the name of the civ's `base` line, the unique unit and techs named as the catalog names them
+  (`command_pick`), no hero, and the tagline and description the game gives. Choosing another civ (`choose_civ` in
+  `sync.c`) shows that civ's draft, or its base civ the first time, as one change that undo takes back.
+- **Drafts and the civs of the mod.** The new `src/roster/civ_roster.c` keeps, for each of 64 slots, the draft of its
+  civ, the design last saved in the mod and whether the mod holds it. The design shown is kept as its civ's draft each
+  time the window shows it anew. `roster_save` puts a design in the mod only when it differs from its civ of the game
+  (`civ_design_same`, in the new `src/model/civ_compare.c` with the comparisons of each step).
+- **The review.** Its right column holds the count of civs changed (`CONTROL_CHANGED`: "1 civ changed", "2 civs
+  changed", from `details_changed`), Save civ (`CONTROL_ADD`, `sync_save_civ`) and Build mod... . The choice of the
+  civ it replaces and the buttons Save civ file... and Open civ file... are gone from it; the menu File keeps the two.
+  A step is done once the design differs there from its civ of the game, and the review once the mod holds the civ as
+  it is and the civ is complete (`wizard_step_is_done`). The review's text hides the caret when it takes the focus
+  (`hide_report_caret` in `app_window.c`).
+- **The game's texts.** `game_text_read`, in the new `src/gametext/game_text.c`, reads when the window opens each
+  civ's `tech_tree_description_string_id` from the game's `civilizations.json`, and that string from its English
+  strings: the first line, without " civilization", is the tagline, the rest the description. `civ_list_read` moved
+  from `forge.c` to `civ_list.c`, so that both use it.
+- **The mod's name.** Build mod... asks for it (`ask_text` in `ask.c`, in a dialog made in memory by the new
+  `src/shell/text_dialog.c`): `civbuilder_mod` at first, then the name given last. The folders' prefix is made from
+  it as it was from the civ's name (`forge_prefix`), and both `info.json` take it as their title, the UI mod's with
+  " (UI)". A civ that keeps the name of its civ of the game is offered `civbuilder_civ` when saved as a civ file.
+- **Several civs in one mod.** `ForgeJob` holds up to 64 designs. `forge_build` applies the recipe of each to one
+  `DatEdit`, so the techs a civ adds are numbered after those of the civs before it, and a requirement that
+  `add_requirement` in `recipe_copy.c` adds takes a slot that no civ before has patched (`dat_edit_is_patched`); when
+  none is left, the build fails (question 11). The civ list is written civ by civ (`chain_civ_list`), each civ gets
+  its tech tree file, and `mod_strings_write` writes the names and pickers of all civs first, then the descriptions,
+  then each civ's other texts. The report of a build names each civ (`BuiltCivs` in `summary.h`). The room for
+  patches, copies and strings was raised for 64 civs.
+- **Redundancy tests.** A fourth category of tests, in `tests/redundancy/`, run after the others only with the word
+  `redundancy` (`tests/runner.c`; `build_test_arguments` passes it on), and numbered on their own, as "Redundancy test
+  3". `TESTS.md` lists them in a section of their own, which its checks of the other tests do not count. Each group
+  of `redundancy_suite.c` holds at most eight tests, as `DECISIONS.md` has it since 2026-11-15: the four groups of 13,
+  11, 9 and 9 were divided where their subjects change, and the tests kept their order, but for the newest,
+  Redundancy test 46, which went to the descriptions, before the two tests of room.
+- **Made right.** After the crapper and the dryer, `civ_design_same`, `game_text_read`, `read_quoted` and
+  `mod_strings_write` were split into smaller functions; `civ_design_same_bonuses` takes the list it compares
+  (`BonusList`), where a second function compared the team bonus alike; and `source_write_objects` in
+  `tools/build/source_list.c` writes each object through `write_object`.
+- **The mutator's survivors.** Of those on lines this work wrote, the checks that no caller can fail were taken out:
+  the capacity checked by `ask_text`, the range of the control in `hide_report_caret`, which `layout_spec` checks
+  itself, and the check of the message of `may_build_into`, which always fits (at most 612 bytes in 2048). So were the
+  second bounds of the loops of `civs_are_ready`, `report_build`, `summary_write_build` and `dat_edit_is_patched`,
+  whose counts never pass their arrays (64 each). `ask_text` and the default mod name copy with `lstrcpynW`, which
+  ends the copy within its room, in place of `wcsncpy` and an end put after it. The texts of `summary_write_build`,
+  `details_changed` and `choose_civ` start from `text_copy` or an empty initializer, and the `BaseCiv` of `add_base`
+  from an empty tagline, in place of a first letter emptied: a mutant of that letter kept the start of an older text.
+  In a second round the same was done to the check of more than 64 civs in `forge_civs_are_finished`, since a job
+  counts the roster's civs, and to the range of the slot in `roster_draft`, since `add_base` refuses a civ id outside
+  0 to 63; to the second bounds of the four loops of `forge.c` over a job's civs, of the four of `mod_strings.c`, whose
+  count `mod_strings_write` no longer checks, and of `want_descriptions` and `base_wanting`; and to the 8192 letters
+  of `read_quoted`, the 400000 lines of `read_lines` and the nine digits of `read_line`, whose texts always end, since
+  `file_read_all` ends what it reads. `read_line` no longer asks for a digit, nor for a space after the digits, which
+  the game writes as a tab on 4331 of its 19682 numbered lines, though on none of its 62 descriptions: a line without
+  a digit gives the id 0, and the game's description ids run from 120150 to 120211. So `read_lines` stops at the end
+  of the text alone, an empty line being one without a digit. `add_requirement` takes a slot holding
+  `NO_REQUIREMENT`, -1, the game's empty slot, in place of any number below 0. `mod_strings_write` and
+  `build_test_arguments` start their texts from `text_copy`, and `write_object` writes its line with `fputs` and
+  `fputc` in place of `fprintf`. The limits that the checks taken out rested on are stated where they meet, by two
+  `_Static_assert`s: the roster's slots and the catalog's civ ids in `sync.c`, a mod's civs and the roster's slots in
+  `dialogs.c`. The check of more than 64 civs had come after `civs_are_ready` filled the job, too late to guard it.
+  The check of the civs in `forge_build` stays: without it Test 29 failed, since a caller may build without asking
+  `forge_civs_are_finished` first. The others got redundancy tests, below.
+- **The mutator's uncovered mutants.** Those on lines this work wrote, which no test ran, were counted after the
+  third round of survivors: 58, of which 47 in `text_dialog.c`, which no test opens (question 3). Of the other 11,
+  two were on lines that a user reaches: `add_requirement` in `recipe_copy.c` when the civs built before have taken
+  the free places of a tech's requirements, as several civs of one mod with the same bonus can, and
+  `put_description` in `mod_strings.c` when a civ's description passes its 8192 bytes, as 24 long bonuses and a long
+  description do. They got Redundancy tests 47 and 48. One was on a check that cannot fail: the picker's text of
+  `put_name`, "Click to play as " and a name, always fits, so its result is cast to `(void)` and a `_Static_assert`
+  states the sizes. The other eight are under Not done. The mutator, run again on the two files, found a survivor
+  that the round before had killed: the lower bound of the descriptions that `mod_strings_write` writes past the
+  game's, which only the Britons' id, 120150, the first, tells apart, while Redundancy test 42 had since been given
+  the Jurchens'. Redundancy test 46 writes the Britons' description and finds it once.
+- **Tests.** 439, as before, and 63 redundancy tests, new. Changed: Tests 50 and 51 test a civ of the game instead of
+  Generic, under new names; Test 28 the folders named from the mod's name; Test 285 a report that names the civ; Test
+  323 a new civ that keeps the game's name; Tests 336 to 338 a civ saved in the mod before Build, and the mod's name;
+  Test 392 the Britons after an undo; Test 436 `redundancy` passed on; and the fixtures that used Generic,
+  `CONTROL_BASE` or a job of one design. Redundancy tests 1 to 37 test the civ of the game, picks, the steps done, the
+  roster, how a civ is told from its civ of the game, and the game's texts; 38 the analyzer in the compile command; 39
+  the first patch of the dat file found again; 40 to 48 the builds refused, the descriptions in the mod's strings and
+  the first of them written once, the room of a tech for the requirements of several civs and the room of a
+  description; 49 to 63 the real window: the Britons at first, a draft kept, the count of civs changed, Save civ, the
+  caret of the review's text, Build, the mod's name, the glossary, the filter and the categories of the bonuses, an
+  empty mod name, the name of the civ file of a long civ name and the caret of the Name field. In the catalog of the
+  tests the Britons now have one bonus and the Franks two.
+- **Checked.** `build.exe quick redundancy`: 502 tests, 439 and 63, every one passed but Test 418, which failed before
+  this work too. `build.exe`, the analyzed build: no warning and no finding of the analyzer, and of its 439 tests
+  only Test 418 failed. The tests of the game's texts and of the caret of the review's text were seen to fail before
+  their code was written; the other redundancy tests were written after the code they test. Redundancy tests 38, 39
+  and 58 to 62 were shown honest by breaking the code: the analyzer taken out of the analyzed build, the search of the
+  patches begun at the second, the glossary's loop cut, the filter made to match every row, the category's comparison
+  turned round, the answer of the mod's name taken when either of its two halves held, and the cut of a long civ name
+  doubled; each failed alone, and Redundancy test 61 failed alone again when a mod name not given counted as given.
+  The seventeen of the later rounds were shown honest too. Thirteen breaks at once made Redundancy tests 22, 24, 25,
+  33 to 37, 40 to 42, 44 and 63 fail, and 56 with them: a roster started anew holding every draft, the looks and the
+  costs compared from the second, a stale description left, a line's end not ending a text, a space at the end kept,
+  the tail cut from any first line long enough, a tagline let fill its whole room, the civs of the descriptions sought
+  from the second, a description id at the end of the game's span taken as inside it, a job of no civ taken as
+  finished, `forge_build` answering true for an unfinished civ, and the caret of every field hidden. Redundancy test
+  43 failed, with 42, when a civ's description took every other id, and Redundancy test 23 alone when slot 64 was
+  taken as a slot. Then Redundancy test 42 was given the Jurchens' civ, in the middle of the game's descriptions, in
+  place of the Britons', the first: it failed, with Redundancy test 26, when the descriptions were sought below 120150
+  in place of above it and `multiplier_of` looked one pick past its count; Redundancy test 45 failed alone when
+  `civ_described_by` looked one civ past its count. Redundancy test 47 failed alone when `add_requirement` answered
+  true with no place free, and again when its loop read one place past the six; Redundancy test 48 alone when a
+  description too long for its room left the strings unfailed; Redundancy test 46 alone when the descriptions past
+  the game's were written from 120150 on; Redundancy tests 52 and 53 alone when line 211 of `sync.c` gave the count
+  of civs changed to every other text of the step and their details to the count. Each break was undone, and the
+  diff was then as before it.
+- **Measured.** gcc adds the counts of a run to those of the runs before while an object stays the same, so a measure
+  after a build that compiled only some files counts lines that no test runs any more; the highest score of 9.6 at
+  10:57:53 was such a measure. With every source compiled anew, the glossary, the filter of the lists and two
+  functions of the build program scored 10 or more; they now have redundancy tests. The crapper after each round of
+  survivors and after the tests of the uncovered mutants, every source compiled anew: 977 functions. Each time only
+  the three of `text_dialog.c`, which no test runs (question 3), scored 10 or more: `answer_proc` 56.0,
+  `text_dialog_show` 30.0 and `put_text` 12.0. Every other function was below 10, the highest `on_text_change`, 8.3,
+  the first time, and `bottom_box`, 9.6, after that: in those runs no test reached the `return` under its checks of
+  the size or its `default:`. The dryer, each time: no two functions 80% alike. The mutator ran one file at a time on
+  each source this work changed, after the last change to it, the files of `src/win/`, `src/shell/` and
+  `src/present/` with the window's tests. Eleven runs stopped on an error of Windows (question 9), and each such file
+  was run again until a run ended. On lines of this work the run after the first round of survivors left 84, the run
+  after the second 28 and the third 24, each read; after the tests of the uncovered mutants, the runs of the two files
+  they test left none in `recipe_copy.c` and one in `mod_strings.c`, which Redundancy test 46 killed in a last run.
+  Those left, and why, are under Not done. The survivors on older lines were left as they were.
+- **Documents.** `TESTS.md`: the entries of the tests changed, the lines of the tests in the files changed, and the
+  63 redundancy tests in a section of their own. `TERMINOLOGY.md`: Generic taken out; base civ, replaced civ and
+  prefix changed; tagline, civ to edit, draft, mod name, Save civ, civs changed, roster, job and redundancy test added.
+  `MAINTAINER.md`: the table of files, the diagram, "Civs to edit and the civs of the mod" in place of "Base civs",
+  how a mod of several civs is built and named, the three limits of a civ's slot that must stay equal, the redundancy
+  tests and where a new one goes, and the mutator's command. `AGENTS.md`: the measure of Requirement 10 touches every
+  source first and runs `build.exe coverage redundancy`, and the mutator's command passes `redundancy`. `README.md`:
+  the description and the steps of the usage. `DELETION_REQUESTS.md`, which Git now ignores (`.gitignore`): the
+  workers that the mutator's runs left, in place of six workers already gone from the disk, and the files of this work
+  outside the project. `DECISIONS.md`.
+- **Replaced.** "Generic at first", "A design starts from a base civ" and "A base civ of the game is also the replaced
+  civ", of
+  [2026-11-09 10:07:36](DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first);
+  "A mod takes the slot of one civ", of
+  [2026-11-09 02:15:04](DEVLOG1.md#021504-a-mod-built-from-the-civ-from-the-catalog-and-the-games-own-data-file);
+  "No test is written for now", of
+  [2026-11-17 10:57:53](#105753-no-test-names-rule-4-alone-the-21-that-did-are-removed).
+
+#### Not done
+
+- Requirement 8 still speaks of the one civ that a mod replaces (question 1).
+- No test opens the dialog that asks for the mod's name, and it was not tried by hand, so the three functions of
+  `text_dialog.c` stay at CRAP 10 or above (question 3).
+- No test builds a mod of two civs or more, and none was tried in the game: the small game of the tests has slots for
+  Gaia and the Britons only. Redundancy test 47 commits the requirements of five civs onto one data file, but builds
+  no mod.
+- The window was not tried by hand.
+- Most redundancy tests were written after the code they test, against the order of ub-mode; those not broken by hand
+  rest on the mutator's verdict.
+- Closing the window asks to save only the civ shown; the drafts of other civs and the civs saved in the mod are lost
+  without a question (question 5).
+- The count of core tests still breaks Rules 31 and 34, and `BUGS.md` does not exist (Rule 33), as at 10:57:53.
+- `bottom_box` in `layout.c`, which this work did not change, checks the size again after `frame_box`, its only
+  caller, has checked it, and its `default:` serves no control; both were left as they were.
+- The mutator's 23 survivors on lines of this work were read and left, since no user of the game meets the state
+  that tells them from the code: `forge.c` 108, a name id of 0, where the game's run from 10102 to 10332; 115, a civ
+  list written to exactly 524288 bytes, the room of the one read; 206, a build of two civs (above); `game_text.c` 54
+  and 131, a civ read past the last one, which nothing shows; 97, a first line that is " civilization" alone, and
+  105, a backslash that ends a line, neither in the game's 62 descriptions; `civ_roster.c`, eleven on slot 0, Gaia's,
+  which Save civ refuses as no civ of the game, and one on line 84, past the 64 slots, which only a civ asked for past
+  the count reaches, and `civs_are_ready` never asks so; `build_plan.c` 55, a fourth word read past the three and not
+  used; `dialogs.c` 200 and 233, a civ copied past the count and not read; and `app_window.c` 84 (question 8).
+- Eight uncovered mutants on lines of this work were left, besides the 47 of `text_dialog.c`: two on line 13 of
+  `ask.c` and one on line 51 of `build_plan.c`, declarations that hold no code to run; `sync.c` 211, which runs, since
+  Redundancy tests 52 and 53 fail when it is broken, but whose condition gcov counts on the lines below it;
+  `civ_list.c` 19 and `game_text.c` 32, a game folder too long for a path of 520 characters, which no installed game
+  has; `game_text.c` 173, no game installed, where the mutant changes only the result of `game_text_read`, which the
+  window does not use; and `forge.c` 116, a civ list written past 524288 bytes, where the game's holds 58763.
+- Eight groups of the tests outside `tests/redundancy/` hold more than eight tests, as they did before this work, and
+  were left: `run_mod_test` (9) and `run_civ_list_test` (12) of `tests/functional/functional_suite.c`,
+  `run_recipe_bonus_test` (14), `run_recipe_bare_test` (12), `run_recipe_plan_test` (9), `run_look_test` (12) and
+  `run_bonus_scale_test` (18) of `tests/suites/build_suite.c`, and `run_catalog_test` (11) of
+  `tests/suites/core_suite.c`. The crapper does not measure the tests, so no measure shows them.
+- Nine runs of the mutator that stopped left their workers in `target/mutation-workers/`; `DELETION_REQUESTS.md`
+  lists them to be deleted.
+- `sitrep&instructions/sitrep.md` was not brought up to date with this work.
+
+#### Questions
+
+1. **Requirement 8 and several civs.** It speaks of the civ that the mod replaces. It was read as each civ saved in
+   the mod replacing its own civ of the game. Proposal: "The mod changes each civ saved in it, in that civ's slot."
+2. **Requirement 1 for a civ of the game.** No civ is without a name any more, so the default name `civbuilder_civ`
+   was read as the one offered for a civ that keeps the name of its civ of the game. Proposal: word Requirement 1 so.
+3. **A test of the dialog of the mod's name.** The tests answer every dialog through `ask_script` and never open one,
+   so `text_dialog.c` runs in no test. A test could make the dialog without showing it (`CreateDialogIndirectParamW`
+   with no `WS_VISIBLE`), type in it and press OK by messages, as the tests do with the window. Proposal: allow that
+   for this dialog, so that its CRAP scores fall below 10.
+4. **The mod's name as a folder name.** The name is made into the folders' prefix as the civ's name was: lower case,
+   every character but a-z, 0-9, `_` and `-` made `_`, so "My Mod" builds `my_mod-data`; `info.json` keeps the name
+   as typed. Proposal: keep it, since the folders must be names that Windows and the game both take.
+5. **Closing with several civs.** Proposal: ask also before closing when a civ saved in the mod has not been built
+   since, or when a draft of another civ holds edits that no civ file has.
+6. **Redundancy tests run after the core.** Rule 32 says they are "only run separately". They run only when
+   `redundancy` is given, after the core tests in the same run, so that one command of the mutator runs both.
+   Proposal: keep that, or add a word that runs them alone.
+7. **Window tests and the installed game.** A window that a test opens without a script reads the tagline and the
+   description of an installed game, so they hold the game's text on a computer with the game and nothing on one
+   without. No test reads them. Proposal: keep it, or let the tests open the window with a script that names no game.
+8. **The chain of actions.** `run_file_action`, `run_other_action`, `run_history_action` and `run_scroll_action` in
+   `app_window.c` each say whether they took the action, and the next one is asked only when none did. A `return
+   true` made false shows the user nothing, since the action then falls through to `go_to_step`, whose check refuses
+   it; so the mutator's survivors there stay, the new one of Save civ and the old ones beside it. Proposal: one
+   `switch` on the action, split by kind so that no function reaches CRAP 10, which takes those results out.
+9. **The mutator's workers.** Eleven runs stopped on an error of Windows: nine with "being used by another process"
+   while the mutator deleted a worker's copy of a file at the end, each leaving its workers, and two with "Permission
+   denied" while it wrote a mutant into a worker's copy. Which program held the files was not found. Proposal: keep
+   `target/` out of the editor's watcher and indexer and out of the virus scanner, and see whether the runs then end.
+10. **The replaced civ of a civ file.** A civ file may name any number from -1 to 99999 as the civ it replaces
+    (`is_choice_value`), while the roster has 64 slots. Save civ answers "That civ is not in the catalog." for a civ
+    outside them, but the window keeps the draft of the civ shown and asks whether the mod holds it at each refresh
+    (`roster_keep` and `roster_holds` in `sync.c`), and there `slot_of`'s check fails, a check meant for faults, not
+    for data. Proposal: Open civ file... refuses a file whose replaced civ is not a civ of the catalog, and `slot_of`
+    then trusts the slot it is given.
+11. **A tech full of the requirements of several civs.** When the civs of one mod with a bonus that adds a
+    requirement to the same tech have taken its free places, four in the game of the tests, the next such civ fails
+    the whole build with "The civs could not be written into the game data.", while a civ whose tech has no free
+    place in the game gets that bonus skipped and counted in the report. A civ's plan reads the tech from the game
+    alone, and the places that the civs before it took are seen only when the plan is committed. Proposal: let the
+    plan see them, so that the bonus is skipped and the report names it (Req. 9).

@@ -1,12 +1,27 @@
 #include "civ_list.h"
 
 #include "../core/check.h"
+#include "../core/file_io.h"
 #include "../core/text.h"
+#include "../mod/mod_places.h"
 
 enum { VALUE_CAPACITY = 256, CIV_LIMIT = 256, ICON_DIGITS_TWO = 10, ICON_DIGITS_FULL = 100 };
 
 static const JsonDocument *document;
 static JsonPatch patch;
+
+bool civ_list_read(JsonDocument *list, const wchar_t *game_folder)
+{
+    wchar_t path[FILE_PATH_CAPACITY];
+    FileRead read;
+
+    if (!mod_game_path(game_folder, "resources\\_common\\dat\\civilizations.json", path)) {
+        return false;
+    }
+    read = file_read_all(path, list->text, sizeof list->text);
+    list->length = (int)read.length;
+    return read.succeeded && json_parse(list);
+}
 
 int civ_list_entry(const JsonDocument *list, int slot)
 {

@@ -18,7 +18,6 @@ enum {
     CATALOG_TECH_CAPACITY = 320,
     CATALOG_TREE_CAPACITY = 640,
     CATALOG_BASE_CAPACITY = 64,
-    CATALOG_GENERIC_BASE = 0,
     CATALOG_BONUS_CHANGE_CAPACITY = 4096,
     CATALOG_UNIT_PATCH_CAPACITY = 512,
     CATALOG_REQUIREMENT_CAPACITY = 32,
@@ -124,7 +123,6 @@ typedef struct {
     int building;
     int parent;
     int lane;
-    bool universal;
     bool needs_research;
     uint64_t civs;
 } TreeEntry;
@@ -191,6 +189,8 @@ typedef struct {
     int id;
     TsvNumberList bonuses;
     int values[BASE_VALUE_COUNT];
+    char tagline[CIV_LINE_CAPACITY];
+    char description[CIV_DESCRIPTION_CAPACITY];
 } BaseCiv;
 
 typedef struct {

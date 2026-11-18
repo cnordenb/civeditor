@@ -3,6 +3,7 @@
 #include "../base/base_civ.h"
 #include "../core/check.h"
 #include "../core/text.h"
+#include "../gametext/game_text.h"
 #include "../shell/shell.h"
 
 enum {
@@ -11,7 +12,7 @@ enum {
     START_HEIGHT = 760,
     WINDOW_STYLE = WS_OVERLAPPEDWINDOW,
     WINDOW_EXTRA_STYLE = WS_EX_CONTROLPARENT,
-    BUTTON_COUNT = 5,
+    BUTTON_COUNT = 4,
     NO_ACTION = -1
 };
 
@@ -78,6 +79,10 @@ static bool run_file_action(int action)
         (void)dialogs_build(&app);
         return true;
     }
+    if (action == ACTION_ADD) {
+        sync_save_civ(&app);
+        return true;
+    }
     return false;
 }
 
@@ -92,10 +97,6 @@ static bool run_other_action(int action)
     }
     if (action == ACTION_HELP) {
         assist_show_help(&app);
-        return true;
-    }
-    if (action == ACTION_GLOSSARY) {
-        dialogs_glossary(&app);
         return true;
     }
     return false;
@@ -143,8 +144,7 @@ static int button_action(int control)
 {
     static const int BUTTONS[BUTTON_COUNT][2] = { { CONTROL_BACK, ACTION_BACK },
                                                   { CONTROL_NEXT, ACTION_NEXT },
-                                                  { CONTROL_SAVE, ACTION_SAVE },
-                                                  { CONTROL_OPEN, ACTION_OPEN },
+                                                  { CONTROL_ADD, ACTION_ADD },
                                                   { CONTROL_BUILD, ACTION_BUILD } };
     int button;
 
@@ -169,6 +169,13 @@ static bool is_step_pick(int control, int code)
     return (control == (int)CONTROL_STEPS) && (code == LBN_SELCHANGE) && !app.syncing;
 }
 
+static void hide_report_caret(int control, int code, LPARAM lparam)
+{
+    if ((code == EN_SETFOCUS) && (layout_spec((ControlId)control).kind == WIDGET_REPORT)) {
+        (void)HideCaret((HWND)lparam);
+    }
+}
+
 static void on_command(WPARAM wparam, LPARAM lparam)
 {
     int identifier = (int)LOWORD(wparam);
@@ -176,6 +183,7 @@ static void on_command(WPARAM wparam, LPARAM lparam)
     int control = identifier - CONTROL_ID_BASE;
     int clicked = (code == BN_CLICKED) ? button_action(control) : NO_ACTION;
 
+    hide_report_caret(control, code, lparam);
     assist_follow_focus(&app);
     if (is_menu_action(identifier, lparam)) {
         run_action(identifier - ACTION_ID_BASE);
@@ -185,6 +193,15 @@ static void on_command(WPARAM wparam, LPARAM lparam)
         go_to_step((WizardStep)(int)SendMessageW(app.controls[CONTROL_STEPS], LB_GETCURSEL, 0, 0), false);
     } else {
         sync_on_notify(&app, control, code);
+    }
+}
+
+static void read_game_texts(void)
+{
+    wchar_t game[FILE_PATH_CAPACITY];
+
+    if (ask_game_folder(game)) {
+        (void)game_text_read(&app.catalog, game);
     }
 }
 
@@ -198,7 +215,8 @@ static bool on_create(HWND window)
     if (!dialogs_load_catalog(&app)) {
         dialogs_status(&app, "The catalog in data\\ was not found: the lists are empty.");
     } else {
-        (void)base_civ_apply(&app.history.present, &app.catalog, CIV_GENERIC_BASE);
+        read_game_texts();
+        (void)base_civ_apply(&app.history.present, &app.catalog, CIV_DEFAULT_REPLACE);
     }
     controls_place(&app);
     sync_design(&app, true);
@@ -387,7 +405,9 @@ HWND app_open(HINSTANCE instance)
     app.bonus_category = LIST_ALL_CATEGORIES;
     app.unsaved = false;
     app.file_path[0] = L'\0';
+    (void)lstrcpynW(app.mod_name, L"civbuilder_mod", MOD_NAME_CAPACITY);
     history_start(&app.history);
+    roster_start(&app.roster);
     app.accelerators = menu_keys();
     app.window = CreateWindowExW(WINDOW_EXTRA_STYLE, CLASS_NAME, L"civbuilder", WINDOW_STYLE, CW_USEDEFAULT,
                                  CW_USEDEFAULT, MulDiv(START_WIDTH, app.dpi, LAYOUT_BASE_DPI),

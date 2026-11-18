@@ -17,6 +17,7 @@ typedef struct {
     const wchar_t *save_folder;
     const wchar_t *open_path;
     const wchar_t *steam;
+    const wchar_t *mod_name;
 } Answers;
 
 static const wchar_t BUILD[] = L"build";
@@ -27,19 +28,20 @@ static const wchar_t PROFILE[] = L"test_home\\Games\\Age of Empires 2 DE\\7656\\
 static const wchar_t NAME[] = L"Testonia";
 static const char STALE[] = "stale";
 
-static const Answers YES = { IDOK, NULL, NULL, GAME_FOLDER_STEAM };
-static const Answers CANCEL = { IDCANCEL, NULL, NULL, GAME_FOLDER_STEAM };
-static const Answers NO = { IDNO, NULL, NULL, GAME_FOLDER_STEAM };
-static const Answers SAVING = { IDOK, BUILD, NULL, GAME_FOLDER_STEAM };
-static const Answers SAVING_AND_OPENING = { IDNO, BUILD, NAMED_FILE, GAME_FOLDER_STEAM };
-static const Answers OPENING_NO_CIV = { IDOK, NULL, L"README.md", GAME_FOLDER_STEAM };
-static const Answers WITHOUT_GAME = { IDOK, NULL, NULL, L"build\\no_steam" };
+static const Answers YES = { IDOK, NULL, NULL, GAME_FOLDER_STEAM, NULL };
+static const Answers NAMING = { IDOK, NULL, NULL, GAME_FOLDER_STEAM, L"Testonia" };
+static const Answers CANCEL = { IDCANCEL, NULL, NULL, GAME_FOLDER_STEAM, NULL };
+static const Answers NO = { IDNO, NULL, NULL, GAME_FOLDER_STEAM, NULL };
+static const Answers SAVING = { IDOK, BUILD, NULL, GAME_FOLDER_STEAM, NULL };
+static const Answers SAVING_AND_OPENING = { IDNO, BUILD, NAMED_FILE, GAME_FOLDER_STEAM, NULL };
+static const Answers OPENING_NO_CIV = { IDOK, NULL, L"README.md", GAME_FOLDER_STEAM, NULL };
+static const Answers WITHOUT_GAME = { IDOK, NULL, NULL, L"build\\no_steam", NULL };
 
 static char saved[TEXT_CAPACITY];
 
 static HWND opened(const Answers *answers)
 {
-    AskScript script = { true, IDOK, NULL, NULL, NULL, HOME };
+    AskScript script = { true, IDOK, NULL, NULL, NULL, HOME, NULL };
 
     if (!CHECK(answers != NULL) || !CHECK(mod_make_folders(BUILD, PROFILE)) || !CHECK(game_folder_is_made())) {
         return NULL;
@@ -48,6 +50,7 @@ static HWND opened(const Answers *answers)
     script.save_folder = answers->save_folder;
     script.open_path = answers->open_path;
     script.steam = answers->steam;
+    script.text = answers->mod_name;
     ask_script(&script);
     return app_open(GetModuleHandleW(NULL));
 }
@@ -281,21 +284,28 @@ bool test_build_is_refused_when_the_game_is_not_found(void)
 
 bool test_build_writes_nothing_when_the_question_is_not_confirmed(void)
 {
-    return status_after(&CANCEL, ACTION_BUILD, L"No mod was built.");
+    HWND window = opened_and_run(&CANCEL, NAME, ACTION_ADD);
+
+    window_fixture_act(window, ACTION_BUILD);
+    return closed(window, text_holds(control_of(window, CONTROL_STATUS), L"No mod was built."));
 }
 
 bool test_build_of_an_unfinished_civ_says_that_it_is_not_finished(void)
 {
-    return message_after(&YES, ACTION_BUILD, L"not finished");
+    HWND window = opened_and_run(&YES, L"", ACTION_ADD);
+
+    window_fixture_act(window, ACTION_BUILD);
+    return closed(window, wcsstr(ask_last_message(), L"not finished") != NULL);
 }
 
 bool test_build_from_the_window_reports_the_mod_it_built(void)
 {
-    HWND window = opened_and_run(&YES, NAME, NO_ACTION);
+    HWND window = opened_and_run(&NAMING, NAME, NO_ACTION);
 
     pick_first(window, CONTROL_UNIT_LIST);
     pick_first(window, CONTROL_CASTLE_TECH_LIST);
     pick_first(window, CONTROL_IMPERIAL_TECH_LIST);
+    window_fixture_act(window, ACTION_ADD);
     window_fixture_act(window, ACTION_BUILD);
     return closed(window, wcsstr(ask_last_message(), L"The mod was built as testonia-data") != NULL);
 }

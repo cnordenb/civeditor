@@ -1,0 +1,16 @@
+#ifndef BUILT_MOD_TESTS_H
+#define BUILT_MOD_TESTS_H
+
+#include <stdbool.h>
+
+bool test_a_job_with_no_civ_is_not_finished(void);
+bool test_a_build_of_an_unfinished_civ_fails(void);
+bool test_the_description_of_a_civ_takes_the_place_of_the_games_once(void);
+bool test_the_other_descriptions_of_the_game_are_kept(void);
+bool test_a_civ_past_the_descriptions_of_the_game_gets_its_own(void);
+bool test_a_civ_left_from_a_bigger_build_gets_no_description(void);
+bool test_a_tech_takes_no_more_requirements_than_it_has_room_for(void);
+bool test_the_strings_of_a_civ_fail_once_its_description_passes_its_room(void);
+bool test_the_description_of_the_first_civ_described_is_written_once(void);
+
+#endif

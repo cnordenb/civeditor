@@ -1,5 +1,7 @@
 #include "forge.h"
 
+#include <string.h>
+
 #include "../core/check.h"
 #include "../core/text.h"
 #include "../dat/dat_parts.h"
@@ -23,7 +25,7 @@ typedef struct {
     ForgeResult *result;
     size_t plain_size;
     size_t packed_size;
-    long name_sid;
+    long name_sids[FORGE_CIV_LIMIT];
     char prefix[FORGE_PREFIX_CAPACITY];
 } ForgeRun;
 
@@ -33,6 +35,7 @@ static DatMap map;
 static DatEdit edit;
 static JsonDocument civilizations;
 static CivListOutput civ_list;
+static ModCiv civs[FORGE_CIV_LIMIT];
 
 static bool fail(ForgeResult *result, const char *problem)
 {
@@ -75,33 +78,46 @@ bool forge_prefix(const char *alias, char *prefix, size_t capacity)
 
 static bool read_civ_list(const ForgeRun *run)
 {
-    wchar_t path[FILE_PATH_CAPACITY];
-    const ForgeJob *job;
-    FileRead read;
+    const ForgeJob *job = run->job;
 
-    job = run->job;
-    if (!mod_game_path(job->game_folder, "resources\\_common\\dat\\civilizations.json", path)) {
-        return false;
-    }
-    read = file_read_all(path, civilizations.text, sizeof civilizations.text);
-    civilizations.length = (int)read.length;
-    return read.succeeded && json_parse(&civilizations);
+    return civ_list_read(&civilizations, job->game_folder);
 }
 
-static long find_name_sid(const ForgeRun *run, int slot)
+static long name_sid_of(int slot)
 {
     TextNumber sid;
     int civ;
 
-    if (!read_civ_list(run)) {
-        return -1L;
-    }
     civ = civ_list_entry(&civilizations, slot);
     if (civ == JSON_NONE) {
         return -1L;
     }
     sid = json_number(&civilizations, json_member(&civilizations, civ, "name_string_id"));
     return sid.valid ? sid.value : -1L;
+}
+
+static bool find_name_sids(ForgeRun *run)
+{
+    const ForgeJob *job = run->job;
+    bool found;
+    int civ;
+
+    found = read_civ_list(run);
+    for (civ = 0; found && (civ < job->design_count); ++civ) {
+        run->name_sids[civ] = name_sid_of(job->designs[civ]->choices[CHOICE_REPLACE]);
+        found = run->name_sids[civ] >= 0L;
+    }
+    return found;
+}
+
+static bool chain_civ_list(void)
+{
+    if (!CHECK(civ_list.length < sizeof civilizations.text)) {
+        return false;
+    }
+    (void)memcpy(civilizations.text, civ_list.text, civ_list.length);
+    civilizations.length = (int)civ_list.length;
+    return json_parse(&civilizations);
 }
 
 static bool unpack_game(ForgeRun *run)
@@ -167,16 +183,12 @@ static void read_own_texts(const RecipeInput *input, CivListEntry *entry)
     }
 }
 
-static bool make_civ_list(const ForgeRun *run, const RecipeInput *input)
+static bool make_civ_list(const RecipeInput *input, const RecipeReport *report)
 {
-    const ForgeResult *result;
-    const RecipeReport *report;
     RecipeUnitIds ids = recipe_unique_unit_ids(input);
     CivListEntry entry;
     long sid;
 
-    result = run->result;
-    report = &result->recipe;
     sid = mod_unit_has_own_texts(input->design) ? catalog_string_id(input->catalog, input->slot, CIV_STRING_UNIT)
                                                 : CIV_LIST_KEEP;
     entry.slot = input->slot;
@@ -191,28 +203,31 @@ static bool make_civ_list(const ForgeRun *run, const RecipeInput *input)
     entry.imperial_tech = report->unique_tech_ids[TECH_TIER_IMPERIAL];
     entry.description_sid = mod_description_sid(input->slot);
     read_own_texts(input, &entry);
-    return civ_list_write(&civilizations, &entry, &civ_list);
+    return civ_list_write(&civilizations, &entry, &civ_list) && chain_civ_list();
 }
 
-static bool write_civ(ForgeRun *run, DatOutput *output)
+static bool write_civs(ForgeRun *run, DatOutput *output)
 {
-    const ForgeJob *job;
-    const CivDesign *design;
-    ForgeResult *result;
+    const ForgeJob *job = run->job;
+    ForgeResult *result = run->result;
     DatBytes original = { buffer_one, 0U };
     RecipeInput input;
+    RecipeReport *report;
+    bool fine;
+    int civ;
 
-    job = run->job;
-    design = job->design;
-    result = run->result;
     original.size = run->plain_size;
-    input.design = design;
     input.catalog = job->catalog;
     input.dat = &original;
     input.map = &map;
-    input.slot = design->choices[CHOICE_REPLACE];
-    return dat_edit_start(&edit, &map) && recipe_apply(&input, &edit, &result->recipe) &&
-           dat_edit_write(&edit, &original, output) && make_civ_list(run, &input);
+    fine = dat_edit_start(&edit, &map);
+    for (civ = 0; fine && (civ < job->design_count); ++civ) {
+        input.design = job->designs[civ];
+        input.slot = input.design->choices[CHOICE_REPLACE];
+        report = &result->recipes[civ];
+        fine = recipe_apply(&input, &edit, report) && make_civ_list(&input, report);
+    }
+    return fine && dat_edit_write(&edit, &original, output);
 }
 
 static bool edit_game(ForgeRun *run)
@@ -221,8 +236,8 @@ static bool edit_game(ForgeRun *run)
     ByteBuffer packed = { buffer_one, sizeof buffer_one, 0U };
     ByteSpan plain = { buffer_two, 0U };
 
-    if (!write_civ(run, &output)) {
-        return fail(run->result, "The civ could not be written into the game data.");
+    if (!write_civs(run, &output)) {
+        return fail(run->result, "The civs could not be written into the game data.");
     }
     plain.size = output.length;
     if (!deflate_pack(plain, &packed) && !deflate_store(plain, &packed)) {
@@ -241,17 +256,15 @@ static bool mod_tree_file(const ForgeJob *job, const char *folder, const char *n
            text_widen(name, wide, FILE_PATH_CAPACITY) && mod_file_path(job->mods_folder, relative, wide, path);
 }
 
-static bool write_tech_tree(const ForgeRun *run, const char *folder)
+static bool write_tech_tree(const ForgeJob *job, const CivDesign *design, const char *folder)
 {
     char name[FILE_PATH_CAPACITY];
     char relative[FILE_PATH_CAPACITY];
     wchar_t game_file[FILE_PATH_CAPACITY];
     wchar_t mod_file[FILE_PATH_CAPACITY];
-    const ForgeJob *job;
     TechTreeJob tree;
 
-    job = run->job;
-    tree.design = job->design;
+    tree.design = design;
     tree.catalog = job->catalog;
     if (!tech_tree_file_name(&civilizations, tree.design->choices[CHOICE_REPLACE], name) ||
         !mod_join(relative, "resources\\_common\\dat\\CivTechTrees\\", name)) {
@@ -259,6 +272,17 @@ static bool write_tech_tree(const ForgeRun *run, const char *folder)
     }
     return mod_game_path(job->game_folder, relative, game_file) && mod_tree_file(job, folder, name, mod_file) &&
            tech_tree_patch_file(&tree, game_file, mod_file);
+}
+
+static bool write_tech_trees(const ForgeJob *job, const char *folder)
+{
+    bool fine = true;
+    int civ;
+
+    for (civ = 0; fine && (civ < job->design_count); ++civ) {
+        fine = write_tech_tree(job, job->designs[civ], folder);
+    }
+    return fine;
 }
 
 static bool write_dat_files(const ForgeRun *run, const char *folder)
@@ -280,19 +304,17 @@ static bool write_dat_files(const ForgeRun *run, const char *folder)
 static bool write_data_mod(ForgeRun *run)
 {
     const ForgeJob *job;
-    const CivDesign *design;
     ForgeResult *result;
     char folder[FILE_PATH_CAPACITY];
 
     job = run->job;
-    design = job->design;
     result = run->result;
-    if (!mod_join(folder, run->prefix, "-data") ||
-        !mod_write_info(job->mods_folder, folder, design->texts[TEXT_FIELD_NAME]) || !write_dat_files(run, folder)) {
+    if (!mod_join(folder, run->prefix, "-data") || !mod_write_info(job->mods_folder, folder, job->mod_name) ||
+        !write_dat_files(run, folder)) {
         return fail(result, "The data mod could not be written to the mods folder.");
     }
-    if (!write_tech_tree(run, folder)) {
-        return fail(result, "The civ's tech tree could not be written into the data mod.");
+    if (!write_tech_trees(job, folder)) {
+        return fail(result, "The tech tree of a civ could not be written into the data mod.");
     }
     return mod_folder_path(job->mods_folder, folder, result->data_mod);
 }
@@ -300,21 +322,21 @@ static bool write_data_mod(ForgeRun *run)
 static bool write_ui_mod(ForgeRun *run)
 {
     const ForgeJob *job;
-    const CivDesign *design;
     ForgeResult *result;
-    ModCiv civ;
     ModUi ui;
     char folder[FILE_PATH_CAPACITY];
+    int civ;
 
     job = run->job;
-    design = job->design;
     result = run->result;
-    civ.design = design;
-    civ.catalog = job->catalog;
-    civ.slot = design->choices[CHOICE_REPLACE];
-    civ.name_sid = run->name_sid;
-    civ.hero_skipped = result->recipe.hero_skipped;
-    ui = (ModUi){ &civ, job->game_folder, job->mods_folder, run->prefix };
+    for (civ = 0; civ < job->design_count; ++civ) {
+        civs[civ].design = job->designs[civ];
+        civs[civ].catalog = job->catalog;
+        civs[civ].slot = job->designs[civ]->choices[CHOICE_REPLACE];
+        civs[civ].name_sid = run->name_sids[civ];
+        civs[civ].hero_skipped = result->recipes[civ].hero_skipped;
+    }
+    ui = (ModUi){ civs, job->design_count, job->game_folder, job->mods_folder, run->prefix, job->mod_name };
     if (!mod_ui_write(&ui) || !mod_join(folder, run->prefix, "-ui")) {
         return fail(result, "The UI mod could not be written to the mods folder.");
     }
@@ -326,25 +348,38 @@ static bool build_mods(ForgeRun *run)
     return unpack_game(run) && edit_game(run) && write_data_mod(run) && write_ui_mod(run);
 }
 
+bool forge_civs_are_finished(const ForgeJob *job, ForgeResult *result)
+{
+    int civ;
+
+    if (job->design_count < 1) {
+        return fail(result, "No civ is saved in the mod yet: Save civ in the review step puts the civ shown in it.");
+    }
+    for (civ = 0; civ < job->design_count; ++civ) {
+        if (!civ_design_is_complete(job->designs[civ])) {
+            return fail(result, "A civ saved in the mod is not finished yet; its review step lists what is still "
+                                "needed.");
+        }
+    }
+    return true;
+}
+
 bool forge_build(const ForgeJob *job, ForgeResult *result)
 {
     static ForgeRun run;
-    const CivDesign *design;
 
-    design = job->design;
     result->problem[0] = '\0';
     result->data_mod[0] = L'\0';
     result->ui_mod[0] = L'\0';
     run.job = job;
     run.result = result;
-    if (!civ_design_is_complete(design)) {
-        return fail(result, "The civ is not finished yet; the review step lists what is still needed.");
+    if (!forge_civs_are_finished(job, result)) {
+        return false;
     }
-    if (!forge_prefix(design->texts[TEXT_FIELD_NAME], run.prefix, sizeof run.prefix)) {
-        return fail(result, "The civ's name cannot be made into a folder name.");
+    if (!forge_prefix(job->mod_name, run.prefix, sizeof run.prefix)) {
+        return fail(result, "The mod's name cannot be made into a folder name.");
     }
-    run.name_sid = find_name_sid(&run, design->choices[CHOICE_REPLACE]);
-    if (run.name_sid < 0L) {
+    if (!find_name_sids(&run)) {
         return fail(result, "The game's list of civs could not be read.");
     }
     return build_mods(&run);

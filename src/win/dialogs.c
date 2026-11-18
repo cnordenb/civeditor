@@ -12,6 +12,8 @@
 
 enum { FOLDER_TRIES = 3, NAME_LIMIT = 96, MESSAGE_CAPACITY = 2048, LIVE_REGION_CHANGED = 0x8019 };
 
+_Static_assert((int)FORGE_CIV_LIMIT == (int)ROSTER_SLOT_LIMIT, "a mod has room for every civ the roster holds");
+
 static const wchar_t FILTER[] = L"Civ files (*.civbuilder.json)\0*.civbuilder.json;*.json\0All files (*.*)\0*.*\0";
 static const wchar_t DATA_FOLDERS[FOLDER_TRIES][8] = { L"data", L"..\\data", L"" };
 static const wchar_t TITLE[] = L"civbuilder";
@@ -25,6 +27,7 @@ static wchar_t wide_message[MESSAGE_CAPACITY];
 typedef struct {
     wchar_t game[FILE_PATH_CAPACITY];
     wchar_t mods[FILE_PATH_CAPACITY];
+    char name[FORGE_PREFIX_CAPACITY];
     char prefix[FORGE_PREFIX_CAPACITY];
 } BuildPlaces;
 
@@ -90,9 +93,14 @@ bool dialogs_load_catalog(AppState *app)
 
 static void suggest_name(const AppState *app)
 {
+    const char *typed = civ_design_text(&app->history.present, TEXT_FIELD_NAME);
+    const char *given = catalog_appearance_name(&app->catalog, APPEARANCE_BASE,
+                                                app->history.present.choices[CHOICE_REPLACE]);
     char name[NAME_LIMIT] = "";
 
-    (void)text_copy_span(name, sizeof name, civ_design_text(&app->history.present, TEXT_FIELD_NAME), NAME_LIMIT / 2);
+    if (!text_equal(typed, given)) {
+        (void)text_copy_span(name, sizeof name, typed, NAME_LIMIT / 2);
+    }
     (void)text_append(name, sizeof name, (name[0] != '\0') ? ".civbuilder.json" : "civbuilder_civ.civbuilder.json");
     if (!dialogs_widen(name, chosen_path, FILE_PATH_CAPACITY)) {
         chosen_path[0] = L'\0';
@@ -176,40 +184,72 @@ static bool may_build_into(const AppState *app, const wchar_t *mods)
         return false;
     }
     message[0] = '\0';
-    if (!text_append_three(message, sizeof message, "Build the mod into this folder?\n\n", folder,
-                           "\n\nAn earlier build of a civ with the same name is replaced.") ||
-        !dialogs_widen(message, wide_message, MESSAGE_CAPACITY)) {
+    (void)text_append_three(message, sizeof message, "Build the mod into this folder?\n\n", folder,
+                            "\n\nAn earlier build of a mod with the same name is replaced.");
+    if (!dialogs_widen(message, wide_message, MESSAGE_CAPACITY)) {
         return false;
     }
     return ask_message(app->window, wide_message, TITLE, MB_OKCANCEL | MB_ICONQUESTION) == IDOK;
 }
 
-static bool can_build(AppState *app, BuildPlaces *places)
+static bool civs_are_ready(AppState *app, ForgeJob *job)
 {
-    if (!app->catalog_loaded || !ask_game_folders(places->game, places->mods) ||
-        !forge_prefix(app->history.present.texts[TEXT_FIELD_NAME], places->prefix, sizeof places->prefix)) {
+    int civ;
+
+    job->design_count = roster_count(&app->roster);
+    for (civ = 0; civ < job->design_count; ++civ) {
+        job->designs[civ] = roster_civ(&app->roster, civ);
+    }
+    return forge_civs_are_finished(job, &built) || tell(app, built.problem, MB_ICONINFORMATION);
+}
+
+static bool is_named(AppState *app, BuildPlaces *places)
+{
+    if (!ask_text(app->window, L"Name of the mod. Its two folders in the mods folder are named after it.",
+                  app->mod_name, MOD_NAME_CAPACITY) ||
+        !dialogs_narrow(app->mod_name, places->name, sizeof places->name)) {
+        return false;
+    }
+    return forge_prefix(places->name, places->prefix, sizeof places->prefix);
+}
+
+static bool can_build(AppState *app, BuildPlaces *places, ForgeJob *job)
+{
+    if (!app->catalog_loaded || !ask_game_folders(places->game, places->mods)) {
         return tell(app, "A mod cannot be built: the data folder, the game or its mods folder was not found on "
                          "this computer.", MB_ICONERROR);
     }
-    if (!may_build_into(app, places->mods)) {
-        dialogs_status(app, "No mod was built.");
-        return false;
+    return civs_are_ready(app, job) && is_named(app, places) && may_build_into(app, places->mods);
+}
+
+static void report_build(AppState *app, const BuildPlaces *places, const ForgeJob *job)
+{
+    static SummaryText report;
+    static BuiltCivs civs;
+    int civ;
+
+    civs.reports = built.recipes;
+    civs.count = job->design_count;
+    for (civ = 0; civ < job->design_count; ++civ) {
+        civs.designs[civ] = job->designs[civ];
     }
-    return true;
+    (void)summary_write_build(&report, places->prefix, &civs);
+    dialogs_status(app, "The mod was built.");
+    (void)tell(app, report.text, MB_ICONINFORMATION);
 }
 
 bool dialogs_build(AppState *app)
 {
     static BuildPlaces places;
-    static SummaryText report;
-    ForgeJob job;
+    static ForgeJob job;
     HCURSOR previous;
     bool done;
 
-    if (!can_build(app, &places)) {
+    if (!can_build(app, &places, &job)) {
+        dialogs_status(app, "No mod was built.");
         return false;
     }
-    job.design = &app->history.present;
+    job.mod_name = places.name;
     job.catalog = &app->catalog;
     job.game_folder = places.game;
     job.mods_folder = places.mods;
@@ -220,9 +260,7 @@ bool dialogs_build(AppState *app)
         dialogs_status(app, "No mod was built.");
         return tell(app, built.problem, MB_ICONERROR);
     }
-    (void)summary_write_build(&report, places.prefix, &built.recipe);
-    dialogs_status(app, "The mod was built.");
-    (void)tell(app, report.text, MB_ICONINFORMATION);
+    report_build(app, &places, &job);
     return true;
 }
 
@@ -239,22 +277,4 @@ bool dialogs_may_discard(AppState *app)
         return dialogs_save(app);
     }
     return answer == IDNO;
-}
-
-void dialogs_glossary(AppState *app)
-{
-    static char text[WIDE_TEXT_CAPACITY];
-    static wchar_t wide[WIDE_TEXT_CAPACITY];
-    GlossaryEntry entry;
-    int index;
-
-    text[0] = '\0';
-    for (index = 0; index < LAYOUT_GLOSSARY_COUNT; ++index) {
-        entry = layout_glossary(index);
-        (void)text_append_three(text, sizeof text, entry.word, ": ", entry.meaning);
-        (void)text_append(text, sizeof text, "\n");
-    }
-    if (dialogs_widen(text, wide, WIDE_TEXT_CAPACITY)) {
-        (void)ask_message(app->window, wide, L"Glossary", MB_OK | MB_ICONINFORMATION);
-    }
 }

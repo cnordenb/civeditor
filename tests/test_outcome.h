@@ -18,5 +18,6 @@ TestOutcome functional_suite_run(int index);
 TestOutcome accessibility_suite_run(int index);
 TestOutcome maintainability_suite_run(int index);
 TestOutcome maintainability_tools_run(int index);
+TestOutcome redundancy_suite_run(int index);
 
 #endif

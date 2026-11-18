@@ -130,8 +130,8 @@ static TestOutcome run_mod_test(int index)
         return test_outcome_of("the civ descriptions are written in id order",
                                test_the_civ_descriptions_are_written_in_id_order());
     case 8:
-        return test_outcome_of("the mod's folder name is made from the civ's name",
-                               test_the_mod_folder_name_is_made_from_the_civ_name());
+        return test_outcome_of("the mod's folder name is made from the mod's name",
+                               test_the_mod_folder_name_is_made_from_the_mod_name());
     case 9:
         return test_outcome_of("a mod is not built from an unfinished civ",
                                test_a_mod_is_not_built_from_an_unfinished_civ());
@@ -225,11 +225,11 @@ static TestOutcome run_base_test(int index)
     }
     switch (index) {
     case 1:
-        return test_outcome_of("the Generic base civ has exactly the universal nodes",
-                               test_the_generic_base_civ_has_exactly_the_universal_nodes());
+        return test_outcome_of("a new civ starts with the tech tree of its civ",
+                               test_a_new_civ_starts_with_the_tech_tree_of_its_civ());
     case 2:
-        return test_outcome_of("choosing Generic takes away a regional node",
-                               test_choosing_generic_takes_away_a_regional_node());
+        return test_outcome_of("choosing another civ takes away a regional node",
+                               test_choosing_another_civ_takes_away_a_regional_node());
     case 3:
         return test_outcome_of("a base civ has the nodes its civ has in the game",
                                test_a_base_civ_has_the_nodes_its_civ_has_in_the_game());

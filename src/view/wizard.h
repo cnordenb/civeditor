@@ -27,6 +27,6 @@ typedef struct {
 
 const WizardPage *wizard_page(WizardStep step);
 WizardStep wizard_move(WizardStep step, int by);
-bool wizard_step_is_done(const CivDesign *design, const CivDesign *base, WizardStep step);
+bool wizard_step_is_done(const CivDesign *design, const CivDesign *base, bool in_mod, WizardStep step);
 
 #endif

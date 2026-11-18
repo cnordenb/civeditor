@@ -1,0 +1,33 @@
+#ifndef CIV_TESTS_H
+#define CIV_TESTS_H
+
+#include <stdbool.h>
+
+bool test_a_civ_of_the_game_gives_the_design_its_name(void);
+bool test_a_civ_of_the_game_names_its_unique_unit_as_the_game_does(void);
+bool test_a_civ_of_the_game_names_its_castle_tech_as_the_game_does(void);
+bool test_a_civ_of_the_game_names_its_imperial_tech_as_the_game_does(void);
+bool test_a_civ_of_the_game_gives_the_design_its_tagline(void);
+bool test_a_civ_of_the_game_gives_the_design_its_description(void);
+bool test_a_civ_of_the_game_takes_away_the_hero_of_the_civ_before(void);
+bool test_picking_a_unique_unit_names_it_as_the_game_does(void);
+bool test_picking_a_castle_tech_names_it_as_the_game_does(void);
+bool test_picking_a_hero_names_it_as_the_game_does(void);
+bool test_picking_no_hero_takes_away_the_heros_name(void);
+bool test_a_civ_of_the_game_shows_no_step_done(void);
+bool test_the_review_is_done_once_the_civ_is_saved_in_the_mod_as_it_is(void);
+bool test_a_civ_saved_in_the_mod_is_counted(void);
+bool test_a_civ_as_the_game_has_it_is_left_out_of_the_mod(void);
+bool test_a_civ_saved_again_holds_its_newer_edits_in_the_mod(void);
+bool test_a_civ_made_as_the_game_has_it_again_is_taken_out_of_the_mod(void);
+bool test_the_draft_of_a_civ_is_kept_while_another_is_edited(void);
+bool test_the_mod_holds_a_civ_as_it_was_saved(void);
+bool test_a_civ_changed_after_it_was_saved_is_not_held_as_it_is(void);
+bool test_the_civs_of_the_mod_are_given_in_the_order_of_their_slots(void);
+bool test_a_roster_started_anew_holds_no_draft(void);
+bool test_a_civ_past_the_last_slot_is_left_out_of_the_mod(void);
+bool test_a_civ_of_another_first_look_differs_from_its_civ_of_the_game(void);
+bool test_a_civ_of_another_first_cost_differs_from_its_civ_of_the_game(void);
+bool test_a_civ_given_a_bonus_of_the_civ_before_differs_from_its_civ_of_the_game(void);
+
+#endif

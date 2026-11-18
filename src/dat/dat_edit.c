@@ -62,6 +62,18 @@ bool dat_edit_patch(DatEdit *edit, const DatPatch *patch)
     return true;
 }
 
+bool dat_edit_is_patched(const DatEdit *edit, size_t at)
+{
+    int index;
+
+    for (index = 0; index < edit->patch_count; ++index) {
+        if (edit->patches[index].at == at) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static bool copy_fits(const DatEdit *edit, const DatCopy *copy)
 {
     return CHECK(edit->copy_count < DAT_COPY_CAPACITY) && range_fits(edit, copy->at, copy->width) &&

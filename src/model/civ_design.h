@@ -15,7 +15,6 @@ enum {
     CIV_DEFAULT_ARCHITECTURE = 2,
     CIV_DEFAULT_REPLACE = 1,
     CIV_DEFAULT_LANGUAGE = 1,
-    CIV_GENERIC_BASE = 0,
     RESOURCE_KIND_COUNT = 4
 };
 
@@ -39,7 +38,6 @@ typedef enum {
     CHOICE_MONK,
     CHOICE_SCOUT,
     CHOICE_REPLACE,
-    CHOICE_BASE,
     CHOICE_COUNT
 } ChoiceField;
 
@@ -49,6 +47,11 @@ typedef enum {
     TREE_TECHS,
     TREE_KIND_COUNT
 } TreeKind;
+
+typedef enum {
+    BONUS_LIST_CIV,
+    BONUS_LIST_TEAM
+} BonusList;
 
 typedef enum {
     UNIT_ORIGIN_NONE,
@@ -115,5 +118,12 @@ bool civ_design_pick_tech(CivDesign *design, TechTier tier, int km_index);
 bool civ_design_pick_hero(CivDesign *design, int unit_id);
 bool civ_design_is_complete(const CivDesign *design);
 bool civ_design_hero_lacks_name(const CivDesign *design);
+bool civ_design_same_identity(const CivDesign *design, const CivDesign *other);
+bool civ_design_same_tree(const CivDesign *design, const CivDesign *other);
+bool civ_design_same_bonuses(const CivDesign *design, const CivDesign *other, BonusList list);
+bool civ_design_same_unit(const CivDesign *design, const CivDesign *other);
+bool civ_design_same_tech(const CivDesign *design, const CivDesign *other, TechTier tier);
+bool civ_design_same_hero(const CivDesign *design, const CivDesign *other);
+bool civ_design_same(const CivDesign *design, const CivDesign *other);
 
 #endif

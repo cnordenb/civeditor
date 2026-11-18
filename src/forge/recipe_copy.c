@@ -10,7 +10,7 @@ typedef struct {
     int count;
 } TechPlan;
 
-enum { UNIT_FORMS = 2, REQUIRED_TECH_WIDTH = 2, REQUIREMENT_CAPACITY = 16 };
+enum { UNIT_FORMS = 2, REQUIRED_TECH_WIDTH = 2, REQUIREMENT_CAPACITY = 16, NO_REQUIREMENT = -1 };
 
 typedef struct {
     BonusRequirement lines[REQUIREMENT_CAPACITY];
@@ -365,12 +365,13 @@ static bool add_requirement(const RecipeInput *input, DatEdit *edit, const Bonus
     if (!recipe_read_tech(input, line->tech, &tech)) {
         return false;
     }
-    slot = free_slot(&tech);
-    if (!CHECK(slot >= 0)) {
-        return false;
+    for (slot = 0; slot < DAT_REQUIRED_TECH_SLOTS; ++slot) {
+        at = place_of(input, true, line->tech) + ((size_t)slot * REQUIRED_TECH_WIDTH);
+        if ((tech.required_techs[slot] == NO_REQUIREMENT) && !dat_edit_is_patched(edit, at)) {
+            return dat_edit_patch_i16(edit, at, remapped(line->requirement));
+        }
     }
-    at = place_of(input, true, line->tech) + ((size_t)slot * REQUIRED_TECH_WIDTH);
-    return dat_edit_patch_i16(edit, at, remapped(line->requirement));
+    return false;
 }
 
 static bool add_requirements(const RecipeInput *input, DatEdit *edit)

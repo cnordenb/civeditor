@@ -47,7 +47,7 @@ Functional completeness & correctness tests:
 - [Test 25](#test-25): a bonus taken twice is built with its changes doubled
 - [Test 26](#test-26): the name is written under the replaced civ's name id
 - [Test 27](#test-27): the civ descriptions are written in id order
-- [Test 28](#test-28): the mod's folder name is made from the civ's name
+- [Test 28](#test-28): the mod's folder name is made from the mod's name
 - [Test 29](#test-29): a mod is not built from an unfinished civ
 - [Test 30](#test-30): a unique tech is aimed at the civ's own unique unit
 - [Test 31](#test-31): a unique tech's name is written under the string id of its slot
@@ -69,8 +69,8 @@ Functional completeness & correctness tests:
 - [Test 47](#test-47): a cost line reaches the last field of the costs
 - [Test 48](#test-48): the civ list points at the civ's own description
 - [Test 49](#test-49): a value the civ keeps stays the game's in the civ list
-- [Test 50](#test-50): the Generic base civ has exactly the universal nodes
-- [Test 51](#test-51): choosing Generic takes away a regional node
+- [Test 50](#test-50): a new civ starts with the tech tree of its civ
+- [Test 51](#test-51): choosing another civ takes away a regional node
 - [Test 52](#test-52): a base civ has the nodes its civ has in the game
 - [Test 53](#test-53): a base civ gives the civ exactly its bonuses
 - [Test 54](#test-54): a base civ gives the civ its team bonus
@@ -414,7 +414,7 @@ Accessibility tests:
 - [Test 389](#test-389): the text and the layout grow with the text size of Windows, up to 225%
 - [Test 390](#test-390): the control in focus has a solid frame at least two pixels thick
 - [Test 391](#test-391): a ticked row is drawn with a check, not a filled box
-- [Test 392](#test-392): after an undo, the base civ shown is the design's again
+- [Test 392](#test-392): after an undo, the civ to edit shown is the design's again
 - [Test 393](#test-393): a narrow window places its controls in one column
 - [Test 394](#test-394): the control in focus is scrolled into a short window
 - [Test 395](#test-395): the window may be as small as 320 by 256
@@ -465,6 +465,71 @@ Maintainability tests:
 - [Test 437](#test-437): a coverage build links the tests alone
 - [Test 438](#test-438): a coverage build links the tests with coverage
 - [Test 439](#test-439): a coverage build makes the folder of its report
+
+Redundancy tests (Req. 10 to 12), run only with the word `redundancy`, as `build.exe quick redundancy`:
+
+- [Redundancy test 1](#redundancy-test-1): a civ of the game gives the design its name
+- [Redundancy test 2](#redundancy-test-2): a civ of the game names its unique unit as the game does
+- [Redundancy test 3](#redundancy-test-3): a civ of the game names its Castle Age tech as the game does
+- [Redundancy test 4](#redundancy-test-4): a civ of the game names its Imperial Age tech as the game does
+- [Redundancy test 5](#redundancy-test-5): a civ of the game gives the design its tagline
+- [Redundancy test 6](#redundancy-test-6): a civ of the game gives the design its description
+- [Redundancy test 7](#redundancy-test-7): a civ of the game takes away the hero of the civ before
+- [Redundancy test 8](#redundancy-test-8): picking a unique unit names it as the game does
+- [Redundancy test 9](#redundancy-test-9): picking a Castle Age tech names it as the game does
+- [Redundancy test 10](#redundancy-test-10): picking a hero names it as the game does
+- [Redundancy test 11](#redundancy-test-11): picking no hero takes away the hero's name
+- [Redundancy test 12](#redundancy-test-12): a civ of the game shows no step done
+- [Redundancy test 13](#redundancy-test-13): the Review is done once the civ is saved in the mod as it is
+- [Redundancy test 14](#redundancy-test-14): a civ saved in the mod is counted
+- [Redundancy test 15](#redundancy-test-15): a civ as the game has it is left out of the mod
+- [Redundancy test 16](#redundancy-test-16): a civ saved again holds its newer edits in the mod
+- [Redundancy test 17](#redundancy-test-17): a civ made as the game has it again is taken out of the mod
+- [Redundancy test 18](#redundancy-test-18): the draft of a civ is kept while another is edited
+- [Redundancy test 19](#redundancy-test-19): the mod holds a civ as it was saved
+- [Redundancy test 20](#redundancy-test-20): a civ changed after it was saved is not held as it is
+- [Redundancy test 21](#redundancy-test-21): the civs of the mod are given in the order of their slots
+- [Redundancy test 22](#redundancy-test-22): a roster started anew holds no draft
+- [Redundancy test 23](#redundancy-test-23): a civ past the last slot is left out of the mod
+- [Redundancy test 24](#redundancy-test-24): a civ of another first look differs from its civ of the game
+- [Redundancy test 25](#redundancy-test-25): a civ of another first cost differs from its civ of the game
+- [Redundancy test 26](#redundancy-test-26): a civ given a bonus of the civ before differs from its civ of the game
+- [Redundancy test 27](#redundancy-test-27): the game gives a civ its tagline
+- [Redundancy test 28](#redundancy-test-28): the description of a civ starts after its tagline
+- [Redundancy test 29](#redundancy-test-29): a line break of the game breaks the description
+- [Redundancy test 30](#redundancy-test-30): a quote of the game is kept in the description
+- [Redundancy test 31](#redundancy-test-31): a civ the game does not describe keeps no tagline
+- [Redundancy test 32](#redundancy-test-32): texts are read from a game that is found
+- [Redundancy test 33](#redundancy-test-33): a civ the game does not describe keeps no description
+- [Redundancy test 34](#redundancy-test-34): a text without its closing quote ends with its line
+- [Redundancy test 35](#redundancy-test-35): the spaces and breaks at the end of a text are cut
+- [Redundancy test 36](#redundancy-test-36): a first line without civilization is the whole tagline
+- [Redundancy test 37](#redundancy-test-37): a tagline longer than its room is cut to fit
+- [Redundancy test 38](#redundancy-test-38): the analyzed build compiles with the analyzer
+- [Redundancy test 39](#redundancy-test-39): an edit knows the first place it patched
+- [Redundancy test 40](#redundancy-test-40): a job with no civ is not finished
+- [Redundancy test 41](#redundancy-test-41): a build of an unfinished civ fails
+- [Redundancy test 42](#redundancy-test-42): the description of a civ takes the place of the game's once
+- [Redundancy test 43](#redundancy-test-43): the other descriptions of the game are kept
+- [Redundancy test 44](#redundancy-test-44): a civ past the descriptions of the game gets its own
+- [Redundancy test 45](#redundancy-test-45): a civ left from a bigger build gets no description
+- [Redundancy test 46](#redundancy-test-46): the description of the first civ described is written once
+- [Redundancy test 47](#redundancy-test-47): a tech takes no more requirements than it has room for
+- [Redundancy test 48](#redundancy-test-48): the strings of a civ fail once its description passes its room
+- [Redundancy test 49](#redundancy-test-49): the window opens with the Britons to edit
+- [Redundancy test 50](#redundancy-test-50): the Name field holds the name of the civ to edit
+- [Redundancy test 51](#redundancy-test-51): another civ keeps the edits of the civ before
+- [Redundancy test 52](#redundancy-test-52): the review counts no civ changed at first
+- [Redundancy test 53](#redundancy-test-53): Save civ counts the civ it puts in the mod
+- [Redundancy test 54](#redundancy-test-54): Save civ leaves a civ as the game has it out of the mod
+- [Redundancy test 55](#redundancy-test-55): the review text shows no caret when clicked
+- [Redundancy test 56](#redundancy-test-56): a build with no civ saved says so
+- [Redundancy test 57](#redundancy-test-57): a mod is named civbuilder_mod unless named otherwise
+- [Redundancy test 58](#redundancy-test-58): a filter leaves the bonuses that hold it and no other
+- [Redundancy test 59](#redundancy-test-59): the categories together hold every bonus once
+- [Redundancy test 60](#redundancy-test-60): an empty mod name builds no mod
+- [Redundancy test 61](#redundancy-test-61): a long civ name is cut in the name of its file
+- [Redundancy test 62](#redundancy-test-62): a text field shows its caret when it takes the focus
 
 ## Test 1
 
@@ -769,7 +834,7 @@ With the game's 120201 line before its 120200 line, the strings hold 120200 befo
 `tests/mod/mod_tests.c`, lines 60-68
 
 ### Purpose:
-Verify that the mod's folders are named from the civ's name as the original names them (Req. 7).
+Verify that the mod's folders are named from the mod's name as the original names them (Req. 7).
 
 ### Assertion expectation:
 "Æsir Kings 2!" gives the folder name "_sir_kings_2_": one "_" for each character that is not a-z, 0-9, _ or -.
@@ -777,7 +842,7 @@ Verify that the mod's folders are named from the civ's name as the original name
 ## Test 29
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 70-82
+`tests/mod/mod_tests.c`, lines 70-84
 
 ### Purpose:
 Verify that no mod is built from a civ the review still finds unfinished (Req. 9).
@@ -788,7 +853,7 @@ A civ with a name but no unique unit or techs is refused with a problem that say
 ## Test 30
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 96-103
+`tests/mod/mod_tests.c`, lines 98-105
 
 ### Purpose:
 Verify that a unique tech taken from another civ works on the civ's own unique unit (Req. 8).
@@ -799,7 +864,7 @@ A change of +1 range for Throwing Axeman 281, the other civ's unique unit, is ai
 ## Test 31
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 154-163
+`tests/mod/mod_tests.c`, lines 156-165
 
 ### Purpose:
 Verify that the name given to a unique tech is the name the game shows for it (Req. 8).
@@ -810,7 +875,7 @@ A castle tech named "Testing Axes" in the slot of the Britons gives the line `44
 ## Test 32
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 169-175
+`tests/mod/mod_tests.c`, lines 171-177
 
 ### Purpose:
 Verify that the name given to a unique unit of the game is the name the game shows for it (Req. 8).
@@ -854,7 +919,7 @@ Unit 5 of slot 1, trained nowhere in the small dat file, is given building 82, t
 ## Test 36
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 124-127
+`tests/mod/mod_tests.c`, lines 126-129
 
 ### Purpose:
 Prevent a unique tech from making two changes of one attribute of the civ's unit that differ only in amount (Req. 8).
@@ -865,7 +930,7 @@ Prevent a unique tech from making two changes of one attribute of the civ's unit
 ## Test 37
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 129-132
+`tests/mod/mod_tests.c`, lines 131-134
 
 ### Purpose:
 Verify that a unique tech keeps its changes of the armor of two classes, as each changes its own (Req. 8).
@@ -876,7 +941,7 @@ Verify that a unique tech keeps its changes of the armor of two classes, as each
 ## Test 38
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 198-201
+`tests/mod/mod_tests.c`, lines 200-203
 
 ### Purpose:
 Verify that the name given to the hero is the name the game shows for it (Req. 8).
@@ -887,7 +952,7 @@ Liu Bei, unit 1966, named "Testhero" in the slot of the Britons gives the line `
 ## Test 39
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 203-206
+`tests/mod/mod_tests.c`, lines 205-208
 
 ### Purpose:
 Prevent the strings of a hero that was not built from being written (bug of 2026-11-09 05:56:32).
@@ -898,7 +963,7 @@ With the hero skipped, the UI mod's strings have no line `44500 "Testhero"` for 
 ## Test 40
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 238-241
+`tests/mod/mod_tests.c`, lines 240-243
 
 ### Purpose:
 Verify that the civ list names the civ's own unique unit, as the original's does (Req. 8).
@@ -909,7 +974,7 @@ Slot 1 given the Longbowman, unit 8, takes the id 8 and the line -276 of the ent
 ## Test 41
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 256-259
+`tests/mod/mod_tests.c`, lines 258-261
 
 ### Purpose:
 Verify that a unique unit no civ of the game has shows its own icon and texts in the civ list (Req. 8).
@@ -986,7 +1051,7 @@ A cost line at place 16, of 2 bytes, is built, and the flag of the third cost of
 ## Test 48
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 270-273
+`tests/mod/mod_tests.c`, lines 272-275
 
 ### Purpose:
 Prevent again a civ selection that shows the old civ's bonuses, a bug found on 2026-11-09 (Rule 24, a regression test).
@@ -997,7 +1062,7 @@ An entry whose `tech_tree_description_string_id` is 120150 is written with 99010
 ## Test 49
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 279-282
+`tests/mod/mod_tests.c`, lines 281-284
 
 ### Purpose:
 Prevent the list of civs from changing a value that the civ keeps from the replaced civ (Req. 8).
@@ -1008,29 +1073,29 @@ Prevent the list of civs from changing a value that the civ keeps from the repla
 ## Test 50
 
 ### File residence:
-`tests/base/base_tests.c`, lines 40-44
+`tests/base/base_tests.c`, lines 41-45
 
 ### Purpose:
 Prevent again a new civ that starts with an empty tech tree, a bug found on 2026-11-09 (Rule 24, a regression test).
 
 ### Assertion expectation:
-Generic gives the one universal node of the catalog, the Barracks, and not a universal row past the catalog's count.
+A civ of the game gets its one node of the catalog, the Barracks, and not the row past the catalog's count.
 
 ## Test 51
 
 ### File residence:
-`tests/base/base_tests.c`, lines 46-50
+`tests/base/base_tests.c`, lines 47-51
 
 ### Purpose:
-Verify that choosing Generic after another base civ takes that civ's regional nodes away (Req. 8; order of 11-09).
+Verify that choosing another civ takes away the regional nodes of the civ before (Req. 8; order of 11-09).
 
 ### Assertion expectation:
-A design given base civ 1 and then Generic no longer has the regional unit that civ 1 has.
+A design given civ 1 and then civ 2 no longer has the regional unit that only civ 1 has.
 
 ## Test 52
 
 ### File residence:
-`tests/base/base_tests.c`, lines 52-55
+`tests/base/base_tests.c`, lines 53-56
 
 ### Purpose:
 Verify that a base civ gives the design the nodes its civ has in the game (Req. 8; base civ order of 2026-11-09).
@@ -1041,7 +1106,7 @@ Base civ 1 gives the design the regional unit whose list of civs holds civ 1.
 ## Test 53
 
 ### File residence:
-`tests/base/base_tests.c`, lines 57-60
+`tests/base/base_tests.c`, lines 58-61
 
 ### Purpose:
 Verify that a base civ gives the design its own civ bonuses and no others (Req. 8; base civ order of 2026-11-09).
@@ -1052,7 +1117,7 @@ Base civ 1, with bonus 3 alone in its list, gives the design exactly one bonus: 
 ## Test 54
 
 ### File residence:
-`tests/base/base_tests.c`, lines 62-65
+`tests/base/base_tests.c`, lines 63-66
 
 ### Purpose:
 Verify that a base civ gives the design its team bonus (Req. 8; base civ order of 2026-11-09).
@@ -1063,7 +1128,7 @@ Base civ 1, whose team bonus is 0, gives the design team bonus 0.
 ## Test 55
 
 ### File residence:
-`tests/base/base_tests.c`, lines 67-71
+`tests/base/base_tests.c`, lines 68-72
 
 ### Purpose:
 Verify that a base civ gives the design its unique unit, as the game has it (Req. 8; base civ order of 2026-11-09).
@@ -1074,7 +1139,7 @@ Base civ 1, whose unique unit is 0, gives the design unit 0 of the game, of vani
 ## Test 56
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 313-316
+`tests/mod/mod_tests.c`, lines 315-318
 
 ### Purpose:
 Prevent again a tech tree screen that shows units the civ lacks, a bug found on 2026-11-09 (Rule 24, a regression test).
@@ -1085,7 +1150,7 @@ A Stable that the game's tree has as ResearchedCompleted is written NotAvailable
 ## Test 57
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 318-321
+`tests/mod/mod_tests.c`, lines 320-323
 
 ### Purpose:
 Prevent again a tech tree screen that hides what the civ has, a bug found on 2026-11-09 (Rule 24, a regression test).
@@ -1096,7 +1161,7 @@ A Stable that the game's tree has as NotAvailable is written ResearchedCompleted
 ## Test 58
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 323-326
+`tests/mod/mod_tests.c`, lines 325-328
 
 ### Purpose:
 Verify that a civ with an empty tree keeps the game's tech tree screen, as its dat keeps every tech (Req. 8).
@@ -1107,7 +1172,7 @@ With nothing ticked, a Stable that the game's tree has as ResearchedCompleted is
 ## Test 59
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 328-331
+`tests/mod/mod_tests.c`, lines 330-333
 
 ### Purpose:
 Prevent a tech tree screen without the Villager, Town Centers, Mill and camps, which the dat never disables (Req. 8).
@@ -1118,7 +1183,7 @@ A Villager that the game's tree has as ResearchedCompleted is written unchanged 
 ## Test 60
 
 ### File residence:
-`tests/mod/mod_tests.c`, lines 333-336
+`tests/mod/mod_tests.c`, lines 335-338
 
 ### Purpose:
 Verify that a building the civ has still needs the research the game asks for it, as the Keep does (Req. 8).
@@ -1162,7 +1227,7 @@ Of the techs that enable the Villager and unit 7, for a design with neither, onl
 ## Test 64
 
 ### File residence:
-`tests/functional/functional_suite.c`, lines 270-272; `tests/mod/mod_tests.c`, lines 338-349
+`tests/functional/functional_suite.c`, lines 270-272; `tests/mod/mod_tests.c`, lines 340-351
 
 ### Purpose:
 Enforce that the tech tree screen shows a node as the game does for most civs (Requirement 8).
@@ -3560,7 +3625,7 @@ For the bare civ the summary holds "Castle tech: an unknown tech".
 ## Test 282
 
 ### File residence:
-`tests/model/present_tests.c`, lines 197-200
+`tests/model/present_tests.c`, lines 206-209
 
 ### Purpose:
 Verify that Build says how many civ bonuses it built and that others were left out (Req. 9).
@@ -3571,7 +3636,7 @@ A report of 3 built and 1 skipped reads "Civ bonuses built: 3 of 4; the others a
 ## Test 283
 
 ### File residence:
-`tests/model/present_tests.c`, lines 202-205
+`tests/model/present_tests.c`, lines 211-214
 
 ### Purpose:
 Verify that Build says so when it could not build the hero (Req. 9).
@@ -3582,7 +3647,7 @@ A report with `hero_skipped` holds "The hero is not built: the civ lacks its uni
 ## Test 284
 
 ### File residence:
-`tests/model/present_tests.c`, lines 207-210
+`tests/model/present_tests.c`, lines 216-219
 
 ### Purpose:
 Verify that Build says when a bonus counts fewer times than its multiplier asks (Req. 9).
@@ -3593,13 +3658,13 @@ A report with one multiplier not applied says "A bonus made of the game's techs 
 ## Test 285
 
 ### File residence:
-`tests/model/present_tests.c`, lines 212-216
+`tests/model/present_tests.c`, lines 221-225
 
 ### Purpose:
 Verify that Build names the two folders of the mod and nothing as left out (Req. 7, 9).
 
 ### Assertion expectation:
-A report without anything skipped names `testonia-data` and `testonia-ui` and "2 of 2.", then the advice.
+A report without anything skipped names `testonia-data`, `testonia-ui`, the civ and "2 of 2.", then the advice.
 
 ## Test 286
 
@@ -4011,18 +4076,18 @@ With the language of slot 1, the Britons, the saved text holds `"language": 0`.
 ## Test 323
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 205-208
+`tests/shell/dialog_tests.c`, lines 208-211
 
 ### Purpose:
-Verify that a civ without a name is saved as `civbuilder_civ` by default (Req. 1).
+Verify that a civ the user has not named is saved as `civbuilder_civ` by default (Req. 1).
 
 ### Assertion expectation:
-With Save answered in `build/`, `build/civbuilder_civ.civbuilder.json` is written anew, over a stale file.
+A new civ, named as the game names it, saved in `build/` writes `build/civbuilder_civ.civbuilder.json` anew.
 
 ## Test 324
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 210-213
+`tests/shell/dialog_tests.c`, lines 213-216
 
 ### Purpose:
 Verify that a civ the user named is saved under that name (Req. 1).
@@ -4033,7 +4098,7 @@ With the name "Testonia" typed, Save writes `build/Testonia.civbuilder.json` ane
 ## Test 325
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 215-218
+`tests/shell/dialog_tests.c`, lines 218-221
 
 ### Purpose:
 Verify that a cancelled Save is said in the status line (Req. 3, WCAG 3.3.1).
@@ -4044,7 +4109,7 @@ With the Save dialog cancelled, the status line holds "The civ was not saved."
 ## Test 326
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 220-223
+`tests/shell/dialog_tests.c`, lines 223-226
 
 ### Purpose:
 Verify that a civ saved by the window is opened by it again (Req. 1).
@@ -4055,7 +4120,7 @@ Verify that a civ saved by the window is opened by it again (Req. 1).
 ## Test 327
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 225-228
+`tests/shell/dialog_tests.c`, lines 228-231
 
 ### Purpose:
 Verify that a file that is no civ file is refused in words (Req. 1, WCAG 3.3.1).
@@ -4066,7 +4131,7 @@ Opening `README.md` gives a message that holds "not a civ file".
 ## Test 328
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 230-233
+`tests/shell/dialog_tests.c`, lines 233-236
 
 ### Purpose:
 Verify that the button Next goes to the next step (Req. 3, WCAG 2.1.1).
@@ -4077,7 +4142,7 @@ After a click of Next on step 1, the list of steps has its second row chosen.
 ## Test 329
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 235-238
+`tests/shell/dialog_tests.c`, lines 238-241
 
 ### Purpose:
 Verify that a name typed into the window reaches the design and the title (Req. 3, WCAG 2.4.2).
@@ -4088,7 +4153,7 @@ With "Testonia" typed into Name, the window's title holds "Testonia - Step 1".
 ## Test 330
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 240-243
+`tests/shell/dialog_tests.c`, lines 243-246
 
 ### Purpose:
 Verify that Redo answers in the status line when nothing was undone (Req. 5).
@@ -4099,7 +4164,7 @@ In a new window the Redo command leaves "There is nothing to redo." in the statu
 ## Test 331
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 245-260
+`tests/shell/dialog_tests.c`, lines 248-263
 
 ### Purpose:
 Prevent a step from being shown as done when the window opens, before the user did anything (Bug 1 of 2026-11-16).
@@ -4110,7 +4175,7 @@ In a new window, made but not shown, no row of the list of steps holds "(done)",
 ## Test 332
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 262-265
+`tests/shell/dialog_tests.c`, lines 265-268
 
 ### Purpose:
 Prevent unsaved changes from being lost when closing is cancelled (Req. 3, WCAG 3.3.4).
@@ -4121,7 +4186,7 @@ With a name typed and the question answered Cancel, the window is still there af
 ## Test 333
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 267-270
+`tests/shell/dialog_tests.c`, lines 270-273
 
 ### Purpose:
 Verify that the window closes when the user chooses not to save (Req. 3, WCAG 3.3.4).
@@ -4132,7 +4197,7 @@ With a name typed and the question answered No, the window is gone after a close
 ## Test 334
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 272-275
+`tests/shell/dialog_tests.c`, lines 275-278
 
 ### Purpose:
 Verify that Exit closes a window without changes, without a question (Rule 24: asked wrongly before).
@@ -4143,7 +4208,7 @@ In a new window the Exit command closes the window; no question about unsaved ch
 ## Test 335
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 277-280
+`tests/shell/dialog_tests.c`, lines 280-283
 
 ### Purpose:
 Verify that Build says so when the game is not found on the computer (Req. 9).
@@ -4154,40 +4219,40 @@ With Steam's folder named as `build/no_steam`, Build gives a message that holds 
 ## Test 336
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 282-285
+`tests/shell/dialog_tests.c`, lines 285-291
 
 ### Purpose:
 Verify that Build asks before it writes and writes nothing when refused (Req. 3, WCAG 3.3.4).
 
 ### Assertion expectation:
-With the question answered Cancel, the status line holds "No mod was built."
+With a changed civ saved in the mod and the questions answered Cancel, the status line holds "No mod was built."
 
 ## Test 337
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 287-290
+`tests/shell/dialog_tests.c`, lines 293-299
 
 ### Purpose:
 Verify that Build of a civ that is not finished says what is wrong (Req. 9).
 
 ### Assertion expectation:
-For a new civ, Build gives a message that holds "not finished".
+A civ whose name is emptied, saved in the mod and built gives a message that holds "not finished".
 
 ## Test 338
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 292-301
+`tests/shell/dialog_tests.c`, lines 301-311
 
 ### Purpose:
 Verify that Build from the window writes the mod into the mods folder and reports it (Req. 2, 7, 9).
 
 ### Assertion expectation:
-With a name, a unit and two techs picked and the small game, the message holds "built as testonia-data".
+A civ named, given a unit and two techs, saved and built as the mod Testonia: the message holds "testonia-data".
 
 ## Test 339
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 303-306
+`tests/shell/dialog_tests.c`, lines 313-316
 
 ### Purpose:
 Verify that the help line under the title is drawn in the muted colour of the palette (Req. 3, WCAG 1.4.3).
@@ -4198,7 +4263,7 @@ Asked for its colours, the window gives the help line the text colour of `COLOR_
 ## Test 340
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 308-311
+`tests/shell/dialog_tests.c`, lines 318-321
 
 ### Purpose:
 Verify that a field one types in is drawn on the field colour of the palette (Req. 3, WCAG 1.4.3).
@@ -4209,7 +4274,7 @@ Asked for its colours, the window gives the field Name the background of `COLOR_
 ## Test 341
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 313-333
+`tests/shell/dialog_tests.c`, lines 323-343
 
 ### Purpose:
 Verify that the row in focus inside a list has a frame in the focus colour (Req. 3, WCAG 2.4.7).
@@ -4220,7 +4285,7 @@ A row drawn with the focus has the colour of `COLOR_ROLE_FOCUS` at its left edge
 ## Test 342
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 335-344
+`tests/shell/dialog_tests.c`, lines 345-354
 
 ### Purpose:
 Prevent a pick of the row that is picked already from making a change to undo (Req. 5).
@@ -4776,7 +4841,7 @@ In the picture the window draws of a ticked row, the inside of the box holds mar
 Enforce that a list or choice shows what the design holds, after an undo too (Requirement 5).
 
 ### Assertion expectation:
-In the real window, after another base civ is picked and the pick undone, the choice shows Generic again.
+In the real window, after another civ to edit is picked and the pick undone, the choice shows the Britons again.
 
 ## Test 393
 
@@ -5255,18 +5320,18 @@ Verify that `build.exe coverage` builds the tests to measure what they run (Req.
 ## Test 436
 
 ### File residence:
-`tests/rules/tool_tests.c`, lines 159-162
+`tests/rules/tool_tests.c`, lines 159-163
 
 ### Purpose:
-Verify that `nowindow` and `norules` given to the build are passed on to the tests (Req. 12).
+Verify that `nowindow`, `norules` and `redundancy` given to the build are passed on to the tests (Req. 12).
 
 ### Assertion expectation:
-`build_test_arguments` of "build.exe quick nowindow norules" is " nowindow norules".
+`build_test_arguments` of "build.exe quick nowindow norules redundancy" is " nowindow norules redundancy".
 
 ## Test 437
 
 ### File residence:
-`tests/rules/tool_tests.c`, lines 164-169
+`tests/rules/tool_tests.c`, lines 165-170
 
 ### Purpose:
 Verify that a coverage build links the tests and no other program (Req. 10).
@@ -5277,7 +5342,7 @@ Verify that a coverage build links the tests and no other program (Req. 10).
 ## Test 438
 
 ### File residence:
-`tests/rules/tool_tests.c`, lines 171-175
+`tests/rules/tool_tests.c`, lines 172-176
 
 ### Purpose:
 Verify that a coverage build links the tests with gcc's coverage (Req. 10).
@@ -5288,7 +5353,7 @@ The link command of the tests in a coverage build holds "gcc -g --coverage -o bu
 ## Test 439
 
 ### File residence:
-`tests/rules/tool_tests.c`, lines 177-181
+`tests/rules/tool_tests.c`, lines 178-182
 
 ### Purpose:
 Verify that a coverage build makes the folder that its report is written to (Req. 10).
@@ -5296,3 +5361,684 @@ Verify that a coverage build makes the folder that its report is written to (Req
 ### Assertion expectation:
 The last folder of `BUILD_MODE_COVERAGE` is "target/coverage/c".
 
+## Redundancy test 1
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 104-108
+
+### Purpose:
+Verify that a civ of the game gives the design the game's name for it (Req. 12).
+
+### Assertion expectation:
+The Britons of a small catalog give the design the name "Britons".
+
+## Redundancy test 2
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 110-114
+
+### Purpose:
+Verify that a civ of the game names its unique unit as the game does (Req. 12).
+
+### Assertion expectation:
+The Britons give the unique unit's name field "Longbowman".
+
+## Redundancy test 3
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 116-120
+
+### Purpose:
+Verify that a civ of the game names its Castle Age tech as the game does (Req. 12).
+
+### Assertion expectation:
+The Franks give the Castle Age tech's name field "Bearded Axe".
+
+## Redundancy test 4
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 122-126
+
+### Purpose:
+Verify that a civ of the game names its Imperial Age tech as the game does (Req. 12).
+
+### Assertion expectation:
+The Britons give the Imperial Age tech's name field "Warwolf".
+
+## Redundancy test 5
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 128-132
+
+### Purpose:
+Verify that a civ of the game gives the design the tagline the catalog holds for it (Req. 12).
+
+### Assertion expectation:
+The Britons give the tagline field "Foot Archer".
+
+## Redundancy test 6
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 134-138
+
+### Purpose:
+Verify that a civ of the game gives the design the description the catalog holds for it (Req. 12).
+
+### Assertion expectation:
+The Britons give the description field "An archer civilization".
+
+## Redundancy test 7
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 140-145
+
+### Purpose:
+Verify that choosing a civ of the game takes away the hero of the civ before (Req. 12).
+
+### Assertion expectation:
+A design with Joan of Arc as its hero has no hero once the Britons are applied.
+
+## Redundancy test 8
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 147-150
+
+### Purpose:
+Verify that picking a unique unit gives its name field the game's name (Req. 12).
+
+### Assertion expectation:
+Picking the Throwing Axeman's row names the unique unit "Throwing Axeman".
+
+## Redundancy test 9
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 152-156
+
+### Purpose:
+Verify that picking a Castle Age tech gives its name field the game's name (Req. 12).
+
+### Assertion expectation:
+Picking the Bearded Axe's row names the Castle Age tech "Bearded Axe".
+
+## Redundancy test 10
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 158-161
+
+### Purpose:
+Verify that picking a hero gives the hero's name field the game's name (Req. 12).
+
+### Assertion expectation:
+Picking Joan of Arc's row names the hero "Joan of Arc".
+
+## Redundancy test 11
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 163-167
+
+### Purpose:
+Verify that picking no hero empties the hero's name field (Req. 12).
+
+### Assertion expectation:
+After Joan of Arc is picked, the row of no hero leaves the hero's name empty.
+
+## Redundancy test 12
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 169-179
+
+### Purpose:
+Verify that a civ as the game has it marks no step done (Req. 12).
+
+### Assertion expectation:
+The Britons compared with the Britons give no step of the nine as done.
+
+## Redundancy test 13
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 181-185
+
+### Purpose:
+Verify that the review step is done once the civ is in the mod as it is (Req. 12).
+
+### Assertion expectation:
+A finished civ held by the mod marks the review step done.
+
+## Redundancy test 14
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 195-199
+
+### Purpose:
+Verify that a changed civ saved in the mod is counted among the civs changed (Req. 12).
+
+### Assertion expectation:
+The Britons renamed "Testonia" and saved make the count of civs in the mod 1.
+
+## Redundancy test 15
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 201-205
+
+### Purpose:
+Verify that a civ as the game has it is not put in the mod (Req. 12).
+
+### Assertion expectation:
+Saving the Britons unchanged answers that the civ is left out.
+
+## Redundancy test 16
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 207-213
+
+### Purpose:
+Verify that saving a civ again replaces what the mod holds of it (Req. 12).
+
+### Assertion expectation:
+A second save answers "updated", and the mod's first civ is then named "Newer".
+
+## Redundancy test 17
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 215-219
+
+### Purpose:
+Verify that a civ saved as the game has it again is taken out of the mod (Req. 12).
+
+### Assertion expectation:
+Saving the Britons unchanged after a changed save answers that the civ is taken out.
+
+## Redundancy test 18
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 221-226
+
+### Purpose:
+Verify that the edits of a civ are kept while another civ is edited (Req. 12).
+
+### Assertion expectation:
+After the Franks are kept, the draft of the Britons is still named "Testonia".
+
+## Redundancy test 19
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 228-232
+
+### Purpose:
+Verify that the mod is known to hold a civ just as it was saved (Req. 12).
+
+### Assertion expectation:
+Right after Save civ, the mod holds the civ as it is.
+
+## Redundancy test 20
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 234-239
+
+### Purpose:
+Verify that a civ changed after its save is no longer held as it is (Req. 12).
+
+### Assertion expectation:
+A civ renamed after its save is not held by the mod as it now is.
+
+## Redundancy test 21
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 241-248
+
+### Purpose:
+Verify that the civs of the mod come in the order of the slots they take (Req. 12).
+
+### Assertion expectation:
+With the Franks saved before the Britons, the mod's first civ is the Britons, slot 1.
+
+## Redundancy test 22
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 250-255
+
+### Purpose:
+Verify that a window opened anew holds no draft kept before it (Req. 12).
+
+### Assertion expectation:
+After a draft of the Britons is kept and the civs are started anew, no draft of the Britons is found.
+
+## Redundancy test 23
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 257-262
+
+### Purpose:
+Verify that a civ replacing a slot past the last one is left out of the mod (Req. 12).
+
+### Assertion expectation:
+A changed civ replacing slot 64 is answered as left out, and the mod then holds no civ.
+
+## Redundancy test 24
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 264-269
+
+### Purpose:
+Verify that a civ with another first look, its architecture, is not the civ of the game (Req. 12).
+
+### Assertion expectation:
+The Britons with the next architecture are not the same as the Britons of the game.
+
+## Redundancy test 25
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 271-276
+
+### Purpose:
+Verify that a civ whose Castle Age tech costs more of the first resource is not the civ of the game (Req. 12).
+
+### Assertion expectation:
+The Britons whose Castle Age tech costs 1 more of the first resource are not the Britons of the game.
+
+## Redundancy test 26
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 278-285
+
+### Purpose:
+Verify that a civ given a bonus of the civ edited before it is not taken for its civ of the game (Req. 12).
+
+### Assertion expectation:
+The Britons, after the Franks, with their bonus swapped for the Franks' second, are not the Britons of the game.
+
+## Redundancy test 27
+
+### File residence:
+`tests/redundancy/game_tests.c`, lines 53-56
+
+### Purpose:
+Verify that the game's description of a civ gives it its tagline (Req. 12).
+
+### Assertion expectation:
+"Foot Archer civilization" on the first line of the description gives the tagline "Foot Archer".
+
+## Redundancy test 28
+
+### File residence:
+`tests/redundancy/game_tests.c`, lines 58-61
+
+### Purpose:
+Verify that a civ's description is the game's text after its first line (Req. 12).
+
+### Assertion expectation:
+The Britons' description starts with "- Shepherds", the text after the empty line.
+
+## Redundancy test 29
+
+### File residence:
+`tests/redundancy/game_tests.c`, lines 63-66
+
+### Purpose:
+Verify that a line break written as \n by the game is a line break of the field (Req. 12).
+
+### Assertion expectation:
+The description holds "faster", a carriage return, a line feed and "Towers".
+
+## Redundancy test 30
+
+### File residence:
+`tests/redundancy/game_tests.c`, lines 68-71
+
+### Purpose:
+Verify that a quote escaped by the game is a plain quote in the description (Req. 12).
+
+### Assertion expectation:
+The description holds "shoot" between two plain quotes.
+
+## Redundancy test 31
+
+### File residence:
+`tests/redundancy/game_tests.c`, lines 73-76
+
+### Purpose:
+Verify that a civ the game does not describe gets no tagline, not one from before (Req. 12).
+
+### Assertion expectation:
+The Franks, whose description is not in the strings, have their stale tagline emptied.
+
+## Redundancy test 32
+
+### File residence:
+`tests/redundancy/game_tests.c`, lines 78-82
+
+### Purpose:
+Verify that reading the texts of a game that is found succeeds (Req. 12).
+
+### Assertion expectation:
+Reading the small described game answers true.
+
+## Redundancy test 33
+
+### File residence:
+`tests/redundancy/game_tests.c`, lines 84-87
+
+### Purpose:
+Verify that a civ the game does not describe gets no description, not one from before (Req. 12).
+
+### Assertion expectation:
+The Franks, whose description is not in the strings, have their stale description emptied.
+
+## Redundancy test 34
+
+### File residence:
+`tests/redundancy/game_tests.c`, lines 89-92
+
+### Purpose:
+Verify that a text of the game without its closing quote ends where its line ends (Req. 12).
+
+### Assertion expectation:
+An unclosed description followed by another line gives the description "Shepherds" alone.
+
+## Redundancy test 35
+
+### File residence:
+`tests/redundancy/game_tests.c`, lines 94-97
+
+### Purpose:
+Verify that the spaces and line breaks at the end of a text of the game are cut (Req. 12).
+
+### Assertion expectation:
+A description that ends in a space and a \n gives the description "Shepherds".
+
+## Redundancy test 36
+
+### File residence:
+`tests/redundancy/game_tests.c`, lines 99-102
+
+### Purpose:
+Verify that a first line not ending in " civilization" is the whole tagline (Req. 12).
+
+### Assertion expectation:
+The first line "Archers of the north" gives the tagline "Archers of the north".
+
+## Redundancy test 37
+
+### File residence:
+`tests/redundancy/game_tests.c`, lines 104-115
+
+### Purpose:
+Verify that a tagline longer than its field holds is cut to fit (Req. 12).
+
+### Assertion expectation:
+A first line of 300 letters gives a tagline of 255 letters, all that its field of 256 holds.
+
+## Redundancy test 38
+
+### File residence:
+`tests/redundancy/tools/plan_tests.c`, lines 8-15
+
+### Purpose:
+Verify that the analyzed build compiles each source with gcc's static analyzer (Rule 26, Req. 10).
+
+### Assertion expectation:
+The compile command of `src/core/check.c` in the analyzed build holds " -fanalyzer -c src/core/check.c -o ".
+
+## Redundancy test 39
+
+### File residence:
+`tests/redundancy/dat/patch_tests.c`, lines 9-13
+
+### Purpose:
+Verify that the first patch of the dat file is found, so that no civ patches its place twice (Req. 12).
+
+### Assertion expectation:
+After a patch of the first byte of a small dat file, that byte is said to be patched.
+
+## Redundancy test 40
+
+### File residence:
+`tests/redundancy/mod/built_mod_tests.c`, lines 48-55
+
+### Purpose:
+Verify that a build with no civ in the mod is refused before anything is built (Req. 9, 12).
+
+### Assertion expectation:
+The civs of a build of none are answered as not finished.
+
+## Redundancy test 41
+
+### File residence:
+`tests/redundancy/mod/built_mod_tests.c`, lines 57-66
+
+### Purpose:
+Verify that building a mod of an unfinished civ fails (Req. 9, 12).
+
+### Assertion expectation:
+Building a mod of one civ just reset answers false.
+
+## Redundancy test 42
+
+### File residence:
+`tests/redundancy/mod/built_mod_tests.c`, lines 68-75
+
+### Purpose:
+Verify that a civ's description takes the place of the game's description of its civ, once (Req. 12).
+
+### Assertion expectation:
+A civ named by the Jurchens' string id leaves no 120200 "Jurchens" in the mod's strings, and 120200 once.
+
+## Redundancy test 43
+
+### File residence:
+`tests/redundancy/mod/built_mod_tests.c`, lines 77-80
+
+### Purpose:
+Verify that the game's descriptions of the civs not in the mod are kept in its strings (Req. 12).
+
+### Assertion expectation:
+The mod's strings of a civ for the Britons still hold the game's 120200 "Jurchens".
+
+## Redundancy test 44
+
+### File residence:
+`tests/redundancy/mod/built_mod_tests.c`, lines 82-85
+
+### Purpose:
+Verify that a civ whose description id lies past the game's descriptions still gets one (Req. 12).
+
+### Assertion expectation:
+A civ named by string id 10399 gets its description as 120278 in the mod's strings.
+
+## Redundancy test 45
+
+### File residence:
+`tests/redundancy/mod/built_mod_tests.c`, lines 87-90
+
+### Purpose:
+Verify that a civ left from a bigger build, past the count of the mod, gets no description (Req. 12).
+
+### Assertion expectation:
+With the Franks left past a count of one civ, the mod's strings hold no line 120151 for them.
+
+## Redundancy test 46
+
+### File residence:
+`tests/redundancy/mod/built_mod_tests.c`, lines 141-146
+
+### Purpose:
+Verify that the description of the Britons, the first id of the game's descriptions, is written once (Req. 12).
+
+### Assertion expectation:
+A civ named by the Britons' string id leaves one line 120150 in the mod's strings, not two.
+
+## Redundancy test 47
+
+### File residence:
+`tests/redundancy/mod/built_mod_tests.c`, lines 100-112
+
+### Purpose:
+Verify that a tech of the game takes the requirements of a mod's civs only while it has room (Req. 9, 12).
+
+### Assertion expectation:
+With the 4 free places of a tech's requirements taken by 4 civs, a fifth civ's requirement is refused.
+
+## Redundancy test 48
+
+### File residence:
+`tests/redundancy/mod/built_mod_tests.c`, lines 132-139
+
+### Purpose:
+Verify that a civ whose description passes the 8192 bytes of its room fails the mod's strings (Req. 9, 12).
+
+### Assertion expectation:
+With 24 bonuses of 300 letters, the strings are written for the description "Archers", not for 1535 letters.
+
+## Redundancy test 49
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 88-99
+
+### Purpose:
+Verify that the window opens with the Britons as the civ to edit (Req. 12).
+
+### Assertion expectation:
+The row chosen in the civ to edit reads "Britons" when the window opens.
+
+## Redundancy test 50
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 101-106
+
+### Purpose:
+Verify that the Name field holds the name of the civ to edit when the window opens (Req. 12).
+
+### Assertion expectation:
+The Name field reads "Britons" when the window opens.
+
+## Redundancy test 51
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 108-116
+
+### Purpose:
+Verify that choosing another civ to edit and back keeps the edits made before (Req. 12).
+
+### Assertion expectation:
+"Testonia" typed for the Britons is back in the Name field after the Franks and the Britons are chosen.
+
+## Redundancy test 52
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 118-121
+
+### Purpose:
+Verify that the review says that no civ is changed before any is saved (Req. 12).
+
+### Assertion expectation:
+The label at the top right of the review reads "0 civs changed".
+
+## Redundancy test 53
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 123-130
+
+### Purpose:
+Verify that Save civ counts the civ it puts in the mod (Req. 12).
+
+### Assertion expectation:
+After "Testonia" is typed and Save civ pressed, the label reads "1 civ changed".
+
+## Redundancy test 54
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 132-138
+
+### Purpose:
+Verify that Save civ of a civ as the game has it says the mod leaves it out (Req. 12).
+
+### Assertion expectation:
+Save civ of the Britons unchanged gives a status that holds "leaves it out".
+
+## Redundancy test 55
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 140-151
+
+### Purpose:
+Verify that the review's text, which cannot be typed in, shows no blinking caret in focus (Req. 12).
+
+### Assertion expectation:
+With the review's text in focus, the thread's caret is not shown.
+
+## Redundancy test 56
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 166-172
+
+### Purpose:
+Verify that Build with no civ saved in the mod says so (Req. 9, 12).
+
+### Assertion expectation:
+Build in a new window gives a message that holds "No civ is saved in the mod".
+
+## Redundancy test 57
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 183-190
+
+### Purpose:
+Verify that the mod's name is civbuilder_mod until another is given (Req. 7, 12).
+
+### Assertion expectation:
+A saved civ built with the name question answered as offered is built as "civbuilder_mod-data".
+
+## Redundancy test 58
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 236-244
+
+### Purpose:
+Verify that the filter of the bonuses leaves the bonuses that hold its text and no other (Req. 10, 12).
+
+### Assertion expectation:
+After "food" is typed in the filter, the list holds as many rows as held "food" before, and each holds it.
+
+## Redundancy test 59
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 246-259
+
+### Purpose:
+Verify that each category of bonuses lists its own bonuses, so that together they list each once (Req. 10, 12).
+
+### Assertion expectation:
+The rows of the categories, chosen one by one, add up to the rows of all bonuses, with two categories or more.
+
+## Redundancy test 60
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 192-199
+
+### Purpose:
+Verify that Build mod with an empty mod name builds no mod (Req. 7, 12).
+
+### Assertion expectation:
+With a whole civ saved in the mod and an empty mod name given, the status line reads "No mod was built."
+
+## Redundancy test 61
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 201-211
+
+### Purpose:
+Verify that the civ file of a civ with a long name is named after the first 48 letters of it (Req. 12).
+
+### Assertion expectation:
+A civ named with 60 letters is saved, by Save civ file..., as its first 48 letters and `.civbuilder.json`.
+
+## Redundancy test 62
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 153-164
+
+### Purpose:
+Verify that a field that can be typed in shows its caret in focus, unlike the review's text (Req. 12).
+
+### Assertion expectation:
+With the Name field in focus, the thread's caret is shown blinking.

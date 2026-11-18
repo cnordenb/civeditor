@@ -9,10 +9,8 @@ enum {
     FLAG_WIDTH = 24,
     VERDICT_COUNT = 3,
     VERDICT_WIDTH = 32,
-    ARGUMENT_SETS = 4,
-    ARGUMENT_WIDTH = 24,
-    NOWINDOW_SET = 1,
-    NORULES_SET = 2,
+    ARGUMENT_COUNT = 3,
+    ARGUMENT_WIDTH = 16,
     MODE_FOLDERS = 2
 };
 
@@ -49,11 +47,17 @@ BuildMode build_mode_of(const char *command_line)
 
 const char *build_test_arguments(const char *command_line)
 {
-    static const char ARGUMENTS[ARGUMENT_SETS][ARGUMENT_WIDTH] = { "", " nowindow", " norules", " nowindow norules" };
-    int set = (text_contains_folded(command_line, " nowindow") ? NOWINDOW_SET : 0) +
-              (text_contains_folded(command_line, " norules") ? NORULES_SET : 0);
+    static const char WORDS[ARGUMENT_COUNT][ARGUMENT_WIDTH] = { " nowindow", " norules", " redundancy" };
+    static char arguments[ARGUMENT_COUNT * ARGUMENT_WIDTH];
+    int word;
 
-    return ARGUMENTS[set];
+    (void)text_copy(arguments, sizeof arguments, "");
+    for (word = 0; word < ARGUMENT_COUNT; ++word) {
+        if (text_contains_folded(command_line, WORDS[word])) {
+            (void)text_append(arguments, sizeof arguments, WORDS[word]);
+        }
+    }
+    return arguments;
 }
 
 const char *build_verdict(bool built, bool tested)

@@ -25,7 +25,6 @@ void civ_design_reset(CivDesign *design)
     design->choices[CHOICE_ARCHITECTURE] = CIV_DEFAULT_ARCHITECTURE;
     design->choices[CHOICE_LANGUAGE] = CIV_DEFAULT_LANGUAGE;
     design->choices[CHOICE_REPLACE] = CIV_DEFAULT_REPLACE;
-    design->choices[CHOICE_BASE] = CIV_GENERIC_BASE;
     design->bonus_count = 0;
     design->team_bonus_count = 0;
     for (index = 0; index < (int)TREE_KIND_COUNT; ++index) {

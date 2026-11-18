@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <wchar.h>
 
 #include "../json/json_patch.h"
 
@@ -24,6 +25,7 @@ typedef struct {
 
 typedef JsonPatchOutput CivListOutput;
 
+bool civ_list_read(JsonDocument *list, const wchar_t *game_folder);
 int civ_list_entry(const JsonDocument *list, int slot);
 bool civ_list_write(const JsonDocument *list, const CivListEntry *entry, CivListOutput *output);
 

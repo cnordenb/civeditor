@@ -90,7 +90,6 @@ monk	21	Andean	21	125	134	286
 monk	11	Nordic	11	125	134	286
 monk	1023	Priest	0	1023	1024	1025
 monk	1940	Pagan Priest	0	1940	1024	1941
-base	0	Generic	-	-1	-1	-1	-1	-1	-1	-1
 base	1	Britons	0,1,2	2	0	2	2	2	1	448
 base	2	Franks	3,4,5	11	1	64	11	2	1	448
 base	3	Goths	6,7,8,9,10	12	2	12	12	1	1	448

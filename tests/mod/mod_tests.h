@@ -5,7 +5,7 @@
 
 bool test_the_name_is_written_under_the_replaced_civs_name_id(void);
 bool test_the_civ_descriptions_are_written_in_id_order(void);
-bool test_the_mod_folder_name_is_made_from_the_civ_name(void);
+bool test_the_mod_folder_name_is_made_from_the_mod_name(void);
 bool test_a_mod_is_not_built_from_an_unfinished_civ(void);
 bool test_a_unique_tech_is_aimed_at_the_civs_own_unique_unit(void);
 bool test_a_unique_techs_changes_of_one_attribute_by_two_amounts_are_one_target(void);

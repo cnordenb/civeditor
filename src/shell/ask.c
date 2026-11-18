@@ -10,7 +10,7 @@ static wchar_t last_message[ASK_MESSAGE_CAPACITY];
 
 void ask_script(const AskScript *answers)
 {
-    static const AskScript NONE = { false, 0, NULL, NULL, NULL, NULL };
+    static const AskScript NONE = { false, 0, NULL, NULL, NULL, NULL, NULL };
 
     script = (answers == NULL) ? NONE : *answers;
     last_message[0] = L'\0';
@@ -30,6 +30,17 @@ int ask_message(HWND owner, const wchar_t *text, const wchar_t *title, UINT flag
     }
     (void)wcsncpy(last_message, text, ASK_MESSAGE_CAPACITY - 1);
     return script.answer;
+}
+
+bool ask_text(HWND owner, const wchar_t *question, wchar_t *answer, size_t capacity)
+{
+    if (!script.active) {
+        return text_dialog_show(owner, question, answer, capacity);
+    }
+    if (script.text != NULL) {
+        (void)lstrcpynW(answer, script.text, (int)capacity);
+    }
+    return (script.answer == IDOK) && (answer[0] != L'\0');
 }
 
 static bool scripted_file(OPENFILENAMEW *dialog, bool saving)
@@ -73,6 +84,14 @@ static bool scripted_folders(wchar_t *game, wchar_t *mods)
 static bool found_folders(wchar_t *game, wchar_t *mods)
 {
     return mod_find_game_folder(game, FILE_PATH_CAPACITY) && mod_find_local_mods(mods, FILE_PATH_CAPACITY);
+}
+
+bool ask_game_folder(wchar_t *game)
+{
+    if (script.active) {
+        return (script.steam != NULL) && mod_find_game_under(script.steam, game, FILE_PATH_CAPACITY);
+    }
+    return mod_find_game_folder(game, FILE_PATH_CAPACITY);
 }
 
 bool ask_game_folders(wchar_t *game, wchar_t *mods)

@@ -27,6 +27,7 @@ typedef struct {
 Command command_of(CommandKind kind, int field, int value);
 Command command_nothing(void);
 Command command_set_text(TextField field, const char *text);
+Command command_pick(CommandKind kind, int field, int value, const char *name);
 bool command_apply(CivDesign *design, const Command *command);
 bool command_joins(const Command *earlier, const Command *later);
 

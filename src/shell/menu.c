@@ -91,7 +91,6 @@ HMENU menu_make(void)
     (void)AppendMenuW(bar, MF_POPUP, (UINT_PTR)edit, L"&Edit");
     (void)AppendMenuW(bar, MF_POPUP, (UINT_PTR)go, L"&Go");
     add_item(help, ACTION_HELP, L"&Help for this control\tF1");
-    add_item(help, ACTION_GLOSSARY, L"&Glossary...");
     (void)AppendMenuW(bar, MF_POPUP, (UINT_PTR)help, L"&Help");
     return bar;
 }

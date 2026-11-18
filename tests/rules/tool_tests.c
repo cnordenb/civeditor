@@ -158,7 +158,8 @@ bool test_a_coverage_build_is_asked_for_by_coverage(void)
 
 bool test_the_tests_are_run_with_the_arguments_given_to_the_build(void)
 {
-    return text_equal(build_test_arguments("build.exe quick nowindow norules"), " nowindow norules");
+    return text_equal(build_test_arguments("build.exe quick nowindow norules redundancy"),
+                      " nowindow norules redundancy");
 }
 
 bool test_a_coverage_build_links_the_tests_alone(void)

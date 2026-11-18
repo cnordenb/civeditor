@@ -15,9 +15,15 @@ enum {
     KEY_CAPACITY = 32
 };
 
+static const char PICKER_HEAD[] = "Click to play as ";
+static const char PICKER_TAIL[] = ".";
+
 static char part[MOD_TEXT_CAPACITY];
 static long description_at[DESCRIPTION_SPAN];
 static char elite_name[CIV_LINE_CAPACITY];
+
+_Static_assert(sizeof PICKER_HEAD + CIV_DESCRIPTION_CAPACITY + sizeof PICKER_TAIL <= sizeof part,
+               "the picker's text of any civ name fits a part");
 
 static void put_span(ModStrings *strings, const char *text, size_t length)
 {
@@ -127,20 +133,48 @@ static void find_descriptions(const char *vanilla)
     }
 }
 
-static void put_descriptions(ModStrings *strings, const char *vanilla, long ours)
+static int civ_described_by(const ModCiv *civs, int count, long id)
 {
+    int civ;
+
+    for (civ = 0; civ < count; ++civ) {
+        if (civs[civ].name_sid + DESCRIPTION_OFFSET == id) {
+            return civ;
+        }
+    }
+    return -1;
+}
+
+static void put_description(ModStrings *strings, const ModCiv *civ, long id)
+{
+    if (!mod_description(civ, part, sizeof part)) {
+        strings->failed = true;
+        return;
+    }
+    put_numbered(strings, id, part);
+}
+
+static void put_descriptions(ModStrings *strings, const char *vanilla, const ModCiv *civs, int count)
+{
+    long id;
+    int civ;
     int index;
 
     find_descriptions(vanilla);
     for (index = 0; index < DESCRIPTION_SPAN; ++index) {
-        if (FIRST_DESCRIPTION + index == ours) {
-            put_numbered(strings, ours, part);
+        id = FIRST_DESCRIPTION + index;
+        civ = civ_described_by(civs, count, id);
+        if (civ >= 0) {
+            put_description(strings, &civs[civ], id);
         } else if (description_at[index] >= 0L) {
             put_vanilla(strings, &vanilla[description_at[index]]);
         }
     }
-    if ((ours < FIRST_DESCRIPTION) || (ours >= FIRST_DESCRIPTION + DESCRIPTION_SPAN)) {
-        put_numbered(strings, ours, part);
+    for (civ = 0; civ < count; ++civ) {
+        id = civs[civ].name_sid + DESCRIPTION_OFFSET;
+        if ((id < FIRST_DESCRIPTION) || (id >= FIRST_DESCRIPTION + DESCRIPTION_SPAN)) {
+            put_description(strings, &civs[civ], id);
+        }
     }
 }
 
@@ -287,31 +321,46 @@ static void put_hero_name(ModStrings *strings, const ModCiv *civ)
     }
 }
 
-bool mod_strings_write(ModStrings *strings, const ModCiv *civ, const char *vanilla)
+static void put_name(ModStrings *strings, const ModCiv *civ)
 {
-    const CivDesign *design;
-    const char *alias;
+    const char *alias = civ_design_text(civ->design, TEXT_FIELD_NAME);
 
-    design = civ->design;
-    alias = design->texts[TEXT_FIELD_NAME];
-    strings->length = 0U;
-    strings->text[0] = '\0';
-    strings->failed = false;
     put_numbered(strings, civ->name_sid, alias);
-    if (!make_part("Click to play as ", alias, ".")) {
-        return false;
-    }
+    (void)make_part(PICKER_HEAD, alias, PICKER_TAIL);
     put_numbered(strings, civ->name_sid + PICKER_OFFSET, part);
-    if (!mod_description(civ, part, sizeof part)) {
-        return false;
+}
+
+static void put_names(ModStrings *strings, const ModCiv *civs, int count)
+{
+    int civ;
+
+    for (civ = 0; civ < count; ++civ) {
+        put_name(strings, &civs[civ]);
     }
-    put_descriptions(strings, vanilla, civ->name_sid + DESCRIPTION_OFFSET);
+}
+
+static void put_civ(ModStrings *strings, const ModCiv *civ)
+{
     if (mod_description_sid(civ->slot) >= 0L) {
-        put_numbered(strings, mod_description_sid(civ->slot), part);
+        put_description(strings, civ, mod_description_sid(civ->slot));
     }
     put_tips(strings, civ);
     put_tech_names(strings, civ);
     put_unit_names(strings, civ);
     put_hero_name(strings, civ);
+}
+
+bool mod_strings_write(ModStrings *strings, const ModCiv *civs, int count, const char *vanilla)
+{
+    int civ;
+
+    strings->length = 0U;
+    (void)text_copy(strings->text, sizeof strings->text, "");
+    strings->failed = false;
+    put_names(strings, civs, count);
+    put_descriptions(strings, vanilla, civs, count);
+    for (civ = 0; civ < count; ++civ) {
+        put_civ(strings, &civs[civ]);
+    }
     return !strings->failed;
 }

@@ -14,6 +14,7 @@ typedef struct {
     const wchar_t *open_path;
     const wchar_t *steam;
     const wchar_t *home;
+    const wchar_t *text;
 } AskScript;
 
 void ask_script(const AskScript *answers);
@@ -21,6 +22,9 @@ const wchar_t *ask_last_message(void);
 int ask_message(HWND owner, const wchar_t *text, const wchar_t *title, UINT flags);
 bool ask_file(OPENFILENAMEW *dialog, bool saving);
 bool ask_game_folders(wchar_t *game, wchar_t *mods);
+bool ask_game_folder(wchar_t *game);
+bool ask_text(HWND owner, const wchar_t *question, wchar_t *answer, size_t capacity);
+bool text_dialog_show(HWND owner, const wchar_t *question, wchar_t *answer, size_t capacity);
 
 HACCEL menu_keys(void);
 HMENU menu_make(void);

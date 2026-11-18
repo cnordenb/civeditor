@@ -68,7 +68,6 @@ static void read_choices(const JsonDocument *document, CivDesign *design)
     (void)civ_design_set_choice(design, CHOICE_SCOUT, read_number_or(document, 0, "starting_scout", CIV_NO_CHOICE));
     (void)civ_design_set_choice(design, CHOICE_REPLACE,
                                 read_number_or(document, 0, "replace_civ", CIV_DEFAULT_REPLACE));
-    (void)civ_design_set_choice(design, CHOICE_BASE, read_number_or(document, 0, "base_civ", CIV_GENERIC_BASE));
 }
 
 static void read_bonuses(const JsonDocument *document, const char *key, CivDesign *design, bool team)

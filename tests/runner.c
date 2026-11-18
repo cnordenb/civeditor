@@ -4,7 +4,13 @@
 #include "../src/core/text.h"
 #include "test_outcome.h"
 
-enum { CATEGORY_COUNT = 3, CATEGORY_TEST_LIMIT = 400, LINE_CAPACITY = 512, ARGUMENT_LIMIT = 8 };
+enum {
+    CATEGORY_COUNT = 4,
+    REDUNDANCY_CATEGORY = 3,
+    CATEGORY_TEST_LIMIT = 400,
+    LINE_CAPACITY = 512,
+    ARGUMENT_LIMIT = 8
+};
 
 typedef struct {
     int run;
@@ -41,6 +47,7 @@ TestOutcome test_outcome_missing(void)
 }
 
 static bool rules_left_out;
+static bool redundancy_asked;
 
 static TestOutcome run_in_category(int category, int index)
 {
@@ -54,17 +61,22 @@ static TestOutcome run_in_category(int category, int index)
         return accessibility_suite_run(index);
     case 2:
         return rules_left_out ? maintainability_tools_run(index) : maintainability_suite_run(index);
+    case REDUNDANCY_CATEGORY:
+        return redundancy_asked ? redundancy_suite_run(index) : test_outcome_missing();
     default:
         return test_outcome_missing();
     }
 }
 
-static bool print_outcome(int number, TestOutcome outcome)
+static bool print_outcome(int category, int number, TestOutcome outcome)
 {
     char line[LINE_CAPACITY] = "Test ";
 
     if (!CHECK(number > 0) || !CHECK(outcome.name != NULL)) {
         return false;
+    }
+    if (category == REDUNDANCY_CATEGORY) {
+        (void)text_copy(line, sizeof line, "Redundancy test ");
     }
     (void)text_append_number(line, sizeof line, number);
     (void)text_append(line, sizeof line, outcome.passed ? " passed: " : " FAILED: ");
@@ -100,7 +112,7 @@ static void run_category(int category, TestTally *tally)
         }
         ++tally->run;
         tally->failed += outcome.passed ? 0 : 1;
-        (void)print_outcome(tally->run, outcome);
+        (void)print_outcome(category, (category == REDUNDANCY_CATEGORY) ? index : tally->run, outcome);
     }
 }
 
@@ -146,6 +158,7 @@ static void read_arguments(int argc, char *argv[])
     for (index = 1; (index < argc) && (index < ARGUMENT_LIMIT); ++index) {
         window_left_out = window_left_out || text_equal(argv[index], "nowindow");
         rules_left_out = rules_left_out || text_equal(argv[index], "norules");
+        redundancy_asked = redundancy_asked || text_equal(argv[index], "redundancy");
     }
 }
 

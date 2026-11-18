@@ -17,7 +17,7 @@ static CivDesign *fresh(void)
 
 static bool is_done(WizardStep step)
 {
-    return wizard_step_is_done(&design, &blank, step);
+    return wizard_step_is_done(&design, &blank, false, step);
 }
 
 static int steps_done(void)

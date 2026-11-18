@@ -178,14 +178,11 @@ bool summary_write(SummaryText *summary, const CivDesign *design, const Catalog 
     return text_length(summary->text, sizeof summary->text) + 1U < sizeof summary->text;
 }
 
-bool summary_write_build(SummaryText *summary, const char *prefix, const RecipeReport *report)
+static void add_report(SummaryText *summary, const char *name, const RecipeReport *report)
 {
-    summary->text[0] = '\0';
-    summary_add(summary, "The mod was built as ");
-    summary_add(summary, prefix);
-    summary_add(summary, "-data and ");
-    summary_add(summary, prefix);
-    add_number(summary, "-ui in the game's mods folder.\n\nCiv bonuses built: ", report->bonuses_built);
+    summary_add(summary, "\n\n");
+    summary_add(summary, name);
+    add_number(summary, "\nCiv bonuses built: ", report->bonuses_built);
     add_number(summary, " of ", report->bonuses_built + report->bonuses_skipped);
     summary_add(summary, (report->bonuses_skipped > 0) ? "; the others are not built yet." : ".");
     add_when(summary, report->team_bonuses_skipped > 0, "\nThe team bonus is not built yet.");
@@ -194,6 +191,20 @@ bool summary_write_build(SummaryText *summary, const char *prefix, const RecipeR
     add_when(summary, report->unique_techs_skipped > 0, "\nA unique tech is not built yet.");
     add_when(summary, report->tree_overflowed, "\nThe tech tree needed too many changes.");
     add_when(summary, report->hero_skipped, "\nThe hero is not built: the civ lacks its unit.");
+}
+
+bool summary_write_build(SummaryText *summary, const char *prefix, const BuiltCivs *built)
+{
+    int civ;
+
+    (void)text_copy(summary->text, sizeof summary->text, "The mod was built as ");
+    summary_add(summary, prefix);
+    summary_add(summary, "-data and ");
+    summary_add(summary, prefix);
+    summary_add(summary, "-ui in the game's mods folder.");
+    for (civ = 0; civ < built->count; ++civ) {
+        add_report(summary, civ_design_text(built->designs[civ], TEXT_FIELD_NAME), &built->reports[civ]);
+    }
     summary_add(summary, "\n\nTurn on the UI mod in the game's mod manager, then pick the data mod in the lobby.");
     return text_length(summary->text, sizeof summary->text) + 1U < sizeof summary->text;
 }
