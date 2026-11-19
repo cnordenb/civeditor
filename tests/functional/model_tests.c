@@ -62,7 +62,7 @@ bool test_a_25th_bonus_is_refused(void)
 
 bool test_next_walks_every_step_in_order(void)
 {
-    WizardStep step = STEP_IDENTITY;
+    WizardStep step = STEP_NAME_AND_TREE;
     int visited;
 
     for (visited = 1; visited < STEP_COUNT; ++visited) {

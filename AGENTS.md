@@ -17,6 +17,8 @@ the Win32 API.
 - Requirement 12: `..\mutator\mutator.cmd --use-existing-coverage --test-command ".\build.exe quick nowindow norules
   redundancy" src/<folder>` after every change lists the mutants that survive (`.metrics\mutate\`); leave `nowindow` out for the
   folders of the window
+- Ask before a run that opens the window: the mutator without `nowindow` (a worker per core, each opening the
+  window, leaves the computer unusable for the whole run) and any build without `nowindow` (a few minutes).
 
 ## Read before changing anything
 

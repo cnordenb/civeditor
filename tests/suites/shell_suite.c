@@ -9,7 +9,7 @@ enum {
     BUILD_END = 16,
     DRAW_END = 19,
     LOOP_END = 20,
-    BAR_TEST_COUNT = 6
+    BAR_TEST_COUNT = 7
 };
 
 static TestOutcome run_save_test(int index)
@@ -162,6 +162,9 @@ static TestOutcome run_scroll_test(int index)
     case 6:
         return test_outcome_of("the up arrow of the window's scroll bar moves the step up a line",
                                test_the_up_arrow_of_the_windows_scroll_bar_moves_the_step_up_a_line());
+    case 7:
+        return test_outcome_of("a wheel turn between the lists redraws nothing when the step fits",
+                               test_a_wheel_turn_between_the_lists_redraws_nothing_when_the_step_fits());
     default:
         return run_list_test(index - BAR_TEST_COUNT);
     }

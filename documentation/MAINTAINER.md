@@ -55,7 +55,7 @@ only by handing a `Command` to `history_do`, so that every change can be undone.
 | `src/json/` | Writing JSON (`json_writer.c`), reading it (`json_reader.c`, `json_string.c`), and changing values in a JSON text while the rest stays byte for byte as it was (`json_patch.c`). |
 | `src/persist/` | Civ files: `civ_file_write.c` writes `empireforge_v2`, `civ_file_read.c` reads it and `civbuilder_v1`. |
 | `src/data/` | Reading tab-separated text (`tsv.c`), the catalog in `data/` (`catalog.c`) and finding in it (`catalog_lookup.c`). |
-| `src/view/` | What the window shows, without Win32: the nine steps (`wizard.c`), where each control goes (`layout.c`), the help of each control (`control_help.c`), the colors (`palette.c`). |
+| `src/view/` | What the window shows, without Win32: the five steps (`wizard.c`), where each control goes (`layout.c`), the help of each control (`control_help.c`), the colors (`palette.c`). |
 | `src/present/` | What each control shows and what picking in it changes (`binding.c`), the review (`summary.c`), the text beside a list and the window's title (`details.c`). |
 | `src/pack/` | Unpacking raw deflate (`inflate.c`, `huffman.c`) and packing in stored blocks (`deflate_store.c`). `inflate.h` holds the tables of deflate's codes. |
 | `src/deflate/` | Compressing the mod's dat file with deflate (`deflate.c`), writing the bits with `bit_writer.c`. |
@@ -74,7 +74,7 @@ only by handing a `Command` to `history_do`, so that every change can be undone.
 | `data/` | The catalog, seven tab-separated text files; see [The catalog files](#the-catalog-files). |
 | `tests/` | The test runner (`runner.c`) and the tests, by kind; see [Tests](#tests). |
 | `tools/build/` | The build program. `source_list.c` lists the code, says which files make each of the three programs (`PROGRAM_PREFIXES`), where a source's object goes and whether it is still fresh; `build_plan.c` turns the command line into the mode, the folders, the commands of gcc and the arguments of the tests, which the tests check; `build_steps.c` makes the folders, compiles, links and runs the tests with them, each step a function of one decision at most; `build.c` is its `main`. |
-| `documentation/` | This guide, `RULES.md`, `REQUIREMENTS.md`, `TESTS.md`, `DECISIONS.md`, `TERMINOLOGY.md`, `DELETION_REQUESTS.md`, and the development log in `DEVLOG/`. |
+| `documentation/` | This guide, `RULES.md`, `REQUIREMENTS.md`, `TESTS.md`, `DECISIONS.md`, `TERMINOLOGY.md`, `BUGS.md` (the bugs found by a human, each with the test that covers it), `DELETION_REQUESTS.md`, and the development log in `DEVLOG/`. |
 | `README.md` | Introduces the project. |
 | `LICENSE` | The GPL-3.0, under which anyone may use the project. |
 | `AGENTS.md` | What an AI agent must know before it changes anything here: what to read first, what it must never do, and when a change is done. |
@@ -156,7 +156,10 @@ into the same field join one change (`command_joins`), so one undo takes back a 
 
 1. **Name it.** Add a `CONTROL_...` to `ControlId` in `src/view/layout.h`, before `CONTROL_COUNT`.
 2. **Place it.** Add its line to `SPECS` in `layout.c`, in the same place: its step, kind, column, height and label.
-   The accessibility tests then check that it is labelled, large enough, and does not overlap another.
+   The accessibility tests then check that it is labelled, large enough, and does not overlap another. A step's
+   controls go column by column in the order of `ControlId`, left to right, since Tab takes them in that order and a
+   test checks that it follows the reading order. At 960 by 560 a column is 388 high: a field or choice with its
+   label takes 70 and the gap 8, so a column holds five of them; the controls that stretch share what is left.
 3. **Explain it.** Add its help to `HELP_TEXTS` in `src/view/control_help.c`, at the same place: one or two plain
    sentences, which F1 shows in the status line. A test fails if a control one acts on has none.
 4. **Bind it.** Add its line to `BINDINGS` in `src/present/binding.c`: the text field, choice or list it shows.
@@ -176,7 +179,9 @@ line, and Back and Next side by side. A control that stretches in the wide layou
 - The window's scroll bar is a control of its own, `app->bar` (class `SCROLLBAR`, made by `assist_make_bar`), not
   the scroll bar of the window's frame: `assist_scroll_range` puts it at the right edge and shows it only when the
   step does not fit, and `assist_view` gives the room left beside it, which `room_of` in `controls.c` lays out.
-- `assist_scroll` answers the scroll bar, the wheel, and Scroll up and Scroll down of the menu Go.
+- `assist_scroll` answers the scroll bar, the wheel, and Scroll up and Scroll down of the menu Go. It hands the
+  new scroll to `scroll_to`, which keeps it within the step and places the controls again only when it changes:
+  placing them redraws the whole window, so a turn of the wheel where the step cannot move must do nothing.
 - `assist_follow_focus` scrolls the control in focus into view, with its label.
 
 A list scrolls one row at a time and never slides, though Windows would slide it (smooth scrolling) and move it three
@@ -254,7 +259,7 @@ those campaigns show the civ's texts instead.
 
 ### Civs to edit and the civs of the mod
 
-The first list of the Identity step is the civ to edit, the Britons when the window opens. Choosing another
+The first list of the step Name and tech tree is the civ to edit, the Britons when the window opens. Choosing another
 (`choose_civ` in `sync.c`) shows that civ's draft (`roster_draft` in `src/roster/civ_roster.c`) or, the first time,
 its base civ, as one change that undo takes back. The design shown is kept as the draft of its civ each time the
 window shows it anew (`roster_keep`, called by `sync_details`), so no edit is lost by choosing another civ.
@@ -271,7 +276,8 @@ The tagline and description are read when the window opens (`read_game_texts` in
 `tech_tree_description_string_id` from the game's `civilizations.json` and finds that string id in
 `resources\en\strings\key-value\key-value-strings-utf8.txt`. Its first line, without " civilization", is the
 tagline, "Foot Archer" for the Britons; the rest is the description, each `\n` a line break. Without the game both
-stay empty. Picking a unique unit, a unique tech or a hero in its list names it as the catalog does
+stay empty. No step has a field for the description: it is kept in the design and the civ file, and the
+review shows it. Picking a unique unit, a unique tech or a hero in its list names it as the catalog does
 (`list_item_command` in `binding.c`, through `command_pick` in `command.c`); the name can then be changed.
 
 The list of steps marks a step "(done)" only once the design differs there from its base civ
@@ -474,7 +480,7 @@ that word too.
 | `tests/mod/`, `tests/places/`, `tests/look/`, `tests/base/` | A whole mod built from a small game under `build/test_game` into `build/test_mods`, its strings, finding the game and the mods folder under `build/`, the looks, and base civs. |
 | `tests/model/`, `tests/design/`, `tests/shell/` | What the lists and the review show, which steps are done (`wizard_tests.c`), undo and redo (`history_tests.c`), the design and its saved text (`tests/design/`), and the window driven through its dialogs; how the lists scroll (`scroll_tests.c`); `window_fixture.c` opens and closes the window for a test. |
 | `tests/reflow/` | The one column at a width of 320, scrolling, and the real window made narrow and short. |
-| `tests/redundancy/` | The redundancy tests: base civs, picks, which steps are done, the roster and how a civ is told from the civ of the game (`civ_tests.c`), the game's texts (`game_tests.c`), the civ to edit, Save civ, the name of a civ file, Build mod and the mod name, the caret of a field and the bonuses' filter and categories in the real window (`review_tests.c`), the compile command of the build program (`tools/plan_tests.c`), the patches of the dat file found again (`dat/patch_tests.c`), and the builds that are refused, the descriptions in the mod's strings and the room of a tech's requirements and of a description (`mod/built_mod_tests.c`); `redundancy_suite.c` runs them, those that open the window last. |
+| `tests/redundancy/` | The redundancy tests: base civs, picks, which steps are done, the roster and how a civ is told from the civ of the game (`civ_tests.c`), the game's texts (`game_tests.c`), the civ to edit, Save civ, the name of a civ file, Build mod and the mod name, the caret of a field, the bonuses' filter and categories, the focus when the window opens, the steps of the menu Go and the wheel on the minimized window in the real window (`review_tests.c`), the compile command of the build program (`tools/plan_tests.c`), the patches of the dat file found again (`dat/patch_tests.c`), and the builds that are refused, the descriptions in the mod's strings and the room of a tech's requirements and of a description (`mod/built_mod_tests.c`); `redundancy_suite.c` runs them, those that open the window last. |
 | `tests/maintainability/`, `tests/rules/`, `tests/scan/` | The rules of the code and of the documents. `tests/scan/` reads the code for them; `gate_tests.c` shows each rule a text that breaks it, `tests/fixtures/broken_rules.txt`; `tool_tests.c` tests the build program's `source_list.c`. |
 
 `build\tests.exe nowindow` leaves out the tests that open the real window, and `build\tests.exe norules` those of
@@ -498,13 +504,15 @@ To add a test:
    them. If a number is wrong, a test is skipped or the run stops early without a failure, so check that the "tests
    run" of the report is the number of tests in `TESTS.md`.
 3. **See it fail.** Run `build.exe quick`, then break the code it guards, see the test fail and undo the break.
-4. **Document it** in `TESTS.md`, at its number, and renumber the tests after it.
+4. **Document it** in `TESTS.md`, at its number, and renumber the tests after it. A bug found by a human is a
+   row of `BUGS.md`, with the number of its test; when tests are renumbered, renumber it there too.
 
 The test program also holds `src/win/`, so a test can drive the real window: `tests/accessibility/window_tests.c` calls
 `app_open` (`app_window.c`), which makes the window and its controls without showing it, sends it the commands of the
 menu, asks Windows for the Tab order, and destroys it; `draw_tests.c` has the window draw a row into a picture in
-memory and reads the picture. Such a test must never show the window, send keys or move the
-mouse, and must not open a dialog. The libraries the window needs are named once, in `LIBRARIES`
+memory and reads the picture. Such a test must never send keys or move the mouse, and must not open a dialog.
+It shows the window only when what it checks needs a shown window, as the scroll tests (`scroll_tests.c`) do,
+and then far off the screen (`FAR_AWAY`). The libraries the window needs are named once, in `LIBRARIES`
 (`tools/build/source_list.c`).
 
 When you add, change or remove a test, update `TESTS.md`.

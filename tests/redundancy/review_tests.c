@@ -12,6 +12,7 @@
 #include "../test_outcome.h"
 
 enum { SHOWN_CAPACITY = 512, FRANKS_ROW = 1, ROW_LIMIT = 4096, SAVED_CAPACITY = 16384 };
+enum { GO_MENU = 2, FIRST_STEP_ITEM = 5, FAR_AWAY = -20000, SMALL_WIDTH = 480, SMALL_HEIGHT = 360, NOTCH = 120 };
 
 static const wchar_t ROOT[] = L"build";
 static const wchar_t HOME[] = L"build\\test_home";
@@ -19,6 +20,8 @@ static const wchar_t PROFILE[] = L"test_home\\Games\\Age of Empires 2 DE\\7656\\
 static const wchar_t LONG_NAME[] = L"AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghij";
 static const wchar_t CUT_FILE[] = L"build\\AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefgh.civbuilder.json";
 static const char STALE[] = "stale";
+static const wchar_t GO_STEPS[] = L"&1 Name and tech tree\tCtrl+1|&2 Bonuses\tCtrl+2|&3 UU&&UT\tCtrl+3|"
+                                  L"&4 Hero unit\tCtrl+4|&5 Review\tCtrl+5|";
 
 static wchar_t shown[SHOWN_CAPACITY];
 static char saved[SAVED_CAPACITY];
@@ -256,4 +259,40 @@ bool test_the_categories_together_hold_every_bonus_once(void)
         sum += bonus_rows(window);
     }
     return closed(window, (rows > 2) && (sum == all));
+}
+
+bool test_the_window_opens_with_the_focus_on_the_civ_to_edit(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+
+    return closed(window, GetFocus() == control_of(window, CONTROL_CIV));
+}
+
+bool test_the_menu_go_names_each_step_as_its_title_reads(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+    HMENU go = GetSubMenu(GetMenu(window), GO_MENU);
+    wchar_t item[SHOWN_CAPACITY];
+    int index;
+
+    shown[0] = L'\0';
+    for (index = FIRST_STEP_ITEM; (index < GetMenuItemCount(go)) && (index < ROW_LIMIT); ++index) {
+        item[0] = L'\0';
+        (void)GetMenuStringW(go, (UINT)index, item, SHOWN_CAPACITY, MF_BYPOSITION);
+        (void)wcsncat(shown, item, SHOWN_CAPACITY - wcslen(shown) - 1U);
+        (void)wcsncat(shown, L"|", SHOWN_CAPACITY - wcslen(shown) - 1U);
+    }
+    return closed(window, wcscmp(shown, GO_STEPS) == 0);
+}
+
+bool test_a_wheel_turn_on_the_minimized_window_leaves_the_step_unscrolled(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+
+    (void)SetWindowPos(window, NULL, FAR_AWAY, FAR_AWAY, SMALL_WIDTH, SMALL_HEIGHT,
+                       SWP_NOZORDER | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+    (void)ShowWindow(window, SW_SHOWMINNOACTIVE);
+    (void)SendMessageW(window, WM_MOUSEWHEEL, MAKEWPARAM(0, (WORD)-NOTCH), 0);
+    (void)ShowWindow(window, SW_SHOWNOACTIVATE);
+    return closed(window, GetScrollPos(GetDlgItem(window, WINDOW_BAR_ID), SB_CTL) == 0);
 }

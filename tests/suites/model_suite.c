@@ -157,17 +157,17 @@ static TestOutcome run_step_made_test(int index)
     case 1:
         return test_outcome_of("no step of a new design is done", test_no_step_of_a_new_design_is_done());
     case 2:
-        return test_outcome_of("the identity step is done once the civ has a name",
-                               test_the_identity_step_is_done_once_the_civ_has_a_name());
+        return test_outcome_of("the name and tech tree step is done once the civ has a name",
+                               test_the_name_and_tree_step_is_done_once_the_civ_has_a_name());
     case 3:
-        return test_outcome_of("the tech tree step is done once a node is chosen",
-                               test_the_tech_tree_step_is_done_once_a_node_is_chosen());
+        return test_outcome_of("the name and tech tree step is done once a node is chosen",
+                               test_the_name_and_tree_step_is_done_once_a_node_is_chosen());
     case 4:
         return test_outcome_of("the bonuses step is done once a bonus is ticked",
                                test_the_bonuses_step_is_done_once_a_bonus_is_ticked());
     case 5:
-        return test_outcome_of("the team bonus step is done once one is picked",
-                               test_the_team_bonus_step_is_done_once_one_is_picked());
+        return test_outcome_of("the bonuses step is done once a team bonus is picked",
+                               test_the_bonuses_step_is_done_once_a_team_bonus_is_picked());
     case 6:
         return test_outcome_of("a tree that swaps a node of the base civ is changed",
                                test_a_tree_that_swaps_a_node_of_the_base_civ_is_changed());
@@ -183,14 +183,14 @@ static TestOutcome run_step_picked_test(int index)
 {
     switch (index) {
     case 1:
-        return test_outcome_of("the unique unit step is done once a unit is picked",
-                               test_the_unique_unit_step_is_done_once_a_unit_is_picked());
+        return test_outcome_of("the UU&UT step is done once a unit is picked",
+                               test_the_uu_ut_step_is_done_once_a_unit_is_picked());
     case 2:
-        return test_outcome_of("the castle tech step is done once a tech is picked",
-                               test_the_castle_tech_step_is_done_once_a_tech_is_picked());
+        return test_outcome_of("the UU&UT step is done once a castle tech is picked",
+                               test_the_uu_ut_step_is_done_once_a_castle_tech_is_picked());
     case 3:
-        return test_outcome_of("the imperial tech step is done once a tech is picked",
-                               test_the_imperial_tech_step_is_done_once_a_tech_is_picked());
+        return test_outcome_of("the UU&UT step is done once an imperial tech is picked",
+                               test_the_uu_ut_step_is_done_once_an_imperial_tech_is_picked());
     case 4:
         return test_outcome_of("the hero step is done once a hero is picked",
                                test_the_hero_step_is_done_once_a_hero_is_picked());

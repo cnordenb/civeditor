@@ -45,6 +45,17 @@ static void add_item(HMENU menu, int action, const wchar_t *text)
     (void)AppendMenuW(menu, MF_STRING, (UINT_PTR)(ACTION_ID_BASE + action), text);
 }
 
+static void append_title(char *text, size_t capacity, const char *title)
+{
+    char letter[2] = { '\0', '\0' };
+    int index;
+
+    for (index = 0; (index < STEP_TITLE_WIDTH) && (title[index] != '\0'); ++index) {
+        letter[0] = title[index];
+        (void)text_append(text, capacity, (letter[0] == '&') ? "&&" : letter);
+    }
+}
+
 static HMENU make_go_menu(void)
 {
     HMENU go = CreatePopupMenu();
@@ -62,7 +73,7 @@ static HMENU make_go_menu(void)
         text[1] = '\0';
         (void)text_append_number(text, sizeof text, (long)step + 1L);
         (void)text_append(text, sizeof text, " ");
-        (void)text_append(text, sizeof text, wizard_page((WizardStep)step)->title);
+        append_title(text, sizeof text, wizard_page((WizardStep)step)->title);
         (void)text_append(text, sizeof text, "\tCtrl+");
         (void)text_append_number(text, sizeof text, (long)step + 1L);
         if (dialogs_widen(text, wide, MENU_TEXT_CAPACITY)) {

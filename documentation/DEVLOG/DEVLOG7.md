@@ -2,6 +2,7 @@
 
 - [2026-11-17](#2026-11-17)
 - [2026-11-18](#2026-11-18)
+- [2026-11-19](#2026-11-19)
 
 Part 7 of the development log. It follows [part 6](DEVLOG6.md). The decisions made in the log are listed in
 [DECISIONS.md](../DECISIONS.md).
@@ -371,3 +372,184 @@ The day goes on from [part 6](DEVLOG6.md#2026-11-17), which holds its sections u
     place in the game gets that bonus skipped and counted in the report. A civ's plan reads the tech from the game
     alone, and the places that the civs before it took are seen only when the plan is committed. Proposal: let the
     plan see them, so that the bonus is skipped and the report names it (Req. 9).
+
+## 2026-11-19
+
+### 20:19:34: five steps, and no field for the civ's description
+
+#### What changed
+
+- **Why.** The step Identity was to lose its field for the description, and the nine steps were to become five:
+  Identity and Tech tree as "Name and tech tree", Civ bonuses and Team bonus as "Bonuses", and Unique unit, Castle
+  tech and Imperial tech as "UU&UT". Hero unit and Review stay as they were.
+- **The steps.** `WizardStep` in `wizard.h` is `STEP_NAME_AND_TREE`, `STEP_BONUSES`, `STEP_UU_UT`, `STEP_HERO` and
+  `STEP_REVIEW`, with their titles and help lines in `PAGES` of `wizard.c`. A merged step is done once any part of it
+  differs from the civ of the game: `differs` in `wizard.c` asks `civ_design_same_identity` and
+  `civ_design_same_tree`, both lists of `civ_design_same_bonuses`, and `civ_design_same_unit` and both
+  `civ_design_same_tech`; it replaces `differs_early` and `differs_late`. The window opens on the first step
+  (`on_create` in `app_window.c`).
+- **No field for the description.** `CONTROL_DESCRIPTION` is gone from `ControlId` in `layout.h`, with its line in
+  `SPECS`, its help in `HELP_TEXTS` of `control_help.c` and its binding in `BINDINGS` of `binding.c`. The description
+  itself stays in the design: the game's is still read into it, a civ file keeps it, the review shows it, and the
+  mod's description starts with it when the tagline is empty (`head_text` in `mod_text.c`), as before (question 1).
+- **The columns.** At 960 by 560 a column is 388 high, and a field or choice with its label takes 70 of it. Name and
+  tech tree: Civ to edit, Name, Tagline, Architecture and Language on the left, which take 382; Wonder, Castle, Monk
+  and Scout in the middle; the tech tree's filter, list and "In the tree" on the right. Bonuses: the filter, the
+  category and the bonuses on the left, the chosen bonuses in the middle, the team bonuses and the selected one on the
+  right. UU&UT: the unique unit, the castle tech and the imperial tech each in a column, each with its list, its name
+  and what it is or does, and the unit's description under its name. So that every list keeps 44 or more there, the
+  unit's description is 88 high in place of 132 (`PARAGRAPH_HEIGHT`), and "In the tree" and the selected team bonus
+  66 (`NOTE_HEIGHT`) in place of stretching. At 960 by 560 the lists are then 184 high for the tree, 206 for the
+  bonuses, 262 for the team bonuses, 64 for the units and 125 for each unique tech; at the window's first size, 1200
+  by 760, 384, 406, 462, 164 and 225. The texts of the two unique techs, both "What it does" before, are labelled
+  "What the castle tech does" and "What the imperial tech does", since they now share a step.
+- **The count of steps.** The title, "Step 2 of 5: Bonuses", takes the count from `STEP_COUNT` (`details_title` in
+  `details.c`) in place of a written "of 9"; the help of the list of steps says "The steps of a civ." without a count.
+- **The menu Go.** In a menu's text a `&` underlines the letter after it, so `append_title` in `menu.c` writes the
+  `&` of "UU&UT" twice: the item shows "3 UU&UT", Ctrl+3. Ctrl+1 to Ctrl+5 go to the steps.
+- **Tests.** 439, as before, and 64 redundancy tests, up from 62. Tests 287, 288, 290, 293, 294 and 295 test the
+  merged steps, under new names: "the name and tech tree step is done once the civ has a name" and "... once a node is
+  chosen", "the bonuses step is done once a team bonus is picked", and "the UU&UT step is done once a unit is picked",
+  "... a castle tech ..." and "... an imperial tech is picked". Tests 291, 299 and 300 ask the step that now holds the
+  tree or the team bonus; Test 298 goes back from Bonuses to Name and tech tree; Test 359 reads "Testonia - Step 2 of
+  5: Bonuses - civbuilder"; Tests 12 and 374 to 377 start from the first step; the scroll tests of the tech tree's
+  list go to the step that shows it (`layout_spec(CONTROL_TREE_LIST).step`), and Tests 344 to 346 and 348 use the
+  first step. Redundancy test 63 checks that the window opens with Civ to edit in focus, and Redundancy test 64 that
+  the items of the menu Go read "&1 Name and tech tree\tCtrl+1" to "&5 Review\tCtrl+5", "&3 UU&&UT\tCtrl+3" among
+  them; both in `review_tests.c`, in a group of their own after the eight of `run_build_test`.
+- **Checked.** `build.exe quick` before the work: 439 tests, only Test 418 failed. The tests were changed first, and
+  did not build before the five steps existed. With the code done, the tree, the team bonus and both unique techs
+  were taken out of `differs` and the count of the title written as 9: Tests 288, 290, 291, 294, 295, 299 and 359
+  failed, and no other but Test 418. With the window opened without its focus and the `&` of a title written once,
+  Redundancy tests 63 and 64 failed, and no other but Test 418. Each break was undone, and the diff was then as
+  before it. The window was looked at, by pictures of each step at 1200 by 760 and at 960 by 560: every control is in
+  its column and none overlaps another; at 960 by 560 the list of units shows a row and a half, and the text of the
+  selected unit is cut after its third line (question 2). `build.exe`, the analyzed build: no warning and no finding
+  of the analyzer; of its 439 tests only Test 418 failed, which failed before this work too.
+- **Measured.** Every source compiled anew, the coverage build with the redundancy tests (before Redundancy tests 63
+  and 64), gcovr, then the crapper: 924 functions, and only the three of `text_dialog.c` at 10 or more, as on
+  2026-11-18; `differs` 8.0, `append_title` 4.1. The dryer: no two functions 80% alike. The mutator, on the lines
+  this work wrote: `wizard.c`, without the window's tests, 22 mutants, all killed; `layout.c`, `binding.c` and
+  `control_help.c` hold no mutant on their changed lines, which are tables; `details.c`, with the window's tests, 6
+  of the 8 of `details_title` killed, the 2 left on its check of the step's range on line 154, which this work did not
+  write; `menu.c` 14 mutants, all survived, since no test read the menu; `app_window.c` line 223, the focus given to
+  the first step as the window opens, survived. Redundancy tests 63 and 64 were written for them; the mutator then
+  killed 26 of the 28 of `menu.c` and the mutant of line 223, and 2 of the 4 of `focus_step`. Those left are under
+  Not done.
+- **A run that took the computer.** The mutator runs a worker for each core, and with the window's tests each worker
+  opens the real window again and again. One such run, on `menu.c`, left the computer unusable, and was ended by
+  shutting the computer down; its workers are in `DELETION_REQUESTS.md`. It was made again when the computer could be
+  given over to it. A run of the mutator with the window's tests, or a build without `nowindow`, is now started only
+  when the computer is free for it. A first run on `menu.c` had stopped on a baseline that failed one test in a
+  worker; the same tests then passed in the project's folder.
+- **Documents.** `TESTS.md`: the entries of the tests changed, the lines of Redundancy tests 49 to 62, which moved
+  down by three, and Redundancy tests 63 and 64. `TERMINOLOGY.md`: step and wizard changed, UU&UT added.
+  `MAINTAINER.md`: the five steps in the table of files, the order of a step's controls and the room of a column in
+  "Adding a control to a step", the first step's name, that no step has a field for the description, and the tests
+  of `review_tests.c`. `README.md`: the steps, the tagline alone where the tagline and description were named,
+  and Ctrl+1 to Ctrl+5. `DELETION_REQUESTS.md`: the workers of the run that was stopped, and one more found unlisted.
+  `AGENTS.md`: to ask before a run that opens the window. `DECISIONS.md`.
+- **Replaced.** The nine steps, of
+  [2026-11-09 01:20:32](DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests);
+  "Identity" as the first step, with a field for the description, of
+  [2026-11-18 07:24:48](#072448-civs-of-the-game-edited-and-saved-into-one-named-mod); the steps that a change
+  marks done, of
+  [2026-11-16 21:18:51](DEVLOG5.md#211851-no-step-shown-as-done-before-the-user-changed-it); the title "Step 2 of 9:
+  Tech tree", of
+  [2026-11-09 10:27:22](DEVLOG2.md#102722-a-windows-title-that-names-the-civ-and-the-step-and-the-base-civ-tried-in-the-window).
+
+#### Not done
+
+- At 960 by 560 the list of units is 64 high, a row and a half, and the text of the selected unit, 64 high, shows
+  three of the five lines of the Longbowman; at 1200 by 760 both are 164 and show it whole (question 2).
+- The description stays in the design, the civ file and the review, though no field shows it (question 1).
+- The mutants left on lines of this work cannot be told from the code by anything the user sees: the bound of 24
+  letters of `append_title` made 25, which no title reaches; the id of the separator of the menu Go made 1, which
+  Windows does not read; and in `focus_step`, the loop begun at the second control or run one past the last, since
+  the first control is the list of steps, which no step holds, and every step has a control that takes the focus.
+  The 2 of `details_title` are on its older check of the step's range.
+- The window was seen in pictures, not used by hand, and not at a text size of 200%.
+- Test 418 still fails, on the first line of `TERMINOLOGY.md` (question 3 of 2026-11-17 10:57:53).
+- The count of core tests still breaks Rules 31 and 34, as before.
+- `sitrep&instructions/sitrep.md` was not brought up to date with this work.
+
+#### Questions
+
+1. **The description of a civ.** Only its field is gone. The design still takes the game's description, a civ file
+   keeps it, the review shows it under "Description:", and when the tagline is empty the mod's description starts
+   with it, so a text the user cannot see in any step can reach the game. Proposal: take the description out of the
+   design too: the review no longer shows it, a civ file is written with an empty one and its own is not read, the
+   game's is no longer read, and an empty tagline gives the mod's description the civ's name.
+2. **UU&UT at 960 by 560.** Three lists, three names, the unit's description and three texts share three columns of
+   388: the list of units gets a row and a half, and the text of the selected unit is cut. Proposal: let the texts
+   beside the lists scroll, as the review's text does, so that nothing is cut at any size; or let the wide layout
+   need 680 in height in place of 560, below which the step shows in one column and scrolls.
+
+### 21:28:52: a turn of the wheel that cannot scroll the step does nothing
+
+#### What changed
+
+- **Why.** A bug was reported: a turn of the wheel outside the lists, such as between two of them, made the whole
+  window flicker and blink without end, where nothing at all was to happen. Windows sends such a turn to the window
+  itself, and `assist_scroll` in `assist.c` placed every control again for each notch (`controls_place`), whether the
+  step moved or not. Placing them wraps the rows of every list again and has the whole window erased and drawn again
+  (`assist_placed`). A step that fits the window, as every step does in the wide layout, cannot scroll at all, so
+  each notch only drew the window again; a fine wheel or a touch pad sends many notches a second.
+- **The scroll.** `scroll_to`, new in `assist.c`, keeps the scroll within the step (`reflow_scroll_within`, with the
+  step's height as the window's scroll bar holds it, read by `page_height`) and places the controls again only when
+  the scroll changes. `assist_scroll` hands it the scroll of the wheel, of the window's scroll bar, and of Scroll up
+  and Scroll down of the menu Go; `show_focus` hands it the scroll that shows the control in focus, which it placed
+  itself before. Where the step fits, or is already at the end the wheel turns to, nothing happens.
+- **BUGS.md.** `documentation/BUGS.md` is new (Rule 33): the table of the bugs found by a human, with this one,
+  discovered 2026-11-19 21:10:01, the time it was recorded, and "Covered by test 349". The bugs of 2026-11-10 and
+  2026-11-16 are not in it, since question 4 of
+  [2026-11-17 10:57:53](#105753-no-test-names-rule-4-alone-the-21-that-did-are-removed) is still open.
+  `documentation/` holds 7 files in Git with it; `DELETION_REQUESTS.md`, which Git leaves out, is an eighth on the
+  disk.
+- **Tests.** 440, up from 439, and 65 redundancy tests, up from 64. Test 349, in `scroll_tests.c`, is new: at the
+  window's first size, a notch of the wheel sent to the window leaves it nothing to redraw (Bug 1 of 2026-11-19). It
+  shows the window far off the screen, as the scroll tests before it do, since Windows keeps nothing to redraw for a
+  hidden window. Tests 349 to 439 are now 350 to 440; the test of `TERMINOLOGY.md`'s lines, Test 418 before, is Test
+  419. Redundancy test 65, in `review_tests.c`, is new: a notch of the wheel while the window is minimized, at 480 by
+  360, leaves the step unscrolled once the window is shown again.
+- **Checked.** Test 349 was written first and failed, the window having all of it to redraw after the notch; with
+  `scroll_to` it passed. With the check of the view in `assist_scroll` made `view >= 0` by hand, Redundancy test 65
+  failed, and no other test but Test 419; the check was put back from a copy. `build.exe quick redundancy`: 505
+  tests, only Test 419 failed, which failed before this work too, as Test 418. `build.exe`, the analyzed build: no
+  warning and no finding of the analyzer; of its 440 tests only Test 419 failed.
+- **Measured.** Every source compiled anew, the coverage build with the redundancy tests (before Redundancy test 65),
+  gcovr, then the crapper: 926 functions, only the three of `text_dialog.c` at 10 or more, as before; `scroll_to`
+  2.0, `page_height` 1.0, `assist_scroll` 3.1, `show_focus` 4.1. The dryer: no two functions 80% alike. The mutator,
+  with the window's tests, on the lines of `assist.c` this work changed: `page_height` 2 mutants, `scroll_to` 1, both
+  killed; `assist_scroll` 4 of 6 killed, the 2 left on its check of the view, `CHECK(view > 0)`, which this work moved
+  but did not write: `>` made `>=`, and `0` made `1`. Redundancy test 65 was written for the first, and the mutator
+  then killed it. The second cannot be told from the code: it differs only in a window 1 unit high, and the window is
+  never less high than `REFLOW_MIN_HEIGHT`, nor less than 0 when minimized.
+- **Documents.** `TESTS.md`: Test 349, the numbers of Tests 350 to 440, and Redundancy test 65. `BUGS.md`, new.
+  `MAINTAINER.md`: what `assist_scroll` and `scroll_to` do, `BUGS.md` in the table of files, that a test of a bug
+  found by a human has its row in `BUGS.md`, that a test of the window shows it only far off the screen and only when
+  what it checks needs that, and the test of the minimized window among those of `review_tests.c`. `DECISIONS.md`:
+  the decisions below, and Test 351 named as Test 352. `DELETION_REQUESTS.md`: the scratch files of this work; and
+  the worker `run-a373bbe6`, listed at 20:19:34, taken out, since it is no longer on the disk.
+
+#### Not done
+
+- The fix was not tried by hand with a mouse wheel or a touch pad; Test 349 sends the notch to the window as Windows
+  does.
+- In one column, below 960 by 560, a notch that moves the step still places every control again, wraps the rows of
+  every list again and has the whole window erased and drawn again, as every notch did before; whether the step
+  blinks as it scrolls there was not looked at (question 2).
+- `BUGS.md` holds only this bug (question 4 of 2026-11-17 10:57:53).
+- The core has 440 tests, where Rule 31 allows about 54 (question 1).
+- Test 419 still fails, on the first line of `TERMINOLOGY.md` (question 3 of 2026-11-17 10:57:53).
+- `sitrep&instructions/sitrep.md` was not brought up to date with this work.
+
+#### Questions
+
+1. **A test of a bug reported from now on.** The core already holds far more tests than Rule 31 allows. Test 349 was
+   added to the core, since the new bug raises what Rule 31 allows by one, and Rule 34's category Regression is for
+   tests ordered to cover further what a test covers already. Should a test of a newly reported bug go to the core,
+   as here, or to Regression? Proposal: the core, as here.
+2. **A step that scrolls.** In one column the wheel still has the whole window erased and drawn again at each notch
+   that moves the step. Proposal: let the window leave its controls alone when it is erased (`WS_CLIPCHILDREN`), and
+   wrap the rows of the lists again only when the window's width changes, not when the step scrolls.

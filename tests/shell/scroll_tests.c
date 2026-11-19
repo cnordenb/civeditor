@@ -31,7 +31,7 @@ static HWND shown_list(int place)
 {
     HWND window = app_open(GetModuleHandleW(NULL));
 
-    window_fixture_act(window, ACTION_FIRST_STEP + STEP_TECH_TREE);
+    window_fixture_act(window, ACTION_FIRST_STEP + (int)layout_spec(CONTROL_TREE_LIST).step);
     (void)SetWindowPos(window, NULL, place, place, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_SHOWWINDOW);
     (void)UpdateWindow(window);
     return GetDlgItem(window, CONTROL_ID_BASE + CONTROL_TREE_LIST);
@@ -192,7 +192,7 @@ bool test_a_lists_scroll_bar_shows_its_arrows_while_the_mouse_is_away(void)
 
 bool test_the_windows_scroll_bar_shows_its_arrows_while_the_mouse_is_away(void)
 {
-    HWND window = small_window(STEP_TECH_TREE);
+    HWND window = small_window(STEP_NAME_AND_TREE);
     int colours = colours_in_corner(window, true);
 
     window_fixture_close(window);
@@ -201,7 +201,7 @@ bool test_the_windows_scroll_bar_shows_its_arrows_while_the_mouse_is_away(void)
 
 bool test_a_step_ends_a_margin_from_the_windows_scroll_bar(void)
 {
-    HWND window = small_window(STEP_TECH_TREE);
+    HWND window = small_window(STEP_NAME_AND_TREE);
     RECT back = place_in(window, CONTROL_ID_BASE + CONTROL_BACK);
     RECT next = place_in(window, CONTROL_ID_BASE + CONTROL_NEXT);
     RECT bar = place_in(window, WINDOW_BAR_ID);
@@ -224,7 +224,7 @@ static int fitting_height(HWND window, WizardStep step)
 
 bool test_the_knob_of_the_windows_scroll_bar_reaches_its_end_with_the_step(void)
 {
-    HWND window = small_window(STEP_TECH_TREE);
+    HWND window = small_window(STEP_NAME_AND_TREE);
     HWND bar = GetDlgItem(window, WINDOW_BAR_ID);
     SCROLLINFO knob;
     int page;
@@ -254,7 +254,7 @@ bool test_a_step_that_just_fits_the_window_shows_no_scroll_bar(void)
 
 bool test_the_up_arrow_of_the_windows_scroll_bar_moves_the_step_up_a_line(void)
 {
-    HWND window = small_window(STEP_TECH_TREE);
+    HWND window = small_window(STEP_NAME_AND_TREE);
     HWND bar = GetDlgItem(window, WINDOW_BAR_ID);
     int paged;
     int lined;
@@ -346,4 +346,18 @@ bool test_a_key_in_a_list_moves_its_caret_one_row(void)
     (void)PostMessageW(list, WM_KEYDOWN, VK_DOWN, 0);
     run_posted();
     return closed_with(list, SendMessageW(list, LB_GETCARETINDEX, 0, 0) == 1);
+}
+
+bool test_a_wheel_turn_between_the_lists_redraws_nothing_when_the_step_fits(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+    bool still;
+
+    (void)SetWindowPos(window, NULL, FAR_AWAY, FAR_AWAY, 0, 0,
+                       SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+    (void)UpdateWindow(window);
+    (void)SendMessageW(window, WM_MOUSEWHEEL, MAKEWPARAM(0, (WORD)-NOTCH), 0);
+    still = GetUpdateRect(window, NULL, FALSE) == FALSE;
+    window_fixture_close(window);
+    return still;
 }

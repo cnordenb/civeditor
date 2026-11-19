@@ -156,7 +156,9 @@ DetailText details_title(WizardStep step)
     }
     summary_add(&detail, "Step ");
     add_number(&detail, (long)step + 1L);
-    summary_add(&detail, " of 9: ");
+    summary_add(&detail, " of ");
+    add_number(&detail, (long)STEP_COUNT);
+    summary_add(&detail, ": ");
     summary_add(&detail, wizard_page(step)->title);
     return detail;
 }

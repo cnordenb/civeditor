@@ -162,6 +162,27 @@ static int bar_target(const AppState *app, int code, int view)
     return bar.nTrackPos;
 }
 
+static int page_height(const AppState *app)
+{
+    SCROLLINFO bar;
+
+    ZeroMemory(&bar, sizeof bar);
+    bar.cbSize = sizeof bar;
+    bar.fMask = SIF_RANGE;
+    (void)GetScrollInfo(app->bar, SB_CTL, &bar);
+    return bar.nMax + 1;
+}
+
+static void scroll_to(AppState *app, int target)
+{
+    int within = reflow_scroll_within(target, page_height(app), view_height(app));
+
+    if (within != app->scroll) {
+        app->scroll = within;
+        controls_place(app);
+    }
+}
+
 void assist_scroll(AppState *app, UINT message, WPARAM wparam)
 {
     int view = view_height(app);
@@ -170,11 +191,10 @@ void assist_scroll(AppState *app, UINT message, WPARAM wparam)
         return;
     }
     if (message == WM_MOUSEWHEEL) {
-        app->scroll -= MulDiv(GET_WHEEL_DELTA_WPARAM(wparam), WHEEL_LINES * REFLOW_LINE, WHEEL_DELTA);
+        scroll_to(app, app->scroll - MulDiv(GET_WHEEL_DELTA_WPARAM(wparam), WHEEL_LINES * REFLOW_LINE, WHEEL_DELTA));
     } else {
-        app->scroll = bar_target(app, (int)LOWORD(wparam), view);
+        scroll_to(app, bar_target(app, (int)LOWORD(wparam), view));
     }
-    controls_place(app);
 }
 
 static bool is_list(HWND window)
@@ -301,7 +321,6 @@ static void show_focus(AppState *app, HWND focus)
 {
     Box box = { 0, 0, 0, 0 };
     RECT place;
-    int target;
 
     if ((focus == NULL) || (GetParent(focus) != app->window) ||
         (GetWindowRect(focus, &place) == 0)) {
@@ -310,11 +329,7 @@ static void show_focus(AppState *app, HWND focus)
     (void)MapWindowPoints(NULL, app->window, (POINT *)&place, 2);
     box.top = MulDiv(place.top, LAYOUT_BASE_DPI, app->dpi) + app->scroll;
     box.height = MulDiv(place.bottom - place.top, LAYOUT_BASE_DPI, app->dpi);
-    target = reflow_scroll_to_show(box, app->scroll, view_height(app));
-    if (target != app->scroll) {
-        app->scroll = target;
-        controls_place(app);
-    }
+    scroll_to(app, reflow_scroll_to_show(box, app->scroll, view_height(app)));
 }
 
 UINT assist_row_format(const AppState *app, const DRAWITEMSTRUCT *item, const wchar_t *text, RECT *area)

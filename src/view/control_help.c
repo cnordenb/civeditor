@@ -3,7 +3,7 @@
 #include "../core/check.h"
 
 static const char HELP_TEXTS[CONTROL_COUNT + 1][LAYOUT_HELP_WIDTH] = {
-    "The nine steps of a civ. Pick one to go to it; a step marked done has all it needs.",
+    "The steps of a civ. Pick one to go to it; a step marked done has all it needs.",
     "",
     "",
     "",
@@ -12,7 +12,6 @@ static const char HELP_TEXTS[CONTROL_COUNT + 1][LAYOUT_HELP_WIDTH] = {
     "The civ of the game to edit. Every field then shows it as the game has it; edits of other civs are kept.",
     "The name of the civ, as the game will show it. A civ needs a name to be built.",
     "A short line about the civ, shown where the game lets you pick a civ.",
-    "The story of the civ, in as many lines as you like. Tab leaves the field.",
     "The civ of the game whose buildings yours will look like.",
     "The civ of the game whose language your units speak.",
     "The civ of the game whose wonder yours builds.",

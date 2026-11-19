@@ -28,8 +28,9 @@ node - one unit, building or tech of the tech tree, known by its id
 universal node - a node the game shows in the tech tree of every civ, had or not, e.g. the Archery Range
 regional node - a node that only some civs of the game have, e.g. the Camel Rider
 unique node - a node that only one civ of the game has, e.g. the Folwark
-step - one page of the wizard, e.g. "Civ bonuses"; there are nine
-wizard - the nine steps in which a design is made, from identity to review
+step - one page of the wizard, e.g. "Bonuses"; there are five
+UU&UT - the step of the unique unit and the two unique techs, each picked and named
+wizard - the five steps in which a design is made: name and tech tree, bonuses, UU&UT, hero unit and review
 base civ - a civ of the game as civbuilder holds it: its tech tree, bonuses, looks, names, tagline and description
 civ to edit - the civ of the game that the steps show and change, chosen in the first step; the Britons at first
 draft - the design of a civ to edit as it was last left, kept while another civ is edited

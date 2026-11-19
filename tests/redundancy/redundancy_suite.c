@@ -10,7 +10,7 @@
 
 enum { CIV_GROUP_SIZE = 7, PICK_GROUP_SIZE = 6, SAVE_GROUP_SIZE = 4, ROSTER_GROUP_SIZE = 6, COMPARE_GROUP_SIZE = 3,
        GAME_GROUP_SIZE = 7, CUT_GROUP_SIZE = 4, PLAN_GROUP_SIZE = 1, PATCH_GROUP_SIZE = 1, BUILT_GROUP_SIZE = 7,
-       ROOM_GROUP_SIZE = 2, REVIEW_GROUP_SIZE = 6 };
+       ROOM_GROUP_SIZE = 2, REVIEW_GROUP_SIZE = 6, BUILD_GROUP_SIZE = 8 };
 enum {
     PICK_START = CIV_GROUP_SIZE,
     SAVE_START = PICK_START + PICK_GROUP_SIZE,
@@ -23,7 +23,8 @@ enum {
     BUILT_START = PATCH_START + PATCH_GROUP_SIZE,
     ROOM_START = BUILT_START + BUILT_GROUP_SIZE,
     REVIEW_START = ROOM_START + ROOM_GROUP_SIZE,
-    BUILD_START = REVIEW_START + REVIEW_GROUP_SIZE
+    BUILD_START = REVIEW_START + REVIEW_GROUP_SIZE,
+    OPENED_START = BUILD_START + BUILD_GROUP_SIZE
 };
 
 static TestOutcome run_civ_test(int index)
@@ -303,6 +304,23 @@ static TestOutcome run_build_test(int index)
     }
 }
 
+static TestOutcome run_opened_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("the window opens with the focus on the civ to edit",
+                               test_the_window_opens_with_the_focus_on_the_civ_to_edit());
+    case 2:
+        return test_outcome_of("the menu Go names each step as its title reads",
+                               test_the_menu_go_names_each_step_as_its_title_reads());
+    case 3:
+        return test_outcome_of("a wheel turn on the minimized window leaves the step unscrolled",
+                               test_a_wheel_turn_on_the_minimized_window_leaves_the_step_unscrolled());
+    default:
+        return test_outcome_missing();
+    }
+}
+
 static TestOutcome run_window_test(int index)
 {
     if (test_window_is_left_out()) {
@@ -311,7 +329,10 @@ static TestOutcome run_window_test(int index)
     if (index <= BUILD_START) {
         return run_review_test(index - REVIEW_START);
     }
-    return run_build_test(index - BUILD_START);
+    if (index <= OPENED_START) {
+        return run_build_test(index - BUILD_START);
+    }
+    return run_opened_test(index - OPENED_START);
 }
 
 TestOutcome redundancy_suite_run(int index)

@@ -6,13 +6,9 @@
 #include "../model/civ_design.h"
 
 typedef enum {
-    STEP_IDENTITY,
-    STEP_TECH_TREE,
+    STEP_NAME_AND_TREE,
     STEP_BONUSES,
-    STEP_TEAM_BONUS,
-    STEP_UNIQUE_UNIT,
-    STEP_CASTLE_TECH,
-    STEP_IMPERIAL_TECH,
+    STEP_UU_UT,
     STEP_HERO,
     STEP_REVIEW,
     STEP_COUNT

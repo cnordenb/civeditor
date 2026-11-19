@@ -17,5 +17,8 @@ bool test_a_long_civ_name_is_cut_in_the_name_of_its_file(void);
 bool test_a_text_field_shows_its_caret_when_it_takes_the_focus(void);
 bool test_a_filter_leaves_the_bonuses_that_hold_it_and_no_other(void);
 bool test_the_categories_together_hold_every_bonus_once(void);
+bool test_the_window_opens_with_the_focus_on_the_civ_to_edit(void);
+bool test_the_menu_go_names_each_step_as_its_title_reads(void);
+bool test_a_wheel_turn_on_the_minimized_window_leaves_the_step_unscrolled(void);
 
 #endif

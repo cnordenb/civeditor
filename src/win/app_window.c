@@ -220,7 +220,7 @@ static bool on_create(HWND window)
     }
     controls_place(&app);
     sync_design(&app, true);
-    go_to_step(STEP_IDENTITY, true);
+    go_to_step(STEP_NAME_AND_TREE, true);
     return true;
 }
 

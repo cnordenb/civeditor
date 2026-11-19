@@ -306,24 +306,24 @@ bool test_a_short_row_of_a_list_is_as_high_as_a_target(void)
 
 bool test_the_first_control_of_a_step_comes_under_the_help(void)
 {
-    return reflow_box(CONTROL_CIV, STEP_IDENTITY, NARROW).top == BASE_TOP;
+    return reflow_box(CONTROL_CIV, STEP_NAME_AND_TREE, NARROW).top == BASE_TOP;
 }
 
 bool test_back_and_next_come_under_the_status_line(void)
 {
-    Box status = reflow_box(CONTROL_STATUS, STEP_IDENTITY, NARROW);
+    Box status = reflow_box(CONTROL_STATUS, STEP_NAME_AND_TREE, NARROW);
 
-    return reflow_box(CONTROL_BACK, STEP_IDENTITY, NARROW).top == status.top + status.height + GAP_BELOW;
+    return reflow_box(CONTROL_BACK, STEP_NAME_AND_TREE, NARROW).top == status.top + status.height + GAP_BELOW;
 }
 
 bool test_a_control_starts_a_margin_from_the_left(void)
 {
-    return reflow_box(CONTROL_NAME, STEP_IDENTITY, NARROW).left == EDGE;
+    return reflow_box(CONTROL_NAME, STEP_NAME_AND_TREE, NARROW).left == EDGE;
 }
 
 bool test_next_ends_a_margin_from_the_right(void)
 {
-    Box next = reflow_box(CONTROL_NEXT, STEP_IDENTITY, NARROW);
+    Box next = reflow_box(CONTROL_NEXT, STEP_NAME_AND_TREE, NARROW);
 
     return next.left + next.width == NARROW - EDGE;
 }

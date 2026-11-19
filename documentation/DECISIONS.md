@@ -140,22 +140,34 @@ an earlier one, the earlier one is named after it, with its own link.
   `empireforge_v2`.
   [2026-11-09 10:06:18](DEVLOG/DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100)
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
-- **A design is a civ of the game, edited.** The first list of the step "Identity" is the civ to edit, the Britons
-  at first; every step shows that civ as the game has it, its names, tagline and description in their fields, ready
-  to change; choosing another can be undone. Replaced: a design started from a base civ, Generic at first, with
-  every universal node and nothing else; a base civ of the game was the replaced civ until another was picked on the
-  review step.
+- **A design is a civ of the game, edited.** The first list of the step "Name and tech tree" is the civ to edit, the
+  Britons at first; every step shows that civ as the game has it, its names and tagline in their fields, ready to
+  change; choosing another can be undone. Replaced: a design started from a base civ, Generic at first, with every
+  universal node and nothing else; a base civ of the game was the replaced civ until another was picked on the review
+  step; the first step was "Identity", with a field for the description.
   [2026-11-09 10:07:36](DEVLOG/DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first)
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+  [2026-11-19 20:19:34](DEVLOG/DEVLOG7.md#201934-five-steps-and-no-field-for-the-civs-description)
+- **Five steps.** Name and tech tree (the civ to edit, its name, tagline, looks and tech tree), Bonuses (the civ
+  bonuses and the team bonus), UU&UT (the unique unit and both unique techs, each with its name), Hero unit and
+  Review. Replaced: nine steps, Identity, Tech tree, Civ bonuses, Team bonus, Unique unit, Castle tech, Imperial
+  tech, Hero unit and Review.
+  [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
+  [2026-11-19 20:19:34](DEVLOG/DEVLOG7.md#201934-five-steps-and-no-field-for-the-civs-description)
+- **No field for the civ's description.** The description is still read from the game, kept in the design and the
+  civ file, and shown in the review; no step lets the user change it.
+  [2026-11-19 20:19:34](DEVLOG/DEVLOG7.md#201934-five-steps-and-no-field-for-the-civs-description)
 - **Each civ edited keeps its edits.** Choosing another civ to edit keeps the design shown as the draft of its civ,
   and shows the draft again when that civ is chosen again, until the window closes.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
-- **A step is done once the user has made it differ from the civ of the game:** a name, tagline, description or
-  look in Identity, and a tree, bonuses, a team bonus, a unique unit, tech or hero other than its civ's; the review
-  once the mod holds the civ as it is and the civ is complete. Nothing is loaded at the start. Replaced: Identity when
-  the civ had a name, Review when the civ was complete; before that, a step done as soon as it held anything.
+- **A step is done once the user has made it differ from the civ of the game:** Name and tech tree once its name,
+  tagline, description, a look or its tree does; Bonuses once its civ bonuses or its team bonus do; UU&UT once its
+  unique unit or a unique tech does; Hero unit once its hero does; the review once the mod holds the civ as it is and
+  the civ is complete. Nothing is loaded at the start. Replaced: Identity when the civ had a name, Review when the
+  civ was complete; before that, a step done as soon as it held anything.
   [2026-11-16 21:18:51](DEVLOG/DEVLOG5.md#211851-no-step-shown-as-done-before-the-user-changed-it)
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+  [2026-11-19 20:19:34](DEVLOG/DEVLOG7.md#201934-five-steps-and-no-field-for-the-civs-description)
 - **The review asks what the original's steps ask.** A name, a unique unit, a castle tech, an imperial tech and, for
   a chosen hero, its name; not a civ bonus. An architecture is chosen from the start.
   [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
@@ -182,8 +194,9 @@ an earlier one, the earlier one is named after it, with its own link.
   menu and on its button, and a label says what its control is for without the label before it.
   [2026-11-10 05:03:39](DEVLOG/DEVLOG3.md#050339-the-windows-texts-read-against-the-checklist-55-of-86)
 - **The window's title names the civ and the step** (Requirement 3, WCAG 2.2 SC 2.4.2), as "Testonia - Step 2 of
-  9: Tech tree - civbuilder", with "A new civ" before the civ has a name.
+  5: Bonuses - civbuilder", with "A new civ" before the civ has a name; the count is `STEP_COUNT`.
   [2026-11-09 10:27:22](DEVLOG/DEVLOG2.md#102722-a-windows-title-that-names-the-civ-and-the-step-and-the-base-civ-tried-in-the-window)
+  [2026-11-19 20:19:34](DEVLOG/DEVLOG7.md#201934-five-steps-and-no-field-for-the-civs-description)
 - **A mod changes every civ saved in it, each in its own slot** (Requirement 8, read for several civs). The
   replaced civ is the civ to edit that the design was made from, kept in the civ file as `replace_civ`. Replaced: a
   mod took the slot of one civ, picked on the review step, the Britons at first.
@@ -349,6 +362,13 @@ an earlier one, the earlier one is named after it, with its own link.
   made in `src/reflow/`, a folder of its own, since `src/view/` and `src/win/` hold 7 files each (Rule 14).
   Replaced: a least window of 960 by 560.
   [2026-11-16 02:45:16](DEVLOG/DEVLOG5.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
+- **Every list of the wide layout is 44 high or more at 960 by 560.** So that the merged steps fit, the unique
+  unit's description is 88 high, "In the tree" and the selected team bonus 66, and the other lists and texts share
+  what is left of their column. Controls of one step that do alike are labelled apart, as "What the castle tech
+  does" and "What the imperial tech does".
+  [2026-11-19 20:19:34](DEVLOG/DEVLOG7.md#201934-five-steps-and-no-field-for-the-civs-description)
+- **A `&` in a step's title is written twice in the menu Go,** so that the item shows it: "3 UU&UT".
+  [2026-11-19 20:19:34](DEVLOG/DEVLOG7.md#201934-five-steps-and-no-field-for-the-civs-description)
 - **The rows of a list wrap** and take the height their text needs; none is cut with three dots.
   [2026-11-16 02:45:16](DEVLOG/DEVLOG5.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
 - **1.4.4 and 1.4.10 are ticked on their tests and on a look at 100%,** each marked for a human's review at 200%
@@ -370,6 +390,10 @@ an earlier one, the earlier one is named after it, with its own link.
 
 ## Code and files
 
+- **A scroll that does not move the step does nothing.** `scroll_to` in `assist.c` keeps the scroll within the
+  step and places the controls again only when it changes, since placing them redraws the whole window. The
+  wheel, the window's scroll bar, Scroll up and Scroll down of the menu Go, and the focus all scroll through it.
+  [2026-11-19 21:28:52](DEVLOG/DEVLOG7.md#212852-a-turn-of-the-wheel-that-cannot-scroll-the-step-does-nothing)
 - **C11 and Win32 only.** Built by gcc with `-std=c11 -pedantic-errors` and every warning as an error.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
 - **One step builds and tests.** `build.exe`, made from `tools/build/`, compiles what changed, links and runs the
@@ -591,6 +615,18 @@ an earlier one, the earlier one is named after it, with its own link.
 
 ## Tests
 
+- **A test of a bug that a human found is a core test,** in the group of its subject: the bug raises Rule 31's
+  count by one. Rule 34's category Regression is kept for tests ordered to cover a requirement, a rule or a bug
+  that a test covers already.
+  [2026-11-19 21:28:52](DEVLOG/DEVLOG7.md#212852-a-turn-of-the-wheel-that-cannot-scroll-the-step-does-nothing)
+- **A test may read what Windows has left to redraw** (`GetUpdateRect`) when what the user saw was the window
+  drawn again, as Test 349 does; the window is then shown far off the screen, since a hidden one has nothing to
+  redraw.
+  [2026-11-19 21:28:52](DEVLOG/DEVLOG7.md#212852-a-turn-of-the-wheel-that-cannot-scroll-the-step-does-nothing)
+- **A run that opens the window waits until the computer is free.** With the window's tests the mutator runs a
+  worker for each core, each opening the real window again and again, which leaves the computer unusable; such a
+  run, and a build without `nowindow`, is started only when the computer can be given over to it.
+  [2026-11-19 20:19:34](DEVLOG/DEVLOG7.md#201934-five-steps-and-no-field-for-the-civs-description)
 - **The tests number themselves.** `tests/runner.c` runs the functional, accessibility and maintainability tests in
   that order and numbers them as they run.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
@@ -719,7 +755,7 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **A test of an order uses values that differ,** such as numbered changes, not one value put on and off.
   [2026-11-16 04:39:06](DEVLOG/DEVLOG5.md#043906-ub-modes-mutator-run-and-read-three-survivors-in-four-are-made-by-p10s-checks-and-bounds)
-- **A test may measure time when what it checks is a time,** as Test 351 does for sliding: each move must take less
+- **A test may measure time when what it checks is a time,** as Test 352 does for sliding: each move must take less
   than 150 ms, where sliding takes 190 ms or more. It shows the window on the screen for a moment, since Windows
   slides only what can be seen.
   [2026-11-16 23:56:00](DEVLOG/DEVLOG5.md#235600-lists-scroll-a-row-a-notch-and-a-row-an-arrow-without-sliding-under-classic-scroll-bars)
@@ -734,6 +770,10 @@ an earlier one, the earlier one is named after it, with its own link.
 
 ## Documents
 
+- **`BUGS.md` is in `documentation/`,** Rule 33's table of three columns and nothing else, not even a title. A
+  bug's "Discovered" is the time it was recorded when the time it was found is not known. The bugs found before
+  it are not added while question 4 of 2026-11-17 10:57:53 is open.
+  [2026-11-19 21:28:52](DEVLOG/DEVLOG7.md#212852-a-turn-of-the-wheel-that-cannot-scroll-the-step-does-nothing)
 - **`TESTS.md` lists the redundancy tests apart,** after the other tests, under headings "Redundancy test N" that
   its checks of the other tests do not count.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
