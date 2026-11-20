@@ -6,6 +6,9 @@
 
 # Civ Editor
 
+## But why?
+The app had 9 steps and required two windows to run. I wanted 3 steps and just one native window.
+
 ## Description
 
 Civ Editor designs a new civilization for Age of Empires II: Definitive Edition and builds it into a mod the game
