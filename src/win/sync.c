@@ -206,6 +206,9 @@ void sync_details(AppState *app)
     detail = details_title(app->step);
     show_text(app->controls[CONTROL_TITLE], detail.text);
     show_text(app->controls[CONTROL_HELP], wizard_page(app->step)->help);
+    (void)SendMessageW(app->controls[CONTROL_HERO], BM_SETCHECK,
+                       civ_design_has_hero(&app->history.present) ? BST_CHECKED : BST_UNCHECKED, 0);
+    controls_show(app);
     for (control = (int)CONTROL_TREE_INFO; control < CONTROL_COUNT; ++control) {
         if ((layout_spec((ControlId)control).kind == WIDGET_TEXT) && layout_shows((ControlId)control, app->step)) {
             detail = (control == (int)CONTROL_CHANGED)
@@ -226,7 +229,8 @@ static void sync_choices(AppState *app, bool refill)
     int control;
 
     for (control = 0; control < CONTROL_COUNT; ++control) {
-        if (binding_of((ControlId)control)->source == SOURCE_NONE) {
+        if ((binding_of((ControlId)control)->source == SOURCE_NONE) ||
+            (layout_spec((ControlId)control).kind == WIDGET_BUTTON)) {
             continue;
         }
         if (refill) {
@@ -361,6 +365,19 @@ static void on_checklist_change(AppState *app, ControlId control)
     }
 }
 
+static void on_click(AppState *app, ControlId control)
+{
+    Command command;
+
+    if (control == CONTROL_HERO) {
+        command = hero_box_command(&app->catalog,
+                                   SendMessageW(app->controls[control], BM_GETCHECK, 0, 0) == BST_CHECKED);
+    } else if ((control != CONTROL_HERO_CHOOSE) || !dialogs_choose_hero(app, &command)) {
+        return;
+    }
+    apply(app, &command);
+}
+
 static bool is_text_change(WidgetKind kind, int code)
 {
     return ((kind == WIDGET_LINE) || (kind == WIDGET_PARAGRAPH)) && (code == EN_CHANGE);
@@ -392,5 +409,7 @@ void sync_on_notify(AppState *app, int control, int code)
         on_text_change(app, (ControlId)control);
     } else if (code == LBN_SELCHANGE) {
         on_selection(app, (ControlId)control, kind);
+    } else if (code == BN_CLICKED) {
+        on_click(app, (ControlId)control);
     }
 }

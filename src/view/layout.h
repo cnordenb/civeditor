@@ -50,8 +50,9 @@ typedef enum {
     CONTROL_IMPERIAL_TECH_LIST,
     CONTROL_IMPERIAL_TECH_NAME,
     CONTROL_IMPERIAL_TECH_INFO,
-    CONTROL_HERO_LIST,
     CONTROL_HERO_NAME,
+    CONTROL_HERO_CHOOSE,
+    CONTROL_HERO,
     CONTROL_SUMMARY,
     CONTROL_CHANGED,
     CONTROL_ADD,
@@ -68,6 +69,7 @@ typedef enum {
     WIDGET_CHECKLIST,
     WIDGET_BUTTON,
     WIDGET_REPORT,
+    WIDGET_CHECKBOX,
     WIDGET_KIND_COUNT
 } WidgetKind;
 
@@ -97,7 +99,9 @@ ControlSpec layout_spec(ControlId control);
 bool layout_shows(ControlId control, WizardStep step);
 bool layout_is_focusable(ControlId control);
 bool layout_has_label(ControlId control);
-Box layout_box(ControlId control, int width, int height);
+bool layout_names_itself(ControlId control);
+bool layout_needs_hero(ControlId control);
+Box layout_box(ControlId control, WizardStep step, int width, int height);
 Box layout_label_box(ControlId control, int width, int height);
 bool layout_boxes_overlap(Box first, Box second);
 const char *layout_help(ControlId control);

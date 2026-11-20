@@ -73,9 +73,9 @@ bool test_the_uu_ut_step_is_done_once_an_imperial_tech_is_picked(void)
            is_done(STEP_UU_UT);
 }
 
-bool test_the_hero_step_is_done_once_a_hero_is_picked(void)
+bool test_the_uu_ut_step_is_done_once_a_hero_is_picked(void)
 {
-    return civ_design_pick_hero(fresh(), A_HERO) && is_done(STEP_HERO);
+    return civ_design_pick_hero(fresh(), A_HERO) && is_done(STEP_UU_UT);
 }
 
 bool test_a_pick_finishes_only_its_own_step(void)

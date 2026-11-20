@@ -157,13 +157,23 @@ bool test_picking_a_castle_tech_names_it_as_the_game_does(void)
 
 bool test_picking_a_hero_names_it_as_the_game_does(void)
 {
-    return text_equal(named_after_pick(CONTROL_HERO_LIST, JOAN_ROW, TEXT_FIELD_HERO_NAME), "Joan of Arc");
+    return text_equal(named_after_pick(CONTROL_HERO_CHOOSE, JOAN_ROW, TEXT_FIELD_HERO_NAME), "Joan of Arc");
 }
 
-bool test_picking_no_hero_takes_away_the_heros_name(void)
+bool test_unticking_hero_takes_away_the_heros_name(void)
 {
-    (void)CHECK(text_equal(named_after_pick(CONTROL_HERO_LIST, JOAN_ROW, TEXT_FIELD_HERO_NAME), "Joan of Arc"));
-    return picked(CONTROL_HERO_LIST, LIST_NO_ITEM) && text_equal(civ_design_text(&design, TEXT_FIELD_HERO_NAME), "");
+    Command command;
+
+    (void)CHECK(text_equal(named_after_pick(CONTROL_HERO_CHOOSE, JOAN_ROW, TEXT_FIELD_HERO_NAME), "Joan of Arc"));
+    command = hero_box_command(&game, false);
+    return command_apply(&design, &command) && text_equal(civ_design_text(&design, TEXT_FIELD_HERO_NAME), "");
+}
+
+bool test_a_hero_whose_name_is_emptied_lacks_a_name(void)
+{
+    (void)CHECK(text_equal(named_after_pick(CONTROL_HERO_CHOOSE, JOAN_ROW, TEXT_FIELD_HERO_NAME), "Joan of Arc"));
+    (void)CHECK(civ_design_set_text(&design, TEXT_FIELD_HERO_NAME, ""));
+    return civ_design_hero_lacks_name(&design);
 }
 
 bool test_a_civ_of_the_game_shows_no_step_done(void)

@@ -4,6 +4,7 @@
 
 #include "../../src/core/check.h"
 #include "../../src/core/file_io.h"
+#include "../../src/data/catalog.h"
 #include "../../src/mod/mod_places.h"
 #include "../../src/shell/shell.h"
 #include "../../src/win/win_parts.h"
@@ -21,10 +22,11 @@ static const wchar_t LONG_NAME[] = L"AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbc
 static const wchar_t CUT_FILE[] = L"build\\AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefgh.civbuilder.json";
 static const char STALE[] = "stale";
 static const wchar_t GO_STEPS[] = L"&1 Name and tech tree\tCtrl+1|&2 Bonuses\tCtrl+2|&3 UU&&UT\tCtrl+3|"
-                                  L"&4 Hero unit\tCtrl+4|&5 Review\tCtrl+5|";
+                                  L"&4 Review\tCtrl+4|";
 
 static wchar_t shown[SHOWN_CAPACITY];
 static char saved[SAVED_CAPACITY];
+static Catalog catalog;
 
 static HWND control_of(HWND window, ControlId control)
 {
@@ -295,4 +297,95 @@ bool test_a_wheel_turn_on_the_minimized_window_leaves_the_step_unscrolled(void)
     (void)SendMessageW(window, WM_MOUSEWHEEL, MAKEWPARAM(0, (WORD)-NOTCH), 0);
     (void)ShowWindow(window, SW_SHOWNOACTIVATE);
     return closed(window, GetScrollPos(GetDlgItem(window, WINDOW_BAR_ID), SB_CTL) == 0);
+}
+
+static LRESULT heroes_in_catalog(void)
+{
+    LRESULT heroes = 0;
+    int unit;
+
+    if (!CHECK(catalog_load(&catalog, L"data"))) {
+        return -1;
+    }
+    for (unit = 0; unit < catalog.unit_count; ++unit) {
+        heroes += (catalog.units[unit].role == UNIT_ROLE_HERO) ? 1 : 0;
+    }
+    return heroes;
+}
+
+static HWND chose_hero(const wchar_t *name)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+
+    window_fixture_act(window, ACTION_FIRST_STEP + (int)STEP_UU_UT);
+    window_fixture_tick(window, CONTROL_HERO);
+    window_fixture_answer(L"Saladin", name);
+    window_fixture_click(window, CONTROL_HERO_CHOOSE);
+    return window;
+}
+
+bool test_choose_hero_lists_every_hero_of_the_catalog_once(void)
+{
+    HWND window = chose_hero(NULL);
+
+    return closed(window, window_fixture_asked()->rows == heroes_in_catalog());
+}
+
+bool test_the_list_of_choose_hero_is_labelled_heroes(void)
+{
+    HWND window = chose_hero(NULL);
+
+    return closed(window, wcscmp(window_fixture_asked()->list_label, L"Heroes") == 0);
+}
+
+bool test_choose_hero_opens_with_the_focus_on_its_list(void)
+{
+    HWND window = chose_hero(NULL);
+
+    return closed(window, window_fixture_asked()->list_in_focus);
+}
+
+static bool hero_is_named(HWND window, const wchar_t *name)
+{
+    shown[0] = L'\0';
+    (void)GetWindowTextW(control_of(window, CONTROL_HERO_NAME), shown, SHOWN_CAPACITY);
+    return closed(window, wcscmp(shown, name) == 0);
+}
+
+bool test_a_name_typed_in_choose_hero_stays_when_its_list_takes_the_focus_again(void)
+{
+    window_fixture_refocus();
+    return hero_is_named(chose_hero(L"Testhero"), L"Testhero");
+}
+
+static const wchar_t *first_hero(void)
+{
+    static wchar_t name[SHOWN_CAPACITY];
+    int unit;
+
+    name[0] = L'\0';
+    if (!CHECK(catalog_load(&catalog, L"data"))) {
+        return name;
+    }
+    for (unit = 0; (unit < catalog.unit_count) && (name[0] == L'\0'); ++unit) {
+        if (catalog.units[unit].role == UNIT_ROLE_HERO) {
+            (void)dialogs_widen(catalog.units[unit].name, name, SHOWN_CAPACITY);
+        }
+    }
+    return name;
+}
+
+bool test_the_first_hero_of_choose_hero_can_be_picked(void)
+{
+    HWND window = chose_hero(NULL);
+    const wchar_t *first = first_hero();
+
+    window_fixture_answer(first, NULL);
+    window_fixture_click(window, CONTROL_HERO_CHOOSE);
+    return hero_is_named(window, first);
+}
+
+bool test_a_one_letter_name_typed_in_choose_hero_is_taken(void)
+{
+    return hero_is_named(chose_hero(L"X"), L"X");
 }

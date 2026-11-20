@@ -4,7 +4,7 @@
 
 enum { MARGIN = 16, GAP = 8, LABEL_HEIGHT = 22, LABEL_GAP = 4, STEPS_HEIGHT = 176, NOTE_HEIGHT = 66 };
 
-static const int KIND_HEIGHTS[WIDGET_KIND_COUNT] = { 132, 44, 132, 44, 220, 220, 44, 264 };
+static const int KIND_HEIGHTS[WIDGET_KIND_COUNT] = { 132, 44, 132, 44, 220, 220, 44, 264, 44 };
 
 bool reflow_is_needed(int width, int height)
 {

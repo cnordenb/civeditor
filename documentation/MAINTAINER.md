@@ -55,7 +55,7 @@ only by handing a `Command` to `history_do`, so that every change can be undone.
 | `src/json/` | Writing JSON (`json_writer.c`), reading it (`json_reader.c`, `json_string.c`), and changing values in a JSON text while the rest stays byte for byte as it was (`json_patch.c`). |
 | `src/persist/` | Civ files: `civ_file_write.c` writes `empireforge_v2`, `civ_file_read.c` reads it and `civbuilder_v1`. |
 | `src/data/` | Reading tab-separated text (`tsv.c`), the catalog in `data/` (`catalog.c`) and finding in it (`catalog_lookup.c`). |
-| `src/view/` | What the window shows, without Win32: the five steps (`wizard.c`), where each control goes (`layout.c`), the help of each control (`control_help.c`), the colors (`palette.c`). |
+| `src/view/` | What the window shows, without Win32: the four steps (`wizard.c`), where each control goes (`layout.c`), the help of each control (`control_help.c`), the colors (`palette.c`). |
 | `src/present/` | What each control shows and what picking in it changes (`binding.c`), the review (`summary.c`), the text beside a list and the window's title (`details.c`). |
 | `src/pack/` | Unpacking raw deflate (`inflate.c`, `huffman.c`) and packing in stored blocks (`deflate_store.c`). `inflate.h` holds the tables of deflate's codes. |
 | `src/deflate/` | Compressing the mod's dat file with deflate (`deflate.c`), writing the bits with `bit_writer.c`. |
@@ -69,7 +69,7 @@ only by handing a `Command` to `history_do`, so that every change can be undone.
 | `src/civlist/` | The civ list, `civilizations.json`: reading the game's, finding a slot's entry and writing it anew with the civ's unique techs, unique unit and description id (`civ_list.c`). |
 | `src/techtree/` | The civ's tech tree file, `CivTechTrees\<name>.json`: the game's file with each node of the catalog set to what the design has (`tech_tree.c`), read and written by `tech_tree_file.c`. |
 | `src/reflow/` | The step in one column, for a window too narrow or too short for the columns, and how far it scrolls (`reflow.c`); no Win32. |
-| `src/shell/` | What the window asks of Windows through one door, so that a test can answer in the user's place: message boxes, the file dialogs, a question answered with a text, such as the mod name, and where the game is (`ask.c`, with the dialog of that question in `text_dialog.c`), and the menu with its keys (`menu.c`). `shell.h` holds them. |
+| `src/shell/` | What the window asks of Windows through one door, so that a test can answer in the user's place: message boxes, the file dialogs, a question answered with a text, such as the mod name, and where the game is (`ask.c`, with the dialog of that question in `text_dialog.c`, which may also offer a list whose picked row fills in the text, as Choose hero... does), and the menu with its keys (`menu.c`). `shell.h` holds them. |
 | `src/win/` | The rest of the Win32 code: `winmain.c` starts it, `app_window.c` is the window, `controls.c` makes and draws controls, `assist.c` holds what the window does for accessibility (the text size of Windows, the focus frame, help in the status line, the status line marked for screen readers) and how it scrolls, and runs each message of the loop, `sync.c` keeps them in step with the design, `dialogs.c` opens and saves files and builds the mod. `win_parts.h` holds what they share. |
 | `data/` | The catalog, seven tab-separated text files; see [The catalog files](#the-catalog-files). |
 | `tests/` | The test runner (`runner.c`) and the tests, by kind; see [Tests](#tests). |
@@ -160,10 +160,17 @@ into the same field join one change (`command_joins`), so one undo takes back a 
    controls go column by column in the order of `ControlId`, left to right, since Tab takes them in that order and a
    test checks that it follows the reading order. At 960 by 560 a column is 388 high: a field or choice with its
    label takes 70 and the gap 8, so a column holds five of them; the controls that stretch share what is left.
+   A control placed `PLACE_FRAME` with a step is in that step's bottom row instead, as the hero's are (see below).
 3. **Explain it.** Add its help to `HELP_TEXTS` in `src/view/control_help.c`, at the same place: one or two plain
    sentences, which F1 shows in the status line. A test fails if a control one acts on has none.
 4. **Bind it.** Add its line to `BINDINGS` in `src/present/binding.c`: the text field, choice or list it shows.
 5. **Build and test**, then look at the step in `build\civbuilder.exe`.
+
+The bottom row holds the status line, Back and Next on every step (`bottom_box` in `layout.c`). In UU&UT the Hero box
+is left of Back, Choose hero... left of the box, and the hero's name above Choose hero... (`hero_box`); there the
+status line ends before them and the columns end above the name (`foot_rise`), so a column is 362 high. Choose
+hero... and the name show only while the civ has a hero (`layout_needs_hero`, and `controls_show` in `controls.c`,
+which `sync_details` calls after every change, as it ticks or unticks the box to match the design).
 
 ### The narrow window
 
@@ -277,8 +284,14 @@ The tagline and description are read when the window opens (`read_game_texts` in
 `resources\en\strings\key-value\key-value-strings-utf8.txt`. Its first line, without " civilization", is the
 tagline, "Foot Archer" for the Britons; the rest is the description, each `\n` a line break. Without the game both
 stay empty. No step has a field for the description: it is kept in the design and the civ file, and the
-review shows it. Picking a unique unit, a unique tech or a hero in its list names it as the catalog does
+review shows it. Picking a unique unit or a unique tech in its list names it as the catalog does
 (`list_item_command` in `binding.c`, through `command_pick` in `command.c`); the name can then be changed.
+
+The hero is chosen in UU&UT. Ticking the Hero box picks Attila the Hun, unit 777 (`HERO_AT_FIRST`, by
+`hero_box_command` in `binding.c`), named as the catalog names him; unticking it picks no hero. Choose hero...
+(`dialogs_choose_hero` in `dialogs.c`) shows the heroes of the catalog, the rows of `CONTROL_HERO_CHOOSE`, in the
+dialog of `text_dialog.c`, with the hero's name in a field under them. Picking a row puts the catalog's name of that
+hero in the field; OK picks the hero with the name in the field, as one change, and Cancel changes nothing.
 
 The list of steps marks a step "(done)" only once the design differs there from its base civ
 (`wizard_step_is_done` in `wizard.c`, which compares with `civ_design_same_identity` and the others of
@@ -478,9 +491,9 @@ that word too.
 | `tests/dat/` | The data file and the recipe. `small_dat.c` builds a small data file in memory, `recipe_game.c` runs the recipe on it for eight civs and answers what the tests of `recipe_tests.c` ask. |
 | `tests/bonus/` | The changes of a bonus scaled by its multiplier (`scale_tests.c`). |
 | `tests/mod/`, `tests/places/`, `tests/look/`, `tests/base/` | A whole mod built from a small game under `build/test_game` into `build/test_mods`, its strings, finding the game and the mods folder under `build/`, the looks, and base civs. |
-| `tests/model/`, `tests/design/`, `tests/shell/` | What the lists and the review show, which steps are done (`wizard_tests.c`), undo and redo (`history_tests.c`), the design and its saved text (`tests/design/`), and the window driven through its dialogs; how the lists scroll (`scroll_tests.c`); `window_fixture.c` opens and closes the window for a test. |
+| `tests/model/`, `tests/design/`, `tests/shell/` | What the lists and the review show, which steps are done (`wizard_tests.c`), undo and redo (`history_tests.c`), the design and its saved text (`tests/design/`), and the window driven through its dialogs; how the lists scroll (`scroll_tests.c`); the Hero box and Choose hero... (`hero_tests.c`); `window_fixture.c` opens and closes the window for a test, ticks and clicks its controls, and answers Choose hero.... |
 | `tests/reflow/` | The one column at a width of 320, scrolling, and the real window made narrow and short. |
-| `tests/redundancy/` | The redundancy tests: base civs, picks, which steps are done, the roster and how a civ is told from the civ of the game (`civ_tests.c`), the game's texts (`game_tests.c`), the civ to edit, Save civ, the name of a civ file, Build mod and the mod name, the caret of a field, the bonuses' filter and categories, the focus when the window opens, the steps of the menu Go and the wheel on the minimized window in the real window (`review_tests.c`), the compile command of the build program (`tools/plan_tests.c`), the patches of the dat file found again (`dat/patch_tests.c`), and the builds that are refused, the descriptions in the mod's strings and the room of a tech's requirements and of a description (`mod/built_mod_tests.c`); `redundancy_suite.c` runs them, those that open the window last. |
+| `tests/redundancy/` | The redundancy tests: base civs, picks, which steps are done, the roster and how a civ is told from the civ of the game (`civ_tests.c`), the game's texts (`game_tests.c`), the civ to edit, Save civ, the name of a civ file, Build mod and the mod name, the caret of a field, the bonuses' filter and categories, the focus when the window opens, the steps of the menu Go, the wheel on the minimized window and the dialog of Choose hero... in the real window (`review_tests.c`), the compile command of the build program (`tools/plan_tests.c`), the patches of the dat file found again (`dat/patch_tests.c`), and the builds that are refused, the descriptions in the mod's strings and the room of a tech's requirements and of a description (`mod/built_mod_tests.c`); `redundancy_suite.c` runs them, those that open the window last. |
 | `tests/maintainability/`, `tests/rules/`, `tests/scan/` | The rules of the code and of the documents. `tests/scan/` reads the code for them; `gate_tests.c` shows each rule a text that breaks it, `tests/fixtures/broken_rules.txt`; `tool_tests.c` tests the build program's `source_list.c`. |
 
 `build\tests.exe nowindow` leaves out the tests that open the real window, and `build\tests.exe norules` those of
@@ -489,7 +502,11 @@ program still run. `build.exe` passes these words and `redundancy` on, as in `bu
 
 No test needs the game, and none writes outside `build/`. A window that a test opens without a script reads the
 game's texts if the game is installed; no test looks at them. A test of a dialog never shows one: it tells `ask_script`
-(`src/shell/ask.c`) what the user would answer, and reads what was asked with `ask_last_message`.
+(`src/shell/ask.c`) what the user would answer, and reads what was asked with `ask_last_message`. Choose hero... is
+answered by `window_fixture_answer` in `tests/shell/window_fixture.c` instead: a hook on the test's thread picks the
+row, types the name and presses OK as the dialog starts (`WM_INITDIALOG`), so it closes before Windows shows it.
+It keeps what the dialog showed, its rows, the label of its list and whether the list had the focus, for
+`window_fixture_asked`; after `window_fixture_refocus` it gives the list the focus again before OK.
 
 To add a test:
 

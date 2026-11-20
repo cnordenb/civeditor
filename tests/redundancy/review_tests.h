@@ -20,5 +20,11 @@ bool test_the_categories_together_hold_every_bonus_once(void);
 bool test_the_window_opens_with_the_focus_on_the_civ_to_edit(void);
 bool test_the_menu_go_names_each_step_as_its_title_reads(void);
 bool test_a_wheel_turn_on_the_minimized_window_leaves_the_step_unscrolled(void);
+bool test_choose_hero_lists_every_hero_of_the_catalog_once(void);
+bool test_the_list_of_choose_hero_is_labelled_heroes(void);
+bool test_choose_hero_opens_with_the_focus_on_its_list(void);
+bool test_a_name_typed_in_choose_hero_stays_when_its_list_takes_the_focus_again(void);
+bool test_the_first_hero_of_choose_hero_can_be_picked(void);
+bool test_a_one_letter_name_typed_in_choose_hero_is_taken(void);
 
 #endif

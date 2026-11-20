@@ -54,7 +54,7 @@ bool test_every_target_is_44_by_44(void)
     int control;
 
     for (control = 0; control < CONTROL_COUNT; ++control) {
-        box = layout_box((ControlId)control, LAYOUT_MIN_WIDTH, LAYOUT_MIN_HEIGHT);
+        box = layout_box((ControlId)control, layout_spec((ControlId)control).step, LAYOUT_MIN_WIDTH, LAYOUT_MIN_HEIGHT);
         if (layout_is_focusable((ControlId)control) &&
             ((box.width < LAYOUT_TARGET_SIZE) || (box.height < LAYOUT_TARGET_SIZE))) {
             test_note(layout_spec((ControlId)control).label);
@@ -79,7 +79,7 @@ static int collect_boxes(WizardStep step)
         if (!layout_shows((ControlId)control, step)) {
             continue;
         }
-        boxes[count] = layout_box((ControlId)control, LAYOUT_MIN_WIDTH, LAYOUT_MIN_HEIGHT);
+        boxes[count] = layout_box((ControlId)control, step, LAYOUT_MIN_WIDTH, LAYOUT_MIN_HEIGHT);
         ++count;
         if (layout_has_label((ControlId)control)) {
             boxes[count] = layout_label_box((ControlId)control, LAYOUT_MIN_WIDTH, LAYOUT_MIN_HEIGHT);
@@ -121,7 +121,7 @@ bool test_the_window_title_names_the_civ_and_the_step(void)
     civ_design_reset(&titled);
     (void)civ_design_set_text(&titled, TEXT_FIELD_NAME, "Testonia");
     title = details_window_title(&titled, STEP_BONUSES);
-    return text_equal(title.text, "Testonia - Step 2 of 5: Bonuses - civbuilder");
+    return text_equal(title.text, "Testonia - Step 2 of 4: Bonuses - civbuilder");
 }
 
 bool test_the_steps_and_their_buttons_are_on_every_step(void)

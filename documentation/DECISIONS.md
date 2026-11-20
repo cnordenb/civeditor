@@ -390,6 +390,29 @@ an earlier one, the earlier one is named after it, with its own link.
 
 ## Code and files
 
+- **The hero is chosen in UU&UT,** not in a step of its own: the wizard has four steps. The Hero box is left of
+  Back, Choose hero... left of the box, and the hero's name above Choose hero...; the status line ends before them
+  and the columns of UU&UT end above the name.
+  [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
+- **Ticking the Hero box picks Attila the Hun,** unit 777 (`HERO_AT_FIRST`), named as the game names him;
+  unticking it picks no hero. The heroes have no row "No hero" any longer.
+  [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
+- **Choose hero... and the hero's name show only while the civ has a hero** (`layout_needs_hero`).
+  [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
+- **Choose hero... opens the dialog of `text_dialog.c` with a list:** the heroes, the civ's picked at first, and
+  the hero's name in a field under them. Picking a row fills in the hero's name in the game, which may be changed;
+  OK picks the hero with the name in the field, as one change. The question of the mod name is the same dialog
+  without the list.
+  [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
+- **The name above Choose hero... is the name given to the hero,** "Attila the Hun" at first, not the name of
+  the hero it is made from.
+  [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
+- **The name in Choose hero... holds as much as the hero's name in the design,** `CIV_NAME_CAPACITY`, so that a
+  name read from a civ file is never too long for the dialog.
+  [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
+- **`layout_box` takes the step,** as `reflow_box` does: the status line of UU&UT ends before the hero's
+  controls.
+  [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
 - **A scroll that does not move the step does nothing.** `scroll_to` in `assist.c` keeps the scroll within the
   step and places the controls again only when it changes, since placing them redraws the whole window. The
   wheel, the window's scroll bar, Scroll up and Scroll down of the menu Go, and the focus all scroll through it.
@@ -615,6 +638,19 @@ an earlier one, the earlier one is named after it, with its own link.
 
 ## Tests
 
+- **A test answers Choose hero... with a hook on its thread** (`window_fixture_answer`), which picks the row,
+  types the name and presses OK when the dialog starts, so that the real dialog runs and is never shown.
+  [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
+- **The tests that walk every control of every step tick Hero first,** so that Choose hero... is among them.
+  [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
+- **The fixture keeps what the dialog of Choose hero... showed** (`window_fixture_asked`): its rows, the label of
+  its list and whether the list had the focus. A test does not pass the fixture a function of its own to look at
+  the dialog, since the window procedure is the only function pointer allowed.
+  [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
+- **Mutants of the window's files are measured with `--timeout-factor 40`.** With the mutator's default, ten
+  times the baseline, mutants that fail no test were reported killed when many workers ran the window's tests at
+  once; `--mutate-all` measures again what such a run reported killed.
+  [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
 - **A test of a bug that a human found is a core test,** in the group of its subject: the bug raises Rule 31's
   count by one. Rule 34's category Regression is kept for tests ordered to cover a requirement, a rule or a bug
   that a test covers already.

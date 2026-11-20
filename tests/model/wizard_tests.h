@@ -11,7 +11,7 @@ bool test_the_bonuses_step_is_done_once_a_team_bonus_is_picked(void);
 bool test_the_uu_ut_step_is_done_once_a_unit_is_picked(void);
 bool test_the_uu_ut_step_is_done_once_a_castle_tech_is_picked(void);
 bool test_the_uu_ut_step_is_done_once_an_imperial_tech_is_picked(void);
-bool test_the_hero_step_is_done_once_a_hero_is_picked(void);
+bool test_the_uu_ut_step_is_done_once_a_hero_is_picked(void);
 bool test_a_pick_finishes_only_its_own_step(void);
 bool test_back_from_the_second_step_goes_to_the_first(void);
 bool test_a_tree_that_swaps_a_node_of_the_base_civ_is_changed(void);

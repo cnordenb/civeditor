@@ -9,7 +9,6 @@ typedef enum {
     STEP_NAME_AND_TREE,
     STEP_BONUSES,
     STEP_UU_UT,
-    STEP_HERO,
     STEP_REVIEW,
     STEP_COUNT
 } WizardStep;

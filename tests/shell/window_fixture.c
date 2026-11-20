@@ -1,9 +1,16 @@
 #include "../accessibility/window_fixture.h"
 
 #include "../../src/core/check.h"
+#include "../../src/shell/shell.h"
 #include "../../src/win/win_parts.h"
 
 enum { MESSAGE_DRAIN_LIMIT = 64 };
+
+static const wchar_t *answer_row;
+static const wchar_t *answer_name;
+static HHOOK answer_hook;
+static AskedDialog asked;
+static bool refocus_list;
 
 void window_fixture_close(HWND window)
 {
@@ -27,4 +34,81 @@ void window_fixture_act(HWND window, int action)
         return;
     }
     (void)SendMessageW(window, WM_COMMAND, (WPARAM)(ACTION_ID_BASE + action), 0);
+}
+
+void window_fixture_click(HWND window, int control)
+{
+    HWND button = GetDlgItem(window, CONTROL_ID_BASE + control);
+
+    if (!CHECK(button != NULL)) {
+        return;
+    }
+    (void)SendMessageW(window, WM_COMMAND, MAKEWPARAM(CONTROL_ID_BASE + control, BN_CLICKED), (LPARAM)button);
+}
+
+void window_fixture_tick(HWND window, int control)
+{
+    HWND box = GetDlgItem(window, CONTROL_ID_BASE + control);
+    bool ticked = SendMessageW(box, BM_GETCHECK, 0, 0) == BST_CHECKED;
+
+    (void)SendMessageW(box, BM_SETCHECK, ticked ? BST_UNCHECKED : BST_CHECKED, 0);
+    window_fixture_click(window, control);
+}
+
+static void look_at(HWND list)
+{
+    asked.rows = SendMessageW(list, LB_GETCOUNT, 0, 0);
+    asked.list_in_focus = GetFocus() == list;
+    (void)GetWindowTextW(GetWindow(list, GW_HWNDPREV), asked.list_label, WINDOW_FIXTURE_LABEL_CAPACITY);
+}
+
+static void answer(HWND dialog)
+{
+    HWND list = GetDlgItem(dialog, ASK_LIST_ID);
+    LRESULT row = SendMessageW(list, LB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)answer_row);
+
+    look_at(list);
+    (void)SendMessageW(list, LB_SETCURSEL, (WPARAM)row, 0);
+    (void)SendMessageW(dialog, WM_COMMAND, MAKEWPARAM(ASK_LIST_ID, LBN_SELCHANGE), (LPARAM)list);
+    if (answer_name != NULL) {
+        (void)SetDlgItemTextW(dialog, ASK_ANSWER_ID, answer_name);
+    }
+    if (refocus_list) {
+        (void)SetFocus(GetDlgItem(dialog, ASK_ANSWER_ID));
+        (void)SetFocus(list);
+        refocus_list = false;
+    }
+    (void)SendMessageW(dialog, WM_COMMAND, IDOK, 0);
+}
+
+static LRESULT CALLBACK answer_dialog(int code, WPARAM wparam, LPARAM lparam)
+{
+    const CWPRETSTRUCT *call = (const CWPRETSTRUCT *)lparam;
+
+    if ((code == HC_ACTION) && (call->message == WM_INITDIALOG)) {
+        (void)UnhookWindowsHookEx(answer_hook);
+        answer(call->hwnd);
+    }
+    return CallNextHookEx(NULL, code, wparam, lparam);
+}
+
+void window_fixture_answer(const wchar_t *row, const wchar_t *name)
+{
+    const AskedDialog unseen = { -1, false, L"" };
+
+    asked = unseen;
+    answer_row = row;
+    answer_name = name;
+    answer_hook = SetWindowsHookExW(WH_CALLWNDPROCRET, answer_dialog, NULL, GetCurrentThreadId());
+    (void)CHECK(answer_hook != NULL);
+}
+
+void window_fixture_refocus(void)
+{
+    refocus_list = true;
+}
+
+const AskedDialog *window_fixture_asked(void)
+{
+    return &asked;
 }

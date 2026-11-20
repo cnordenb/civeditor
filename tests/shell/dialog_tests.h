@@ -36,5 +36,9 @@ bool test_a_shown_list_scrolls_without_animation(void);
 bool test_a_held_arrow_keeps_scrolling_a_list(void);
 bool test_a_press_between_a_lists_arrows_moves_it_a_page(void);
 bool test_a_key_in_a_list_moves_its_caret_one_row(void);
+bool test_ticking_hero_names_attila_the_hun_above_choose_hero(void);
+bool test_unticking_hero_hides_choose_hero(void);
+bool test_a_hero_picked_in_choose_hero_keeps_the_games_name(void);
+bool test_a_hero_renamed_in_choose_hero_takes_the_new_name(void);
 
 #endif

@@ -11,9 +11,9 @@ enum {
     LIST_ROW_CAPACITY = 640,
     LIST_FILTER_CAPACITY = 64,
     LIST_TEXT_CAPACITY = 400,
-    LIST_NO_ITEM = -1,
     LIST_ALL_CATEGORIES = -1,
-    BINDING_NO_FIELD = -1
+    BINDING_NO_FIELD = -1,
+    HERO_AT_FIRST = 777
 };
 
 typedef enum {
@@ -61,5 +61,6 @@ bool list_model_fill(ListModel *model, const Catalog *catalog, const ListQuery *
 RowText list_item_text(const Catalog *catalog, ListItem item);
 bool list_item_is_chosen(const Catalog *catalog, const CivDesign *design, ListItem item);
 Command list_item_command(const Catalog *catalog, ListItem item);
+Command hero_box_command(const Catalog *catalog, bool ticked);
 
 #endif

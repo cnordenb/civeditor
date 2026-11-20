@@ -242,10 +242,10 @@ bool test_the_knob_of_the_windows_scroll_bar_reaches_its_end_with_the_step(void)
 
 bool test_a_step_that_just_fits_the_window_shows_no_scroll_bar(void)
 {
-    HWND window = small_window(STEP_HERO);
+    HWND window = small_window(STEP_REVIEW);
     bool hidden;
 
-    (void)SetWindowPos(window, NULL, 0, 0, SMALL_WIDTH, fitting_height(window, STEP_HERO),
+    (void)SetWindowPos(window, NULL, 0, 0, SMALL_WIDTH, fitting_height(window, STEP_REVIEW),
                        SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
     hidden = !IsWindowVisible(GetDlgItem(window, WINDOW_BAR_ID));
     window_fixture_close(window);

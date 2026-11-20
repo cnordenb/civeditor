@@ -46,8 +46,9 @@ static const Binding BINDINGS[CONTROL_COUNT] = {
     { SOURCE_IMPERIAL_TECH, NO, NO, NO },
     { SOURCE_NONE, TEXT_FIELD_IMPERIAL_TECH_NAME, NO, NO },
     { SOURCE_NONE, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO },
     { SOURCE_HERO, NO, NO, NO },
-    { SOURCE_NONE, TEXT_FIELD_HERO_NAME, NO, NO },
+    { SOURCE_NONE, NO, NO, NO },
     { SOURCE_NONE, NO, NO, NO },
     { SOURCE_NONE, NO, NO, NO },
     { SOURCE_NONE, NO, NO, NO },
@@ -161,9 +162,6 @@ bool list_model_fill(ListModel *model, const Catalog *catalog, const ListQuery *
     model->count = 0;
     item.control = query->control;
     size = source_size(catalog, BINDINGS[query->control].source);
-    if (BINDINGS[query->control].source == SOURCE_HERO) {
-        add_row(model, LIST_NO_ITEM);
-    }
     for (item.item = 0; (item.item < size) && (item.item < LIST_ROW_CAPACITY); ++item.item) {
         if (item_belongs(catalog, item) && item_matches(catalog, item, query)) {
             add_row(model, item.item);
@@ -209,12 +207,8 @@ static RowText ticked_row(const Catalog *catalog, ListItem item, ListSource sour
 
 RowText list_item_text(const Catalog *catalog, ListItem item)
 {
-    ListSource source;
+    ListSource source = BINDINGS[item.control].source;
 
-    if (item.item == LIST_NO_ITEM) {
-        return row_of("No hero", "");
-    }
-    source = BINDINGS[item.control].source;
     return is_pick_source(source) ? picked_row(catalog, item, source) : ticked_row(catalog, item, source);
 }
 
@@ -254,12 +248,8 @@ static bool tick_is_chosen(const Catalog *catalog, const CivDesign *design, List
 
 bool list_item_is_chosen(const Catalog *catalog, const CivDesign *design, ListItem item)
 {
-    ListSource source;
+    ListSource source = BINDINGS[item.control].source;
 
-    if (item.item == LIST_NO_ITEM) {
-        return design->hero_unit == CIV_NO_CHOICE;
-    }
-    source = BINDINGS[item.control].source;
     return is_pick_source(source) ? pick_is_chosen(catalog, design, item, source)
                                   : tick_is_chosen(catalog, design, item, source);
 }
@@ -300,11 +290,18 @@ static Command tick_command(const Catalog *catalog, ListItem item, ListSource so
 
 Command list_item_command(const Catalog *catalog, ListItem item)
 {
-    ListSource source;
+    ListSource source = BINDINGS[item.control].source;
 
-    if (item.item == LIST_NO_ITEM) {
+    return is_pick_source(source) ? pick_command(catalog, item, source) : tick_command(catalog, item, source);
+}
+
+Command hero_box_command(const Catalog *catalog, bool ticked)
+{
+    ListItem item = { CONTROL_HERO_CHOOSE, CATALOG_MISSING };
+
+    item.item = ticked ? catalog_find(catalog, CATALOG_UNITS, UNIT_ROLE_HERO, HERO_AT_FIRST) : CATALOG_MISSING;
+    if (item.item == CATALOG_MISSING) {
         return command_of(COMMAND_PICK_HERO, 0, CIV_NO_CHOICE);
     }
-    source = BINDINGS[item.control].source;
-    return is_pick_source(source) ? pick_command(catalog, item, source) : tick_command(catalog, item, source);
+    return list_item_command(catalog, item);
 }

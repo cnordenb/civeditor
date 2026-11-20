@@ -34,8 +34,10 @@ int ask_message(HWND owner, const wchar_t *text, const wchar_t *title, UINT flag
 
 bool ask_text(HWND owner, const wchar_t *question, wchar_t *answer, size_t capacity)
 {
+    AskQuestion asked = { question, answer, capacity, NULL, NULL, 0, -1 };
+
     if (!script.active) {
-        return text_dialog_show(owner, question, answer, capacity);
+        return text_dialog_show(owner, &asked);
     }
     if (script.text != NULL) {
         (void)lstrcpynW(answer, script.text, (int)capacity);

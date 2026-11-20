@@ -278,3 +278,37 @@ bool dialogs_may_discard(AppState *app)
     }
     return answer == IDNO;
 }
+
+static int list_heroes(AppState *app, wchar_t rows[LIST_ROW_CAPACITY][ASK_ROW_WIDTH])
+{
+    ListQuery query = { CONTROL_HERO_CHOOSE, "", LIST_ALL_CATEGORIES };
+    ListItem item = { CONTROL_HERO_CHOOSE, 0 };
+    int chosen = -1;
+    int row;
+
+    (void)list_model_fill(&app->lists[CONTROL_HERO_CHOOSE], &app->catalog, &query);
+    for (row = 0; (row < app->lists[CONTROL_HERO_CHOOSE].count) && (row < LIST_ROW_CAPACITY); ++row) {
+        item.item = app->lists[CONTROL_HERO_CHOOSE].items[row];
+        (void)dialogs_widen(list_item_text(&app->catalog, item).text, rows[row], ASK_ROW_WIDTH);
+        chosen = list_item_is_chosen(&app->catalog, &app->history.present, item) ? row : chosen;
+    }
+    return chosen;
+}
+
+bool dialogs_choose_hero(AppState *app, Command *command)
+{
+    static wchar_t rows[LIST_ROW_CAPACITY][ASK_ROW_WIDTH];
+    static wchar_t name[CIV_NAME_CAPACITY];
+    AskQuestion question = { L"Name of the hero", name, CIV_NAME_CAPACITY, L"Heroes", rows, 0, -1 };
+    ListItem item = { CONTROL_HERO_CHOOSE, 0 };
+
+    question.row = list_heroes(app, rows);
+    question.row_count = app->lists[CONTROL_HERO_CHOOSE].count;
+    if (!dialogs_widen(civ_design_text(&app->history.present, TEXT_FIELD_HERO_NAME), name, CIV_NAME_CAPACITY) ||
+        !text_dialog_show(app->window, &question) || (question.row < 0) || (question.row >= question.row_count)) {
+        return false;
+    }
+    item.item = app->lists[CONTROL_HERO_CHOOSE].items[question.row];
+    *command = list_item_command(&app->catalog, item);
+    return dialogs_narrow(name, command->text, (int)sizeof command->text);
+}

@@ -12,9 +12,10 @@ civbuilder designs a new civilization for Age of Empires II: Definitive Edition 
 can load. It is a remake of [aoe2-empire-forge](https://github.com/napkingcole/aoe2-empire-forge) in C alone, with a
 window of its own made with the Win32 API: no browser, no Python, nothing to install but the program.
 
-A civ of the game is changed in four steps: Name and tech tree (its name, looks and tech tree), Bonuses (its civ
-bonuses and team bonus), UU&UT (its unique unit and two unique techs) and Hero unit. In the fifth, Review, it is
-saved in the mod, and every civ saved is built into one mod. A civ can also be saved as a civ file that the original also opens.
+A civ of the game is changed in three steps: Name and tech tree (its name, looks and tech tree), Bonuses (its civ
+bonuses and team bonus) and UU&UT (its unique unit, two unique techs and, if Hero is ticked, a hero). In the fourth,
+Review, it is saved in the mod, and every civ saved is built into one mod. A civ can also be saved as a civ file that
+the original also opens.
 
 ## Usage
 
@@ -23,11 +24,11 @@ saved in the mod, and every civ saved is built into one mod. A civ can also be s
 2. **Start it.** Run `build\civbuilder.exe`.
 3. **Choose the civ to edit.** The first control of the first step is Civ to edit, the Britons at first. Every step
    then shows that civ as the game has it, ready to change: its name, tech tree, bonuses, unique unit and techs and
-   looks, and, when the game is installed, its tagline; it has no hero until one is picked. Choosing another civ keeps the edits of
+   looks, and, when the game is installed, its tagline; it has no hero until Hero is ticked in UU&UT. Choosing another civ keeps the edits of
    the one before, and shows them again when it is chosen again.
 4. **Make a civ.** Go through the steps with the mouse or the keyboard: Tab moves between the controls, the arrow
    keys pick in a list, and Space ticks or unticks in a list of bonuses or of the tech tree. Ctrl+Page Down and
-   Ctrl+Page Up go to the next and the previous step, Ctrl+1 to Ctrl+5 to a step. F1 says in the status line what the control in focus is
+   Ctrl+Page Up go to the next and the previous step, Ctrl+1 to Ctrl+4 to a step. F1 says in the status line what the control in focus is
    for. Ctrl+Z undoes a change, Ctrl+Y redoes it. Every command is also in the menu (Alt).
 5. **Save it in the mod.** The last step shows what the civ still needs before a mod can be built from it. Save civ
    there puts the civ, as it is, in the mod, and the label at the top right says how many civs the mod changes; a civ

@@ -9,7 +9,8 @@ enum {
     BUILD_END = 16,
     DRAW_END = 19,
     LOOP_END = 20,
-    BAR_TEST_COUNT = 7
+    BAR_TEST_COUNT = 7,
+    LIST_TEST_COUNT = 6
 };
 
 static TestOutcome run_save_test(int index)
@@ -117,6 +118,25 @@ static TestOutcome run_loop_test(int index)
     }
 }
 
+static TestOutcome run_hero_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("ticking Hero names Attila the Hun above Choose hero",
+                               test_ticking_hero_names_attila_the_hun_above_choose_hero());
+    case 2:
+        return test_outcome_of("unticking Hero hides Choose hero", test_unticking_hero_hides_choose_hero());
+    case 3:
+        return test_outcome_of("a hero picked in Choose hero keeps the game's name",
+                               test_a_hero_picked_in_choose_hero_keeps_the_games_name());
+    case 4:
+        return test_outcome_of("a hero renamed in Choose hero takes the new name",
+                               test_a_hero_renamed_in_choose_hero_takes_the_new_name());
+    default:
+        return test_outcome_missing();
+    }
+}
+
 static TestOutcome run_list_test(int index)
 {
     switch (index) {
@@ -137,7 +157,7 @@ static TestOutcome run_list_test(int index)
         return test_outcome_of("a key in a list moves its caret one row",
                                test_a_key_in_a_list_moves_its_caret_one_row());
     default:
-        return test_outcome_missing();
+        return run_hero_test(index - LIST_TEST_COUNT);
     }
 }
 

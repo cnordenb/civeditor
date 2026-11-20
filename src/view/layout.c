@@ -14,6 +14,7 @@ enum {
     CONTENT_TOP = 96,
     PLACE_SLOTS = 3,
     BUTTON_WIDTH = 140,
+    HERO_BOX_WIDTH = 96,
     PARAGRAPH_HEIGHT = 88,
     NOTE_HEIGHT = 66,
     STRETCH = 0
@@ -54,8 +55,9 @@ static const ControlSpec SPECS[CONTROL_COUNT] = {
     { STEP_UU_UT, WIDGET_LIST, PLACE_RIGHT, STRETCH, "Imperial techs" },
     { STEP_UU_UT, WIDGET_LINE, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Name of the imperial tech" },
     { STEP_UU_UT, WIDGET_TEXT, PLACE_RIGHT, STRETCH, "What the imperial tech does" },
-    { STEP_HERO, WIDGET_LIST, PLACE_LEFT, STRETCH, "Heroes" },
-    { STEP_HERO, WIDGET_LINE, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Name of the hero" },
+    { STEP_UU_UT, WIDGET_TEXT, PLACE_FRAME, LABEL_HEIGHT, "" },
+    { STEP_UU_UT, WIDGET_BUTTON, PLACE_FRAME, LAYOUT_TARGET_SIZE, "Choose hero..." },
+    { STEP_UU_UT, WIDGET_CHECKBOX, PLACE_FRAME, LAYOUT_TARGET_SIZE, "Hero" },
     { STEP_REVIEW, WIDGET_REPORT, PLACE_LEFT, STRETCH, "The civ" },
     { STEP_REVIEW, WIDGET_TEXT, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "" },
     { STEP_REVIEW, WIDGET_BUTTON, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Save civ" },
@@ -87,11 +89,21 @@ bool layout_is_focusable(ControlId control)
     return layout_spec(control).kind != WIDGET_TEXT;
 }
 
+bool layout_names_itself(ControlId control)
+{
+    WidgetKind kind = layout_spec(control).kind;
+
+    return (kind == WIDGET_BUTTON) || (kind == WIDGET_CHECKBOX);
+}
+
 bool layout_has_label(ControlId control)
 {
-    ControlSpec spec = layout_spec(control);
+    return (layout_spec(control).label[0] != '\0') && !layout_names_itself(control);
+}
 
-    return (spec.label[0] != '\0') && (spec.kind != WIDGET_BUTTON);
+bool layout_needs_hero(ControlId control)
+{
+    return (control == CONTROL_HERO_NAME) || (control == CONTROL_HERO_CHOOSE);
 }
 
 bool layout_boxes_overlap(Box first, Box second)
@@ -117,28 +129,43 @@ static Box box_of(int left, int top, int width, int height)
     return box;
 }
 
-static Box bottom_box(ControlId control, int width, int height)
+static Box hero_box(ControlId control, int back, int bottom_row)
 {
-    int content_left = MARGIN + STEP_LIST_WIDTH + MARGIN;
-    int bottom_row = height - MARGIN - LAYOUT_TARGET_SIZE;
+    int hero = back - GAP - HERO_BOX_WIDTH;
+    int choose = hero - GAP - BUTTON_WIDTH;
 
-    if (!CHECK(width >= LAYOUT_MIN_WIDTH) || !CHECK(height >= LAYOUT_MIN_HEIGHT)) {
-        return box_of(0, 0, 0, 0);
-    }
     switch ((int)control) {
-    case CONTROL_STATUS:
-        return box_of(content_left, bottom_row, width - content_left - MARGIN - (2 * (BUTTON_WIDTH + GAP)),
-                      LAYOUT_TARGET_SIZE);
-    case CONTROL_BACK:
-        return box_of(width - MARGIN - (2 * BUTTON_WIDTH) - GAP, bottom_row, BUTTON_WIDTH, LAYOUT_TARGET_SIZE);
-    case CONTROL_NEXT:
-        return box_of(width - MARGIN - BUTTON_WIDTH, bottom_row, BUTTON_WIDTH, LAYOUT_TARGET_SIZE);
+    case CONTROL_HERO_NAME:
+        return box_of(choose, bottom_row - LABEL_GAP - LABEL_HEIGHT, back - GAP - choose, LABEL_HEIGHT);
+    case CONTROL_HERO_CHOOSE:
+        return box_of(choose, bottom_row, BUTTON_WIDTH, LAYOUT_TARGET_SIZE);
+    case CONTROL_HERO:
+        return box_of(hero, bottom_row, HERO_BOX_WIDTH, LAYOUT_TARGET_SIZE);
     default:
         return box_of(0, 0, 0, 0);
     }
 }
 
-static Box frame_box(ControlId control, int width, int height)
+static Box bottom_box(ControlId control, WizardStep step, int width, int height)
+{
+    int content_left = MARGIN + STEP_LIST_WIDTH + MARGIN;
+    int bottom_row = height - MARGIN - LAYOUT_TARGET_SIZE;
+    int back = width - MARGIN - (2 * BUTTON_WIDTH) - GAP;
+    int status_end = layout_shows(CONTROL_HERO, step) ? hero_box(CONTROL_HERO_CHOOSE, back, bottom_row).left : back;
+
+    switch ((int)control) {
+    case CONTROL_STATUS:
+        return box_of(content_left, bottom_row, status_end - GAP - content_left, LAYOUT_TARGET_SIZE);
+    case CONTROL_BACK:
+        return box_of(back, bottom_row, BUTTON_WIDTH, LAYOUT_TARGET_SIZE);
+    case CONTROL_NEXT:
+        return box_of(width - MARGIN - BUTTON_WIDTH, bottom_row, BUTTON_WIDTH, LAYOUT_TARGET_SIZE);
+    default:
+        return hero_box(control, back, bottom_row);
+    }
+}
+
+static Box frame_box(ControlId control, WizardStep step, int width, int height)
 {
     int content_left = MARGIN + STEP_LIST_WIDTH + MARGIN;
     int right_width = width - content_left - MARGIN;
@@ -155,7 +182,7 @@ static Box frame_box(ControlId control, int width, int height)
     case CONTROL_HELP:
         return box_of(content_left, HELP_TOP, right_width, HELP_HEIGHT);
     default:
-        return bottom_box(control, width, height);
+        return bottom_box(control, step, width, height);
     }
 }
 
@@ -191,6 +218,11 @@ static int slot_height(int control, int stretch)
     return label + ((SPECS[control].height == STRETCH) ? stretch : SPECS[control].height);
 }
 
+static int foot_rise(WizardStep step)
+{
+    return layout_shows(CONTROL_HERO_NAME, step) ? LABEL_HEIGHT + LABEL_GAP : 0;
+}
+
 static Box column_of(ControlId control, int width, int height)
 {
     int content_left = MARGIN + STEP_LIST_WIDTH + MARGIN;
@@ -205,7 +237,7 @@ static Box column_of(ControlId control, int width, int height)
     column_width = (content_width - ((columns - 1) * MARGIN)) / columns;
     index = (SPECS[control].place == PLACE_LEFT) ? 0 : ((SPECS[control].place == PLACE_MIDDLE) ? 1 : columns - 1);
     return box_of(content_left + (index * (column_width + MARGIN)), CONTENT_TOP, column_width,
-                  height - MARGIN - LAYOUT_TARGET_SIZE - MARGIN - CONTENT_TOP);
+                  height - MARGIN - LAYOUT_TARGET_SIZE - MARGIN - CONTENT_TOP - foot_rise(SPECS[control].step));
 }
 
 static int stretch_height(ControlId control, Box column)
@@ -247,7 +279,7 @@ static int slot_top(ControlId control, Box column, int stretch)
     return top;
 }
 
-Box layout_box(ControlId control, int width, int height)
+Box layout_box(ControlId control, WizardStep step, int width, int height)
 {
     Box column;
     int stretch;
@@ -257,7 +289,7 @@ Box layout_box(ControlId control, int width, int height)
         return box_of(0, 0, 0, 0);
     }
     if (SPECS[control].place == PLACE_FRAME) {
-        return frame_box(control, width, height);
+        return frame_box(control, step, width, height);
     }
     column = column_of(control, width, height);
     stretch = stretch_height(control, column);

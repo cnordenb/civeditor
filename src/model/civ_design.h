@@ -117,6 +117,7 @@ bool civ_design_pick_unit(CivDesign *design, UnitOrigin origin, int unit_id);
 bool civ_design_pick_tech(CivDesign *design, TechTier tier, int km_index);
 bool civ_design_pick_hero(CivDesign *design, int unit_id);
 bool civ_design_is_complete(const CivDesign *design);
+bool civ_design_has_hero(const CivDesign *design);
 bool civ_design_hero_lacks_name(const CivDesign *design);
 bool civ_design_same_identity(const CivDesign *design, const CivDesign *other);
 bool civ_design_same_tree(const CivDesign *design, const CivDesign *other);

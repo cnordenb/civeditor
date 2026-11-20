@@ -77,6 +77,7 @@ typedef struct {
 
 bool controls_create(AppState *app);
 void controls_place(AppState *app);
+void controls_show(const AppState *app);
 void controls_show_step(AppState *app);
 HBRUSH controls_color(const AppState *app, HDC context, HWND control);
 void controls_draw_item(const AppState *app, const DRAWITEMSTRUCT *item);
@@ -113,6 +114,7 @@ bool dialogs_open(AppState *app);
 bool dialogs_load_catalog(AppState *app);
 bool dialogs_may_discard(AppState *app);
 bool dialogs_build(AppState *app);
+bool dialogs_choose_hero(AppState *app, Command *command);
 
 HWND app_open(HINSTANCE instance);
 int app_run(HINSTANCE instance, int show);

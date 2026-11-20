@@ -188,6 +188,7 @@ static bool every_control_passes(ControlQuestion question)
     int step;
     int control;
 
+    window_fixture_tick(window, CONTROL_HERO);
     for (step = 0; (step < STEP_COUNT) && passed; ++step) {
         go_to(window, step);
         for (control = 0; (control < CONTROL_COUNT) && passed; ++control) {
@@ -254,8 +255,9 @@ static long reading_place(HWND window, HWND control)
     if (identifier == (int)CONTROL_STEPS) {
         return 0L;
     }
-    box = layout_box((ControlId)identifier, LAYOUT_MIN_WIDTH, LAYOUT_MIN_HEIGHT);
-    if ((identifier == (int)CONTROL_BACK) || (identifier == (int)CONTROL_NEXT)) {
+    box = layout_box((ControlId)identifier, layout_spec((ControlId)identifier).step, LAYOUT_MIN_WIDTH,
+                     LAYOUT_MIN_HEIGHT);
+    if (layout_spec((ControlId)identifier).place == PLACE_FRAME) {
         return (READING_COLUMN * READING_COLUMN) + box.left;
     }
     return ((long)box.left * READING_COLUMN) + box.top;

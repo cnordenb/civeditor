@@ -8,7 +8,7 @@
 #include "review_tests.h"
 #include "tools/plan_tests.h"
 
-enum { CIV_GROUP_SIZE = 7, PICK_GROUP_SIZE = 6, SAVE_GROUP_SIZE = 4, ROSTER_GROUP_SIZE = 6, COMPARE_GROUP_SIZE = 3,
+enum { CIV_GROUP_SIZE = 7, PICK_GROUP_SIZE = 7, SAVE_GROUP_SIZE = 4, ROSTER_GROUP_SIZE = 6, COMPARE_GROUP_SIZE = 3,
        GAME_GROUP_SIZE = 7, CUT_GROUP_SIZE = 4, PLAN_GROUP_SIZE = 1, PATCH_GROUP_SIZE = 1, BUILT_GROUP_SIZE = 7,
        ROOM_GROUP_SIZE = 2, REVIEW_GROUP_SIZE = 6, BUILD_GROUP_SIZE = 8 };
 enum {
@@ -69,11 +69,14 @@ static TestOutcome run_pick_test(int index)
         return test_outcome_of("picking a hero names it as the game does",
                                test_picking_a_hero_names_it_as_the_game_does());
     case 4:
-        return test_outcome_of("picking no hero takes away the hero's name",
-                               test_picking_no_hero_takes_away_the_heros_name());
+        return test_outcome_of("unticking Hero takes away the hero's name",
+                               test_unticking_hero_takes_away_the_heros_name());
     case 5:
-        return test_outcome_of("a civ of the game shows no step done", test_a_civ_of_the_game_shows_no_step_done());
+        return test_outcome_of("a hero whose name is emptied lacks a name",
+                               test_a_hero_whose_name_is_emptied_lacks_a_name());
     case 6:
+        return test_outcome_of("a civ of the game shows no step done", test_a_civ_of_the_game_shows_no_step_done());
+    case 7:
         return test_outcome_of("the Review is done once the civ is saved in the mod as it is",
                                test_the_review_is_done_once_the_civ_is_saved_in_the_mod_as_it_is());
     default:
@@ -316,6 +319,24 @@ static TestOutcome run_opened_test(int index)
     case 3:
         return test_outcome_of("a wheel turn on the minimized window leaves the step unscrolled",
                                test_a_wheel_turn_on_the_minimized_window_leaves_the_step_unscrolled());
+    case 4:
+        return test_outcome_of("Choose hero lists every hero of the catalog once",
+                               test_choose_hero_lists_every_hero_of_the_catalog_once());
+    case 5:
+        return test_outcome_of("the list of Choose hero is labelled Heroes",
+                               test_the_list_of_choose_hero_is_labelled_heroes());
+    case 6:
+        return test_outcome_of("Choose hero opens with the focus on its list",
+                               test_choose_hero_opens_with_the_focus_on_its_list());
+    case 7:
+        return test_outcome_of("a name typed in Choose hero stays when its list takes the focus again",
+                               test_a_name_typed_in_choose_hero_stays_when_its_list_takes_the_focus_again());
+    case 8:
+        return test_outcome_of("the first hero of Choose hero can be picked",
+                               test_the_first_hero_of_choose_hero_can_be_picked());
+    case 9:
+        return test_outcome_of("a one-letter name typed in Choose hero is taken",
+                               test_a_one_letter_name_typed_in_choose_hero_is_taken());
     default:
         return test_outcome_missing();
     }

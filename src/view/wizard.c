@@ -3,8 +3,7 @@
 static const WizardPage PAGES[STEP_COUNT] = {
     { "Name and tech tree", "Choose which civ to edit, then change its name, its looks and what its tech tree holds." },
     { "Bonuses", "Select up to 24 bonuses and the one team bonus. Type to filter them, or choose a category." },
-    { "UU&UT", "Select the unique unit and the castle and imperial techs, and name each of them." },
-    { "Hero unit", "Select a hero for the civ, or none." },
+    { "UU&UT", "Select the unique unit and the castle and imperial techs, and name them. Tick Hero for a hero." },
     { "Review", "Check the civ. Save civ puts it in the mod; Build mod builds every civ saved into one mod." }
 };
 
@@ -29,11 +28,8 @@ static bool differs(const CivDesign *design, const CivDesign *base, WizardStep s
         return !civ_design_same_bonuses(design, base, BONUS_LIST_CIV) ||
                !civ_design_same_bonuses(design, base, BONUS_LIST_TEAM);
     }
-    if (step == STEP_UU_UT) {
-        return !civ_design_same_unit(design, base) || !civ_design_same_tech(design, base, TECH_TIER_CASTLE) ||
-               !civ_design_same_tech(design, base, TECH_TIER_IMPERIAL);
-    }
-    return !civ_design_same_hero(design, base);
+    return !civ_design_same_unit(design, base) || !civ_design_same_tech(design, base, TECH_TIER_CASTLE) ||
+           !civ_design_same_tech(design, base, TECH_TIER_IMPERIAL) || !civ_design_same_hero(design, base);
 }
 
 bool wizard_step_is_done(const CivDesign *design, const CivDesign *base, bool in_mod, WizardStep step)

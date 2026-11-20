@@ -18,7 +18,7 @@ enum {
 };
 
 static const wchar_t CLASSES[WIDGET_KIND_COUNT][CLASS_WIDTH] = {
-    L"STATIC", L"EDIT", L"EDIT", L"COMBOBOX", L"LISTBOX", L"LISTBOX", L"BUTTON", L"EDIT"
+    L"STATIC", L"EDIT", L"EDIT", L"COMBOBOX", L"LISTBOX", L"LISTBOX", L"BUTTON", L"EDIT", L"BUTTON"
 };
 
 static const DWORD STYLES[WIDGET_KIND_COUNT] = {
@@ -30,7 +30,8 @@ static const DWORD STYLES[WIDGET_KIND_COUNT] = {
     WS_BORDER | WS_TABSTOP | WS_VSCROLL | LBS_NOTIFY | LBS_OWNERDRAWVARIABLE | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT |
         LBS_MULTIPLESEL,
     WS_TABSTOP | BS_PUSHBUTTON | BS_NOTIFY,
-    WS_BORDER | WS_TABSTOP | WS_VSCROLL | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL
+    WS_BORDER | WS_TABSTOP | WS_VSCROLL | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL,
+    WS_TABSTOP | BS_AUTOCHECKBOX | BS_NOTIFY
 };
 
 static ControlId creation_order(int position)
@@ -89,7 +90,7 @@ static bool create_control(AppState *app, ControlId control)
     if (!CHECK(app->controls[control] != NULL)) {
         return false;
     }
-    if (spec.kind == WIDGET_BUTTON) {
+    if (layout_names_itself(control)) {
         (void)SetWindowTextW(app->controls[control], label);
     }
     return true;
@@ -217,7 +218,7 @@ static Box control_box(const AppState *app, ControlId control, Room room, bool l
 
     if (!room.narrow) {
         return label ? layout_label_box(control, room.width, room.height)
-                     : layout_box(control, room.width, room.height);
+                     : layout_box(control, app->step, room.width, room.height);
     }
     box = label ? reflow_label_box(control, app->step, room.width) : reflow_box(control, app->step, room.width);
     box.top -= app->scroll;
@@ -242,25 +243,37 @@ void controls_place(AppState *app)
     assist_placed(app);
 }
 
-void controls_show_step(AppState *app)
+static bool is_shown(const AppState *app, ControlId control)
+{
+    return layout_shows(control, app->step) &&
+           (!layout_needs_hero(control) || civ_design_has_hero(&app->history.present));
+}
+
+void controls_show(const AppState *app)
 {
     int control;
     int show;
 
     for (control = 0; control < CONTROL_COUNT; ++control) {
-        show = layout_shows((ControlId)control, app->step) ? SW_SHOW : SW_HIDE;
+        show = is_shown(app, (ControlId)control) ? SW_SHOW : SW_HIDE;
         (void)ShowWindow(app->controls[control], show);
         if (app->labels[control] != NULL) {
             (void)ShowWindow(app->labels[control], show);
         }
     }
+}
+
+void controls_show_step(AppState *app)
+{
+    controls_show(app);
     app->scroll = 0;
     controls_place(app);
 }
 
 static bool is_field(int identifier)
 {
-    return (identifier >= 0) && (identifier < CONTROL_COUNT) && layout_is_focusable((ControlId)identifier);
+    return (identifier >= 0) && (identifier < CONTROL_COUNT) && layout_is_focusable((ControlId)identifier) &&
+           !layout_names_itself((ControlId)identifier);
 }
 
 HBRUSH controls_color(const AppState *app, HDC context, HWND control)

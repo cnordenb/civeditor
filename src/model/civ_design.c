@@ -229,9 +229,14 @@ bool civ_design_is_complete(const CivDesign *design)
            (design->techs[TECH_TIER_IMPERIAL].km_index != CIV_NO_CHOICE) && !civ_design_hero_lacks_name(design);
 }
 
+bool civ_design_has_hero(const CivDesign *design)
+{
+    return design->hero_unit != CIV_NO_CHOICE;
+}
+
 bool civ_design_hero_lacks_name(const CivDesign *design)
 {
-    return (design->hero_unit != CIV_NO_CHOICE) && (design->texts[TEXT_FIELD_HERO_NAME][0] == '\0');
+    return civ_design_has_hero(design) && (design->texts[TEXT_FIELD_HERO_NAME][0] == '\0');
 }
 
 bool civ_design_tree_is_empty(const CivDesign *design)

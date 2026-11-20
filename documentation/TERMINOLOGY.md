@@ -28,15 +28,17 @@ node - one unit, building or tech of the tech tree, known by its id
 universal node - a node the game shows in the tech tree of every civ, had or not, e.g. the Archery Range
 regional node - a node that only some civs of the game have, e.g. the Camel Rider
 unique node - a node that only one civ of the game has, e.g. the Folwark
-step - one page of the wizard, e.g. "Bonuses"; there are five
-UU&UT - the step of the unique unit and the two unique techs, each picked and named
-wizard - the five steps in which a design is made: name and tech tree, bonuses, UU&UT, hero unit and review
+step - one page of the wizard, e.g. "Bonuses"; there are four
+UU&UT - the step of the unique unit, the two unique techs and the hero, each picked and named
+wizard - the four steps in which a design is made: name and tech tree, bonuses, UU&UT and review
 base civ - a civ of the game as civbuilder holds it: its tech tree, bonuses, looks, names, tagline and description
 civ to edit - the civ of the game that the steps show and change, chosen in the first step; the Britons at first
 draft - the design of a civ to edit as it was last left, kept while another civ is edited
 catalog - the lists civbuilder offers in the steps, read from data/*.txt: looks, bonuses, units, techs, nodes
 control - one part of a step that the user reads or acts on, e.g. the list of bonuses; each has a visible label
 checklist - a control whose rows are ticked and unticked, e.g. the bonuses; in a plain list one row is picked
+Hero box - the control of UU&UT ticked to give the civ a hero, Attila the Hun at first, and unticked to take it away
+Choose hero... - the button left of the Hero box that lists the heroes; picking one fills in its name in the game
 notch - one step of the mouse wheel; a notch over a list moves it one row
 smooth scrolling - Windows sliding a list as it scrolls; civbuilder moves its lists at once instead
 knob - the part of a scroll bar that shows how far it is scrolled and can be dragged; Windows calls it the thumb

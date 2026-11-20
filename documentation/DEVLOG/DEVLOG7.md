@@ -3,6 +3,7 @@
 - [2026-11-17](#2026-11-17)
 - [2026-11-18](#2026-11-18)
 - [2026-11-19](#2026-11-19)
+- [2026-11-20](#2026-11-20)
 
 Part 7 of the development log. It follows [part 6](DEVLOG6.md). The decisions made in the log are listed in
 [DECISIONS.md](../DECISIONS.md).
@@ -553,3 +554,171 @@ The day goes on from [part 6](DEVLOG6.md#2026-11-17), which holds its sections u
 2. **A step that scrolls.** In one column the wheel still has the whole window erased and drawn again at each notch
    that moves the step. Proposal: let the window leave its controls alone when it is erased (`WS_CLIPCHILDREN`), and
    wrap the rows of the lists again only when the window's width changes, not when the step scrolls.
+
+## 2026-11-20
+
+### 03:00:57: the hero is chosen in UU&UT, with a Hero box and Choose hero...
+
+#### What changed
+
+- **Why.** It was asked that the step Hero unit go, and that the hero be chosen in UU&UT instead: a box Hero left of
+  Back; once it is ticked, a button Choose hero... left of the box, with the hero's name above it, Attila the Hun at
+  first; Choose hero... opens a list of the heroes, Attila the Hun picked at first, and a hero picked there keeps its
+  name in the game unless another is typed. The fix of
+  [21:28:52](#212852-a-turn-of-the-wheel-that-cannot-scroll-the-step-does-nothing) was found to work by hand.
+- **How the request was read.** Three points were asked before the work and answered: the name of the hero is typed
+  in the dialog of Choose hero..., under the list; the name above Choose hero... is the name given to the hero,
+  "Attila the Hun" at first; and the tests that open the window, with the mutator, could be run for this change.
+- **The steps.** `STEP_HERO` is gone from `wizard.h`: the wizard has four steps, UU&UT the third and Review the
+  fourth, and the menu Go, Ctrl+1 to Ctrl+4 and the window's title follow. UU&UT is done once its unique unit, a
+  unique tech or the hero differs from the base civ's (`differs` in `wizard.c`), and its help says to tick Hero for a
+  hero.
+- **The controls.** `CONTROL_HERO_LIST` is gone. `CONTROL_HERO_NAME` is now a text, the hero's name;
+  `CONTROL_HERO_CHOOSE` is the button Choose hero...; `CONTROL_HERO` is the Hero box, of the new kind
+  `WIDGET_CHECKBOX`, a `BUTTON` of style `BS_AUTOCHECKBOX`. The three are `PLACE_FRAME` controls of UU&UT: `hero_box`
+  in `layout.c` puts the box left of Back, Choose hero... left of the box, and the name above Choose hero... and the
+  box. The status line of UU&UT ends before them (`bottom_box`), and its columns end above the name (`foot_rise`): 362
+  high at 960 by 560 instead of 388. `layout_box` takes the step for this, as `reflow_box` does. In one column the
+  three come after the imperial tech, in that order. `layout_names_itself` tells the controls that show their label
+  themselves, a button or a box; `layout_needs_hero` the two that show only while the civ has a hero
+  (`civ_design_has_hero`, new in `civ_design.c`). `controls_show` in `controls.c` shows each control by its step and
+  by the hero, and `sync_details` calls it after every change, as it ticks or unticks the box to match the design.
+  The box is drawn on the paper of the window, not on the colour of fields (`is_field`).
+- **The hero.** Ticking the box makes the command of `hero_box_command` in `binding.c`: the hero `HERO_AT_FIRST`,
+  unit 777, Attila the Hun, named as the catalog names him; unticking it, no hero. The heroes no longer have a row
+  "No hero", and `LIST_NO_ITEM` is gone. They are the rows of `CONTROL_HERO_CHOOSE`, which `sync_choices` leaves
+  alone, a button having no rows to show. The name above Choose hero... is the hero's name field (`details_of`).
+- **Choose hero....** `dialogs_choose_hero` in `dialogs.c` lists the heroes in the dialog of `text_dialog.c`, which
+  now takes an `AskQuestion` (`shell.h`): a question, its answer and, when it has rows, a list above the field. The
+  civ's hero is picked at first and the field holds its name; picking a row puts the row's text, the hero's name in
+  the game, in the field (`take_row`); OK picks the hero of the row with the name in the field, as one command that
+  undo takes back; Cancel, or OK with the field empty, changes nothing. The list has a classic scroll bar, as every
+  other. The question of the mod name is the same dialog without the list. The dialog's procedure is split into
+  `answer_command` and `end_answer`. The field holds as much as the hero's name does in the design
+  (`CIV_NAME_CAPACITY`): at first it held 64 characters, and a civ file whose hero had a longer name left Choose
+  hero... doing nothing.
+- **Tests.** 444, up from 440, and 72 redundancy tests, up from 65. Tests 356 to 359, in the new
+  `tests/shell/hero_tests.c`, are new: ticking Hero names Attila the Hun above Choose hero... (356); unticking it
+  hides Choose hero... (357); a hero picked in Choose hero..., Saladin, keeps his name in the game (358); a name typed
+  there, Testhero, is the hero's (359). Tests 356 to 440 are now 360 to 444; the test of `TERMINOLOGY.md`'s lines,
+  Test 419 before, is Test 423. Test 272 checks that unticking Hero gives the command to pick no hero, instead of the
+  row "No hero"; Test 296 that a hero finishes UU&UT; Test 271 a row of Choose hero...; Test 347 fits the window to
+  the Review, now the shortest step, instead of the hero step; Test 364 reads "Step 2 of 4" in the window's title.
+  Redundancy test 11 unticks Hero instead of picking the row "No hero", Redundancy test 10 picks from the rows of
+  Choose hero..., and Redundancy test 64, now 65, reads four steps in the menu Go. The tests that walk every control
+  of every step (Tab, names, help and the frame of focus) tick Hero first, so that Choose hero... is among the
+  controls they reach, and the test of the reading order reads the bottom row left to right after the columns.
+  `window_fixture.c` ticks a box, clicks a button, and answers Choose hero...: a hook on the test's thread
+  (`WH_CALLWNDPROCRET`) picks the row, types the name and presses OK once the dialog has started (`WM_INITDIALOG`),
+  so that the real dialog runs and closes before Windows shows it.
+- **Redundancy tests.** Seven are new, each for mutants that survived the tests above. Redundancy test 12: a hero
+  whose name is emptied lacks a name (`civ_design_hero_lacks_name` reading the second byte of the name instead of the
+  first: the bytes of an earlier name are left after the end of an emptied one). In `review_tests.c`, Choose hero...
+  lists each of the 30 heroes of the catalog once (67: a row less, or an empty row more); its list is labelled
+  "Heroes" (68: a list with no label, or the label's text given to the list); it opens with the focus on its list
+  (69: the focus on the field); a name typed there stays when the list takes the focus again (70: every message of
+  the list taking its row); its first row, Cao Cao, can be picked like any other (71: row 0 refused or left empty);
+  and a name of one letter is taken (72: the second letter checked instead of the first). Redundancy tests 12 to 65
+  are now 13 to 66. To see what the dialog showed, `window_fixture.c` keeps its rows, the label of its list and
+  whether the list had the focus (`window_fixture_asked`), and `window_fixture_refocus` makes it give the list the
+  focus again before OK.
+- **Checked.** Test 296 failed before `differs` took the hero in, and passed after. Each of Tests 356 to 359
+  failed alone when the code was broken on purpose: ticking Hero picking unit 929 instead of 777 (356), Choose
+  hero... shown without a hero (357), the picked row not put in the field (358), the typed name left out (359); each
+  break was undone. Test 359, changed for a while to open a civ file whose hero has a name of 100 characters and pick
+  Saladin, failed before the field was widened and passed after; it was put back as it was, byte for byte. The
+  eleven mutants the redundancy tests were written for, put in by hand one at a time, each failed only its own test,
+  and each file was put back. The window was opened at 960 by 560 and pictured: on UU&UT, unticked, only the Hero box
+  shows left of Back; ticked, Choose hero... shows left of it, with "Attila the Hun" above; Choose hero... opens the
+  list "Heroes", from Cao Cao, with Attila the Hun picked and his name in the field under it, then OK and Cancel.
+  `build.exe quick norules redundancy`: 491 tests, none failed. `build.exe`, with the analyzer: no warning, 444
+  tests, and Test 423 failed, on the first line of `TERMINOLOGY.md`, as Test 419 did before.
+- **Measured.** Every source compiled anew, the coverage build with the redundancy tests (before the field of
+  Choose hero... was widened and before Redundancy tests 12 and 67 to 72), gcovr, then the crapper: no function at 10
+  or more. The three of `text_dialog.c` at 10 or more before are now run by the tests: `answer_proc` 3.0 (56 before),
+  `text_dialog_show` 4.1 (30), `put_text` 3.1 (12). Of the functions this work changed, the highest are
+  `dialogs_choose_hero` 8.1, `sync_details` 8.0, `differs` 8.0, `frame_box` 7.8, `sync_on_notify` 7.2, `details_of`
+  7.0 and `column_of` 7.0. The dryer: no two functions 80% alike. The mutator, with the window's tests and
+  `--timeout-factor 40`, on every line this work changed in 12 files: 91 mutants killed, 47 survived, and 1 on a line
+  no test runs. Of the 47, 10 change an argument that Windows does not read (`text_dialog.c` 144, 146, 158 twice, 160
+  once, 174 twice; `sync.c` 210, 374 twice); 9 a start value that is always set again before it is read (`ask.c` 37
+  twice; `dialogs.c` 285, 286 twice, 302 three times, 303); 7 a bound that is never reached (`text_dialog.c` 160
+  twice, a row of 64 characters or no row picked, and 207, a capacity of 1; `dialogs.c` 290 three times, rows past
+  the end of the list, which are not shown, and 308, `LB_GETCURSEL` giving the count of rows); 14 the places and sizes
+  of the dialog (`text_dialog.c` 101 to 114, question 2); 2 the dialog without a list and Cancel (`text_dialog.c` 125,
+  the count of controls of the question of the mod name, which every test answers through `ask_script`, and 213,
+  Cancel taking the field, which for Choose hero... gives back the hero it had); 4 in `layout.c`: 101, a label's
+  second letter, where every label is empty or longer than one letter, 139, the hero's name 16 wider into the room
+  above Back, and 223 twice, the columns 8 lower, then touching the name, and those of the other steps 1 lower; and 1
+  in `controls.c`, 275, the list of steps drawn on the paper instead of the colour of fields, a check older than this
+  work, where no test reads colours. Not run: `dialogs.c` 309, Cancel in Choose hero..., which no test presses.
+- **Documents.** `TESTS.md`: Tests 356 to 359, the numbers of Tests 360 to 444, the entries of Tests 271, 272, 296,
+  347 and 364; Redundancy tests 12 and 67 to 72, the numbers of Redundancy tests 13 to 66, the entries of Redundancy
+  tests 10, 11 and 65, and the lines of the tests in the files changed. `MAINTAINER.md`: four steps, the dialog with a
+  list in `src/shell/`, the bottom row of UU&UT, how the hero is chosen, how a test answers Choose hero... and reads
+  what it showed, `hero_tests.c`, and the dialog of Choose hero... among the tests of `review_tests.c`.
+  `TERMINOLOGY.md`: step, UU&UT and wizard changed; Hero box and Choose hero... new. `README.md`: the steps, Ctrl+1 to
+  Ctrl+4, and that a civ has no hero until Hero is ticked. `DECISIONS.md`: the decisions below.
+  `DELETION_REQUESTS.md`: the scratch files of this work and the worker `run-2b24c3bb`.
+
+#### Obstacles met, and how they were solved
+
+- **A baseline that failed once.** The mutator's first run of `dialogs.c` stopped before any mutant: its baseline,
+  the tests without a mutant, had 1 failure in 484, and the mutator printed only the end of the output, which does
+  not name the test. The same tests passed in the baseline of the next file and in every run since, alone and eight
+  side by side. Which test failed was not found.
+- **Tests changed while the mutator ran.** A worker of the mutator copies only the file it mutates and links the
+  rest of the project, `tests/` too. The second run of `dialogs.c` was stopped at 00:32 once the tests it builds were
+  being changed, and it was run again after.
+- **Mutants reported killed that no test kills.** In the second run of `text_dialog.c`, 14 mutants of the dialog's
+  places and sizes were reported killed, though two of them, put in by hand, failed no test. They were the first 16
+  mutants of the run, run at once by 16 workers that each ran the window's tests, and a mutant's time is limited to
+  ten times the baseline, which runs alone. A mutant that runs out of time is reported killed, as one that fails a
+  test is. With `--timeout-factor 40` the 14 survived. Every line this work changed was then measured again with
+  `--timeout-factor 40` and `--mutate-all`. Of the mutants on those lines reported killed before, 10 of the first run
+  (9 of `text_dialog.c`, 1 of `layout.c`) and 28 of the second (14 of `text_dialog.c`, 14 of `dialogs.c`) survived
+  it. Five on lines this work did not change, in `civ_design.c`, `dialogs.c` and `sync.c`, were reported killed in
+  the first reports and survived in the last (question 3). The eight runs side by side, all passed, showed that no
+  test fails from the load alone.
+
+#### Not done
+
+- The 47 mutants that survive, listed under Measured (questions 2 and 3).
+- Cancel in Choose hero... is pressed by no test. OK with the field empty closes the dialog and changes nothing,
+  without a word (question 4).
+- Whether the focus is lost when an undo unticks Hero while Choose hero... has the focus was not checked (question 5).
+- The question of the mod name, the same dialog without the list, is shown by no test: every test answers it through
+  `ask_script`.
+- Which test failed once in the mutator's baseline of `dialogs.c` was not found.
+- At 960 by 560, the text of the selected unit in UU&UT is cut after about two of its five lines. Its column is 26
+  lower than before, so it shows about one line less than it did.
+- In the picture of UU&UT taken after the window was made 960 by 560, the picked castle tech and imperial tech were
+  half out of sight in their lists; this was not looked into.
+- The crapper and the dryer ran before the field of Choose hero... was widened and before the last redundancy tests;
+  the widening changes no path of a function, and the dryer passes by the tests.
+- Choose hero... was not tried by hand with the mouse, the keyboard or a screen reader; the tests drive it and the
+  pictures show it.
+- The core has 444 tests, where Rule 31 allows about 54 (question 1 of
+  [21:28:52](#212852-a-turn-of-the-wheel-that-cannot-scroll-the-step-does-nothing)).
+- Test 423 still fails, on the first line of `TERMINOLOGY.md` (question 3 of 2026-11-17 10:57:53).
+- `redundancy_suite.c` has 380 of the 400 lines a file may have (Rule 13).
+- `sitrep&instructions/sitrep.md` was not brought up to date with this work.
+
+#### Questions
+
+1. **The mutator's time limit.** With its default, ten times the baseline, the mutator reported mutants killed
+   that fail no test, when 16 workers ran the window's tests at once. Proposal: add `--timeout-factor 40` to the
+   command of Requirement 12 in `AGENTS.md`.
+2. **The places and sizes of the dialog.** No test checks the dialog of Choose hero... as the steps of the window are
+   checked: that its targets are 44 by 44 and that no two of its controls overlap (Req. 3); 14 mutants of its places
+   and sizes survive. Whether its controls are 44 by 44 now was not measured. Proposal: two accessibility tests
+   (Rule 32) that read the dialog through `window_fixture_asked`.
+3. **Mutants measured before with the default limit.** Five mutants on lines this work did not change
+   (`civ_design.c` 36 and 149, `dialogs.c` 37, `sync.c` 74 and 139) were reported killed in the first reports of this
+   work and survived in the last, and the files measured before may hold more. Proposal: measure every folder again
+   with `--timeout-factor 40 --mutate-all`, the folders of the window when the computer can be left to it for some
+   hours.
+4. **OK with the name empty.** OK in Choose hero... with the field empty closes the dialog and changes nothing,
+   without a word. Proposal: OK greyed out while the field is empty.
+5. **The focus when Choose hero... hides.** An undo that unticks Hero hides Choose hero..., which may have the focus.
+   Proposal: check what happens, and give the focus to the Hero box when Choose hero... hides while it has it.

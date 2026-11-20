@@ -89,8 +89,8 @@ static TestOutcome run_rows_pick_test(int index)
         return test_outcome_of("a row of the heroes gives the command to pick its hero",
                                test_a_row_of_the_heroes_gives_the_command_to_pick_its_hero());
     case 3:
-        return test_outcome_of("the row no hero gives the command to pick no hero",
-                               test_the_row_no_hero_gives_the_command_to_pick_no_hero());
+        return test_outcome_of("unticking Hero gives the command to pick no hero",
+                               test_unticking_hero_gives_the_command_to_pick_no_hero());
     case 4:
         return test_outcome_of("a row of the castle techs gives the command to pick its tech",
                                test_a_row_of_the_castle_techs_gives_the_command_to_pick_its_tech());
@@ -192,8 +192,8 @@ static TestOutcome run_step_picked_test(int index)
         return test_outcome_of("the UU&UT step is done once an imperial tech is picked",
                                test_the_uu_ut_step_is_done_once_an_imperial_tech_is_picked());
     case 4:
-        return test_outcome_of("the hero step is done once a hero is picked",
-                               test_the_hero_step_is_done_once_a_hero_is_picked());
+        return test_outcome_of("the UU&UT step is done once a hero is picked",
+                               test_the_uu_ut_step_is_done_once_a_hero_is_picked());
     case 5:
         return test_outcome_of("a pick finishes only its own step", test_a_pick_finishes_only_its_own_step());
     case 6:

@@ -139,6 +139,9 @@ DetailText details_of(const CivDesign *design, const Catalog *catalog, ControlId
     case CONTROL_UNIT_INFO:
         add_unit(&detail, design, catalog);
         break;
+    case CONTROL_HERO_NAME:
+        summary_add(&detail, design->texts[TEXT_FIELD_HERO_NAME]);
+        break;
     default:
         add_picked_tech(&detail, design, catalog, control);
         break;

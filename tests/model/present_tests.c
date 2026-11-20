@@ -126,12 +126,14 @@ bool test_a_row_of_the_units_gives_the_command_to_pick_its_unit(void)
 
 bool test_a_row_of_the_heroes_gives_the_command_to_pick_its_hero(void)
 {
-    return row_gives(CONTROL_HERO_LIST, THIRD_ROW, COMMAND_PICK_HERO, 0, OWN_UNIT);
+    return row_gives(CONTROL_HERO_CHOOSE, THIRD_ROW, COMMAND_PICK_HERO, 0, OWN_UNIT);
 }
 
-bool test_the_row_no_hero_gives_the_command_to_pick_no_hero(void)
+bool test_unticking_hero_gives_the_command_to_pick_no_hero(void)
 {
-    return row_gives(CONTROL_HERO_LIST, LIST_NO_ITEM, COMMAND_PICK_HERO, 0, CIV_NO_CHOICE);
+    Command command = hero_box_command(recipe_game_catalog(), false);
+
+    return (command.kind == COMMAND_PICK_HERO) && (command.value == CIV_NO_CHOICE);
 }
 
 bool test_a_row_of_the_castle_techs_gives_the_command_to_pick_its_tech(void)
