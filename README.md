@@ -19,32 +19,17 @@ the original also opens.
 
 ## Usage
 
-1. **Build it.** With [MinGW-w64](https://www.mingw-w64.org/) gcc on the `PATH`, in the project's folder, once:
-   `gcc -o build.exe tools/build/*.c src/core/*.c`. Then `build.exe` builds civeditor and runs the tests.
-2. **Start it.** Run `build\civeditor.exe`.
-3. **Choose the civ to edit.** The first control of the first step is Civ to edit, the Britons at first. Every step
-   then shows that civ as the game has it, ready to change: its name, tech tree, bonuses, unique unit and techs and
-   looks, and, when the game is installed, its tagline; it has no hero until Hero is ticked in UU&UT. Choosing another civ keeps the edits of
-   the one before, and shows them again when it is chosen again.
-4. **Make a civ.** Go through the steps with the mouse or the keyboard: Tab moves between the controls, the arrow
-   keys pick in a list, and Space ticks or unticks in a list of bonuses or of the tech tree. Ctrl+Page Down and
-   Ctrl+Page Up go to the next and the previous step, Ctrl+1 to Ctrl+4 to a step. F1 says in the status line what the control in focus is
-   for. Ctrl+Z undoes a change, Ctrl+Y redoes it. Every command is also in the menu (Alt).
-5. **Save it in the mod.** The last step shows what the civ still needs before a mod can be built from it. Save civ
-   there puts the civ, as it is, in the mod, and the label at the top right says how many civs the mod changes; a civ
-   as the game has it is left out. Save civ file... (Ctrl+S) in the menu File saves the civ shown as a
-   `.civeditor.json` file, and Open civ file... (Ctrl+O) opens one saved before, `.civbuilder.json` files among them.
-   A civ that keeps the game's name is offered the name `civeditor_civ`.
-6. **Build the mod.** Press Build mod... or Ctrl+B and give the mod a name, `civeditor_mod` at first. Each civ saved
-   in the mod takes the place of the civ of the game it was made from. civeditor asks before it writes two folders,
-   `<name>-data` and `<name>-ui`, into the game's `mods\local` folder, and then says what it built. In the game,
-   turn on the UI mod in the mod manager and pick the data mod in the lobby. The game must be installed through
-   Steam; civeditor reads its data file and never changes it. Turn the UI mod off before you play a campaign: the
-   names of the unique techs, the unique unit and the hero take the place of a few lines of the game's campaigns.
-7. **Give the UI mod the highest priority.** Another mod that changes the game's texts, such as a mod of tooltips,
-   can cover the civs' texts if the mod manager gives it a higher priority than the UI mod. Each civ's description
-   has a string id of its own, which other mods do not use, but its name and the names of its unique unit, unique
-   techs and hero keep the game's ids.
+1. Choose which civ to edit.  
+2. Edit what you want.  
+3. Save.  
+4. Build mod.  
+5. Start the game.  
+6. In lobby, choose your mod as data mod.  
+
+## Compilation
+1. Install [MinGW-w64](https://www.mingw-w64.org/).  
+2. Add gcc to PATH in system environment variables.  
+3. Run build.exe in the project's folder.  
 
 ## Contributing
 
