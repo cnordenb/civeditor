@@ -58,6 +58,6 @@ To keep civeditor working and up to date, see [MAINTAINER.md](documentation/MAIN
 
 ## Acknowledgements
 
-civeditor remakes aoe2-empire-forge by napkingcole, whose catalog of bonuses comes from Krakenmeister's civbuilder.
+civeditor is a modified derivative of napkingcole's [Empire Forge](https://github.com/napkingcole/aoe2-empire-forge) and subsequently licensed under [GPL-3.0](https://github.com/napkingcole/aoe2-empire-forge?tab=GPL-3.0-1-ov-file).
 
 Development of civeditor was accelerated with Claude Opus 5.5.
