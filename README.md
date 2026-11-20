@@ -18,7 +18,7 @@ Review, it is saved in the mod, and every civ saved is built into one mod. A civ
 the original also opens.
 
 ## Usage
-
+0. Fetch binary from [releases](https://github.com/cnordenb/civeditor/releases).
 1. Choose which civ to edit.  
 2. Edit what you want.  
 3. Save.  
