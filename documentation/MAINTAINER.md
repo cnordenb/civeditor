@@ -1,4 +1,4 @@
-# civbuilder: maintainer's guide
+# civeditor: maintainer's guide
 
 1. [Build and test after a change](#build-and-test-after-a-change)
 2. [How the code works](#how-the-code-works)
@@ -23,7 +23,7 @@ You need Windows, and gcc from [MinGW-w64](https://www.mingw-w64.org/) on the `P
 2. **Make the build program, the first time only.** `gcc -o build.exe tools/build/*.c src/core/*.c`. Make it again
    only when a file in `tools/build/` changes.
 3. **Build and test.** `build.exe`. It compiles every `.c` file that changed, with the static analyzer, links
-   `build\civbuilder.exe`, `build\tests.exe` and `build\build_check.exe`, and runs the tests. It ends with
+   `build\civeditor.exe`, `build\tests.exe` and `build\build_check.exe`, and runs the tests. It ends with
    `Build and tests passed.`, `Build failed.` or `Tests failed.`
    - `Build failed.`: gcc printed the warning or the finding of the analyzer above it, with file and line. Every
      warning is an error here; mend the code, do not silence the warning.
@@ -31,7 +31,7 @@ You need Windows, and gcc from [MinGW-w64](https://www.mingw-w64.org/) on the `P
      Look up Test N in [TESTS.md](TESTS.md) to see what it expects.
 4. **Faster while working.** `build.exe quick` skips the analyzer and takes a few seconds. Run `build.exe` once
    before you hand in the change.
-5. **Try it.** Start `build\civbuilder.exe` and walk through the change by hand.
+5. **Try it.** Start `build\civeditor.exe` and walk through the change by hand.
 6. **Write it down.** Add a section to the newest part of `DEVLOG/`, update [TESTS.md](TESTS.md) if a test changed,
    and this guide if the code's shape changed.
 7. **Run the mutator** on each folder you changed (Requirement 12), as
@@ -39,7 +39,7 @@ You need Windows, and gcc from [MinGW-w64](https://www.mingw-w64.org/) on the `P
 
 ## How the code works
 
-civbuilder is one Win32 program in C11. All memory is fixed when the program starts: there is no `malloc`. The design
+civeditor is one Win32 program in C11. All memory is fixed when the program starts: there is no `malloc`. The design
 being made is one `CivDesign` (in `src/model/civ_design.h`); the window reads it to draw the steps and changes it
 only by handing a `Command` to `history_do`, so that every change can be undone.
 
@@ -79,7 +79,6 @@ only by handing a `Command` to `history_do`, so that every change can be undone.
 | `LICENSE` | The GPL-3.0, under which anyone may use the project. |
 | `AGENTS.md` | What an AI agent must know before it changes anything here: what to read first, what it must never do, and when a change is done. |
 | `CLAUDE.md` | The same for Claude Code, which reads this file by itself. It loads `AGENTS.md` and `RULES.md`. |
-| `sitrep&instructions/` | `instructions.md`, the task civbuilder was made for and its limits (C and Win32 only, P10, no deletions); `instructions_2.md`, the answers to the first questions and the trial in the game, with its four pictures in `pictures/`; `instructions_3.md`, the answers of 2026-11-16 and a trial of the window; `sitrep.md`, the questions put to the chief developer and how to test the project. |
 | `.claude/settings.json` | What Claude Code is refused here: committing, pushing, deleting files and changing `REQUIREMENTS.md`. |
 | `.claude/skills/` | Step-by-step procedures for AI agents, one folder each, such as how to write the development log. |
 | `.github/` | What GitHub shows contributors: how to contribute, report a bug or a security hole, the pull request form, and the WCAG 2.2 checklist of Requirement 4 (`ACCESSIBILITY.md`). |
@@ -164,7 +163,7 @@ into the same field join one change (`command_joins`), so one undo takes back a 
 3. **Explain it.** Add its help to `HELP_TEXTS` in `src/view/control_help.c`, at the same place: one or two plain
    sentences, which F1 shows in the status line. A test fails if a control one acts on has none.
 4. **Bind it.** Add its line to `BINDINGS` in `src/present/binding.c`: the text field, choice or list it shows.
-5. **Build and test**, then look at the step in `build\civbuilder.exe`.
+5. **Build and test**, then look at the step in `build\civeditor.exe`.
 
 The bottom row holds the status line, Back and Next on every step (`bottom_box` in `layout.c`). In UU&UT the Hero box
 is left of Back, Choose hero... left of the box, and the hero's name above Choose hero... (`hero_box`); there the
@@ -312,7 +311,7 @@ of each node of `tree.txt` it has. Those lists come from the game's
 
 Build mod... in the window calls `dialogs_build` in `dialogs.c`. It finds the game and its mods folder
 (`mod_places.c`), takes the civs saved in the mod (`roster_civ`) and stops if there is none or one is not finished
-(`forge_civs_are_finished`), asks for the mod name (`ask_text`; `civbuilder_mod` at first, then the last one given)
+(`forge_civs_are_finished`), asks for the mod name (`ask_text`; `civeditor_mod` at first, then the last one given)
 and whether to build into the mods folder, and calls `forge_build` in `forge.c` with a `ForgeJob` of those civs.
 That does, in order:
 

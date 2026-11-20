@@ -286,8 +286,8 @@ static TestOutcome run_build_test(int index)
     case 2:
         return test_outcome_of("a build with no civ saved says so", test_a_build_with_no_civ_saved_says_so());
     case 3:
-        return test_outcome_of("a mod is named civbuilder_mod unless named otherwise",
-                               test_a_mod_is_named_civbuilder_mod_unless_named_otherwise());
+        return test_outcome_of("a mod is named civeditor_mod unless named otherwise",
+                               test_a_mod_is_named_civeditor_mod_unless_named_otherwise());
     case 4:
         return test_outcome_of("a filter leaves the bonuses that hold it and no other",
                                test_a_filter_leaves_the_bonuses_that_hold_it_and_no_other());
@@ -337,6 +337,9 @@ static TestOutcome run_opened_test(int index)
     case 9:
         return test_outcome_of("a one-letter name typed in Choose hero is taken",
                                test_a_one_letter_name_typed_in_choose_hero_is_taken());
+    case 10:
+        return test_outcome_of("a civ named with one letter is saved under that letter",
+                               test_a_civ_named_with_one_letter_is_saved_under_that_letter());
     default:
         return test_outcome_missing();
     }

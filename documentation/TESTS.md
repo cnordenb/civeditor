@@ -1,6 +1,6 @@
 # Tests
 
-This project strives to have sensible testing. The goal is not to have 100% test coverage but to have tests which _sufficiently_ ensure the functional completeness, functional correctness, maintainability, and accessibility of civbuilder. For more guidelines on software quality and accessibility, see [ISO/IEC 25010:2011](https://cdn.standards.iteh.ai/samples/35733/2ca18b477b7845a5b8cae39d6de0c098/ISO-IEC-25010-2011.pdf), [ISO/IEC 25010:2023](https://cdn.standards.iteh.ai/samples/78176/13ff8ea97048443f99318920757df124/ISO-IEC-25010-2023.pdf) and [WCAG 2.2](https://www.w3.org/TR/WCAG22/).
+This project strives to have sensible testing. The goal is not to have 100% test coverage but to have tests which _sufficiently_ ensure the functional completeness, functional correctness, maintainability, and accessibility of civeditor. For more guidelines on software quality and accessibility, see [ISO/IEC 25010:2011](https://cdn.standards.iteh.ai/samples/35733/2ca18b477b7845a5b8cae39d6de0c098/ISO-IEC-25010-2011.pdf), [ISO/IEC 25010:2023](https://cdn.standards.iteh.ai/samples/78176/13ff8ea97048443f99318920757df124/ISO-IEC-25010-2023.pdf) and [WCAG 2.2](https://www.w3.org/TR/WCAG22/).
 
 This document lists each test, its purpose, and in which test file it resides. This document is an effort to mitigate redundant tests and ensure test quality. It is intended as an aid in the trouble-shooting of potential false positives.
 
@@ -342,7 +342,7 @@ Functional completeness & correctness tests:
 - [Test 320](#test-320): a unit of the game is saved with no custom units index
 - [Test 321](#test-321): a custom unit is saved with no id of the game
 - [Test 322](#test-322): the language of the britons is saved as index 0
-- [Test 323](#test-323): a new civ is saved as civbuilder civ by default
+- [Test 323](#test-323): a new civ is saved as civeditor civ by default
 - [Test 324](#test-324): a named civ is saved under its name
 - [Test 325](#test-325): a save that is cancelled says that the civ was not saved
 - [Test 326](#test-326): a saved civ is opened again
@@ -530,7 +530,7 @@ Redundancy tests (Req. 10 to 12), run only with the word `redundancy`, as `build
 - [Redundancy test 55](#redundancy-test-55): Save civ leaves a civ as the game has it out of the mod
 - [Redundancy test 56](#redundancy-test-56): the review text shows no caret when clicked
 - [Redundancy test 57](#redundancy-test-57): a build with no civ saved says so
-- [Redundancy test 58](#redundancy-test-58): a mod is named civbuilder_mod unless named otherwise
+- [Redundancy test 58](#redundancy-test-58): a mod is named civeditor_mod unless named otherwise
 - [Redundancy test 59](#redundancy-test-59): a filter leaves the bonuses that hold it and no other
 - [Redundancy test 60](#redundancy-test-60): the categories together hold every bonus once
 - [Redundancy test 61](#redundancy-test-61): an empty mod name builds no mod
@@ -545,6 +545,7 @@ Redundancy tests (Req. 10 to 12), run only with the word `redundancy`, as `build
 - [Redundancy test 70](#redundancy-test-70): a name typed in Choose hero... stays when its list takes the focus again
 - [Redundancy test 71](#redundancy-test-71): the first hero of Choose hero... can be picked
 - [Redundancy test 72](#redundancy-test-72): a one-letter name typed in Choose hero... is taken
+- [Redundancy test 73](#redundancy-test-73): a civ named with one letter is saved under that letter
 
 ## Test 1
 
@@ -4094,10 +4095,10 @@ With the language of slot 1, the Britons, the saved text holds `"language": 0`.
 `tests/shell/dialog_tests.c`, lines 208-211
 
 ### Purpose:
-Verify that a civ the user has not named is saved as `civbuilder_civ` by default (Req. 1).
+Verify that a civ the user has not named is saved as `civeditor_civ` by default (Req. 1).
 
 ### Assertion expectation:
-A new civ, named as the game names it, saved in `build/` writes `build/civbuilder_civ.civbuilder.json` anew.
+A new civ, named as the game names it, saved in `build/` writes `build/civeditor_civ.civeditor.json` anew.
 
 ## Test 324
 
@@ -4108,7 +4109,7 @@ A new civ, named as the game names it, saved in `build/` writes `build/civbuilde
 Verify that a civ the user named is saved under that name (Req. 1).
 
 ### Assertion expectation:
-With the name "Testonia" typed, Save writes `build/Testonia.civbuilder.json` anew, over a stale file.
+With the name "Testonia" typed, Save writes `build/Testonia.civeditor.json` anew, over a stale file.
 
 ## Test 325
 
@@ -4548,7 +4549,7 @@ On each of the 9 steps at 960 by 560, no two boxes of controls and labels overla
 Verify that the window's title says which civ is open and on which step (WCAG 2.2 SC 2.4.2; Req. 3).
 
 ### Assertion expectation:
-For a civ named Testonia on the Bonuses step, the title is "Testonia - Step 2 of 4: Bonuses - civbuilder".
+For a civ named Testonia on the Bonuses step, the title is "Testonia - Step 2 of 4: Bonuses - civeditor".
 
 ## Test 365
 
@@ -6064,15 +6065,15 @@ Build in a new window gives a message that holds "No civ is saved in the mod".
 `tests/redundancy/review_tests.c`, lines 188-195
 
 ### Purpose:
-Verify that the mod's name is civbuilder_mod until another is given (Req. 7, 12).
+Verify that the mod's name is civeditor_mod until another is given (Req. 7, 12).
 
 ### Assertion expectation:
-A saved civ built with the name question answered as offered is built as "civbuilder_mod-data".
+A saved civ built with the name question answered as offered is built as "civeditor_mod-data".
 
 ## Redundancy test 59
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 241-249
+`tests/redundancy/review_tests.c`, lines 251-259
 
 ### Purpose:
 Verify that the filter of the bonuses leaves the bonuses that hold its text and no other (Req. 10, 12).
@@ -6083,7 +6084,7 @@ After "food" is typed in the filter, the list holds as many rows as held "food" 
 ## Redundancy test 60
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 251-264
+`tests/redundancy/review_tests.c`, lines 261-274
 
 ### Purpose:
 Verify that each category of bonuses lists its own bonuses, so that together they list each once (Req. 10, 12).
@@ -6105,13 +6106,13 @@ With a whole civ saved in the mod and an empty mod name given, the status line r
 ## Redundancy test 62
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 206-216
+`tests/redundancy/review_tests.c`, lines 218-221
 
 ### Purpose:
 Verify that the civ file of a civ with a long name is named after the first 48 letters of it (Req. 12).
 
 ### Assertion expectation:
-A civ named with 60 letters is saved, by Save civ file..., as its first 48 letters and `.civbuilder.json`.
+A civ named with 60 letters is saved, by Save civ file..., as its first 48 letters and `.civeditor.json`.
 
 ## Redundancy test 63
 
@@ -6127,7 +6128,7 @@ With the Name field in focus, the thread's caret is shown blinking.
 ## Redundancy test 64
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 266-271
+`tests/redundancy/review_tests.c`, lines 276-281
 
 ### Purpose:
 Verify that the window opens with the first control of the first step in focus (Req. 12).
@@ -6138,7 +6139,7 @@ Right after the window opens, the focus is on Civ to edit.
 ## Redundancy test 65
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 273-288
+`tests/redundancy/review_tests.c`, lines 283-298
 
 ### Purpose:
 Verify that the menu Go lists every step by its number and its title as written, "&" too (Req. 12).
@@ -6149,7 +6150,7 @@ The items after the separator read "&1 Name and tech tree\tCtrl+1" to "&4 Review
 ## Redundancy test 66
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 290-300
+`tests/redundancy/review_tests.c`, lines 300-310
 
 ### Purpose:
 Verify that a wheel turn while the window is minimized does not scroll the step it shows (Req. 12).
@@ -6160,7 +6161,7 @@ At 480 by 360, minimized, turned a notch down and shown again, the window's scro
 ## Redundancy test 67
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 327-332
+`tests/redundancy/review_tests.c`, lines 337-342
 
 ### Purpose:
 Verify that Choose hero... lists every hero of the catalog, each once (Req. 12).
@@ -6171,7 +6172,7 @@ The list of Choose hero... holds as many rows as the catalog of `data/` has hero
 ## Redundancy test 68
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 334-339
+`tests/redundancy/review_tests.c`, lines 344-349
 
 ### Purpose:
 Verify that the list of Choose hero... is labelled, so that a screen reader names it (Req. 12).
@@ -6182,7 +6183,7 @@ The text just before the list in the dialog of Choose hero... reads "Heroes".
 ## Redundancy test 69
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 341-346
+`tests/redundancy/review_tests.c`, lines 351-356
 
 ### Purpose:
 Verify that Choose hero... opens with the focus on its list of heroes (Req. 12).
@@ -6193,7 +6194,7 @@ When the dialog of Choose hero... has started, the control in focus is its list.
 ## Redundancy test 70
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 355-359
+`tests/redundancy/review_tests.c`, lines 365-369
 
 ### Purpose:
 Verify that a name typed in Choose hero... stays when its list takes the focus again (Req. 12).
@@ -6204,7 +6205,7 @@ With Saladin picked, "Testhero" typed and the focus moved to the field and back 
 ## Redundancy test 71
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 378-386
+`tests/redundancy/review_tests.c`, lines 388-396
 
 ### Purpose:
 Verify that the first row of Choose hero... can be picked like any other (Req. 12).
@@ -6215,10 +6216,21 @@ With Saladin picked, then the catalog's first hero, Cao Cao, the name shown is "
 ## Redundancy test 72
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 388-391
+`tests/redundancy/review_tests.c`, lines 398-401
 
 ### Purpose:
 Verify that a hero's name of one letter, typed in Choose hero..., is taken (Req. 12).
 
 ### Assertion expectation:
 With Saladin picked and "X" typed as his name, the name shown is "X".
+
+## Redundancy test 73
+
+### File residence:
+`tests/redundancy/review_tests.c`, lines 223-226
+
+### Purpose:
+Verify that a civ named with one letter is saved under that letter (Req. 1, 12).
+
+### Assertion expectation:
+With the name "X" typed, Save civ file... writes `build/X.civeditor.json` anew, over a stale file.

@@ -121,7 +121,7 @@ bool test_the_window_title_names_the_civ_and_the_step(void)
     civ_design_reset(&titled);
     (void)civ_design_set_text(&titled, TEXT_FIELD_NAME, "Testonia");
     title = details_window_title(&titled, STEP_BONUSES);
-    return text_equal(title.text, "Testonia - Step 2 of 4: Bonuses - civbuilder");
+    return text_equal(title.text, "Testonia - Step 2 of 4: Bonuses - civeditor");
 }
 
 bool test_the_steps_and_their_buttons_are_on_every_step(void)

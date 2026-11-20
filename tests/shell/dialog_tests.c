@@ -21,8 +21,8 @@ typedef struct {
 } Answers;
 
 static const wchar_t BUILD[] = L"build";
-static const wchar_t DEFAULT_FILE[] = L"build\\civbuilder_civ.civbuilder.json";
-static const wchar_t NAMED_FILE[] = L"build\\Testonia.civbuilder.json";
+static const wchar_t DEFAULT_FILE[] = L"build\\civeditor_civ.civeditor.json";
+static const wchar_t NAMED_FILE[] = L"build\\Testonia.civeditor.json";
 static const wchar_t HOME[] = L"build\\test_home";
 static const wchar_t PROFILE[] = L"test_home\\Games\\Age of Empires 2 DE\\7656\\mods\\local";
 static const wchar_t NAME[] = L"Testonia";
@@ -205,7 +205,7 @@ static COLORREF colour_given(UINT message, ControlId control, bool background)
     return closed(window, true) ? given : CLR_INVALID;
 }
 
-bool test_a_new_civ_is_saved_as_civbuilder_civ_by_default(void)
+bool test_a_new_civ_is_saved_as_civeditor_civ_by_default(void)
 {
     return saves_anew(NULL, DEFAULT_FILE);
 }

@@ -126,7 +126,7 @@ static void make_template(const AskQuestion *question)
     put_box(whole);
     put_word(0U);
     put_word(0U);
-    put_text(L"civbuilder");
+    put_text(L"civeditor");
     put_word(FONT_POINTS);
     put_text(L"Segoe UI");
     for (item = first; item < ITEM_LIMIT; ++item) {

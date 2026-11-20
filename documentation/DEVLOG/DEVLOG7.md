@@ -722,3 +722,107 @@ The day goes on from [part 6](DEVLOG6.md#2026-11-17), which holds its sections u
    without a word. Proposal: OK greyed out while the field is empty.
 5. **The focus when Choose hero... hides.** An undo that unticks Hero hides Choose hero..., which may have the focus.
    Proposal: check what happens, and give the focus to the Hero box when Choose hero... hides while it has it.
+
+### 03:59:19: the project named civeditor
+
+#### What changed
+
+- **Why.** The project was renamed from civbuilder to civeditor. Every mention of the old name that names this
+  project was to follow it; the history and the names of other things were not.
+- **The program.** The window's title ends in " - civeditor" (`details_window_title` in `details.c`); the dialogs and
+  message boxes are titled civeditor (`text_dialog.c`, `dialogs.c`); the window's class is `civeditor.window` and the
+  first mod name `civeditor_mod` (`app_window.c`); `build_plan.c` builds `build\civeditor.exe`.
+- **Civ files.** A civ is saved as `<name>.civeditor.json`, and a civ without a name of its own as
+  `civeditor_civ.civeditor.json` (`suggest_name` in `dialogs.c`). Open civ file... names `*.civeditor.json` and
+  `*.civbuilder.json` and lists every `*.json` file, as `*.civbuilder.json;*.json` did before, so the files saved
+  before the rename open as before.
+- **Kept.** The format `civbuilder_v1`, in which the original wrote civ files and which `civ_file_read.c` still reads;
+  the original's example civ in that format, `tests/fixtures/example.civbuilder.json`; and Krakenmeister's
+  civbuilder in `README.md`, where the catalog of bonuses comes from. The sections of the log written before, their
+  titles and the links to them keep the old name, as the log is not rewritten; so do the notes in `materials/`.
+- **Tests.** 444 tests and 73 redundancy tests, up from 72. Tests 323, 324, 326 and 364 and Redundancy tests 58 and
+  62 expect the new name, and two are renamed with it: `test_a_new_civ_is_saved_as_civeditor_civ_by_default` (Test
+  323) and `test_a_mod_is_named_civeditor_mod_unless_named_otherwise` (Redundancy test 58). Redundancy test 73 saves
+  a civ named "X" and expects `build\X.civeditor.json`; it and Redundancy test 62 share `saves_as` in
+  `review_tests.c`.
+- **Checked.** With the tests changed first, `build.exe quick norules redundancy` ran 491 tests and 6 failed, each on
+  the old name: Tests 323, 324, 326 and 364, and Redundancy tests 58 and 62. With the code changed and `build.exe`
+  built again, all 491 passed. Of all the lines changed, the mutator finds something to change only on line 104 of
+  `dialogs.c`. With the window's tests and `--timeout-factor 40`, of its 2 mutants, `!=` made `==` was killed, and
+  `name[0]` made `name[1]` survived: no test saved a civ whose name has one letter. Redundancy test 73 was written
+  for it. It passed, and with that mutant put in by hand it failed, the only test to; the mutant was taken out.
+  Run again, the mutator killed both. Of seven runs of all the tests, Test 390 failed in one, at "Description of
+  the unique unit", and passed in the other six. `build.exe`, with the analyzer: no warning, 444 tests, and only
+  Test 423 failed, on the first line of `TERMINOLOGY.md`, as before.
+- **Documents.** `README.md`: the name, the links to GitHub, `.civeditor.json` files and that `.civbuilder.json`
+  files open, `civeditor_civ`, `civeditor_mod`, `build\civeditor.exe` and the Acknowledgements. `TERMINOLOGY.md`:
+  the ten lines that named the program. `TESTS.md`: Tests 323 and 364, Redundancy tests 58 and 62, the lines of the
+  tests of `review_tests.c` after Redundancy test 62, and Redundancy test 73. `MAINTAINER.md`, `AGENTS.md`,
+  `.claude/skills/rules-check/SKILL.md`, `.github/ACCESSIBILITY.md`, `.github/CONTRIBUTING.md`, `.github/SECURITY.md`
+  and `.github/ISSUE_TEMPLATE/feature_request.md`: the name. `DECISIONS.md`: the decisions below, the name, and the
+  example of the window's title, which still had five steps. `DELETION_REQUESTS.md`: what the build and the tests
+  wrote under the old name.
+- **Rules.** Rule 1 names civeditor; the change of `RULES.md` came with the rename.
+- **Replaced.** The default name `civbuilder_civ.civbuilder.json`, of
+  [2026-11-09 10:06:18](DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100), and
+  the first mod name `civbuilder_mod`, of
+  [2026-11-18 07:24:48](#072448-civs-of-the-game-edited-and-saved-into-one-named-mod).
+
+#### Not done
+
+- `REQUIREMENTS.md` was changed with the rename, not by this work (Rule 2): Requirement 1 says `civeditor_civ` and
+  Requirement 3 "Civ Editor", while Requirement 4 still says "Civ Builder" (question 1).
+- The project's folder is still named `civbuilder`, and so is the repository on GitHub until it is renamed; the links
+  in `README.md` and `.github/SECURITY.md` lead to `cnordenb/civeditor`. `.vscode/launch.json`, which Git ignores,
+  names the folder in its paths.
+- Why Test 390 failed once was not found; the rename changed nothing that it reads. It may be the test that failed
+  once, unnamed, in a baseline of the mutator in
+  [03:00:57](#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero).
+- Open civ file... was not tried by hand with a `.civbuilder.json` file, and no test opens a file through it.
+- `.github/ACCESSIBILITY.md` gives the window's title as "Testonia - Step 2 of 9: Tech tree - civeditor", from when
+  the wizard had nine steps; only the name in it was changed. `AGENTS.md` and `MAINTAINER.md` name
+  `sitrep&instructions/` in the main folder, which is now `materials/sitrep&instructions/`, ignored by Git
+  (question 2).
+- The crapper and the dryer were not run again: the code changed only in its texts, and the new function, `saves_as`,
+  is in `tests/`, which they pass by.
+- The questions of [03:00:57](#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero) are still open.
+
+#### Questions
+
+1. **Requirement 4.** It says that when every item of the checklist holds, "Civ Builder is considered" WCAG 2.2 AA
+   compliant; Requirement 3 now says "Civ Editor". Proposal: Requirement 4 says "Civ Editor" too.
+2. **Two stale pointers.** The title in `.github/ACCESSIBILITY.md` has nine steps, where the wizard has four, and
+   `AGENTS.md` and `MAINTAINER.md` send the reader to `sitrep&instructions/`, now in `materials/`, which Git ignores,
+   so that a clone of the project has no such folder. Proposal: the title of Test 364, "Testonia - Step 2 of 4:
+   Bonuses - civeditor", in `ACCESSIBILITY.md`; and either `materials/` tracked by Git, or the pointers to it taken
+   out of `AGENTS.md` and `MAINTAINER.md`.
+
+### 04:06:25: the documents point at no file that Git ignores
+
+#### What changed
+
+- **Answers.** Of the questions of 03:59:19, in [the project named civeditor](#035919-the-project-named-civeditor):
+  the pointers to the notes that Git ignores are taken out, and the log records what the notes asked; the title in
+  `.github/ACCESSIBILITY.md` is brought up to date (2). Requirement 4 now says "Civ Editor", as question 1
+  proposed; `REQUIREMENTS.md` was changed with it, not by this work (Rule 2).
+- **`AGENTS.md`.** The stack names Rule 29 as its source, and the list of what to read before a change ends with
+  `MAINTAINER.md`: the item that sent the reader to the instructions, which a clone of the project lacks, is taken
+  out. What it said, P10, Head First Design Patterns, Clean Code, and C and Win32 only, is Rules 26 to 29.
+- **`MAINTAINER.md`.** The table of files and folders has no row for the folder of the notes, which is not in the
+  main folder and which Git ignores.
+- **`DECISIONS.md`.** The decision that kept the notes in a folder of their own now says that the documents point at
+  no file that Git ignores. Two decisions say what the notes asked without naming their files, and the decision on
+  the sections written before the rename speaks of notes that Git ignores, without naming their folder.
+- **`.github/ACCESSIBILITY.md`.** The example of 2.4.2 is the title of Test 364, "Testonia - Step 2 of 4: Bonuses -
+  civeditor", in place of a title of nine steps, and 1.4.4 asks for a walk through the four steps, not nine.
+- **Tests.** 444 tests and 73 redundancy tests, as before; only documents changed.
+- **Checked.** `build.exe quick nowindow redundancy` ran 433 tests, and only the test of the first line of
+  `TERMINOLOGY.md` failed (Test 423 when the window's tests run), as before. `git grep` finds the notes, their files
+  and their folder named in no file Git tracks but the log and `.gitignore`.
+
+#### Not done
+
+- The sections of the log written before still name the notes and their files, 93 times over the seven parts: the
+  log is not rewritten.
+- The reading of 2.4.6 in `.github/ACCESSIBILITY.md`, dated 2026-11-10, still counts the nine titles of the steps
+  of then; it records what was read that day.

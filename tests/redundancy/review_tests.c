@@ -19,7 +19,7 @@ static const wchar_t ROOT[] = L"build";
 static const wchar_t HOME[] = L"build\\test_home";
 static const wchar_t PROFILE[] = L"test_home\\Games\\Age of Empires 2 DE\\7656\\mods\\local";
 static const wchar_t LONG_NAME[] = L"AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghij";
-static const wchar_t CUT_FILE[] = L"build\\AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefgh.civbuilder.json";
+static const wchar_t CUT_FILE[] = L"build\\AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefgh.civeditor.json";
 static const char STALE[] = "stale";
 static const wchar_t GO_STEPS[] = L"&1 Name and tech tree\tCtrl+1|&2 Bonuses\tCtrl+2|&3 UU&&UT\tCtrl+3|"
                                   L"&4 Review\tCtrl+4|";
@@ -185,13 +185,13 @@ static void save_a_whole_civ(HWND window)
     window_fixture_act(window, ACTION_ADD);
 }
 
-bool test_a_mod_is_named_civbuilder_mod_unless_named_otherwise(void)
+bool test_a_mod_is_named_civeditor_mod_unless_named_otherwise(void)
 {
     HWND window = opened_with_game(NULL);
 
     save_a_whole_civ(window);
     window_fixture_act(window, ACTION_BUILD);
-    return closed(window, wcsstr(ask_last_message(), L"built as civbuilder_mod-data") != NULL);
+    return closed(window, wcsstr(ask_last_message(), L"built as civeditor_mod-data") != NULL);
 }
 
 bool test_an_empty_mod_name_builds_no_mod(void)
@@ -203,16 +203,26 @@ bool test_an_empty_mod_name_builds_no_mod(void)
     return closed(window, wcscmp(text_of(window, CONTROL_STATUS), L"No mod was built.") == 0);
 }
 
-bool test_a_long_civ_name_is_cut_in_the_name_of_its_file(void)
+static bool saves_as(const wchar_t *name, const wchar_t *file)
 {
     HWND window = opened_with(NULL, NULL);
     FileRead read;
 
-    (void)CHECK(file_write_all(CUT_FILE, STALE, sizeof STALE - 1U));
-    type_into(window, CONTROL_NAME, LONG_NAME);
+    (void)CHECK(file_write_all(file, STALE, sizeof STALE - 1U));
+    type_into(window, CONTROL_NAME, name);
     window_fixture_act(window, ACTION_SAVE);
-    read = file_read_all(CUT_FILE, saved, sizeof saved);
+    read = file_read_all(file, saved, sizeof saved);
     return closed(window, (read.length > 0U) && (saved[0] == '{'));
+}
+
+bool test_a_long_civ_name_is_cut_in_the_name_of_its_file(void)
+{
+    return saves_as(LONG_NAME, CUT_FILE);
+}
+
+bool test_a_civ_named_with_one_letter_is_saved_under_that_letter(void)
+{
+    return saves_as(L"X", L"build\\X.civeditor.json");
 }
 
 static LRESULT bonus_rows(HWND window)

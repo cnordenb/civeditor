@@ -15,7 +15,7 @@ description: >-
 build.exe quick
 ```
 
-civbuilder has no shell script: its maintainability tests, written in C, check Rules 10 to 15 (comments, lengths,
+civeditor has no shell script: its maintainability tests, written in C, check Rules 10 to 15 (comments, lengths,
 files per folder, unique names), Rules 18 to 22 (the log's form), Rules 5, 6 and 9 (`TESTS.md`, `TERMINOLOGY.md`) and
 the rules of P10. Every `FAILED` line names the test, and the line after it names the file and line it found.
 

@@ -7,7 +7,7 @@ On usage of AI tools:
 
 Checklist before submitting PR:
 - All tests pass.
-- `build.exe` passes: it builds civbuilder and runs every test, the checks of the rules among them.
+- `build.exe` passes: it builds civeditor and runs every test, the checks of the rules among them.
 - Your change works (try it yourself, not only through the tests).
 - Your change is recorded in the development log, as [MAINTAINER.md](../documentation/MAINTAINER.md) describes.
 - If you delegated any work to an AI agent, read and review it yourself and make sure you approve.

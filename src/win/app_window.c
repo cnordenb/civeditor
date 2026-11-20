@@ -21,7 +21,7 @@ typedef struct {
     LRESULT result;
 } Handled;
 
-static const wchar_t CLASS_NAME[] = L"civbuilder.window";
+static const wchar_t CLASS_NAME[] = L"civeditor.window";
 static AppState app;
 
 static void focus_step(void)
@@ -405,11 +405,11 @@ HWND app_open(HINSTANCE instance)
     app.bonus_category = LIST_ALL_CATEGORIES;
     app.unsaved = false;
     app.file_path[0] = L'\0';
-    (void)lstrcpynW(app.mod_name, L"civbuilder_mod", MOD_NAME_CAPACITY);
+    (void)lstrcpynW(app.mod_name, L"civeditor_mod", MOD_NAME_CAPACITY);
     history_start(&app.history);
     roster_start(&app.roster);
     app.accelerators = menu_keys();
-    app.window = CreateWindowExW(WINDOW_EXTRA_STYLE, CLASS_NAME, L"civbuilder", WINDOW_STYLE, CW_USEDEFAULT,
+    app.window = CreateWindowExW(WINDOW_EXTRA_STYLE, CLASS_NAME, L"civeditor", WINDOW_STYLE, CW_USEDEFAULT,
                                  CW_USEDEFAULT, MulDiv(START_WIDTH, app.dpi, LAYOUT_BASE_DPI),
                                  MulDiv(START_HEIGHT, app.dpi, LAYOUT_BASE_DPI), NULL, menu_make(), instance, NULL);
     return app.window;

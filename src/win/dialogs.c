@@ -14,9 +14,9 @@ enum { FOLDER_TRIES = 3, NAME_LIMIT = 96, MESSAGE_CAPACITY = 2048, LIVE_REGION_C
 
 _Static_assert((int)FORGE_CIV_LIMIT == (int)ROSTER_SLOT_LIMIT, "a mod has room for every civ the roster holds");
 
-static const wchar_t FILTER[] = L"Civ files (*.civbuilder.json)\0*.civbuilder.json;*.json\0All files (*.*)\0*.*\0";
+static const wchar_t FILTER[] = L"Civ files (*.civeditor.json;*.civbuilder.json)\0*.json\0All files (*.*)\0*.*\0";
 static const wchar_t DATA_FOLDERS[FOLDER_TRIES][8] = { L"data", L"..\\data", L"" };
-static const wchar_t TITLE[] = L"civbuilder";
+static const wchar_t TITLE[] = L"civeditor";
 
 static CivDesign opened;
 static wchar_t chosen_path[FILE_PATH_CAPACITY];
@@ -101,7 +101,7 @@ static void suggest_name(const AppState *app)
     if (!text_equal(typed, given)) {
         (void)text_copy_span(name, sizeof name, typed, NAME_LIMIT / 2);
     }
-    (void)text_append(name, sizeof name, (name[0] != '\0') ? ".civbuilder.json" : "civbuilder_civ.civbuilder.json");
+    (void)text_append(name, sizeof name, (name[0] != '\0') ? ".civeditor.json" : "civeditor_civ.civeditor.json");
     if (!dialogs_widen(name, chosen_path, FILE_PATH_CAPACITY)) {
         chosen_path[0] = L'\0';
     }
@@ -116,7 +116,7 @@ static OPENFILENAMEW file_dialog(const AppState *app)
     dialog.lpstrFilter = FILTER;
     dialog.lpstrFile = chosen_path;
     dialog.nMaxFile = FILE_PATH_CAPACITY;
-    dialog.lpstrDefExt = L"civbuilder.json";
+    dialog.lpstrDefExt = L"civeditor.json";
     return dialog;
 }
 
@@ -155,7 +155,7 @@ bool dialogs_open(AppState *app)
         return false;
     }
     if (!civ_file_load(&opened, chosen_path)) {
-        (void)ask_message(app->window, L"That file is not a civ file civbuilder can read.", TITLE,
+        (void)ask_message(app->window, L"That file is not a civ file civeditor can read.", TITLE,
                           MB_OK | MB_ICONERROR);
         return false;
     }

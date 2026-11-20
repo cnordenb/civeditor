@@ -11,7 +11,7 @@ bool test_save_civ_counts_the_civ_it_puts_in_the_mod(void);
 bool test_save_civ_leaves_a_civ_as_the_game_has_it_out_of_the_mod(void);
 bool test_the_review_text_shows_no_caret_when_clicked(void);
 bool test_a_build_with_no_civ_saved_says_so(void);
-bool test_a_mod_is_named_civbuilder_mod_unless_named_otherwise(void);
+bool test_a_mod_is_named_civeditor_mod_unless_named_otherwise(void);
 bool test_an_empty_mod_name_builds_no_mod(void);
 bool test_a_long_civ_name_is_cut_in_the_name_of_its_file(void);
 bool test_a_text_field_shows_its_caret_when_it_takes_the_focus(void);
@@ -26,5 +26,6 @@ bool test_choose_hero_opens_with_the_focus_on_its_list(void);
 bool test_a_name_typed_in_choose_hero_stays_when_its_list_takes_the_focus_again(void);
 bool test_the_first_hero_of_choose_hero_can_be_picked(void);
 bool test_a_one_letter_name_typed_in_choose_hero_is_taken(void);
+bool test_a_civ_named_with_one_letter_is_saved_under_that_letter(void);
 
 #endif

@@ -10,11 +10,11 @@ section - one change recorded under its day, titled by its time if it was the fi
 decision - a choice made in a section and listed by subject in DECISIONS.md, with a link to that section
 question - a numbered point for the chief developer at the end of a section, open until a later section answers it
 deletion request - a file or folder that should be deleted, listed in DELETION_REQUESTS.md for a human to delete
-original - aoe2-empire-forge, the Python web application that civbuilder remakes in C
-game - Age of Empires II: Definitive Edition, for which civbuilder makes civs
+original - aoe2-empire-forge, the Python web application that civeditor remakes in C
+game - Age of Empires II: Definitive Edition, for which civeditor makes civs
 civ - a civilization of the game: its name, looks, bonuses, tech tree, unique unit, unique techs and hero
 tagline - the line that says what kind of civ it is, e.g. "Foot Archer"; the game gives one to each of its civs
-design - the civ being made in civbuilder, kept in CivDesign in src/model/civ_design.c
+design - the civ being made in civeditor, kept in CivDesign in src/model/civ_design.c
 look - a choice of how a civ looks and sounds: its architecture, language, wonder, castle, monk or scout
 monk skin - the look of a civ's monks, taken from another civ or from a priest of the scenario editor
 bonus - an advantage of a civ, e.g. "Villagers carry +3 food"; a civ has up to 24
@@ -31,18 +31,18 @@ unique node - a node that only one civ of the game has, e.g. the Folwark
 step - one page of the wizard, e.g. "Bonuses"; there are four
 UU&UT - the step of the unique unit, the two unique techs and the hero, each picked and named
 wizard - the four steps in which a design is made: name and tech tree, bonuses, UU&UT and review
-base civ - a civ of the game as civbuilder holds it: its tech tree, bonuses, looks, names, tagline and description
+base civ - a civ of the game as civeditor holds it: its tech tree, bonuses, looks, names, tagline and description
 civ to edit - the civ of the game that the steps show and change, chosen in the first step; the Britons at first
 draft - the design of a civ to edit as it was last left, kept while another civ is edited
-catalog - the lists civbuilder offers in the steps, read from data/*.txt: looks, bonuses, units, techs, nodes
+catalog - the lists civeditor offers in the steps, read from data/*.txt: looks, bonuses, units, techs, nodes
 control - one part of a step that the user reads or acts on, e.g. the list of bonuses; each has a visible label
 checklist - a control whose rows are ticked and unticked, e.g. the bonuses; in a plain list one row is picked
 Hero box - the control of UU&UT ticked to give the civ a hero, Attila the Hun at first, and unticked to take it away
 Choose hero... - the button left of the Hero box that lists the heroes; picking one fills in its name in the game
 notch - one step of the mouse wheel; a notch over a list moves it one row
-smooth scrolling - Windows sliding a list as it scrolls; civbuilder moves its lists at once instead
+smooth scrolling - Windows sliding a list as it scrolls; civeditor moves its lists at once instead
 knob - the part of a scroll bar that shows how far it is scrolled and can be dragged; Windows calls it the thumb
-classic scroll bar - a scroll bar that shows its arrows and knob at all times, as every scroll bar of civbuilder does
+classic scroll bar - a scroll bar that shows its arrows and knob at all times, as every scroll bar of civeditor does
 command - one change to a design, e.g. ticking a bonus, made through history_do in src/model/history.c
 undo - taking back the last command, with Ctrl+Z; redo makes it again, with Ctrl+Y
 civ file - a design saved as JSON in the format empireforge_v2 of the original; civbuilder_v1 files also open
@@ -60,7 +60,7 @@ cost line - a unit patch placed in the three costs of its unit, e.g. the 300 sto
 look line - a line of a bonus giving a unit of its civ the look of that unit of another civ, e.g. the Palintonon of 457
 requirement tech - a tech of one civ, researched by itself, that a tech of every civ requires, e.g. 768 for the Cavalier
 multiplier - how many times a bonus counts, 1 to 10, kept in the civ file; each change of the bonus is scaled to it
-mod - a folder the game loads from its local mods folder; civbuilder makes a data mod and a UI mod
+mod - a folder the game loads from its local mods folder; civeditor makes a data mod and a UI mod
 mods folder - the game's local mods folder, mods\local in the user's newest profile, where a mod is built
 data mod - the mod with a changed dat file that holds the new civ
 civ list - civilizations.json, the game's list of civs, their names, unique techs and unique unit; the data mod has one
@@ -68,12 +68,12 @@ tech tree file - the game's file of one civ's tech tree screen, e.g. CivTechTree
 UI mod - the mod with the texts of the new civ for the game's screens
 string id - the number of a text of the game, e.g. 10271 for "Britons"; the UI mod gives some of them new texts
 description id - the string id of a civ's description, named by the civ list; the design's is its own, 990100 + its slot
-mod name - the name the user gives a mod when Build mod asks for it, e.g. "Testonia"; civbuilder_mod at first
+mod name - the name the user gives a mod when Build mod asks for it, e.g. "Testonia"; civeditor_mod at first
 prefix - the start of both mod folders' names, made from the mod name, e.g. "testonia" in "testonia-data"
 review - the last step: the whole design, and what it still needs before a mod can be built from it
 Save civ - the button of the review that puts the design, as it is, in the mod; a civ as the game has it is left out
 civs changed - the count of civs Save civ has put in the mod, shown at the top right of the review, e.g. "1 civ changed"
-roster - what civbuilder keeps of each slot while it runs: the draft of its civ, and the design Save civ put in the mod
+roster - what civeditor keeps of each slot while it runs: the draft of its civ, and the design Save civ put in the mod
 job - what Build mod puts in one mod: every design that Save civ put in it, up to 64, held in ForgeJob
 replaced civ - the civ of the game whose slot a design takes in the mod: the civ to edit it was made from
 recipe - what is done to the dat file to put a design in the slot of its replaced civ, in src/forge/recipe.c

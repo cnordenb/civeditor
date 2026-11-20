@@ -17,7 +17,7 @@ enum {
 static const char RESPONSES[SOURCE_PROGRAM_COUNT][RESPONSE_WIDTH] = { "build/application.rsp", "build/tests.rsp",
                                                                      "build/build_tool.rsp" };
 static const char LINKS[SOURCE_PROGRAM_COUNT][LINK_WIDTH] = {
-    "gcc -g -mwindows -municode -o build/civbuilder.exe @build/application.rsp",
+    "gcc -g -mwindows -municode -o build/civeditor.exe @build/application.rsp",
     "gcc -g -o build/tests.exe @build/tests.rsp",
     "gcc -g -o build/build_check.exe @build/build_tool.rsp"
 };

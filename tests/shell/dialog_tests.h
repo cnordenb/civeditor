@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-bool test_a_new_civ_is_saved_as_civbuilder_civ_by_default(void);
+bool test_a_new_civ_is_saved_as_civeditor_civ_by_default(void);
 bool test_a_named_civ_is_saved_under_its_name(void);
 bool test_a_save_that_is_cancelled_says_that_the_civ_was_not_saved(void);
 bool test_a_saved_civ_is_opened_again(void);

@@ -12,9 +12,11 @@ an earlier one, the earlier one is named after it, with its own link.
 
 ## Rules, and how they are read
 
+- **Rule 1 names civeditor,** the project's name. The change of `RULES.md` came with the rename.
+  [2026-11-20 03:59:19](DEVLOG/DEVLOG7.md#035919-the-project-named-civeditor)
 - **The rules of `RULES.md` hold, Rules 0 to 30.** Rules 0 to 25 are repo_template's, as amended outside the log,
-  and Rules 26 to 30 hold what `instructions.md` asks; Rules 10 to 13 apply to code only (Rule 25). Requirements 10
-  to 12 and ub-mode's skill ask for what Rules 31 to 36 asked. Replaced: Rules 0 to 23, 25 and 26 of repo_template;
+  and Rules 26 to 30 hold what the project's instructions ask; Rules 10 to 13 apply to code only (Rule 25).
+  Requirements 10 to 12 and ub-mode's skill ask for what Rules 31 to 36 asked. Replaced: Rules 0 to 23, 25 and 26 of repo_template;
   Rules 31 to 36, derived from ub-mode.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
   [2026-11-09 10:06:18](DEVLOG/DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100)
@@ -61,8 +63,8 @@ an earlier one, the earlier one is named after it, with its own link.
 - **A day may go on in the next part.** When a part holds fewer than two days, its day goes on in the next part,
   and each notes it, as 2026-11-09 goes on from `DEVLOG1.md` in `DEVLOG2.md` (Rule 22).
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
-- **An order is read as a requirement to come.** The tests of the base civ cover the order of `instructions_2.md`,
-  which `REQUIREMENTS.md` does not hold yet (Rule 24).
+- **An order is read as a requirement to come.** The tests of the base civ cover an order given with the answers to
+  the first questions, which `REQUIREMENTS.md` does not hold yet (Rule 24).
   [2026-11-09 10:07:36](DEVLOG/DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first)
 - **P10 is read rule by rule, and gives way to ub-mode** (Rule 26). No `goto` or recursion, no allocation, 60 lines
   a function, one level of dereferencing, no function pointers, all warnings. A loop is bounded by what it walks, and
@@ -135,11 +137,12 @@ an earlier one, the earlier one is named after it, with its own link.
   settles what they leave open. Replaced: the original was the requirement until `REQUIREMENTS.md` was written.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
-- **The default name is `civbuilder_civ`.** Requirement 1 is read as the name offered for a civ that has none, or
-  that keeps the name of its civ of the game, `civbuilder_civ.civbuilder.json`; the format inside stays
-  `empireforge_v2`.
+- **The default name is `civeditor_civ`.** Requirement 1 is read as the name offered for a civ that has none, or
+  that keeps the name of its civ of the game, `civeditor_civ.civeditor.json`; the format inside stays
+  `empireforge_v2`. Replaced: `civbuilder_civ.civbuilder.json`.
   [2026-11-09 10:06:18](DEVLOG/DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100)
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+  [2026-11-20 03:59:19](DEVLOG/DEVLOG7.md#035919-the-project-named-civeditor)
 - **A design is a civ of the game, edited.** The first list of the step "Name and tech tree" is the civ to edit, the
   Britons at first; every step shows that civ as the game has it, its names and tagline in their fields, ready to
   change; choosing another can be undone. Replaced: a design started from a base civ, Generic at first, with every
@@ -180,7 +183,7 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
 - **WCAG 2.2 AA, read for a window** (Requirements 3 and 4). Its success criteria are listed in
   `.github/ACCESSIBILITY.md`, read as WCAG2ICT reads them for software; a box is ticked only when a test checks the
-  criterion or when civbuilder has nothing it applies to, which counts as met. Contrast of 4.5:1, targets of 44 by
+  criterion or when civeditor has nothing it applies to, which counts as met. Contrast of 4.5:1, targets of 44 by
   44, a visible label for every input, and the colors of Windows in high contrast. Replaced: level AAA, 7:1.
   [2026-11-09 01:20:32](DEVLOG/DEVLOG1.md#012032-the-nine-steps-in-a-window-with-undo-a-review-and-accessibility-tests)
   [2026-11-09 10:08:11](DEVLOG/DEVLOG2.md#100811-a-checklist-of-wcag-22-for-requirement-4)
@@ -194,7 +197,7 @@ an earlier one, the earlier one is named after it, with its own link.
   menu and on its button, and a label says what its control is for without the label before it.
   [2026-11-10 05:03:39](DEVLOG/DEVLOG3.md#050339-the-windows-texts-read-against-the-checklist-55-of-86)
 - **The window's title names the civ and the step** (Requirement 3, WCAG 2.2 SC 2.4.2), as "Testonia - Step 2 of
-  5: Bonuses - civbuilder", with "A new civ" before the civ has a name; the count is `STEP_COUNT`.
+  4: Bonuses - civeditor", with "A new civ" before the civ has a name; the count is `STEP_COUNT`.
   [2026-11-09 10:27:22](DEVLOG/DEVLOG2.md#102722-a-windows-title-that-names-the-civ-and-the-step-and-the-base-civ-tried-in-the-window)
   [2026-11-19 20:19:34](DEVLOG/DEVLOG7.md#201934-five-steps-and-no-field-for-the-civs-description)
 - **A mod changes every civ saved in it, each in its own slot** (Requirement 8, read for several civs). The
@@ -209,9 +212,11 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **Save civ file... and Open civ file... are in the menu only.** The review's buttons are Save civ and Build mod... .
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
-- **The mod is named when Build mod is pressed:** `civbuilder_mod` at first, then the name given last. The folders'
-  prefix is made from it as it was from the civ's name, and both `info.json` take it as their title.
+- **The mod is named when Build mod is pressed:** `civeditor_mod` at first, then the name given last. The folders'
+  prefix is made from it as it was from the civ's name, and both `info.json` take it as their title. Replaced:
+  `civbuilder_mod` at first.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+  [2026-11-20 03:59:19](DEVLOG/DEVLOG7.md#035919-the-project-named-civeditor)
 - **The texts of a civ of the game are the game's.** Its tagline and description are read from the English strings
   of the installed game when the window opens, and are empty without the game; no text of the game is kept here.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
@@ -390,6 +395,17 @@ an earlier one, the earlier one is named after it, with its own link.
 
 ## Code and files
 
+- **The project is named civeditor.** The window's title, the title of its dialogs and message boxes, the
+  window's class (`civeditor.window`) and the program (`build\civeditor.exe`) say civeditor, and so do the
+  README, the guides and the links to GitHub, which lead to `cnordenb/civeditor`. Replaced: civbuilder.
+  [2026-11-20 03:59:19](DEVLOG/DEVLOG7.md#035919-the-project-named-civeditor)
+- **Civ files are saved as `.civeditor.json`.** Open civ file... names `.civeditor.json` and `.civbuilder.json`
+  and lists every `.json` file, so files saved before the rename open as before. Replaced: `.civbuilder.json`.
+  [2026-11-20 03:59:19](DEVLOG/DEVLOG7.md#035919-the-project-named-civeditor)
+- **Names of other things keep "civbuilder":** the format `civbuilder_v1`, in which civ files of the original
+  are written; the original's example civ, `tests/fixtures/example.civbuilder.json`; and Krakenmeister's
+  civbuilder, where the catalog of bonuses comes from.
+  [2026-11-20 03:59:19](DEVLOG/DEVLOG7.md#035919-the-project-named-civeditor)
 - **The hero is chosen in UU&UT,** not in a step of its own: the wizard has four steps. The Hero box is left of
   Back, Choose hero... left of the box, and the hero's name above Choose hero...; the status line ends before them
   and the columns of UU&UT end above the name.
@@ -530,7 +546,7 @@ an earlier one, the earlier one is named after it, with its own link.
 - **The civ descriptions in id order.** The UI mod's strings hold them from 120150 to 120277 in the order of their
   ids, whatever order the game's strings have.
   [2026-11-09 02:15:04](DEVLOG/DEVLOG1.md#021504-a-mod-built-from-the-civ-from-the-catalog-and-the-games-own-data-file)
-- **`info.json` as the original writes it,** with `builder_version` "1.0.0", civbuilder's version, until it is said
+- **`info.json` as the original writes it,** with `builder_version` "1.0.0", civeditor's version, until it is said
   otherwise. Replaced: "2.7.0", the original's version.
   [2026-11-09 02:15:04](DEVLOG/DEVLOG1.md#021504-a-mod-built-from-the-civ-from-the-catalog-and-the-games-own-data-file)
   [2026-11-09 10:06:18](DEVLOG/DEVLOG2.md#100618-rules-26-to-36-settings-that-deny-commits-and-deletions-and-version-100)
@@ -594,11 +610,11 @@ an earlier one, the earlier one is named after it, with its own link.
   so that the build program starts no program but gcc and the tests.
   [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
 - **A program that is running is renamed, not stopped,** when the build must write over it:
-  `build\civbuilder.exe` became `build\civbuilder_in_use.exe`, and the window the user had open stayed open.
+  `build\civeditor.exe` becomes `build\civeditor_in_use.exe`, and the window the user has open stays open.
   [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
 - **A list's wheel and arrows are taken in the loop of messages,** before Windows handles them, not in a window
   procedure of the list's own: that would need a second function pointer, which the test of P10 rule 9 forbids. A
-  list is known by its class, `LISTBOX`; keys and clicks are left to Windows, which slides no list of civbuilder on
+  list is known by its class, `LISTBOX`; keys and clicks are left to Windows, which slides no list of civeditor on
   them.
   [2026-11-16 23:56:00](DEVLOG/DEVLOG5.md#235600-lists-scroll-a-row-a-notch-and-a-row-an-arrow-without-sliding-under-classic-scroll-bars)
 - **A list whose arrow is pressed holds the mouse until the button is let go,** as the scroll bar of Windows does,
@@ -806,6 +822,9 @@ an earlier one, the earlier one is named after it, with its own link.
 
 ## Documents
 
+- **Sections written before the rename keep the name civbuilder,** and so do their titles and the links to them,
+  as the log is not rewritten; so do the notes that Git ignores.
+  [2026-11-20 03:59:19](DEVLOG/DEVLOG7.md#035919-the-project-named-civeditor)
 - **`BUGS.md` is in `documentation/`,** Rule 33's table of three columns and nothing else, not even a title. A
   bug's "Discovered" is the time it was recorded when the time it was found is not known. The bugs found before
   it are not added while question 4 of 2026-11-17 10:57:53 is open.
@@ -815,12 +834,14 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **repo_template's documents, without its setup.** `.claude/skills/project-setup` is not copied: the project is set
   up. [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
-- **The instructions, the answers and the sitrep are in `sitrep&instructions/`,** with the pictures of the trials
-  in `pictures/`, so that the folder keeps within 7 files. Replaced: `sitrep.md` stays in the main folder, as Rule
-  14 allowed.
+- **The documents point at no file that Git ignores.** The instructions, the answers to the first questions and
+  the sitrep are kept where Git does not track them, and the log records what they asked. Replaced: a folder of
+  their own in the main folder, which `AGENTS.md` and `MAINTAINER.md` pointed at; before it, the sitrep in the
+  main folder, as Rule 14 allowed.
   [2026-11-10 04:21:27](DEVLOG/DEVLOG3.md#042127-the-instructions-in-a-folder-of-their-own-pictures-as-documents-and-a-night-stopped-by-the-usage-limit)
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
   [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
+  [2026-11-20 04:06:25](DEVLOG/DEVLOG7.md#040625-the-documents-point-at-no-file-that-git-ignores)
 - **The checklist of accessibility is `.github/ACCESSIBILITY.md`,** repo_template's file of that name, since
   `documentation/` holds the 7 files that Rule 14 allows and Rule 15 allows one file of a name.
   [2026-11-09 10:08:11](DEVLOG/DEVLOG2.md#100811-a-checklist-of-wcag-22-for-requirement-4)

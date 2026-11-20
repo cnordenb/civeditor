@@ -2,7 +2,7 @@
 
 Rule 0: All commits must be made by humans. AI agents may not commit, per policy stated in CONTRIBUTING.md.
 
-Rule 1: The intended UI and behaviour of civbuilder is defined by REQUIREMENTS.md.
+Rule 1: The intended UI and behaviour of civeditor is defined by REQUIREMENTS.md.
 
 Rule 2: Only the chief developer (Carl Nordenbrink @cnordenb) may modify REQUIREMENTS.md. To others and to AI
 agents, REQUIREMENTS.md is read-only.

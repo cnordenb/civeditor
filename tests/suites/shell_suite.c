@@ -17,8 +17,8 @@ static TestOutcome run_save_test(int index)
 {
     switch (index) {
     case 1:
-        return test_outcome_of("a new civ is saved as civbuilder civ by default",
-                               test_a_new_civ_is_saved_as_civbuilder_civ_by_default());
+        return test_outcome_of("a new civ is saved as civeditor civ by default",
+                               test_a_new_civ_is_saved_as_civeditor_civ_by_default());
     case 2:
         return test_outcome_of("a named civ is saved under its name", test_a_named_civ_is_saved_under_its_name());
     case 3:

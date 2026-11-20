@@ -2,18 +2,18 @@ This project strives to be compliant with [WCAG 2.2](https://www.w3.org/TR/WCAG2
 
 # Accessibility checklist
 
-When every box below is ticked, civbuilder is WCAG 2.2 AA compliant (Requirements 3 and 4). Level AA asks for every
+When every box below is ticked, civeditor is WCAG 2.2 AA compliant (Requirements 3 and 4). Level AA asks for every
 success criterion of levels A and AA, so those 55 of WCAG 2.2 are the checklist: 31 of level A and 24 of level AA;
 4.1.1 Parsing is obsolete in WCAG 2.2. No criterion of level AAA is on the list.
 
-civbuilder is a program for Windows, not a web page, so each criterion is read as
+civeditor is a program for Windows, not a web page, so each criterion is read as
 [WCAG2ICT](https://www.w3.org/TR/wcag2ict/) reads it for software: a page is the window and its dialogs, a link or a
 heading is a control or a label of the window.
 
 A box is ticked only when the criterion has been checked, in one of three ways, which its line names:
 
 - **Test:** a test of `build.exe` checks it on every build; the test is named by its purpose in `TESTS.md`.
-- **Code:** civbuilder has nothing the criterion applies to, as the code in `src/` shows; such a criterion is met.
+- **Code:** civeditor has nothing the criterion applies to, as the code in `src/` shows; such a criterion is met.
 - **Read:** every text the window can show (144 texts of `src/view/`, `src/present/` and `src/win/`) was read on
   the day named, against what the criterion asks of words. A text added later must be read in the same way.
 
@@ -21,7 +21,7 @@ A ticked box that ends in "Human review needed." is one that no test settles, or
 "Code" or "Read", or on a test with something left that was not looked at, heard or tried. A human looks at it
 before the box is relied on; 31 of the 55 ticked boxes are such.
 
-An unticked box says how civbuilder meets the criterion, or would meet it, and what is left to check or to make.
+An unticked box says how civeditor meets the criterion, or would meet it, and what is left to check or to make.
 "By hand" means with the keyboard, a screen reader such as Narrator, and the settings of Windows named.
 
 ## 1. Perceivable
@@ -29,7 +29,7 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
 - [x] **1.1.1 Non-text Content (A).** Test: a ticked row is told to a screen reader as chosen. The only pictures are
   the check of a ticked row and the frame of its box, drawn with lines; what the check says, Windows tells as the
   row's state.
-- [x] **1.2.1 Audio-only and Video-only (Prerecorded) (A).** Code: civbuilder has no audio or video.
+- [x] **1.2.1 Audio-only and Video-only (Prerecorded) (A).** Code: civeditor has no audio or video.
   Human review needed.
 - [x] **1.2.2 Captions (Prerecorded) (A).** Code: no video.
   Human review needed.
@@ -57,7 +57,7 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
   check, not only a color; the chosen row of a plain list is darker than the rows around it by 4.5:1 or more, the
   pair of the focus color on a field in that test, which is a difference of lightness and not of hue alone. Not
   looked at in the high contrast of Windows.
-- [x] **1.4.2 Audio Control (A).** Code: civbuilder plays no audio; a message box gives only the short sound that
+- [x] **1.4.2 Audio Control (A).** Code: civeditor plays no audio; a message box gives only the short sound that
   Windows is set to give.
   Human review needed.
 - [x] **1.4.3 Contrast (Minimum) (AA).** Test: every text contrasts at least 4.5:1 with its background, as asked
@@ -67,8 +67,8 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
   a narrow list is higher than a short one. The text and the layout follow the scale of the display and the text
   size of Windows' accessibility settings. Where the wide layout no longer fits the screen, the window shows the
   step in one column and scrolls, so nothing is out of reach. Only 100% was looked at, in a window made small:
-  set the text size of Windows to 200% and walk through the nine steps. Human review needed.
-- [x] **1.4.5 Images of Text (AA).** Code: every text is drawn as text; civbuilder has no pictures of text.
+  set the text size of Windows to 200% and walk through the four steps. Human review needed.
+- [x] **1.4.5 Images of Text (AA).** Code: every text is drawn as text; civeditor has no pictures of text.
   Human review needed.
 - [x] **1.4.10 Reflow (AA).** Test: no control reaches past a window 320 wide; no two controls overlap in a window
   320 wide; the window may be as small as 320 by 256; a narrow window places its controls in one column; a long row
@@ -86,7 +86,7 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
 - [x] **1.4.12 Text Spacing (AA).** Code: the criterion is about content made in a markup language that lets the
   spacing of text be set; the window is made of the controls of Windows, not of markup.
   Human review needed.
-- [x] **1.4.13 Content on Hover or Focus (AA).** Code: civbuilder shows nothing on hover or focus, no tooltip.
+- [x] **1.4.13 Content on Hover or Focus (AA).** Code: civeditor shows nothing on hover or focus, no tooltip.
   Human review needed.
 
 ## 2. Operable
@@ -100,7 +100,7 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
 - [x] **2.1.4 Character Key Shortcuts (A).** Code: every shortcut uses Ctrl (`FIXED_KEYS` in `app_window.c`); the
   letters a list reads while it has the focus are the list's own.
   Human review needed.
-- [x] **2.2.1 Timing Adjustable (A).** Code: nothing has a time limit; civbuilder has no timer.
+- [x] **2.2.1 Timing Adjustable (A).** Code: nothing has a time limit; civeditor has no timer.
   Human review needed.
 - [x] **2.2.2 Pause, Stop, Hide (A).** Code: nothing moves, blinks or updates by itself, but the text cursor, which
   blinks as Windows is set.
@@ -112,10 +112,10 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
   the one before (`make_accelerators` in `app_window.c`), and each puts the focus on the step's first control, past
   the list of steps.
 - [x] **2.4.2 Page Titled (A).** Test: the window's title names the civ and the step, such as "Testonia - Step 2
-  of 9: Tech tree - civbuilder", and "A new civ" before the civ has a name.
+  of 4: Bonuses - civeditor", and "A new civ" before the civ has a name.
 - [x] **2.4.3 Focus Order (A).** Test: the Tab key follows the order in which a step is read: the list of steps,
   each column from the top, then Back and Next.
-- [x] **2.4.4 Link Purpose (In Context) (A).** Code: civbuilder has no links.
+- [x] **2.4.4 Link Purpose (In Context) (A).** Code: civeditor has no links.
   Human review needed.
 - [x] **2.4.5 Multiple Ways (AA).** Test: the list of steps shows the current step as the chosen one; the list of
   steps is on every step, with Back and Next wherever they lead. Code: the menu Go and the shortcuts send the same
@@ -149,7 +149,7 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
   English, and the program says so in C (`SetProcessPreferredUILanguages` in `app_open`), where the usual way, a
   resource of the program, is not C (Rule 29). Whether a screen reader takes its voice from it was not tried.
   Human review needed.
-- [x] **3.1.2 Language of Parts (AA).** Code: all of civbuilder's own texts are English; the names of the game are
+- [x] **3.1.2 Language of Parts (AA).** Code: all of civeditor's own texts are English; the names of the game are
   proper names.
   Human review needed.
 - [x] **3.2.1 On Focus (A).** Test: moving the focus through every control changes nothing.
@@ -176,7 +176,7 @@ An unticked box says how civbuilder meets the criterion, or would meet it, and w
   redo makes an undone change again; Build asks before it writes, and unsaved changes are asked about.
 - [x] **3.3.7 Redundant Entry (A).** Code: the design keeps everything entered; nothing is asked twice.
   Human review needed.
-- [x] **3.3.8 Accessible Authentication (Minimum) (AA).** Code: civbuilder asks for no login.
+- [x] **3.3.8 Accessible Authentication (Minimum) (AA).** Code: civeditor asks for no login.
   Human review needed.
 
 ## 4. Robust

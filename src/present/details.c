@@ -177,7 +177,7 @@ DetailText details_window_title(const CivDesign *design, WizardStep step)
     summary_add(&detail, (name[0] != '\0') ? name : "A new civ");
     summary_add(&detail, " - ");
     summary_add(&detail, title.text);
-    summary_add(&detail, " - civbuilder");
+    summary_add(&detail, " - civeditor");
     return detail;
 }
 
