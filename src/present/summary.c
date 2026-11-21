@@ -208,3 +208,22 @@ bool summary_write_build(SummaryText *summary, const char *prefix, const BuiltCi
     summary_add(summary, "\n\nTurn on the UI mod in the game's mod manager, then pick the data mod in the lobby.");
     return text_length(summary->text, sizeof summary->text) + 1U < sizeof summary->text;
 }
+
+static bool is_whole(const RecipeReport *report)
+{
+    return (report->bonuses_skipped == 0) && (report->team_bonuses_skipped == 0) &&
+           (report->multipliers_skipped == 0) && (report->unique_techs_skipped == 0) && !report->unit_skipped &&
+           !report->tree_overflowed && !report->hero_skipped;
+}
+
+bool summary_build_is_whole(const BuiltCivs *built)
+{
+    int civ;
+
+    for (civ = 0; civ < built->count; ++civ) {
+        if (!is_whole(&built->reports[civ])) {
+            return false;
+        }
+    }
+    return true;
+}

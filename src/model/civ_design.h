@@ -106,6 +106,7 @@ const char *civ_design_text(const CivDesign *design, TextField field);
 bool civ_design_set_choice(CivDesign *design, ChoiceField field, int value);
 bool civ_design_toggle_bonus(CivDesign *design, int bonus_id);
 bool civ_design_has_bonus(const CivDesign *design, int bonus_id);
+bool civ_design_clear_bonuses(CivDesign *design);
 bool civ_design_toggle_team_bonus(CivDesign *design, int bonus_id);
 bool civ_design_has_team_bonus(const CivDesign *design, int bonus_id);
 void civ_design_set_multiplier(CivDesign *design, bool team, int bonus_id, int multiplier);

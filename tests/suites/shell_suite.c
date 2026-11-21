@@ -10,7 +10,10 @@ enum {
     DRAW_END = 19,
     LOOP_END = 20,
     BAR_TEST_COUNT = 7,
-    LIST_TEST_COUNT = 6
+    LIST_TEST_COUNT = 8,
+    HERO_TEST_COUNT = 4,
+    CHANGE_TEST_COUNT = 3,
+    CIV_TEST_COUNT = 7
 };
 
 static TestOutcome run_save_test(int index)
@@ -77,14 +80,14 @@ static TestOutcome run_build_test(int index)
         return test_outcome_of("build is refused when the game is not found",
                                test_build_is_refused_when_the_game_is_not_found());
     case 2:
-        return test_outcome_of("build writes nothing when the question is not confirmed",
-                               test_build_writes_nothing_when_the_question_is_not_confirmed());
+        return test_outcome_of("build writes nothing when the mod is not named",
+                               test_build_writes_nothing_when_the_mod_is_not_named());
     case 3:
         return test_outcome_of("build of an unfinished civ says that it is not finished",
                                test_build_of_an_unfinished_civ_says_that_it_is_not_finished());
     case 4:
-        return test_outcome_of("build from the window reports the mod it built",
-                               test_build_from_the_window_reports_the_mod_it_built());
+        return test_outcome_of("a build that left something out says what in a message",
+                               test_a_build_that_left_something_out_says_what_in_a_message());
     default:
         return test_outcome_missing();
     }
@@ -118,6 +121,83 @@ static TestOutcome run_loop_test(int index)
     }
 }
 
+static TestOutcome run_filter_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("the filter of the team bonuses leaves the rows that hold its text",
+                               test_the_filter_of_the_team_bonuses_leaves_the_rows_that_hold_its_text());
+    case 2:
+        return test_outcome_of("a civ's name in the filter of the units gives its unique unit",
+                               test_a_civs_name_in_the_filter_of_the_units_gives_its_unique_unit());
+    case 3:
+        return test_outcome_of("a civ's name in the filter of the castle techs gives its castle tech",
+                               test_a_civs_name_in_the_filter_of_the_castle_techs_gives_its_castle_tech());
+    case 4:
+        return test_outcome_of("a civ's name in the filter of the imperial techs gives its imperial tech",
+                               test_a_civs_name_in_the_filter_of_the_imperial_techs_gives_its_imperial_tech());
+    case 5:
+        return test_outcome_of("the filter of Choose hero leaves the heroes that hold its text",
+                               test_the_filter_of_choose_hero_leaves_the_heroes_that_hold_its_text());
+    case 6:
+        return test_outcome_of("Clear leaves the civ without a civ bonus",
+                               test_clear_leaves_the_civ_without_a_civ_bonus());
+    case 7:
+        return test_outcome_of("a civ's name in the filter of the bonuses gives its civ bonuses",
+                               test_a_civs_name_in_the_filter_of_the_bonuses_gives_its_civ_bonuses());
+    case 8:
+        return test_outcome_of("a civ's name in the filter of the tech tree gives its nodes",
+                               test_a_civs_name_in_the_filter_of_the_tech_tree_gives_its_nodes());
+    default:
+        return test_outcome_missing();
+    }
+}
+
+static TestOutcome run_civ_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("Appearance opens the popup of the look choices",
+                               test_appearance_opens_the_popup_of_the_look_choices());
+    case 2:
+        return test_outcome_of("the popup of the look choices is hidden until asked for",
+                               test_the_popup_of_the_look_choices_is_hidden_until_asked_for());
+    case 3:
+        return test_outcome_of("the architecture is chosen in the popup of the look choices",
+                               test_the_architecture_is_chosen_in_the_popup_of_the_look_choices());
+    case 4:
+        return test_outcome_of("a civ outside ranked play is not offered to edit",
+                               test_a_civ_outside_ranked_play_is_not_offered_to_edit());
+    case 5:
+        return test_outcome_of("a changed civ is starred in Civ to edit",
+                               test_a_changed_civ_is_starred_in_civ_to_edit());
+    case 6:
+        return test_outcome_of("a civ changed back loses its star", test_a_civ_changed_back_loses_its_star());
+    case 7:
+        return test_outcome_of("Finish counts a changed civ without a save",
+                               test_finish_counts_a_changed_civ_without_a_save());
+    default:
+        return run_filter_test(index - CIV_TEST_COUNT);
+    }
+}
+
+static TestOutcome run_change_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("a build is written without a question of its folder",
+                               test_a_build_is_written_without_a_question_of_its_folder());
+    case 2:
+        return test_outcome_of("Options takes a mods folder that exists",
+                               test_options_takes_a_mods_folder_that_exists());
+    case 3:
+        return test_outcome_of("Options refuses a mods folder that does not exist",
+                               test_options_refuses_a_mods_folder_that_does_not_exist());
+    default:
+        return run_civ_test(index - CHANGE_TEST_COUNT);
+    }
+}
+
 static TestOutcome run_hero_test(int index)
 {
     switch (index) {
@@ -133,7 +213,7 @@ static TestOutcome run_hero_test(int index)
         return test_outcome_of("a hero renamed in Choose hero takes the new name",
                                test_a_hero_renamed_in_choose_hero_takes_the_new_name());
     default:
-        return test_outcome_missing();
+        return run_change_test(index - HERO_TEST_COUNT);
     }
 }
 
@@ -156,6 +236,11 @@ static TestOutcome run_list_test(int index)
     case 6:
         return test_outcome_of("a key in a list moves its caret one row",
                                test_a_key_in_a_list_moves_its_caret_one_row());
+    case 7:
+        return test_outcome_of("a dropdown opens without animation", test_a_dropdown_opens_without_animation());
+    case 8:
+        return test_outcome_of("each wheel notch moves an open dropdown one row",
+                               test_each_wheel_notch_moves_an_open_dropdown_one_row());
     default:
         return run_hero_test(index - LIST_TEST_COUNT);
     }

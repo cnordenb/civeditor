@@ -17,7 +17,8 @@ enum {
     STEP_PICKED_END = 45,
     HISTORY_FIRST_END = 51,
     HISTORY_MORE_END = 56,
-    DESIGN_END = 64
+    DESIGN_END = 64,
+    SAVED_TEST_COUNT = 3
 };
 
 static TestOutcome run_command_test(int index)
@@ -283,6 +284,21 @@ static TestOutcome run_design_test(int index)
     }
 }
 
+static TestOutcome run_finish_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("a build that left nothing out is whole", test_a_build_that_left_nothing_out_is_whole());
+    case 2:
+        return test_outcome_of("a build that skipped a civ bonus is not whole",
+                               test_a_build_that_skipped_a_civ_bonus_is_not_whole());
+    case 3:
+        return test_outcome_of("the last step is titled Finish", test_the_last_step_is_titled_finish());
+    default:
+        return test_outcome_missing();
+    }
+}
+
 static TestOutcome run_saved_test(int index)
 {
     switch (index) {
@@ -296,7 +312,7 @@ static TestOutcome run_saved_test(int index)
         return test_outcome_of("the language of the britons is saved as index 0",
                                test_the_language_of_the_britons_is_saved_as_index_0());
     default:
-        return test_outcome_missing();
+        return run_finish_test(index - SAVED_TEST_COUNT);
     }
 }
 

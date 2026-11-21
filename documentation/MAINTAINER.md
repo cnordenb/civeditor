@@ -50,18 +50,18 @@ only by handing a `Command` to `history_do`, so that every change can be undone.
 | `src/core/` | `CHECK` (`check.c`), bounded strings (`text.c`) and reading and writing whole files (`file_io.c`). |
 | `src/model/` | `CivDesign`, the design (`civ_design.c`), and whether two designs are alike in a step (`civ_compare.c`); a change to it as a `Command` (`command.c`); undo and redo (`history.c`). |
 | `src/base/` | Making a design its base civ: its tech tree, bonuses, looks, unique unit and unique techs with their names, its name, tagline and description (`base_civ.c`). |
-| `src/roster/` | The civs of a session: the draft of each civ to edit, and the civs saved in the mod (`civ_roster.c`). |
+| `src/roster/` | The civs of a session: the draft of each civ to edit, and which of them are changed civs, the civs of the mod (`civ_roster.c`). |
 | `src/gametext/` | Each civ's tagline and description, read from the game's English strings at the string id the civ list gives (`game_text.c`). |
 | `src/json/` | Writing JSON (`json_writer.c`), reading it (`json_reader.c`, `json_string.c`), and changing values in a JSON text while the rest stays byte for byte as it was (`json_patch.c`). |
 | `src/persist/` | Civ files: `civ_file_write.c` writes `empireforge_v2`, `civ_file_read.c` reads it and `civbuilder_v1`. |
 | `src/data/` | Reading tab-separated text (`tsv.c`), the catalog in `data/` (`catalog.c`) and finding in it (`catalog_lookup.c`). |
 | `src/view/` | What the window shows, without Win32: the four steps (`wizard.c`), where each control goes (`layout.c`), the help of each control (`control_help.c`), the colors (`palette.c`). |
-| `src/present/` | What each control shows and what picking in it changes (`binding.c`), the review (`summary.c`), the text beside a list and the window's title (`details.c`). |
+| `src/present/` | What each control shows and what picking in it changes (`binding.c`), the summary of Finish and the report of a build (`summary.c`), the text beside a list, the row of a civ in Civ to edit and the window's title (`details.c`). |
 | `src/pack/` | Unpacking raw deflate (`inflate.c`, `huffman.c`) and packing in stored blocks (`deflate_store.c`). `inflate.h` holds the tables of deflate's codes. |
 | `src/deflate/` | Compressing the mod's dat file with deflate (`deflate.c`), writing the bits with `bit_writer.c`. |
 | `src/dat/` | The game's `empires2_x2_p1.dat`: finding its parts, a civ's units and the parts of a unit (`dat_map.c`, with `dat_skip.c` and `dat_field.c`) and writing it anew with changes (`dat_edit.c`). |
 | `src/mod/` | Finding the game and its mods folder (`mod_places.c`), the civ's texts (`mod_text.c`), the UI mod's strings file (`mod_strings.c`) and the two folders' `info.json` and the UI mod's files (`mod_ui.c`). |
-| `src/forge/` | Building the mod: the changes to the game's data (`recipe.c`, `recipe_copy.c`, `recipe_tree.c`) and the whole build of every civ saved in the mod, from the game's file to the two mod folders (`forge.c`). |
+| `src/forge/` | Building the mod: the changes to the game's data (`recipe.c`, `recipe_copy.c`, `recipe_tree.c`) and the whole build of every changed civ, from the game's file to the two mod folders (`forge.c`). |
 | `src/bonus/` | Building a bonus that `bonus_effects.txt` gives as changes and unit patches rather than techs (`bonus_build.c`), and the changes of a bonus scaled by its multiplier (`bonus_scale.c`). |
 | `src/unique/` | Aiming a unique tech taken from another civ at the civ's own unique unit (`unique_aim.c`), and copying the tech itself for the civ, with its costs and age (`unique_tech.c`). |
 | `src/look/` | Giving the civ the looks of other civs: which civs the design names (`look_sources.c`), and copying their buildings, castle, wonder, monks, kings, trade carts and warships, and the units of look lines (`look_copy.c`). |
@@ -69,8 +69,9 @@ only by handing a `Command` to `history_do`, so that every change can be undone.
 | `src/civlist/` | The civ list, `civilizations.json`: reading the game's, finding a slot's entry and writing it anew with the civ's unique techs, unique unit and description id (`civ_list.c`). |
 | `src/techtree/` | The civ's tech tree file, `CivTechTrees\<name>.json`: the game's file with each node of the catalog set to what the design has (`tech_tree.c`), read and written by `tech_tree_file.c`. |
 | `src/reflow/` | The step in one column, for a window too narrow or too short for the columns, and how far it scrolls (`reflow.c`); no Win32. |
-| `src/shell/` | What the window asks of Windows through one door, so that a test can answer in the user's place: message boxes, the file dialogs, a question answered with a text, such as the mod name, and where the game is (`ask.c`, with the dialog of that question in `text_dialog.c`, which may also offer a list whose picked row fills in the text, as Choose hero... does), and the menu with its keys (`menu.c`). `shell.h` holds them. |
-| `src/win/` | The rest of the Win32 code: `winmain.c` starts it, `app_window.c` is the window, `controls.c` makes and draws controls, `assist.c` holds what the window does for accessibility (the text size of Windows, the focus frame, help in the status line, the status line marked for screen readers) and how it scrolls, and runs each message of the loop, `sync.c` keeps them in step with the design, `dialogs.c` opens and saves files and builds the mod. `win_parts.h` holds what they share. |
+| `src/shell/` | What the window asks of Windows through one door, so that a test can answer in the user's place: message boxes, the file dialogs, a question answered with a text, such as the mod name, and where the game is (`ask.c`, with the dialog of that question in `text_dialog.c`, which may also offer a list whose picked row fills in the text, as Choose hero... does, under a filter of its rows), how every list scrolls, one row at a time (`list_scroll.c`), and the menu with its keys (`menu.c`). `shell.h` holds them. |
+| `src/win/` | The rest of the Win32 code: `winmain.c` starts it, `app_window.c` is the window, `controls.c` makes and draws controls, `assist.c` holds what the window does for accessibility (the text size of Windows, the focus frame, help in the status line, the status line marked for screen readers) and how it scrolls, and runs each message of the loop, `sync.c` keeps them in step with the design, `dialogs.c` opens and saves files, builds the mod and holds Options.... `win_parts.h` holds what they share. |
+| `src/popup/` | The Appearance popup: the small window that holds the look choices (`popup.c`). |
 | `data/` | The catalog, seven tab-separated text files; see [The catalog files](#the-catalog-files). |
 | `tests/` | The test runner (`runner.c`) and the tests, by kind; see [Tests](#tests). |
 | `tools/build/` | The build program. `source_list.c` lists the code, says which files make each of the three programs (`PROGRAM_PREFIXES`), where a source's object goes and whether it is still fresh; `build_plan.c` turns the command line into the mode, the folders, the commands of gcc and the arguments of the tests, which the tests check; `build_steps.c` makes the folders, compiles, links and runs the tests with them, each step a function of one decision at most; `build.c` is its `main`. |
@@ -92,6 +93,7 @@ all of them use, and the window's direct uses of the folders further down.
 ```mermaid
 flowchart TD
     win["src/win: the window"] --> shell["src/shell: dialogs and the menu"]
+    win --> popup["src/popup: the Appearance popup"]
     win --> reflow["src/reflow: the step in one column"]
     reflow --> view
     shell --> view
@@ -157,8 +159,9 @@ into the same field join one change (`command_joins`), so one undo takes back a 
 2. **Place it.** Add its line to `SPECS` in `layout.c`, in the same place: its step, kind, column, height and label.
    The accessibility tests then check that it is labelled, large enough, and does not overlap another. A step's
    controls go column by column in the order of `ControlId`, left to right, since Tab takes them in that order and a
-   test checks that it follows the reading order. At 960 by 560 a column is 388 high: a field or choice with its
-   label takes 70 and the gap 8, so a column holds five of them; the controls that stretch share what is left.
+   test checks that it follows the reading order. At 960 by 640 a column is 468 high: a field or choice with its
+   label takes 70 and the gap 8, so a column holds six of them; the controls that stretch share what is left.
+   A control placed `PLACE_POPUP` is not in the window at all but in the Appearance popup (see below).
    A control placed `PLACE_FRAME` with a step is in that step's bottom row instead, as the hero's are (see below).
 3. **Explain it.** Add its help to `HELP_TEXTS` in `src/view/control_help.c`, at the same place: one or two plain
    sentences, which F1 shows in the status line. A test fails if a control one acts on has none.
@@ -167,14 +170,14 @@ into the same field join one change (`command_joins`), so one undo takes back a 
 
 The bottom row holds the status line, Back and Next on every step (`bottom_box` in `layout.c`). In UU&UT the Hero box
 is left of Back, Choose hero... left of the box, and the hero's name above Choose hero... (`hero_box`); there the
-status line ends before them and the columns end above the name (`foot_rise`), so a column is 362 high. Choose
+status line ends before them and the columns end above the name (`foot_rise`), so a column is 442 high. Choose
 hero... and the name show only while the civ has a hero (`layout_needs_hero`, and `controls_show` in `controls.c`,
 which `sync_details` calls after every change, as it ticks or unticks the box to match the design).
 
 ### The narrow window
 
 The window lays a step out in one of two ways (`controls_place` in `controls.c`). When it is at least 960 wide and
-560 high, at the scale in use, `layout.c` places the list of steps on the left and the step's controls in up to
+640 high, at the scale in use, `layout.c` places the list of steps on the left and the step's controls in up to
 three columns. When it is narrower or shorter, `src/reflow/reflow.c` places everything in one column as wide as the
 window: the list of steps, the title, the help, the step's controls in the order the Tab key takes them, the status
 line, and Back and Next side by side. A control that stretches in the wide layout has a fixed height there
@@ -191,17 +194,23 @@ line, and Back and Next side by side. A control that stretches in the wide layou
 - `assist_follow_focus` scrolls the control in focus into view, with its label.
 
 A list scrolls one row at a time and never slides, though Windows would slide it (smooth scrolling) and move it three
-rows a notch of the wheel. `assist_run_message` in `assist.c` is the body of the loop of messages, and it takes a
-list's wheel and arrows before Windows does:
+rows a notch of the wheel. `assist_run_message` in `assist.c` is the body of the loop of messages, and it hands each
+message to `list_scroll_takes` in `src/shell/list_scroll.c`, which takes a list's wheel and arrows before Windows
+does. The dialog of `text_dialog.c` runs its own loop of messages and hands them to it too, so the list of Choose
+hero... scrolls as the others do:
 
 - a notch of the wheel over a list moves it one row (`turn_wheel`); a part of a notch, from a fine wheel or a touch
-  pad, is kept in `wheel_rest` until it makes a whole one;
+  pad, is kept in `wheel_rest` of `list_scroll.c` until it makes a whole one;
 - a press on an arrow of a list's scroll bar moves it one row (`press_arrow`), and the list takes the mouse until the
   button is let go; while it holds it, `LIST_REPEAT_TIMER` moves it a row after 400 ms and then every 50 ms
   (`repeat_arrow`). A press on the bar between the arrows is left to Windows, which moves the list a page;
 - `move_list` moves a list with its redrawing turned off (`SetWindowRedraw`), which is what keeps it from sliding, and
   draws it again after. Keys and clicks need nothing of the sort: Windows slides lists whose rows differ in height
-  only on the wheel and the arrows.
+  only on the wheel and the arrows;
+- a dropdown opens at once: Windows would slide its rows open, but does not when they are shown already, so
+  `sync_on_notify` hands a dropdown about to open (`CBN_DROPDOWN`) to `list_scroll_open`, which shows its rows first;
+- a notch of the wheel over an open dropdown moves its rows one row too: `wheeled_list` finds the rows of the
+  dropdown the wheel was turned over. The arrows of an open dropdown's scroll bar are left to Windows.
 
 `assist_plain_bar` turns the visual styles off for every control made with a vertical scroll bar (`create_child` in
 `controls.c` calls it), and for the list of a drop-down choice, so that Windows 11 draws their scroll bars with arrows
@@ -224,7 +233,7 @@ program looks for `data` next to itself, one folder up, and in the folder it was
 
 | File | Fields, in order | Example |
 | --- | --- | --- |
-| `appearance.txt` | kind (`civ`, `architecture`, `scout`, `monk`), id, name; a `civ` line then five string ids of a civ in its slot: its castle tech, imperial tech, unique unit, elite unit and hero; an `architecture` line then the slot of the civ whose looks it copies; a `monk` line then the slot of the civ whose monks it copies and three of its units: the monk, the dead monk and the monk with a relic; a `base` line, a base civ, then its civ bonuses, team bonus, unique unit, Castle Age tech, Imperial Age tech, architecture, monk skin and scout, `-` or -1 where it has none | `civ	1	Britons	44008	44009	69802	69803	44500`, `base	1	Britons	0,1,2	2	0	2	2	2	1	448` |
+| `appearance.txt` | kind (`civ`, `architecture`, `scout`, `monk`, `unranked`), id, name; a `civ` line then five string ids of a civ in its slot: its castle tech, imperial tech, unique unit, elite unit and hero; an `architecture` line then the slot of the civ whose looks it copies; a `monk` line then the slot of the civ whose monks it copies and three of its units: the monk, the dead monk and the monk with a relic; a `base` line, a base civ, then its civ bonuses, team bonus, unique unit, Castle Age tech, Imperial Age tech, architecture, monk skin and scout, `-` or -1 where it has none; an `unranked` line names a civ that is not a ranked civ, which Civ to edit then leaves out | `civ	1	Britons	44008	44009	69802	69803	44500`, `base	1	Britons	0,1,2	2	0	2	2	2	1	448` |
 | `bonuses.txt` | id, category, big text, description, the game's techs that make it | `2	economy	+25%	Shepherds work 25% faster	383` |
 | `team_bonuses.txt` | id, description, the game's effect that makes it | `0	Relics generate +33% gold	488` |
 | `units.txt` | role (`V` the game's own, `C` custom, `H` hero), id, name, food, wood, stone, gold, hit points, attack, melee armor, pierce armor, range, speed, reload, make-available tech, elite tech | `V	0	Longbowman	0	35	0	40	35	6	0	0	5	0.96	2	263	360` |
@@ -278,27 +287,47 @@ window shows it anew (`roster_keep`, called by `sync_details`), so no edit is lo
 - name from its `base` line, and tagline and description from the game.
 
 The tagline and description are read when the window opens (`read_game_texts` in `app_window.c`, which asks
-`ask_game_folder` where the game is). `game_text_read` in `src/gametext/game_text.c` takes each civ's
+`ask_folder` where the game is). `game_text_read` in `src/gametext/game_text.c` takes each civ's
 `tech_tree_description_string_id` from the game's `civilizations.json` and finds that string id in
 `resources\en\strings\key-value\key-value-strings-utf8.txt`. Its first line, without " civilization", is the
 tagline, "Foot Archer" for the Britons; the rest is the description, each `\n` a line break. Without the game both
-stay empty. No step has a field for the description: it is kept in the design and the civ file, and the
-review shows it. Picking a unique unit or a unique tech in its list names it as the catalog does
+stay empty. No step has a field for the description: it is kept in the design and the civ file, and
+Finish shows it. Picking a unique unit or a unique tech in its list names it as the catalog does
 (`list_item_command` in `binding.c`, through `command_pick` in `command.c`); the name can then be changed.
 
 The hero is chosen in UU&UT. Ticking the Hero box picks Attila the Hun, unit 777 (`HERO_AT_FIRST`, by
 `hero_box_command` in `binding.c`), named as the catalog names him; unticking it picks no hero. Choose hero...
 (`dialogs_choose_hero` in `dialogs.c`) shows the heroes of the catalog, the rows of `CONTROL_HERO_CHOOSE`, in the
-dialog of `text_dialog.c`, with the hero's name in a field under them. Picking a row puts the catalog's name of that
-hero in the field; OK picks the hero with the name in the field, as one change, and Cancel changes nothing.
+dialog of `text_dialog.c`, under a filter and with the hero's name in a field under them. Picking a row puts the
+catalog's name of that hero in the field; OK picks the hero with the name in the field, as one change, and Cancel changes nothing.
 
 The list of steps marks a step "(done)" only once the design differs there from its base civ
 (`wizard_step_is_done` in `wizard.c`, which compares with `civ_design_same_identity` and the others of
-`civ_compare.c`), and the review once the mod holds the civ as it is (`roster_holds`). So a new window shows no step
-done. Save civ in the review (`sync_save_civ` in `sync.c`) puts the design, as it is, in the mod (`roster_save`); a
-civ as the game has it is left out, or taken out if it was in. The label at the top right of the review counts the
-civs in the mod (`details_changed` in `details.c`), and Build mod builds them as they were saved. Save civ file...
-and Open civ file... in the menu File save and open the civ shown.
+`civ_compare.c`), and Finish once the civ differs from its base civ and lacks nothing. So a new window shows no step
+done. Nothing saves a civ into the mod: after every change `sync_details` in `sync.c` hands the design to
+`roster_keep`, which keeps it as the draft of its slot and marks the slot as a changed civ when the design differs
+from its base civ, and no longer when it is as the game has it again. When the mark flips, Civ to edit is filled
+anew, and a changed civ's row ends in an asterisk (`details_civ_row` in `details.c`). The label at the top right of
+Finish counts the changed civs (`details_changed`), and Build mod builds them as they are. Save civ file... and Open
+civ file... in the menu File save and open the civ shown.
+
+The look choices are not in the first step but in the Appearance popup (`src/popup/popup.c`), a window owned by the
+main window, made hidden with it (`popup_make`) and shown by the button Appearance (`popup_show`, from `on_click` in
+`sync.c`). Its controls are ordinary controls of the layout, placed `PLACE_POPUP`: `controls.c` makes them children
+of the popup, `layout_shows` is false for them on every step, and the popup passes their messages on to the main
+window, so each choice changes the design at once and can be undone like any other. Close, Esc and the X hide it.
+The popup's class is registered in `app_window.c`, the only file that may name a window procedure.
+
+Every list of a step has a filter above it, named by `filter` of its line in `BINDINGS`. A row stays when it holds
+the filter's text, or when the text starts the name of a civ that has the row's item: its node, civ bonus, team
+bonus, unique unit or unique tech (`civ_matches` in `binding.c`). Clear under the civ bonuses unticks them all as one
+change (`COMMAND_CLEAR_BONUSES`).
+
+Build mod asks only for the mod's name and writes into the mods folder (`app->mods_folder`), found when first
+needed (`ask_folder`). Options... in the menu File (`dialogs_options` in `dialogs.c`) shows that folder and takes
+another that exists; it is kept until civeditor closes. A build that left nothing out (`summary_build_is_whole`)
+shows no message: Finish shows the built mark, `CONTROL_BUILT`, until the next change. A build that left something
+out says what in a message, as before, and a build that failed says why.
 
 A civ that a game update adds needs a `civ` and a `base` line in `appearance.txt`, and its slot in the list of civs
 of each node of `tree.txt` it has. Those lists come from the game's
@@ -490,7 +519,7 @@ that word too.
 | `tests/dat/` | The data file and the recipe. `small_dat.c` builds a small data file in memory, `recipe_game.c` runs the recipe on it for eight civs and answers what the tests of `recipe_tests.c` ask. |
 | `tests/bonus/` | The changes of a bonus scaled by its multiplier (`scale_tests.c`). |
 | `tests/mod/`, `tests/places/`, `tests/look/`, `tests/base/` | A whole mod built from a small game under `build/test_game` into `build/test_mods`, its strings, finding the game and the mods folder under `build/`, the looks, and base civs. |
-| `tests/model/`, `tests/design/`, `tests/shell/` | What the lists and the review show, which steps are done (`wizard_tests.c`), undo and redo (`history_tests.c`), the design and its saved text (`tests/design/`), and the window driven through its dialogs; how the lists scroll (`scroll_tests.c`); the Hero box and Choose hero... (`hero_tests.c`); `window_fixture.c` opens and closes the window for a test, ticks and clicks its controls, and answers Choose hero.... |
+| `tests/model/`, `tests/design/`, `tests/shell/` | What the lists and Finish show, which steps are done (`wizard_tests.c`), undo and redo (`history_tests.c`), the design and its saved text (`tests/design/`), and the window driven through its dialogs; how the lists scroll (`scroll_tests.c`) and the dropdowns open (`dropdown_tests.c`); the Hero box and Choose hero... (`hero_tests.c`); `window_fixture.c` opens and closes the window for a test, ticks and clicks its controls, and answers Choose hero.... |
 | `tests/reflow/` | The one column at a width of 320, scrolling, and the real window made narrow and short. |
 | `tests/redundancy/` | The redundancy tests: base civs, picks, which steps are done, the roster and how a civ is told from the civ of the game (`civ_tests.c`), the game's texts (`game_tests.c`), the civ to edit, Save civ, the name of a civ file, Build mod and the mod name, the caret of a field, the bonuses' filter and categories, the focus when the window opens, the steps of the menu Go, the wheel on the minimized window and the dialog of Choose hero... in the real window (`review_tests.c`), the compile command of the build program (`tools/plan_tests.c`), the patches of the dat file found again (`dat/patch_tests.c`), and the builds that are refused, the descriptions in the mod's strings and the room of a tech's requirements and of a description (`mod/built_mod_tests.c`); `redundancy_suite.c` runs them, those that open the window last. |
 | `tests/maintainability/`, `tests/rules/`, `tests/scan/` | The rules of the code and of the documents. `tests/scan/` reads the code for them; `gate_tests.c` shows each rule a text that breaks it, `tests/fixtures/broken_rules.txt`; `tool_tests.c` tests the build program's `source_list.c`. |
@@ -503,7 +532,8 @@ No test needs the game, and none writes outside `build/`. A window that a test o
 game's texts if the game is installed; no test looks at them. A test of a dialog never shows one: it tells `ask_script`
 (`src/shell/ask.c`) what the user would answer, and reads what was asked with `ask_last_message`. Choose hero... is
 answered by `window_fixture_answer` in `tests/shell/window_fixture.c` instead: a hook on the test's thread picks the
-row, types the name and presses OK as the dialog starts (`WM_INITDIALOG`), so it closes before Windows shows it.
+row, types the name and posts OK as the dialog starts (`WM_INITDIALOG`), far off the screen, so the dialog runs its
+loop of messages once and closes. `window_fixture_filter` has it type in the dialog's filter first.
 It keeps what the dialog showed, its rows, the label of its list and whether the list had the focus, for
 `window_fixture_asked`; after `window_fixture_refocus` it gives the list the focus again before OK.
 

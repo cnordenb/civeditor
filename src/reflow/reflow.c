@@ -4,7 +4,7 @@
 
 enum { MARGIN = 16, GAP = 8, LABEL_HEIGHT = 22, LABEL_GAP = 4, STEPS_HEIGHT = 176, NOTE_HEIGHT = 66 };
 
-static const int KIND_HEIGHTS[WIDGET_KIND_COUNT] = { 132, 44, 132, 44, 220, 220, 44, 264, 44 };
+static const int KIND_HEIGHTS[WIDGET_KIND_COUNT] = { 132, 44, 132, 44, 220, 220, 44, 264, 44, 44 };
 
 bool reflow_is_needed(int width, int height)
 {
@@ -60,7 +60,8 @@ static int slots_of(WizardStep step, int before)
         return 0;
     }
     for (control = 0; (control < before) && (control < CONTROL_COUNT); ++control) {
-        if (!is_foot(control) && (layout_spec((ControlId)control).step == step)) {
+        if (!is_foot(control) && (layout_spec((ControlId)control).step == step) &&
+            !layout_in_popup((ControlId)control)) {
             total += slot_height((ControlId)control);
         }
     }

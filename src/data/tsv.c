@@ -257,3 +257,15 @@ uint64_t tsv_bits(const TsvRecord *record, int field)
     }
     return bits;
 }
+
+bool tsv_list_holds(const TsvNumberList *list, int value)
+{
+    int index;
+
+    for (index = 0; (index < list->count) && (index < TSV_LIST_LIMIT); ++index) {
+        if (list->values[index] == value) {
+            return true;
+        }
+    }
+    return false;
+}

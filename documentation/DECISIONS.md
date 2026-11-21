@@ -206,12 +206,16 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-09 02:15:04](DEVLOG/DEVLOG1.md#021504-a-mod-built-from-the-civ-from-the-catalog-and-the-games-own-data-file)
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
-- **Save civ puts the civ in the mod.** Nothing is written to the disk; only the civs saved so are built, as they were
-  when saved, and the label at the top right of the review counts them. A civ as the game has it is left out, and
-  taken out if it was in.
+- **A changed civ is in the mod at once.** Nothing saves it: a civ is in the mod while its draft differs from its
+  base civ, and out of it when it is as the game has it again. The label at the top right of Finish counts the
+  changed civs, and Build mod builds them as they are. Replaced: the button Save civ, which put the civ in the mod
+  as it was when pressed.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
-- **Save civ file... and Open civ file... are in the menu only.** The review's buttons are Save civ and Build mod... .
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **Save civ file... and Open civ file... are in the menu only.** The only button of Finish is Build mod... .
+  Replaced: the review's buttons Save civ and Build mod... .
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
 - **The mod is named when Build mod is pressed:** `civeditor_mod` at first, then the name given last. The folders'
   prefix is made from it as it was from the civ's name, and both `info.json` take it as their title. Replaced:
   `civbuilder_mod` at first.
@@ -222,10 +226,12 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **The review's text takes no caret.** It cannot be typed in, so it shows no blinking caret when it has the focus.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
-- **Two folders, written after asking** (Requirements 2 and 7). Build writes `<prefix>-data` and `<prefix>-ui` into
-  the mods folder it finds, where the original gives a zip to unpack by hand.
+- **Two folders, written without asking** (Requirements 2 and 7). Build writes `<prefix>-data` and `<prefix>-ui`
+  into the mods folder it finds, or the one given in Options... of the menu File, where the original gives a zip to
+  unpack by hand. Only the mod's name is asked for. Replaced: a question whether the folder is right before writing.
   [2026-11-09 02:15:04](DEVLOG/DEVLOG1.md#021504-a-mod-built-from-the-civ-from-the-catalog-and-the-games-own-data-file)
   [2026-11-09 10:05:44](DEVLOG/DEVLOG2.md#100544-the-questions-of-part-1-answered)
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
 - **What cannot be built is skipped and told** (Requirement 9). Civ bonuses with neither techs nor changes in the
   catalog, custom unique units and heroes, and what does not fit the fixed room are not built; Build says so.
   Replaced: every civ bonus without techs and every team bonus without an effect in the game was skipped.
@@ -363,10 +369,11 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-10 08:27:52](DEVLOG/DEVLOG3.md#082752-answers-recorded-check-left-out-of-the-tools-the-first-merges-unfinished)
   [2026-11-15 21:39:11](DEVLOG/DEVLOG4.md#213911-the-accessibility-checklist-at-level-aa-53-of-55-boxes-ticked)
 - **A window that does not hold the wide layout shows the step in one column and scrolls** (WCAG 1.4.4 and
-  1.4.10): narrower than 960 units or shorter than 560. The least window is 320 by 256 units. The one column is
-  made in `src/reflow/`, a folder of its own, since `src/view/` and `src/win/` hold 7 files each (Rule 14).
-  Replaced: a least window of 960 by 560.
+  1.4.10): narrower than 960 units or shorter than 640, so that UU&UT holds a filter above each list. The least
+  window is 320 by 256 units. The one column is made in `src/reflow/`, a folder of its own, since `src/view/` and
+  `src/win/` hold 7 files each (Rule 14). Replaced: shorter than 560; before it, a least window of 960 by 560.
   [2026-11-16 02:45:16](DEVLOG/DEVLOG5.md#024516-a-window-too-small-for-the-columns-shows-a-step-in-one-column-and-scrolls)
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
 - **Every list of the wide layout is 44 high or more at 960 by 560.** So that the merged steps fit, the unique
   unit's description is 88 high, "In the tree" and the selected team bonus 66, and the other lists and texts share
   what is left of their column. Controls of one step that do alike are labelled apart, as "What the castle tech
@@ -392,6 +399,30 @@ an earlier one, the earlier one is named after it, with its own link.
   times (Bug 2 of 2026-11-16), and the window keeps the visual styles and the title bar of Windows 11. Replaced: the
   window's own scroll bar left as it was.
   [2026-11-17 00:25:45](DEVLOG/DEVLOG6.md#002545-the-windows-scroll-bar-a-control-of-its-own-classic-like-the-lists)
+- **The last step is named Finish.** Replaced: Review.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **The look choices are in the Appearance popup,** opened by the button Appearance of the first step and closed by
+  Close, Esc or its X. Each choice changes the design at once, as one change that can be undone.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **Civ to edit offers ranked civs only.** The six civs of Chronicles, the Achaemenids, Athenians, Spartans,
+  Macedonians, Thracians and Puru, have an `unranked` line in `appearance.txt` and are left out; their bonuses,
+  units and techs are still offered.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **A changed civ ends in an asterisk in Civ to edit,** as "Britons*", and loses it when changed back.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **Clear unticks every civ bonus as one change.** With none ticked it changes nothing and the status line says so.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **Every list of a step has a filter, and a filter takes a civ's name.** A row stays when it holds the filter's
+  text, or when the text starts the name of a civ that has the row's node, civ bonus, team bonus, unique unit or
+  unique tech. The filter of Choose hero searches the heroes' names only.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **A build that left nothing out shows no message.** The status line names the mod and Finish shows the built
+  mark, a green check mark with "Successfully built mod", until the next change. A build that left something out,
+  such as a bonus not built yet, still says what in a message, and a build that failed says why.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **Options... shows and corrects the mods folder.** It takes only a folder that exists, and keeps it until
+  civeditor closes.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
 
 ## Code and files
 
@@ -651,6 +682,20 @@ an earlier one, the earlier one is named after it, with its own link.
 - **The build compiles and links everything before it fails,** counting failures instead of stopping at the first,
   so that one build shows the errors of every source.
   [2026-11-17 02:41:02](DEVLOG/DEVLOG6.md#024102-the-build-plan-apart-from-the-steps-that-run-gcc-and-a-test-that-every-test-defined-is-run)
+- **The Appearance popup is `src/popup/`, and its class is registered in `app_window.c`.** `src/win/` holds 7 files
+  (Rule 14), and the rule against function pointers allows a window procedure to be named in `app_window.c` only.
+  Its controls are controls of the layout, placed `PLACE_POPUP`, so their bindings, help and commands are the same.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **Lists scroll in `src/shell/list_scroll.c`.** The window's loop of messages and the loop of the dialog of
+  `text_dialog.c`, which is no longer run by Windows, both hand their messages to `list_scroll_takes`.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **The roster keeps one design a slot.** The draft is the civ of the mod; `roster_keep` marks the slot changed or
+  not by comparing the draft with its base civ. Replaced: a second copy of each design that Save civ had saved.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **A dropdown opens and scrolls as a list does:** at once, and one row a notch of the wheel. Its rows are shown
+  before Windows would slide them open (`list_scroll_open`), and its wheel goes through `list_scroll.c`. The arrows
+  of its scroll bar are left to Windows.
+  [2026-11-21 15:13:46](DEVLOG/DEVLOG8.md#151346-a-dropdown-opens-and-scrolls-at-once-as-the-lists-do)
 
 ## Tests
 
@@ -819,6 +864,18 @@ an earlier one, the earlier one is named after it, with its own link.
   a failure. Replaced: the last test checks that every test defined is run.
   [2026-11-17 02:41:02](DEVLOG/DEVLOG6.md#024102-the-build-plan-apart-from-the-steps-that-run-gcc-and-a-test-that-every-test-defined-is-run)
   [2026-11-17 10:57:53](DEVLOG/DEVLOG7.md#105753-no-test-names-rule-4-alone-the-21-that-did-are-removed)
+- **Redundancy tests of `src/present/` are in `tests/redundancy/present/`,** with their own list of names in
+  `filter_tests.c`, since `tests/redundancy/` holds 7 files and its suite 400 lines (Rules 13 and 14).
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **A test of the window that needs a whole build is not written.** The game of the tests builds no civ whole, so
+  the built mark is tested through `summary_build_is_whole` only.
+  [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **A bug reported with a request is listed in `BUGS.md`,** with the time of the report, and its tests name it
+  (Rules 6 and 33): the dropdowns that slid open are Bug 1 of 2026-11-21.
+  [2026-11-21 15:13:46](DEVLOG/DEVLOG8.md#151346-a-dropdown-opens-and-scrolls-at-once-as-the-lists-do)
+- **A test that passed before its fix is not kept.** The time of a wheel turn over an open dropdown was under 150 ms
+  before the change too, so only the row it moves to is tested.
+  [2026-11-21 15:13:46](DEVLOG/DEVLOG8.md#151346-a-dropdown-opens-and-scrolls-at-once-as-the-lists-do)
 
 ## Documents
 

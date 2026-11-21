@@ -342,134 +342,157 @@ Functional completeness & correctness tests:
 - [Test 320](#test-320): a unit of the game is saved with no custom units index
 - [Test 321](#test-321): a custom unit is saved with no id of the game
 - [Test 322](#test-322): the language of the britons is saved as index 0
-- [Test 323](#test-323): a new civ is saved as civeditor civ by default
-- [Test 324](#test-324): a named civ is saved under its name
-- [Test 325](#test-325): a save that is cancelled says that the civ was not saved
-- [Test 326](#test-326): a saved civ is opened again
-- [Test 327](#test-327): a file that is no civ file is refused with a message
-- [Test 328](#test-328): the next button goes to the next step
-- [Test 329](#test-329): a typed name is shown in the title of the window
-- [Test 330](#test-330): redo says when there is nothing to redo
-- [Test 331](#test-331): no step is shown as done when the window opens
-- [Test 332](#test-332): closing is stopped when the question of saving is cancelled
-- [Test 333](#test-333): closing without saving closes the window
-- [Test 334](#test-334): the exit command closes a window without changes
-- [Test 335](#test-335): build is refused when the game is not found
-- [Test 336](#test-336): build writes nothing when the question is not confirmed
-- [Test 337](#test-337): build of an unfinished civ says that it is not finished
-- [Test 338](#test-338): build from the window reports the mod it built
-- [Test 339](#test-339): the help line is written in the muted colour
-- [Test 340](#test-340): a field is written on the colour of fields
-- [Test 341](#test-341): a row in focus is drawn with a frame in the focus colour
-- [Test 342](#test-342): picking the picked row again makes no new change
-- [Test 343](#test-343): a list's scroll bar shows its arrows while the mouse is away
-- [Test 344](#test-344): the window's scroll bar shows its arrows while the mouse is away
-- [Test 345](#test-345): a step ends a margin from the window's scroll bar
-- [Test 346](#test-346): the knob of the window's scroll bar reaches its end with the step
-- [Test 347](#test-347): a step that just fits the window shows no scroll bar
-- [Test 348](#test-348): the up arrow of the window's scroll bar moves the step up a line
-- [Test 349](#test-349): a wheel turn between the lists redraws nothing when the step fits
-- [Test 350](#test-350): each wheel notch moves a list one row its way
-- [Test 351](#test-351): a press on either arrow moves a list one row its way
-- [Test 352](#test-352): a shown list scrolls without animation
-- [Test 353](#test-353): a held arrow keeps scrolling a list
-- [Test 354](#test-354): a press between a list's arrows moves it a page
-- [Test 355](#test-355): a key in a list moves its caret one row
-- [Test 356](#test-356): ticking Hero names Attila the Hun above Choose hero
-- [Test 357](#test-357): unticking Hero hides Choose hero
-- [Test 358](#test-358): a hero picked in Choose hero keeps the game's name
-- [Test 359](#test-359): a hero renamed in Choose hero takes the new name
+- [Test 323](#test-323): a build that left nothing out is whole
+- [Test 324](#test-324): a build that skipped a civ bonus is not whole
+- [Test 325](#test-325): the last step is titled Finish
+- [Test 326](#test-326): a new civ is saved as civeditor civ by default
+- [Test 327](#test-327): a named civ is saved under its name
+- [Test 328](#test-328): a save that is cancelled says that the civ was not saved
+- [Test 329](#test-329): a saved civ is opened again
+- [Test 330](#test-330): a file that is no civ file is refused with a message
+- [Test 331](#test-331): the next button goes to the next step
+- [Test 332](#test-332): a typed name is shown in the title of the window
+- [Test 333](#test-333): redo says when there is nothing to redo
+- [Test 334](#test-334): no step is shown as done when the window opens
+- [Test 335](#test-335): closing is stopped when the question of saving is cancelled
+- [Test 336](#test-336): closing without saving closes the window
+- [Test 337](#test-337): the exit command closes a window without changes
+- [Test 338](#test-338): build is refused when the game is not found
+- [Test 339](#test-339): build writes nothing when the mod is not named
+- [Test 340](#test-340): build of an unfinished civ says that it is not finished
+- [Test 341](#test-341): a build that left something out says what in a message
+- [Test 342](#test-342): the help line is written in the muted colour
+- [Test 343](#test-343): a field is written on the colour of fields
+- [Test 344](#test-344): a row in focus is drawn with a frame in the focus colour
+- [Test 345](#test-345): picking the picked row again makes no new change
+- [Test 346](#test-346): a list's scroll bar shows its arrows while the mouse is away
+- [Test 347](#test-347): the window's scroll bar shows its arrows while the mouse is away
+- [Test 348](#test-348): a step ends a margin from the window's scroll bar
+- [Test 349](#test-349): the knob of the window's scroll bar reaches its end with the step
+- [Test 350](#test-350): a step that just fits the window shows no scroll bar
+- [Test 351](#test-351): the up arrow of the window's scroll bar moves the step up a line
+- [Test 352](#test-352): a wheel turn between the lists redraws nothing when the step fits
+- [Test 353](#test-353): each wheel notch moves a list one row its way
+- [Test 354](#test-354): a press on either arrow moves a list one row its way
+- [Test 355](#test-355): a shown list scrolls without animation
+- [Test 356](#test-356): a held arrow keeps scrolling a list
+- [Test 357](#test-357): a press between a list's arrows moves it a page
+- [Test 358](#test-358): a key in a list moves its caret one row
+- [Test 359](#test-359): a dropdown opens without animation
+- [Test 360](#test-360): each wheel notch moves an open dropdown one row
+- [Test 361](#test-361): ticking Hero names Attila the Hun above Choose hero
+- [Test 362](#test-362): unticking Hero hides Choose hero
+- [Test 363](#test-363): a hero picked in Choose hero keeps the game's name
+- [Test 364](#test-364): a hero renamed in Choose hero takes the new name
+- [Test 365](#test-365): a build is written without a question of its folder
+- [Test 366](#test-366): Options takes a mods folder that exists
+- [Test 367](#test-367): Options refuses a mods folder that does not exist
+- [Test 368](#test-368): Appearance opens the popup of the look choices
+- [Test 369](#test-369): the popup of the look choices is hidden until asked for
+- [Test 370](#test-370): the architecture is chosen in the popup of the look choices
+- [Test 371](#test-371): a civ outside ranked play is not offered to edit
+- [Test 372](#test-372): a changed civ is starred in Civ to edit
+- [Test 373](#test-373): a civ changed back loses its star
+- [Test 374](#test-374): Finish counts a changed civ without a save
+- [Test 375](#test-375): the filter of the team bonuses leaves the rows that hold its text
+- [Test 376](#test-376): a civ's name in the filter of the units gives its unique unit
+- [Test 377](#test-377): a civ's name in the filter of the castle techs gives its castle tech
+- [Test 378](#test-378): a civ's name in the filter of the imperial techs gives its imperial tech
+- [Test 379](#test-379): the filter of Choose hero leaves the heroes that hold its text
+- [Test 380](#test-380): Clear leaves the civ without a civ bonus
+- [Test 381](#test-381): a civ's name in the filter of the bonuses gives its civ bonuses
+- [Test 382](#test-382): a civ's name in the filter of the tech tree gives its nodes
 
 Accessibility tests:
 
-- [Test 360](#test-360): every text contrasts at least 4.5:1 with its background
-- [Test 361](#test-361): every input has a visible label
-- [Test 362](#test-362): every control one acts on is at least 44 by 44
-- [Test 363](#test-363): no two controls of a step overlap, even in the smallest window
-- [Test 364](#test-364): the window's title names the civ and the step
-- [Test 365](#test-365): the list of steps is on every step, with Back and Next wherever they lead
-- [Test 366](#test-366): a window narrower than the wide layout reflows
-- [Test 367](#test-367): a window shorter than the wide layout reflows
-- [Test 368](#test-368): a window as large as the wide layout does not reflow
-- [Test 369](#test-369): no control reaches past a window 320 wide
-- [Test 370](#test-370): no two controls overlap in a window 320 wide
-- [Test 371](#test-371): every control one acts on is at least 44 by 44 in a window 320 wide
-- [Test 372](#test-372): a step is as high as its last control and a margin
-- [Test 373](#test-373): a control below the window is scrolled up into it
-- [Test 374](#test-374): a control above the window is scrolled down into it
-- [Test 375](#test-375): a control in the window leaves it where it is
-- [Test 376](#test-376): the window scrolls no further than its content
-- [Test 377](#test-377): the window scrolls no higher than its top
-- [Test 378](#test-378): a window that holds its content does not scroll
-- [Test 379](#test-379): the first control of a step comes under the help
-- [Test 380](#test-380): Back and Next come under the status line
-- [Test 381](#test-381): a control starts a margin from the left
-- [Test 382](#test-382): Next ends a margin from the right
-- [Test 383](#test-383): the Tab key reaches every control of every step
-- [Test 384](#test-384): the list of steps shows the current step as the chosen one
-- [Test 385](#test-385): the Tab key follows the order in which a step is read
-- [Test 386](#test-386): a ticked row leaves the list of bonuses where it was scrolled
-- [Test 387](#test-387): every control tells a screen reader a name that begins with its label
-- [Test 388](#test-388): a ticked row is told to a screen reader as chosen
-- [Test 389](#test-389): moving the focus through every control changes nothing
-- [Test 390](#test-390): the Tab key leaves every control
-- [Test 391](#test-391): Windows is told that the window's language is English
-- [Test 392](#test-392): the help key says what the control in focus is for
-- [Test 393](#test-393): the status line is a live region that a screen reader is told of
-- [Test 394](#test-394): the text and the layout grow with the text size of Windows, up to 225%
-- [Test 395](#test-395): the control in focus has a solid frame at least two pixels thick
-- [Test 396](#test-396): a ticked row is drawn with a check, not a filled box
-- [Test 397](#test-397): after an undo, the civ to edit shown is the design's again
-- [Test 398](#test-398): a narrow window places its controls in one column
-- [Test 399](#test-399): the control in focus is scrolled into a short window
-- [Test 400](#test-400): the window may be as small as 320 by 256
-- [Test 401](#test-401): Scroll down moves a short window down a page
-- [Test 402](#test-402): Scroll up takes back a Scroll down
-- [Test 403](#test-403): the wheel scrolls a short window
-- [Test 404](#test-404): a long row of a narrow list is higher than a short one
-- [Test 405](#test-405): a short row of a list is as high as a target
+- [Test 383](#test-383): every text contrasts at least 4.5:1 with its background
+- [Test 384](#test-384): every input has a visible label
+- [Test 385](#test-385): every control one acts on is at least 44 by 44
+- [Test 386](#test-386): no two controls of a step overlap, even in the smallest window
+- [Test 387](#test-387): the window's title names the civ and the step
+- [Test 388](#test-388): the list of steps is on every step, with Back and Next wherever they lead
+- [Test 389](#test-389): a window narrower than the wide layout reflows
+- [Test 390](#test-390): a window shorter than the wide layout reflows
+- [Test 391](#test-391): a window as large as the wide layout does not reflow
+- [Test 392](#test-392): no control reaches past a window 320 wide
+- [Test 393](#test-393): no two controls overlap in a window 320 wide
+- [Test 394](#test-394): every control one acts on is at least 44 by 44 in a window 320 wide
+- [Test 395](#test-395): a step is as high as its last control and a margin
+- [Test 396](#test-396): a control below the window is scrolled up into it
+- [Test 397](#test-397): a control above the window is scrolled down into it
+- [Test 398](#test-398): a control in the window leaves it where it is
+- [Test 399](#test-399): the window scrolls no further than its content
+- [Test 400](#test-400): the window scrolls no higher than its top
+- [Test 401](#test-401): a window that holds its content does not scroll
+- [Test 402](#test-402): the first control of a step comes under the help
+- [Test 403](#test-403): Back and Next come under the status line
+- [Test 404](#test-404): a control starts a margin from the left
+- [Test 405](#test-405): Next ends a margin from the right
+- [Test 406](#test-406): the Tab key reaches every control of every step
+- [Test 407](#test-407): the list of steps shows the current step as the chosen one
+- [Test 408](#test-408): the Tab key follows the order in which a step is read
+- [Test 409](#test-409): a ticked row leaves the list of bonuses where it was scrolled
+- [Test 410](#test-410): every control tells a screen reader a name that begins with its label
+- [Test 411](#test-411): a ticked row is told to a screen reader as chosen
+- [Test 412](#test-412): moving the focus through every control changes nothing
+- [Test 413](#test-413): the Tab key leaves every control
+- [Test 414](#test-414): Windows is told that the window's language is English
+- [Test 415](#test-415): the help key says what the control in focus is for
+- [Test 416](#test-416): the status line is a live region that a screen reader is told of
+- [Test 417](#test-417): the text and the layout grow with the text size of Windows, up to 225%
+- [Test 418](#test-418): the control in focus has a solid frame at least two pixels thick
+- [Test 419](#test-419): a ticked row is drawn with a check, not a filled box
+- [Test 420](#test-420): after an undo, the civ to edit shown is the design's again
+- [Test 421](#test-421): a narrow window places its controls in one column
+- [Test 422](#test-422): the control in focus is scrolled into a short window
+- [Test 423](#test-423): the window may be as small as 320 by 256
+- [Test 424](#test-424): Scroll down moves a short window down a page
+- [Test 425](#test-425): Scroll up takes back a Scroll down
+- [Test 426](#test-426): the wheel scrolls a short window
+- [Test 427](#test-427): a long row of a narrow list is higher than a short one
+- [Test 428](#test-428): a short row of a list is as high as a target
 
 Maintainability tests:
 
-- [Test 406](#test-406): no comments in the code
-- [Test 407](#test-407): no function over 60 lines
-- [Test 408](#test-408): no line of code over 120 characters
-- [Test 409](#test-409): no file over 400 lines of code
-- [Test 410](#test-410): no goto, setjmp or longjmp
-- [Test 411](#test-411): no recursion, direct or indirect
-- [Test 412](#test-412): no dynamic memory allocation
-- [Test 413](#test-413): preprocessor only includes and guards
-- [Test 414](#test-414): one level of pointer dereferencing
-- [Test 415](#test-415): no function pointers but the window procedure
-- [Test 416](#test-416): no folder over 7 files, the main folder 8
-- [Test 417](#test-417): no two files share a name
-- [Test 418](#test-418): only C code and documents in the project
-- [Test 419](#test-419): every placeholder of the template is filled in
-- [Test 420](#test-420): the development log keeps its form
-- [Test 421](#test-421): TESTS.md numbers its tests in order
-- [Test 422](#test-422): TESTS.md documents every test
-- [Test 423](#test-423): every line of TERMINOLOGY.md is short
-- [Test 424](#test-424): the rule against goto names the line of a goto
-- [Test 425](#test-425): the rule against allocation names the line of a malloc
-- [Test 426](#test-426): the rule of the preprocessor names a macro with arguments
-- [Test 427](#test-427): the rule of one dereference names two arrows in a row
-- [Test 428](#test-428): the rule against function pointers names one
-- [Test 429](#test-429): the rule against comments names the line of a comment
-- [Test 430](#test-430): the rule against recursion names a function that calls itself
-- [Test 431](#test-431): the sources of a folder include those of its folders
-- [Test 432](#test-432): a folder lists only its own sources
-- [Test 433](#test-433): the sources of the project are those of src, tests and tools
-- [Test 434](#test-434): the newest source is the one changed last
-- [Test 435](#test-435): the object of a source is named after it in the folder given
-- [Test 436](#test-436): a source older than its object is not built again
-- [Test 437](#test-437): a source with a newer header is built again
-- [Test 438](#test-438): a source changed when its object was made is built again
-- [Test 439](#test-439): the objects of the build tool are listed without libraries
-- [Test 440](#test-440): a coverage build is asked for by coverage
-- [Test 441](#test-441): the tests are run with the arguments given to the build
-- [Test 442](#test-442): a coverage build links the tests alone
-- [Test 443](#test-443): a coverage build links the tests with coverage
-- [Test 444](#test-444): a coverage build makes the folder of its report
+- [Test 429](#test-429): no comments in the code
+- [Test 430](#test-430): no function over 60 lines
+- [Test 431](#test-431): no line of code over 120 characters
+- [Test 432](#test-432): no file over 400 lines of code
+- [Test 433](#test-433): no goto, setjmp or longjmp
+- [Test 434](#test-434): no recursion, direct or indirect
+- [Test 435](#test-435): no dynamic memory allocation
+- [Test 436](#test-436): preprocessor only includes and guards
+- [Test 437](#test-437): one level of pointer dereferencing
+- [Test 438](#test-438): no function pointers but the window procedure
+- [Test 439](#test-439): no folder over 7 files, the main folder 8
+- [Test 440](#test-440): no two files share a name
+- [Test 441](#test-441): only C code and documents in the project
+- [Test 442](#test-442): every placeholder of the template is filled in
+- [Test 443](#test-443): the development log keeps its form
+- [Test 444](#test-444): TESTS.md numbers its tests in order
+- [Test 445](#test-445): TESTS.md documents every test
+- [Test 446](#test-446): every line of TERMINOLOGY.md is short
+- [Test 447](#test-447): the rule against goto names the line of a goto
+- [Test 448](#test-448): the rule against allocation names the line of a malloc
+- [Test 449](#test-449): the rule of the preprocessor names a macro with arguments
+- [Test 450](#test-450): the rule of one dereference names two arrows in a row
+- [Test 451](#test-451): the rule against function pointers names one
+- [Test 452](#test-452): the rule against comments names the line of a comment
+- [Test 453](#test-453): the rule against recursion names a function that calls itself
+- [Test 454](#test-454): the sources of a folder include those of its folders
+- [Test 455](#test-455): a folder lists only its own sources
+- [Test 456](#test-456): the sources of the project are those of src, tests and tools
+- [Test 457](#test-457): the newest source is the one changed last
+- [Test 458](#test-458): the object of a source is named after it in the folder given
+- [Test 459](#test-459): a source older than its object is not built again
+- [Test 460](#test-460): a source with a newer header is built again
+- [Test 461](#test-461): a source changed when its object was made is built again
+- [Test 462](#test-462): the objects of the build tool are listed without libraries
+- [Test 463](#test-463): a coverage build is asked for by coverage
+- [Test 464](#test-464): the tests are run with the arguments given to the build
+- [Test 465](#test-465): a coverage build links the tests alone
+- [Test 466](#test-466): a coverage build links the tests with coverage
+- [Test 467](#test-467): a coverage build makes the folder of its report
 
 Redundancy tests (Req. 10 to 12), run only with the word `redundancy`, as `build.exe quick redundancy`:
 
@@ -486,66 +509,105 @@ Redundancy tests (Req. 10 to 12), run only with the word `redundancy`, as `build
 - [Redundancy test 11](#redundancy-test-11): unticking Hero takes away the hero's name
 - [Redundancy test 12](#redundancy-test-12): a hero whose name is emptied lacks a name
 - [Redundancy test 13](#redundancy-test-13): a civ of the game shows no step done
-- [Redundancy test 14](#redundancy-test-14): the Review is done once the civ is saved in the mod as it is
-- [Redundancy test 15](#redundancy-test-15): a civ saved in the mod is counted
+- [Redundancy test 14](#redundancy-test-14): Finish is done once a whole civ differs from the game's
+- [Redundancy test 15](#redundancy-test-15): a changed civ is counted
 - [Redundancy test 16](#redundancy-test-16): a civ as the game has it is left out of the mod
-- [Redundancy test 17](#redundancy-test-17): a civ saved again holds its newer edits in the mod
+- [Redundancy test 17](#redundancy-test-17): a civ changed again holds its newer edits in the mod
 - [Redundancy test 18](#redundancy-test-18): a civ made as the game has it again is taken out of the mod
 - [Redundancy test 19](#redundancy-test-19): the draft of a civ is kept while another is edited
-- [Redundancy test 20](#redundancy-test-20): the mod holds a civ as it was saved
-- [Redundancy test 21](#redundancy-test-21): a civ changed after it was saved is not held as it is
+- [Redundancy test 20](#redundancy-test-20): a changed civ is marked as changed
+- [Redundancy test 21](#redundancy-test-21): a civ as the game has it is not marked as changed
 - [Redundancy test 22](#redundancy-test-22): the civs of the mod are given in the order of their slots
 - [Redundancy test 23](#redundancy-test-23): a roster started anew holds no draft
 - [Redundancy test 24](#redundancy-test-24): a civ past the last slot is left out of the mod
-- [Redundancy test 25](#redundancy-test-25): a civ of another first look differs from its civ of the game
-- [Redundancy test 26](#redundancy-test-26): a civ of another first cost differs from its civ of the game
-- [Redundancy test 27](#redundancy-test-27): a civ given a bonus of the civ before differs from its civ of the game
-- [Redundancy test 28](#redundancy-test-28): the game gives a civ its tagline
-- [Redundancy test 29](#redundancy-test-29): the description of a civ starts after its tagline
-- [Redundancy test 30](#redundancy-test-30): a line break of the game breaks the description
-- [Redundancy test 31](#redundancy-test-31): a quote of the game is kept in the description
-- [Redundancy test 32](#redundancy-test-32): a civ the game does not describe keeps no tagline
-- [Redundancy test 33](#redundancy-test-33): texts are read from a game that is found
-- [Redundancy test 34](#redundancy-test-34): a civ the game does not describe keeps no description
-- [Redundancy test 35](#redundancy-test-35): a text without its closing quote ends with its line
-- [Redundancy test 36](#redundancy-test-36): the spaces and breaks at the end of a text are cut
-- [Redundancy test 37](#redundancy-test-37): a first line without civilization is the whole tagline
-- [Redundancy test 38](#redundancy-test-38): a tagline longer than its room is cut to fit
-- [Redundancy test 39](#redundancy-test-39): the analyzed build compiles with the analyzer
-- [Redundancy test 40](#redundancy-test-40): an edit knows the first place it patched
-- [Redundancy test 41](#redundancy-test-41): a job with no civ is not finished
-- [Redundancy test 42](#redundancy-test-42): a build of an unfinished civ fails
-- [Redundancy test 43](#redundancy-test-43): the description of a civ takes the place of the game's once
-- [Redundancy test 44](#redundancy-test-44): the other descriptions of the game are kept
-- [Redundancy test 45](#redundancy-test-45): a civ past the descriptions of the game gets its own
-- [Redundancy test 46](#redundancy-test-46): a civ left from a bigger build gets no description
-- [Redundancy test 47](#redundancy-test-47): the description of the first civ described is written once
-- [Redundancy test 48](#redundancy-test-48): a tech takes no more requirements than it has room for
-- [Redundancy test 49](#redundancy-test-49): the strings of a civ fail once its description passes its room
-- [Redundancy test 50](#redundancy-test-50): the window opens with the Britons to edit
-- [Redundancy test 51](#redundancy-test-51): the Name field holds the name of the civ to edit
-- [Redundancy test 52](#redundancy-test-52): another civ keeps the edits of the civ before
-- [Redundancy test 53](#redundancy-test-53): the review counts no civ changed at first
-- [Redundancy test 54](#redundancy-test-54): Save civ counts the civ it puts in the mod
-- [Redundancy test 55](#redundancy-test-55): Save civ leaves a civ as the game has it out of the mod
-- [Redundancy test 56](#redundancy-test-56): the review text shows no caret when clicked
-- [Redundancy test 57](#redundancy-test-57): a build with no civ saved says so
-- [Redundancy test 58](#redundancy-test-58): a mod is named civeditor_mod unless named otherwise
-- [Redundancy test 59](#redundancy-test-59): a filter leaves the bonuses that hold it and no other
-- [Redundancy test 60](#redundancy-test-60): the categories together hold every bonus once
-- [Redundancy test 61](#redundancy-test-61): an empty mod name builds no mod
-- [Redundancy test 62](#redundancy-test-62): a long civ name is cut in the name of its file
-- [Redundancy test 63](#redundancy-test-63): a text field shows its caret when it takes the focus
-- [Redundancy test 64](#redundancy-test-64): the window opens with the focus on the civ to edit
-- [Redundancy test 65](#redundancy-test-65): the menu Go names each step as its title reads
-- [Redundancy test 66](#redundancy-test-66): a wheel turn on the minimized window leaves the step unscrolled
-- [Redundancy test 67](#redundancy-test-67): Choose hero... lists every hero of the catalog once
-- [Redundancy test 68](#redundancy-test-68): the list of Choose hero... is labelled Heroes
-- [Redundancy test 69](#redundancy-test-69): Choose hero... opens with the focus on its list
-- [Redundancy test 70](#redundancy-test-70): a name typed in Choose hero... stays when its list takes the focus again
-- [Redundancy test 71](#redundancy-test-71): the first hero of Choose hero... can be picked
-- [Redundancy test 72](#redundancy-test-72): a one-letter name typed in Choose hero... is taken
-- [Redundancy test 73](#redundancy-test-73): a civ named with one letter is saved under that letter
+- [Redundancy test 25](#redundancy-test-25): a changed civ in the first slot is counted
+- [Redundancy test 26](#redundancy-test-26): a changed civ in the first slot is given to the mod
+- [Redundancy test 27](#redundancy-test-27): a changed civ in the first slot is marked as changed
+- [Redundancy test 28](#redundancy-test-28): a roster started anew forgets a changed civ in the first slot
+- [Redundancy test 29](#redundancy-test-29): a civ of another first look differs from its civ of the game
+- [Redundancy test 30](#redundancy-test-30): a civ of another first cost differs from its civ of the game
+- [Redundancy test 31](#redundancy-test-31): a civ given a bonus of the civ before differs from its civ of the game
+- [Redundancy test 32](#redundancy-test-32): the game gives a civ its tagline
+- [Redundancy test 33](#redundancy-test-33): the description of a civ starts after its tagline
+- [Redundancy test 34](#redundancy-test-34): a line break of the game breaks the description
+- [Redundancy test 35](#redundancy-test-35): a quote of the game is kept in the description
+- [Redundancy test 36](#redundancy-test-36): a civ the game does not describe keeps no tagline
+- [Redundancy test 37](#redundancy-test-37): texts are read from a game that is found
+- [Redundancy test 38](#redundancy-test-38): a civ the game does not describe keeps no description
+- [Redundancy test 39](#redundancy-test-39): a text without its closing quote ends with its line
+- [Redundancy test 40](#redundancy-test-40): the spaces and breaks at the end of a text are cut
+- [Redundancy test 41](#redundancy-test-41): a first line without civilization is the whole tagline
+- [Redundancy test 42](#redundancy-test-42): a tagline longer than its room is cut to fit
+- [Redundancy test 43](#redundancy-test-43): the analyzed build compiles with the analyzer
+- [Redundancy test 44](#redundancy-test-44): an edit knows the first place it patched
+- [Redundancy test 45](#redundancy-test-45): a job with no civ is not finished
+- [Redundancy test 46](#redundancy-test-46): a build of an unfinished civ fails
+- [Redundancy test 47](#redundancy-test-47): the description of a civ takes the place of the game's once
+- [Redundancy test 48](#redundancy-test-48): the other descriptions of the game are kept
+- [Redundancy test 49](#redundancy-test-49): a civ past the descriptions of the game gets its own
+- [Redundancy test 50](#redundancy-test-50): a civ left from a bigger build gets no description
+- [Redundancy test 51](#redundancy-test-51): the description of the first civ described is written once
+- [Redundancy test 52](#redundancy-test-52): a tech takes no more requirements than it has room for
+- [Redundancy test 53](#redundancy-test-53): the strings of a civ fail once its description passes its room
+- [Redundancy test 54](#redundancy-test-54): a civ's name leaves one castle tech
+- [Redundancy test 55](#redundancy-test-55): a civ's name leaves the castle tech of that civ
+- [Redundancy test 56](#redundancy-test-56): a civ's name leaves the imperial tech of that civ
+- [Redundancy test 57](#redundancy-test-57): a civ's name leaves the unique unit of that civ
+- [Redundancy test 58](#redundancy-test-58): a civ's name leaves one unique unit
+- [Redundancy test 59](#redundancy-test-59): a civ's name leaves every civ bonus of that civ
+- [Redundancy test 60](#redundancy-test-60): a civ's name leaves no civ bonus of another civ
+- [Redundancy test 61](#redundancy-test-61): a civ's name leaves the team bonus of that civ
+- [Redundancy test 62](#redundancy-test-62): a civ's name leaves the nodes that civ has
+- [Redundancy test 63](#redundancy-test-63): a civ's name leaves no node that civ lacks
+- [Redundancy test 64](#redundancy-test-64): the middle of a civ's name is not its name
+- [Redundancy test 65](#redundancy-test-65): a civ's name leaves no hero
+- [Redundancy test 66](#redundancy-test-66): a filter still leaves the rows that hold its text
+- [Redundancy test 67](#redundancy-test-67): Civ to edit leaves out a civ that is not ranked
+- [Redundancy test 68](#redundancy-test-68): a civ without an unranked line is ranked
+- [Redundancy test 69](#redundancy-test-69): a civ with an unranked line is not ranked
+- [Redundancy test 70](#redundancy-test-70): the first filter names its list
+- [Redundancy test 71](#redundancy-test-71): the last filter names its list
+- [Redundancy test 72](#redundancy-test-72): a control that is no filter names no list
+- [Redundancy test 73](#redundancy-test-73): a list of numbers holds its first
+- [Redundancy test 74](#redundancy-test-74): a list of numbers holds its last
+- [Redundancy test 75](#redundancy-test-75): a list of numbers holds no number past its count
+- [Redundancy test 76](#redundancy-test-76): an empty list of numbers holds nothing
+- [Redundancy test 77](#redundancy-test-77): the look choices are shown on no step
+- [Redundancy test 78](#redundancy-test-78): a build with nothing skipped is whole
+- [Redundancy test 79](#redundancy-test-79): a build that skipped the team bonus is not whole
+- [Redundancy test 80](#redundancy-test-80): a build that skipped a multiplier is not whole
+- [Redundancy test 81](#redundancy-test-81): a build that skipped a unique tech is not whole
+- [Redundancy test 82](#redundancy-test-82): a build that skipped the unique unit is not whole
+- [Redundancy test 83](#redundancy-test-83): a build whose tech tree overflowed is not whole
+- [Redundancy test 84](#redundancy-test-84): a build that skipped the hero is not whole
+- [Redundancy test 85](#redundancy-test-85): clearing the civ bonuses of a civ with one is a change
+- [Redundancy test 86](#redundancy-test-86): clearing the civ bonuses of a civ with none is no change
+- [Redundancy test 87](#redundancy-test-87): clearing the civ bonuses leaves none
+- [Redundancy test 88](#redundancy-test-88): the built mark takes no focus
+- [Redundancy test 89](#redundancy-test-89): the window opens with the Britons to edit
+- [Redundancy test 90](#redundancy-test-90): the Name field holds the name of the civ to edit
+- [Redundancy test 91](#redundancy-test-91): another civ keeps the edits of the civ before
+- [Redundancy test 92](#redundancy-test-92): the review counts no civ changed at first
+- [Redundancy test 93](#redundancy-test-93): Finish counts a civ that was changed
+- [Redundancy test 94](#redundancy-test-94): Finish counts no civ that was changed back
+- [Redundancy test 95](#redundancy-test-95): the review text shows no caret when clicked
+- [Redundancy test 96](#redundancy-test-96): a build with no civ changed says so
+- [Redundancy test 97](#redundancy-test-97): a mod is named civeditor_mod unless named otherwise
+- [Redundancy test 98](#redundancy-test-98): a filter leaves the bonuses that hold it and no other
+- [Redundancy test 99](#redundancy-test-99): the categories together hold every bonus once
+- [Redundancy test 100](#redundancy-test-100): an empty mod name builds no mod
+- [Redundancy test 101](#redundancy-test-101): a long civ name is cut in the name of its file
+- [Redundancy test 102](#redundancy-test-102): a text field shows its caret when it takes the focus
+- [Redundancy test 103](#redundancy-test-103): the window opens with the focus on the civ to edit
+- [Redundancy test 104](#redundancy-test-104): the menu Go names each step as its title reads
+- [Redundancy test 105](#redundancy-test-105): a wheel turn on the minimized window leaves the step unscrolled
+- [Redundancy test 106](#redundancy-test-106): Choose hero... lists every hero of the catalog once
+- [Redundancy test 107](#redundancy-test-107): the list of Choose hero... is labelled Heroes
+- [Redundancy test 108](#redundancy-test-108): Choose hero... opens with the focus on its list
+- [Redundancy test 109](#redundancy-test-109): a name typed in Choose hero... stays when its list takes the focus again
+- [Redundancy test 110](#redundancy-test-110): the first hero of Choose hero... can be picked
+- [Redundancy test 111](#redundancy-test-111): a one-letter name typed in Choose hero... is taken
+- [Redundancy test 112](#redundancy-test-112): a civ named with one letter is saved under that letter
 
 ## Test 1
 
@@ -674,10 +736,10 @@ After 24 bonuses are chosen, a 25th is refused and the civ still has 24.
 `tests/functional/model_tests.c`, lines 63-75
 
 ### Purpose:
-Verify that Next leads through the steps in their order and stays on the review (Req. 3).
+Verify that Next leads through the steps in their order and stays on Finish (Req. 3).
 
 ### Assertion expectation:
-From the first step, each Next gives the step after it, and Next on the review gives the review.
+From the first step, each Next gives the step after it, and Next on Finish gives Finish.
 
 ## Test 13
 
@@ -685,7 +747,7 @@ From the first step, each Next gives the step after it, and Next on the review g
 `tests/functional/model_tests.c`, lines 87-90
 
 ### Purpose:
-Verify that the review names what the original's steps would not let pass yet (Req. 3).
+Verify that Finish names what the original's steps would not let pass yet (Req. 3).
 
 ### Assertion expectation:
 For a civ with only a name, the summary reads "Still needed before a mod can be built: a unique unit; a castle tech;".
@@ -696,7 +758,7 @@ For a civ with only a name, the summary reads "Still needed before a mod can be 
 `tests/functional/model_tests.c`, lines 92-95
 
 ### Purpose:
-Prevent again the review losing its labels, a bug found on 2026-11-09 (Rule 24, a regression test).
+Prevent again Finish losing its labels, a bug found on 2026-11-09 (Rule 24, a regression test).
 
 ### Assertion expectation:
 For a civ named "Vikings", the summary holds the line "Name: Vikings".
@@ -707,10 +769,10 @@ For a civ named "Vikings", the summary holds the line "Name: Vikings".
 `tests/functional/model_tests.c`, lines 97-100
 
 ### Purpose:
-Prevent again a Next button on the review, the last step, a bug found on 2026-11-09 (Rule 24, a regression test).
+Prevent again a Next button on Finish, the last step, a bug found on 2026-11-09 (Rule 24, a regression test).
 
 ### Assertion expectation:
-`layout_shows(CONTROL_NEXT, STEP_REVIEW)` is false, so the review step has no Next button.
+`layout_shows(CONTROL_NEXT, STEP_FINISH)` is false, so the Finish step has no Next button.
 
 ## Test 16
 
@@ -861,7 +923,7 @@ Verify that the mod's folders are named from the mod's name as the original name
 `tests/mod/mod_tests.c`, lines 70-84
 
 ### Purpose:
-Verify that no mod is built from a civ the review still finds unfinished (Req. 9).
+Verify that no mod is built from a civ Finish still finds unfinished (Req. 9).
 
 ### Assertion expectation:
 A civ with a name but no unique unit or techs is refused with a problem that says it is "not finished".
@@ -1034,7 +1096,7 @@ With unit 5 of slot 1 creatable, the two lines of bonus 222 build 2, and its fir
 ## Test 45
 
 ### File residence:
-`tests/dat/dat_tests.c`, lines 318-330
+`tests/dat/dat_tests.c`, lines 318-323
 
 ### Purpose:
 Verify that a train line for a unit with no train location fails, so Build names its bonus (Req. 9).
@@ -1474,7 +1536,7 @@ The civ with bonus 55, whose tech 7 has all six slots of its requirements taken,
 ## Test 85
 
 ### File residence:
-`tests/dat/recipe_tests.c`, lines 103-112
+`tests/dat/recipe_tests.c`, lines 103-107
 
 ### Purpose:
 Prevent a build from adding the requirement techs of the build before it (Req. 8).
@@ -1496,7 +1558,7 @@ With bonuses 54 and 55, the first slot of tech 0's requirements stays at -1.
 ## Test 87
 
 ### File residence:
-`tests/dat/recipe_tests.c`, lines 119-132
+`tests/dat/recipe_tests.c`, lines 119-122
 
 ### Purpose:
 Verify that the civ's team bonus effect holds the changes of the chosen team bonus (Req. 8).
@@ -3578,7 +3640,7 @@ The first row of the castle techs reads "Bulwark", the name of the catalog's fir
 `tests/model/present_tests.c`, lines 156-159
 
 ### Purpose:
-Verify that the review names the unique unit by its own name and its base unit (Req. 3, WCAG 3.3.4).
+Verify that Finish names the unique unit by its own name and its base unit (Req. 3, WCAG 3.3.4).
 
 ### Assertion expectation:
 The summary holds "Unique unit: Tester, from Own".
@@ -3589,7 +3651,7 @@ The summary holds "Unique unit: Tester, from Own".
 `tests/model/present_tests.c`, lines 161-164
 
 ### Purpose:
-Verify that the review lists each civ bonus by its description (Req. 3, WCAG 3.3.4).
+Verify that Finish lists each civ bonus by its description (Req. 3, WCAG 3.3.4).
 
 ### Assertion expectation:
 The summary holds "- Infantry is stronger".
@@ -3600,7 +3662,7 @@ The summary holds "- Infantry is stronger".
 `tests/model/present_tests.c`, lines 166-169
 
 ### Purpose:
-Verify that the review names a civ bonus that the catalog lacks, by its number (Req. 9).
+Verify that Finish names a civ bonus that the catalog lacks, by its number (Req. 9).
 
 ### Assertion expectation:
 The summary holds "- bonus #99".
@@ -3611,7 +3673,7 @@ The summary holds "- bonus #99".
 `tests/model/present_tests.c`, lines 171-174
 
 ### Purpose:
-Verify that the review names a unique tech without a name of its own by the catalog's (Req. 3, WCAG 3.3.4).
+Verify that Finish names a unique tech without a name of its own by the catalog's (Req. 3, WCAG 3.3.4).
 
 ### Assertion expectation:
 The summary holds "Castle tech: Bulwark".
@@ -3622,7 +3684,7 @@ The summary holds "Castle tech: Bulwark".
 `tests/model/present_tests.c`, lines 176-179
 
 ### Purpose:
-Verify that the review says so when the picked unit is not in the catalog (Req. 9).
+Verify that Finish says so when the picked unit is not in the catalog (Req. 9).
 
 ### Assertion expectation:
 For the bare civ the summary holds "Unique unit: an unknown unit".
@@ -3633,7 +3695,7 @@ For the bare civ the summary holds "Unique unit: an unknown unit".
 `tests/model/present_tests.c`, lines 181-184
 
 ### Purpose:
-Verify that the review says so when a picked tech is not in the catalog (Req. 9).
+Verify that Finish says so when a picked tech is not in the catalog (Req. 9).
 
 ### Assertion expectation:
 For the bare civ the summary holds "Castle tech: an unknown tech".
@@ -3685,7 +3747,7 @@ A report without anything skipped names `testonia-data`, `testonia-ui`, the civ 
 ## Test 286
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 34-38
+`tests/model/wizard_tests.c`, lines 35-39
 
 ### Purpose:
 Verify that the list of steps marks no step as done before anything is chosen (Req. 1).
@@ -3696,7 +3758,7 @@ Of the steps of a design just reset, `wizard_step_is_done` is true for none.
 ## Test 287
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 40-43
+`tests/model/wizard_tests.c`, lines 41-44
 
 ### Purpose:
 Verify that the Name and tech tree step is marked done when the civ has a name (Req. 1).
@@ -3707,7 +3769,7 @@ After the name "Testonia" is set, `wizard_step_is_done` is true for the Name and
 ## Test 288
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 45-48
+`tests/model/wizard_tests.c`, lines 46-49
 
 ### Purpose:
 Verify that the Name and tech tree step is marked done when a node is chosen (Req. 1).
@@ -3718,7 +3780,7 @@ After building 12 is chosen, `wizard_step_is_done` is true for the Name and tech
 ## Test 289
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 50-53
+`tests/model/wizard_tests.c`, lines 51-54
 
 ### Purpose:
 Verify that the Bonuses step is marked done when a bonus is ticked (Req. 1).
@@ -3729,7 +3791,7 @@ After bonus 4 is ticked, `wizard_step_is_done` is true for the Bonuses step.
 ## Test 290
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 55-58
+`tests/model/wizard_tests.c`, lines 56-59
 
 ### Purpose:
 Verify that the Bonuses step is marked done when a team bonus is picked (Req. 1).
@@ -3740,7 +3802,7 @@ After team bonus 8 is picked, `wizard_step_is_done` is true for the Bonuses step
 ## Test 291
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 92-97
+`tests/model/wizard_tests.c`, lines 93-98
 
 ### Purpose:
 Prevent a tree as large as the base civ's but not the same from being shown as not done (Bug 1 of 2026-11-16).
@@ -3751,7 +3813,7 @@ With unit 1 in the design and unit 2 in the base, `wizard_step_is_done` is true 
 ## Test 292
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 99-104
+`tests/model/wizard_tests.c`, lines 100-105
 
 ### Purpose:
 Prevent as many bonuses as the base civ's but not the same from being shown as not done (Bug 1 of 2026-11-16).
@@ -3762,7 +3824,7 @@ With bonus 4 in the design and bonus 5 in the base, `wizard_step_is_done` is tru
 ## Test 293
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 60-63
+`tests/model/wizard_tests.c`, lines 61-64
 
 ### Purpose:
 Verify that the UU&UT step is marked done when a unit is picked (Req. 1).
@@ -3773,7 +3835,7 @@ After unit 1 of the game is picked, `wizard_step_is_done` is true for the UU&UT 
 ## Test 294
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 65-68
+`tests/model/wizard_tests.c`, lines 66-69
 
 ### Purpose:
 Verify that the UU&UT step is marked done when a castle tech is picked (Req. 1).
@@ -3784,7 +3846,7 @@ After castle tech 3 is picked, `wizard_step_is_done` is true for the UU&UT step.
 ## Test 295
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 70-74
+`tests/model/wizard_tests.c`, lines 71-75
 
 ### Purpose:
 Verify that the UU&UT step is marked done when an imperial tech is picked (Req. 1).
@@ -3795,7 +3857,7 @@ After imperial tech 3 is picked, `wizard_step_is_done` is true for the UU&UT ste
 ## Test 296
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 76-79
+`tests/model/wizard_tests.c`, lines 77-80
 
 ### Purpose:
 Verify that the UU&UT step is marked done when a hero is picked (Req. 1).
@@ -3806,7 +3868,7 @@ After hero 1911 is picked, `wizard_step_is_done` is true for the UU&UT step.
 ## Test 297
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 81-85
+`tests/model/wizard_tests.c`, lines 82-86
 
 ### Purpose:
 Prevent a choice in one step from marking another step as done (Req. 1).
@@ -3817,7 +3879,7 @@ After a unique unit is picked on a new design, exactly one step is done.
 ## Test 298
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 87-90
+`tests/model/wizard_tests.c`, lines 88-91
 
 ### Purpose:
 Verify that Back leads from the second step to the first (Req. 1).
@@ -3828,7 +3890,7 @@ Verify that Back leads from the second step to the first (Req. 1).
 ## Test 299
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 106-111
+`tests/model/wizard_tests.c`, lines 107-112
 
 ### Purpose:
 Verify that a team bonus other than the base civ's marks the Bonuses step done (Bug 1 of 2026-11-16).
@@ -3839,7 +3901,7 @@ With team bonus 8 in the design and 9 in the base, `wizard_step_is_done` is true
 ## Test 300
 
 ### File residence:
-`tests/model/wizard_tests.c`, lines 113-118
+`tests/model/wizard_tests.c`, lines 114-119
 
 ### Purpose:
 Prevent the base civ's own team bonus from marking the Bonuses step done (Bug 1 of 2026-11-16).
@@ -4092,7 +4154,40 @@ With the language of slot 1, the Britons, the saved text holds `"language": 0`.
 ## Test 323
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 208-211
+`tests/model/present_tests.c`, lines 237-240
+
+### Purpose:
+Verify that a build that left nothing out is whole, so that no message is needed (Req. 9).
+
+### Assertion expectation:
+`summary_build_is_whole` is true for the report of a civ built with nothing skipped.
+
+## Test 324
+
+### File residence:
+`tests/model/present_tests.c`, lines 242-245
+
+### Purpose:
+Verify that a build that skipped a civ bonus is not whole, so that a message says so (Req. 9).
+
+### Assertion expectation:
+`summary_build_is_whole` is false for a report with one civ bonus skipped.
+
+## Test 325
+
+### File residence:
+`tests/model/wizard_tests.c`, lines 121-124
+
+### Purpose:
+Verify that the last step is titled Finish (Req. 3).
+
+### Assertion expectation:
+`wizard_page(STEP_FINISH)` has the title "Finish".
+
+## Test 326
+
+### File residence:
+`tests/shell/dialog_tests.c`, lines 210-213
 
 ### Purpose:
 Verify that a civ the user has not named is saved as `civeditor_civ` by default (Req. 1).
@@ -4100,10 +4195,10 @@ Verify that a civ the user has not named is saved as `civeditor_civ` by default 
 ### Assertion expectation:
 A new civ, named as the game names it, saved in `build/` writes `build/civeditor_civ.civeditor.json` anew.
 
-## Test 324
+## Test 327
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 213-216
+`tests/shell/dialog_tests.c`, lines 215-218
 
 ### Purpose:
 Verify that a civ the user named is saved under that name (Req. 1).
@@ -4111,10 +4206,10 @@ Verify that a civ the user named is saved under that name (Req. 1).
 ### Assertion expectation:
 With the name "Testonia" typed, Save writes `build/Testonia.civeditor.json` anew, over a stale file.
 
-## Test 325
+## Test 328
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 218-221
+`tests/shell/dialog_tests.c`, lines 220-223
 
 ### Purpose:
 Verify that a cancelled Save is said in the status line (Req. 3, WCAG 3.3.1).
@@ -4122,10 +4217,10 @@ Verify that a cancelled Save is said in the status line (Req. 3, WCAG 3.3.1).
 ### Assertion expectation:
 With the Save dialog cancelled, the status line holds "The civ was not saved."
 
-## Test 326
+## Test 329
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 223-226
+`tests/shell/dialog_tests.c`, lines 225-228
 
 ### Purpose:
 Verify that a civ saved by the window is opened by it again (Req. 1).
@@ -4133,10 +4228,10 @@ Verify that a civ saved by the window is opened by it again (Req. 1).
 ### Assertion expectation:
 "Testonia" is saved, the name is changed to "Other", the file is opened: the title names "Testonia" again.
 
-## Test 327
+## Test 330
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 228-231
+`tests/shell/dialog_tests.c`, lines 230-233
 
 ### Purpose:
 Verify that a file that is no civ file is refused in words (Req. 1, WCAG 3.3.1).
@@ -4144,10 +4239,10 @@ Verify that a file that is no civ file is refused in words (Req. 1, WCAG 3.3.1).
 ### Assertion expectation:
 Opening `README.md` gives a message that holds "not a civ file".
 
-## Test 328
+## Test 331
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 233-236
+`tests/shell/dialog_tests.c`, lines 235-238
 
 ### Purpose:
 Verify that the button Next goes to the next step (Req. 3, WCAG 2.1.1).
@@ -4155,10 +4250,10 @@ Verify that the button Next goes to the next step (Req. 3, WCAG 2.1.1).
 ### Assertion expectation:
 After a click of Next on step 1, the list of steps has its second row chosen.
 
-## Test 329
+## Test 332
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 238-241
+`tests/shell/dialog_tests.c`, lines 240-243
 
 ### Purpose:
 Verify that a name typed into the window reaches the design and the title (Req. 3, WCAG 2.4.2).
@@ -4166,10 +4261,10 @@ Verify that a name typed into the window reaches the design and the title (Req. 
 ### Assertion expectation:
 With "Testonia" typed into Name, the window's title holds "Testonia - Step 1".
 
-## Test 330
+## Test 333
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 243-246
+`tests/shell/dialog_tests.c`, lines 245-248
 
 ### Purpose:
 Verify that Redo answers in the status line when nothing was undone (Req. 5).
@@ -4177,10 +4272,10 @@ Verify that Redo answers in the status line when nothing was undone (Req. 5).
 ### Assertion expectation:
 In a new window the Redo command leaves "There is nothing to redo." in the status line.
 
-## Test 331
+## Test 334
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 248-263
+`tests/shell/dialog_tests.c`, lines 250-265
 
 ### Purpose:
 Prevent a step from being shown as done when the window opens, before the user did anything (Bug 1 of 2026-11-16).
@@ -4188,10 +4283,10 @@ Prevent a step from being shown as done when the window opens, before the user d
 ### Assertion expectation:
 In a new window, made but not shown, no row of the list of steps holds "(done)", though Generic fills the tree.
 
-## Test 332
+## Test 335
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 265-268
+`tests/shell/dialog_tests.c`, lines 267-270
 
 ### Purpose:
 Prevent unsaved changes from being lost when closing is cancelled (Req. 3, WCAG 3.3.4).
@@ -4199,10 +4294,10 @@ Prevent unsaved changes from being lost when closing is cancelled (Req. 3, WCAG 
 ### Assertion expectation:
 With a name typed and the question answered Cancel, the window is still there after a close.
 
-## Test 333
+## Test 336
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 270-273
+`tests/shell/dialog_tests.c`, lines 272-275
 
 ### Purpose:
 Verify that the window closes when the user chooses not to save (Req. 3, WCAG 3.3.4).
@@ -4210,10 +4305,10 @@ Verify that the window closes when the user chooses not to save (Req. 3, WCAG 3.
 ### Assertion expectation:
 With a name typed and the question answered No, the window is gone after a close.
 
-## Test 334
+## Test 337
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 275-278
+`tests/shell/dialog_tests.c`, lines 277-280
 
 ### Purpose:
 Verify that Exit closes a window without changes, without a question (Rule 24: asked wrongly before).
@@ -4221,10 +4316,10 @@ Verify that Exit closes a window without changes, without a question (Rule 24: a
 ### Assertion expectation:
 In a new window the Exit command closes the window; no question about unsaved changes is asked.
 
-## Test 335
+## Test 338
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 280-283
+`tests/shell/dialog_tests.c`, lines 282-285
 
 ### Purpose:
 Verify that Build says so when the game is not found on the computer (Req. 9).
@@ -4232,43 +4327,43 @@ Verify that Build says so when the game is not found on the computer (Req. 9).
 ### Assertion expectation:
 With Steam's folder named as `build/no_steam`, Build gives a message that holds "cannot be built".
 
-## Test 336
+## Test 339
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 285-291
+`tests/shell/dialog_tests.c`, lines 287-293
 
 ### Purpose:
-Verify that Build asks before it writes and writes nothing when refused (Req. 3, WCAG 3.3.4).
+Verify that Build writes no mod when the question of the mod's name is cancelled (Req. 9).
 
 ### Assertion expectation:
-With a changed civ saved in the mod and the questions answered Cancel, the status line holds "No mod was built."
+With a changed civ and the questions answered Cancel, the status line holds "No mod was built."
 
-## Test 337
+## Test 340
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 293-299
+`tests/shell/dialog_tests.c`, lines 295-301
 
 ### Purpose:
 Verify that Build of a civ that is not finished says what is wrong (Req. 9).
 
 ### Assertion expectation:
-A civ whose name is emptied, saved in the mod and built gives a message that holds "not finished".
+A civ whose name is emptied, then built, gives a message that holds "not finished".
 
-## Test 338
+## Test 341
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 301-311
+`tests/shell/dialog_tests.c`, lines 314-319
 
 ### Purpose:
-Verify that Build from the window writes the mod into the mods folder and reports it (Req. 2, 7, 9).
+Verify that a build that left something out says what in a message (Req. 9).
 
 ### Assertion expectation:
-A civ named, given a unit and two techs, saved and built as the mod Testonia: the message holds "testonia-data".
+A civ built from a game that lacks its unit and techs gives a message that holds "not built yet".
 
-## Test 339
+## Test 342
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 313-316
+`tests/shell/dialog_tests.c`, lines 340-343
 
 ### Purpose:
 Verify that the help line under the title is drawn in the muted colour of the palette (Req. 3, WCAG 1.4.3).
@@ -4276,10 +4371,10 @@ Verify that the help line under the title is drawn in the muted colour of the pa
 ### Assertion expectation:
 Asked for its colours, the window gives the help line the text colour of `COLOR_ROLE_MUTED`.
 
-## Test 340
+## Test 343
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 318-321
+`tests/shell/dialog_tests.c`, lines 345-348
 
 ### Purpose:
 Verify that a field one types in is drawn on the field colour of the palette (Req. 3, WCAG 1.4.3).
@@ -4287,10 +4382,10 @@ Verify that a field one types in is drawn on the field colour of the palette (Re
 ### Assertion expectation:
 Asked for its colours, the window gives the field Name the background of `COLOR_ROLE_FIELD`.
 
-## Test 341
+## Test 344
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 323-343
+`tests/shell/dialog_tests.c`, lines 350-370
 
 ### Purpose:
 Verify that the row in focus inside a list has a frame in the focus colour (Req. 3, WCAG 2.4.7).
@@ -4298,10 +4393,10 @@ Verify that the row in focus inside a list has a frame in the focus colour (Req.
 ### Assertion expectation:
 A row drawn with the focus has the colour of `COLOR_ROLE_FOCUS` at its left edge.
 
-## Test 342
+## Test 345
 
 ### File residence:
-`tests/shell/dialog_tests.c`, lines 345-354
+`tests/shell/dialog_tests.c`, lines 372-381
 
 ### Purpose:
 Prevent a pick of the row that is picked already from making a change to undo (Req. 5).
@@ -4309,7 +4404,7 @@ Prevent a pick of the row that is picked already from making a change to undo (R
 ### Assertion expectation:
 With the first unit picked twice, the second Undo says "There is nothing to undo."
 
-## Test 343
+## Test 346
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 186-191
@@ -4320,7 +4415,7 @@ Verify that a list's scroll bar shows its arrows and knob without the mouse over
 ### Assertion expectation:
 The up arrow of the shown Tech tree list, drawn by `WM_PRINT`, holds at least 4 colours; the thin bar holds 2.
 
-## Test 344
+## Test 347
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 193-200
@@ -4331,7 +4426,7 @@ Verify that the window's scroll bar shows its arrows and knob without the mouse 
 ### Assertion expectation:
 In a window of 480 by 360 on the first step, the top right corner of its inside holds at least 4 colours.
 
-## Test 345
+## Test 348
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 202-212
@@ -4342,7 +4437,7 @@ Prevent the window's scroll bar from taking the step's margin on the right (Bug 
 ### Assertion expectation:
 In a window of 480 by 360, Next ends as far from the scroll bar as Back starts from the left, to a pixel.
 
-## Test 346
+## Test 349
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 225-241
@@ -4353,7 +4448,7 @@ Verify that the knob of the window's scroll bar reaches the bar's end at the end
 ### Assertion expectation:
 After 16 pages down on the first step in a window of 480 by 360, position and page of the bar add up to its range.
 
-## Test 347
+## Test 350
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 243-253
@@ -4362,9 +4457,9 @@ After 16 pages down on the first step in a window of 480 by 360, position and pa
 Prevent the window's scroll bar from showing when the step fits the window exactly (Req. 3, WCAG 1.4.10).
 
 ### Assertion expectation:
-A window 480 wide whose inside is exactly as high as the Review in one column has its scroll bar hidden.
+A window 480 wide whose inside is exactly as high as Finish in one column has its scroll bar hidden.
 
-## Test 348
+## Test 351
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 255-268
@@ -4375,7 +4470,7 @@ Verify that the up arrow of the window's scroll bar moves the step up a line (Re
 ### Assertion expectation:
 On the first step at 480 by 360, a page down and then the up arrow leave the bar 44 units above the page.
 
-## Test 349
+## Test 352
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 351-363
@@ -4386,7 +4481,7 @@ Prevent a wheel turn outside the lists from redrawing a step that fits the windo
 ### Assertion expectation:
 At the window's first size, a notch of the wheel sent to the window itself leaves it nothing to redraw.
 
-## Test 350
+## Test 353
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 270-279
@@ -4397,7 +4492,7 @@ Verify that each notch of the mouse wheel moves a list one row, up or down (Bug 
 ### Assertion expectation:
 From row 2 of the Tech tree list, a notch up and two down, run through `app_run_messages`, leave row 3 on top.
 
-## Test 351
+## Test 354
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 281-290
@@ -4408,7 +4503,7 @@ Verify that a press on either arrow of a list's scroll bar moves it one row, up 
 ### Assertion expectation:
 From row 2, a click on the up arrow, one on the down arrow and a double click on it, each released, leave row 3.
 
-## Test 352
+## Test 355
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 302-318
@@ -4419,7 +4514,7 @@ Prevent a list on the screen from sliding when its wheel or arrows scroll it (Bu
 ### Assertion expectation:
 Two notches, a click and a double click on the up arrow each take less than 150 ms; sliding takes 190 to 530 ms.
 
-## Test 353
+## Test 356
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 320-328
@@ -4430,7 +4525,7 @@ Verify that holding a list's arrow keeps moving it a row at a time, as a normal 
 ### Assertion expectation:
 A press on the down arrow, still held, and one tick of `LIST_REPEAT_TIMER` leave row 2 on top.
 
-## Test 354
+## Test 357
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 330-339
@@ -4441,7 +4536,7 @@ Prevent the arrows of a list's scroll bar from taking a press on the bar between
 ### Assertion expectation:
 With the list at its end, a press just under the up arrow moves its top row up by more than one row.
 
-## Test 355
+## Test 358
 
 ### File residence:
 `tests/shell/scroll_tests.c`, lines 341-349
@@ -4452,7 +4547,29 @@ Verify that the loop of messages hands a key pressed in a list to the list once 
 ### Assertion expectation:
 With the caret on row 0 of the Tech tree list, the key Down, run through `app_run_messages`, puts it on row 1.
 
-## Test 356
+## Test 359
+
+### File residence:
+`tests/shell/dropdown_tests.c`, lines 55-60
+
+### Purpose:
+Prevent again a dropdown sliding open, where the lists move at once (Bug 1 of 2026-11-21).
+
+### Assertion expectation:
+With the window on the screen, `CB_SHOWDROPDOWN` on Civ to edit takes less than 150 ms.
+
+## Test 360
+
+### File residence:
+`tests/shell/dropdown_tests.c`, lines 62-69
+
+### Purpose:
+Prevent again an open dropdown sliding under the wheel: a notch moves it one row (Bug 1 of 2026-11-21).
+
+### Assertion expectation:
+With Civ to edit open, one notch down leaves row 1 at the top of the dropdown's rows.
+
+## Test 361
 
 ### File residence:
 `tests/shell/hero_tests.c`, lines 40-43
@@ -4463,7 +4580,7 @@ Verify that ticking Hero in UU&UT gives the civ Attila the Hun, named as the gam
 ### Assertion expectation:
 After the Hero box of UU&UT is ticked, the name shown above Choose hero... is "Attila the Hun".
 
-## Test 357
+## Test 362
 
 ### File residence:
 `tests/shell/hero_tests.c`, lines 45-55
@@ -4474,7 +4591,7 @@ Verify that Choose hero... shows only while the civ has a hero (Req. 8).
 ### Assertion expectation:
 After the Hero box is ticked and unticked again, Choose hero... is hidden.
 
-## Test 358
+## Test 363
 
 ### File residence:
 `tests/shell/hero_tests.c`, lines 57-64
@@ -4485,7 +4602,7 @@ Verify that a hero picked in Choose hero... takes the game's name without one be
 ### Assertion expectation:
 With Saladin picked in the list of Choose hero... and OK pressed, the name shown above it is "Saladin".
 
-## Test 359
+## Test 364
 
 ### File residence:
 `tests/shell/hero_tests.c`, lines 66-73
@@ -4496,7 +4613,205 @@ Verify that the name typed in Choose hero... becomes the hero's name (Req. 8).
 ### Assertion expectation:
 With Saladin picked, "Testhero" typed as his name and OK pressed, the name shown is "Testhero".
 
-## Test 360
+## Test 365
+
+### File residence:
+`tests/shell/dialog_tests.c`, lines 321-326
+
+### Purpose:
+Verify that Build writes the mod without asking whether its folder is right (Req. 9).
+
+### Assertion expectation:
+With only the mod's name answered, the status line holds "The mod was built as testonia-data".
+
+## Test 366
+
+### File residence:
+`tests/shell/dialog_tests.c`, lines 328-331
+
+### Purpose:
+Verify that Options in the menu File takes a mods folder that exists (Req. 9).
+
+### Assertion expectation:
+With the folder `build` given, the status line holds "now writes into the mods folder given".
+
+## Test 367
+
+### File residence:
+`tests/shell/dialog_tests.c`, lines 333-338
+
+### Purpose:
+Verify that Options refuses a mods folder that does not exist (Req. 9).
+
+### Assertion expectation:
+With the folder `build\no_such_folder` given, a message holds "does not exist".
+
+## Test 368
+
+### File residence:
+`tests/shell/change_tests.c`, lines 70-79
+
+### Purpose:
+Verify that the button Appearance opens the Appearance popup (Req. 3).
+
+### Assertion expectation:
+After a click on Appearance, the window of the class `civeditor.popup` is visible.
+
+## Test 369
+
+### File residence:
+`tests/shell/change_tests.c`, lines 81-88
+
+### Purpose:
+Verify that the Appearance popup is hidden until Appearance is pressed (Req. 3).
+
+### Assertion expectation:
+In a new window, the window of the class `civeditor.popup` exists and is not visible.
+
+## Test 370
+
+### File residence:
+`tests/shell/change_tests.c`, lines 90-97
+
+### Purpose:
+Verify that a look choice of the first step is held by the Appearance popup (Req. 3).
+
+### Assertion expectation:
+The Appearance popup has a child with the id of `CONTROL_ARCHITECTURE`.
+
+## Test 371
+
+### File residence:
+`tests/shell/change_tests.c`, lines 99-106
+
+### Purpose:
+Verify that Civ to edit offers no civ outside ranked play (Req. 3).
+
+### Assertion expectation:
+No row of Civ to edit starts with "Spartans".
+
+## Test 372
+
+### File residence:
+`tests/shell/change_tests.c`, lines 108-111
+
+### Purpose:
+Verify that a changed civ is marked with an asterisk in Civ to edit (Req. 3).
+
+### Assertion expectation:
+After "Testonia" is typed as the name, the first row of Civ to edit reads "Britons*".
+
+## Test 373
+
+### File residence:
+`tests/shell/change_tests.c`, lines 113-116
+
+### Purpose:
+Verify that a civ changed back to the game's loses its asterisk in Civ to edit (Req. 3).
+
+### Assertion expectation:
+After "Testonia" and then "Britons" are typed, the first row of Civ to edit reads "Britons".
+
+## Test 374
+
+### File residence:
+`tests/shell/change_tests.c`, lines 118-128
+
+### Purpose:
+Verify that a change puts the civ in the mod at once, with no button to save it (Req. 3, 9).
+
+### Assertion expectation:
+After "Testonia" is typed and Finish is opened, its label holds "1 civ changed".
+
+## Test 375
+
+### File residence:
+`tests/shell/change_tests.c`, lines 130-139
+
+### Purpose:
+Verify that the filter of the team bonuses narrows their list (Req. 3).
+
+### Assertion expectation:
+With "no team bonus says this" typed in the filter, the list of team bonuses has 0 rows.
+
+## Test 376
+
+### File residence:
+`tests/shell/change_tests.c`, lines 162-165
+
+### Purpose:
+Verify that the filter of the unique units takes a civ's name (Req. 3).
+
+### Assertion expectation:
+With "britons" typed in the filter, the first row of the unique units starts with "Longbowman".
+
+## Test 377
+
+### File residence:
+`tests/shell/change_tests.c`, lines 167-170
+
+### Purpose:
+Verify that the filter of the Castle Age techs takes a civ's name (Req. 3).
+
+### Assertion expectation:
+With "britons" typed in the filter, the first row of the Castle Age techs starts with "Yeomen".
+
+## Test 378
+
+### File residence:
+`tests/shell/change_tests.c`, lines 172-175
+
+### Purpose:
+Verify that the filter of the Imperial Age techs takes a civ's name (Req. 3).
+
+### Assertion expectation:
+With "britons" typed in the filter, the first row of the Imperial Age techs starts with "Warwolf".
+
+## Test 379
+
+### File residence:
+`tests/shell/change_tests.c`, lines 189-200
+
+### Purpose:
+Verify that the filter of Choose hero narrows the list of heroes (Req. 3).
+
+### Assertion expectation:
+With "saladin" typed in the filter of the dialog, its list has 1 row.
+
+## Test 380
+
+### File residence:
+`tests/shell/change_tests.c`, lines 177-187
+
+### Purpose:
+Verify that Clear unticks every civ bonus (Req. 3).
+
+### Assertion expectation:
+After a click on Clear, the summary of Finish holds "Civ bonuses: 0".
+
+## Test 381
+
+### File residence:
+`tests/shell/change_tests.c`, lines 152-155
+
+### Purpose:
+Verify that the filter of the civ bonuses takes a civ's name (Req. 3).
+
+### Assertion expectation:
+With "britons" typed in the filter, the list of civ bonuses has at least 1 row.
+
+## Test 382
+
+### File residence:
+`tests/shell/change_tests.c`, lines 157-160
+
+### Purpose:
+Verify that the filter of the tech tree takes a civ's name (Req. 3).
+
+### Assertion expectation:
+With "britons" typed in the filter, the list of the tech tree has at least 1 row.
+
+## Test 383
 
 ### File residence:
 `tests/accessibility/access_tests.c`, lines 14-27
@@ -4507,10 +4822,10 @@ Verify that all text can be read by those who see less contrast (Req. 3, WCAG 2.
 ### Assertion expectation:
 Each of the 7 pairs of text and background colors in `palette.c` contrasts at least 4.50:1 by the WCAG formula.
 
-## Test 361
+## Test 384
 
 ### File residence:
-`tests/accessibility/access_tests.c`, lines 29-49
+`tests/accessibility/access_tests.c`, lines 29-37
 
 ### Purpose:
 Verify that every input says what it is for, seen and to a screen reader (Req. 3, WCAG 2.2 SC 2.5.3, 3.3.2).
@@ -4518,7 +4833,7 @@ Verify that every input says what it is for, seen and to a screen reader (Req. 3
 ### Assertion expectation:
 Every text field, list, checklist, choice and report in `layout.c` has a label of its own.
 
-## Test 362
+## Test 385
 
 ### File residence:
 `tests/accessibility/access_tests.c`, lines 51-65
@@ -4527,20 +4842,20 @@ Every text field, list, checklist, choice and report in `layout.c` has a label o
 Verify that everything one clicks is large enough to hit (Req. 3, WCAG 2.2 SC 2.5.8).
 
 ### Assertion expectation:
-In the smallest window, 960 by 560, every control one can act on is at least 44 by 44, and so is a list row.
+In the smallest window, 960 by 640, every control one can act on is at least 44 by 44, and so is a list row.
 
-## Test 363
+## Test 386
 
 ### File residence:
-`tests/accessibility/access_tests.c`, lines 67-114
+`tests/accessibility/access_tests.c`, lines 67-71
 
 ### Purpose:
 Verify that no control or label hides another, so focus is never covered (Req. 3, WCAG 2.2 SC 2.4.11).
 
 ### Assertion expectation:
-On each of the 9 steps at 960 by 560, no two boxes of controls and labels overlap, and all lie inside the window.
+On each of the 9 steps at 960 by 640, no two boxes of controls and labels overlap, and all lie inside the window.
 
-## Test 364
+## Test 387
 
 ### File residence:
 `tests/accessibility/access_tests.c`, lines 116-125
@@ -4551,10 +4866,10 @@ Verify that the window's title says which civ is open and on which step (WCAG 2.
 ### Assertion expectation:
 For a civ named Testonia on the Bonuses step, the title is "Testonia - Step 2 of 4: Bonuses - civeditor".
 
-## Test 365
+## Test 388
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 29-31; `tests/accessibility/access_tests.c`, lines 127-141
+`tests/accessibility/accessibility_suite.c`, lines 30-32; `tests/accessibility/access_tests.c`, lines 127-141
 
 ### Purpose:
 Enforce that the ways from step to step keep their places on every step (Requirement 3, WCAG 2.2 SC 3.2.3).
@@ -4562,7 +4877,7 @@ Enforce that the ways from step to step keep their places on every step (Require
 ### Assertion expectation:
 On each step the list of steps is shown, Back wherever a step lies before, Next wherever one lies after.
 
-## Test 366
+## Test 389
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 103-106
@@ -4571,9 +4886,9 @@ On each step the list of steps is shown, Back wherever a step lies before, Next 
 Verify that a window too narrow for the columns gets one column (Req. 3, WCAG 1.4.10).
 
 ### Assertion expectation:
-`reflow_is_needed` is true for a window of 959 by 560.
+`reflow_is_needed` is true for a window of 959 by 640.
 
-## Test 367
+## Test 390
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 108-111
@@ -4584,7 +4899,7 @@ Verify that a window too short for the columns gets one column and scrolls (Req.
 ### Assertion expectation:
 `reflow_is_needed` is true for a window of 960 by 559.
 
-## Test 368
+## Test 391
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 113-116
@@ -4593,9 +4908,9 @@ Verify that a window too short for the columns gets one column and scrolls (Req.
 Prevent the one column from taking the place of the columns in a window that holds them (Req. 1).
 
 ### Assertion expectation:
-`reflow_is_needed` is false for a window of 960 by 560.
+`reflow_is_needed` is false for a window of 960 by 640.
 
-## Test 369
+## Test 392
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 118-121
@@ -4606,7 +4921,7 @@ Verify that no step needs scrolling sideways at a width of 320 (Req. 3, WCAG 1.4
 ### Assertion expectation:
 In every step, every control and label starts at 0 or more and ends at 320 or less, across.
 
-## Test 370
+## Test 393
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 123-132
@@ -4617,7 +4932,7 @@ Prevent a control from hiding another in the one column (Req. 3, WCAG 1.4.10).
 ### Assertion expectation:
 In every step, no two boxes of controls and labels overlap at a width of 320.
 
-## Test 371
+## Test 394
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 134-137
@@ -4628,7 +4943,7 @@ Verify that every control one acts on stays large enough in the one column (Req.
 ### Assertion expectation:
 In every step, every control one acts on is at least 44 wide and 44 high at a width of 320.
 
-## Test 372
+## Test 395
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 139-144
@@ -4639,7 +4954,7 @@ Verify that the window scrolls to the end of a step and no further (Req. 3, WCAG
 ### Assertion expectation:
 `reflow_height` of the bonuses step is the lower edge of Next plus a margin of 16.
 
-## Test 373
+## Test 396
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 146-149
@@ -4650,7 +4965,7 @@ Verify that the control in focus is never left below the window (Req. 3, WCAG 2.
 ### Assertion expectation:
 A box at 600, 44 high, in a view of 256 scrolled to 0, gives a scroll of 600 + 44 + 16 - 256.
 
-## Test 374
+## Test 397
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 151-154
@@ -4661,7 +4976,7 @@ Verify that the control in focus is never left above the window, nor its label (
 ### Assertion expectation:
 A box at 100 in a view scrolled to 300 gives a scroll of 100 - 26 - 16: its label and a margin show.
 
-## Test 375
+## Test 398
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 156-159
@@ -4672,7 +4987,7 @@ Prevent the window from jumping when the focus moves to a control in view (Req. 
 ### Assertion expectation:
 A box at 400, 44 high, in a view of 256 scrolled to 300, gives a scroll of 300.
 
-## Test 376
+## Test 399
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 161-164
@@ -4683,7 +4998,7 @@ Prevent scrolling past the end of a step (Req. 3).
 ### Assertion expectation:
 `reflow_scroll_within` of 900, for a content of 700 in a view of 256, gives 444.
 
-## Test 377
+## Test 400
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 166-169
@@ -4694,7 +5009,7 @@ Prevent scrolling above the start of a step (Req. 3).
 ### Assertion expectation:
 `reflow_scroll_within` of -5 gives 0.
 
-## Test 378
+## Test 401
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 171-174
@@ -4705,7 +5020,7 @@ Prevent scrolling a step that fits the window (Req. 3).
 ### Assertion expectation:
 `reflow_scroll_within` of 50, for a content of 200 in a view of 256, gives 0.
 
-## Test 379
+## Test 402
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 307-310
@@ -4716,7 +5031,7 @@ Verify that the one column has no gap between the help and a step's controls (Re
 ### Assertion expectation:
 At a width of 320, the Civ to edit list of the first step is at 370 from the top.
 
-## Test 380
+## Test 403
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 312-317
@@ -4727,7 +5042,7 @@ Verify that Back and Next end the one column, as they end the Tab order (Req. 3,
 ### Assertion expectation:
 At a width of 320, Back is 8 below the lower edge of the status line.
 
-## Test 381
+## Test 404
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 319-322
@@ -4738,7 +5053,7 @@ Verify that a control of the one column keeps its margin on the left (Req. 3, WC
 ### Assertion expectation:
 At a width of 320, the Name field starts at 16.
 
-## Test 382
+## Test 405
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 324-329
@@ -4749,10 +5064,10 @@ Verify that Back and Next together are as wide as the other controls (Req. 3, WC
 ### Assertion expectation:
 At a width of 320, Next ends at 304.
 
-## Test 383
+## Test 406
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 43-45; `tests/accessibility/window_tests.c`, lines 36-208
+`tests/accessibility/accessibility_suite.c`, lines 44-46; `tests/accessibility/window_tests.c`, lines 36-51
 
 ### Purpose:
 Enforce that every control can be reached with the keyboard alone (Requirement 3, WCAG 2.2 SC 2.1.1).
@@ -4760,10 +5075,10 @@ Enforce that every control can be reached with the keyboard alone (Requirement 3
 ### Assertion expectation:
 In the real window, made but not shown, the Tab order of each step holds every control of it that one acts on.
 
-## Test 384
+## Test 407
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 46-48; `tests/accessibility/window_tests.c`, lines 233-245
+`tests/accessibility/accessibility_suite.c`, lines 47-49; `tests/accessibility/window_tests.c`, lines 233-245
 
 ### Purpose:
 Enforce that the window tells which step the user is on, as it shows it (Requirement 3, WCAG 2.2 SC 1.3.1).
@@ -4771,10 +5086,10 @@ Enforce that the window tells which step the user is on, as it shows it (Require
 ### Assertion expectation:
 In the real window, after going to each step by its command, the list of steps has that step as its chosen row.
 
-## Test 385
+## Test 408
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 49-51; `tests/accessibility/window_tests.c`, lines 247-301
+`tests/accessibility/accessibility_suite.c`, lines 50-52; `tests/accessibility/window_tests.c`, lines 247-264
 
 ### Purpose:
 Enforce that the keyboard goes through a step as it is read (Requirement 3, WCAG 2.2 SC 2.4.3 and 1.3.2).
@@ -4782,10 +5097,10 @@ Enforce that the keyboard goes through a step as it is read (Requirement 3, WCAG
 ### Assertion expectation:
 On each step, Tab goes from the list of steps down each column from left to right, then to Back and Next.
 
-## Test 386
+## Test 409
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 52-54; `tests/accessibility/window_tests.c`, lines 303-326
+`tests/accessibility/accessibility_suite.c`, lines 53-55; `tests/accessibility/window_tests.c`, lines 303-316
 
 ### Purpose:
 Catch again Bug 1 of the trial: a click on a row scrolled the list of bonuses to its top (Rule 24).
@@ -4793,10 +5108,10 @@ Catch again Bug 1 of the trial: a click on a row scrolled the list of bonuses to
 ### Assertion expectation:
 In the real window, with the list scrolled to row 30, ticking row 34 leaves row 30 at the top of the list.
 
-## Test 387
+## Test 410
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 55-57; `tests/accessibility/window_tests.c`, lines 53-216
+`tests/accessibility/accessibility_suite.c`, lines 56-58; `tests/accessibility/window_tests.c`, lines 53-63
 
 ### Purpose:
 Enforce that each control has a name for assistive technology (Requirement 3, WCAG 2.2 SC 4.1.2, 1.3.1, 2.5.3).
@@ -4804,10 +5119,10 @@ Enforce that each control has a name for assistive technology (Requirement 3, WC
 ### Assertion expectation:
 In the real window, the name that Windows' accessibility interface gives each control begins with its label.
 
-## Test 388
+## Test 411
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 58-60; `tests/accessibility/window_tests.c`, lines 328-358
+`tests/accessibility/accessibility_suite.c`, lines 59-61; `tests/accessibility/window_tests.c`, lines 328-346
 
 ### Purpose:
 Enforce that the check of a ticked row has a text alternative (Requirement 3, WCAG 2.2 SC 1.1.1).
@@ -4815,10 +5130,10 @@ Enforce that the check of a ticked row has a text alternative (Requirement 3, WC
 ### Assertion expectation:
 In the real window, Windows' accessibility interface gives a ticked row of the bonuses as chosen, another row not.
 
-## Test 389
+## Test 412
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 61-63; `tests/accessibility/window_tests.c`, lines 360-381
+`tests/accessibility/accessibility_suite.c`, lines 62-64; `tests/accessibility/window_tests.c`, lines 360-381
 
 ### Purpose:
 Enforce that a control does nothing by getting the focus alone (Requirement 3, WCAG 2.2 SC 3.2.1).
@@ -4826,10 +5141,10 @@ Enforce that a control does nothing by getting the focus alone (Requirement 3, W
 ### Assertion expectation:
 After the focus was put on every control of every step, undo still says "There is nothing to undo."
 
-## Test 390
+## Test 413
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 64-65; `tests/accessibility/window_tests.c`, lines 87-221
+`tests/accessibility/accessibility_suite.c`, lines 65-66; `tests/accessibility/window_tests.c`, lines 87-111
 
 ### Purpose:
 Enforce that the keyboard is never trapped in a control (Requirement 3, WCAG 2.2 SC 2.1.2).
@@ -4837,10 +5152,10 @@ Enforce that the keyboard is never trapped in a control (Requirement 3, WCAG 2.2
 ### Assertion expectation:
 With the focus on each control of each step in turn, a Tab key given to the dialog manager moves the focus on.
 
-## Test 391
+## Test 414
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 77-79; `tests/accessibility/window_tests.c`, lines 383-395
+`tests/accessibility/accessibility_suite.c`, lines 78-80; `tests/accessibility/window_tests.c`, lines 383-395
 
 ### Purpose:
 Enforce that the language of the window can be found by a program (Requirement 3, WCAG 2.2 SC 3.1.1).
@@ -4848,10 +5163,10 @@ Enforce that the language of the window can be found by a program (Requirement 3
 ### Assertion expectation:
 Once the window is made, the one language the process prefers for its texts, as Windows tells it, is `en-US`.
 
-## Test 392
+## Test 415
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 80-82; `tests/accessibility/window_tests.c`, lines 113-226
+`tests/accessibility/accessibility_suite.c`, lines 81-83; `tests/accessibility/window_tests.c`, lines 113-125
 
 ### Purpose:
 Enforce that every control has instructions of its own (Requirement 3, WCAG 2.2 SC 3.3.2).
@@ -4859,10 +5174,10 @@ Enforce that every control has instructions of its own (Requirement 3, WCAG 2.2 
 ### Assertion expectation:
 In the real window, with the focus on each control in turn, the help command puts its help in the status line.
 
-## Test 393
+## Test 416
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 83-85; `tests/accessibility/window_tests.c`, lines 397-442
+`tests/accessibility/accessibility_suite.c`, lines 84-86; `tests/accessibility/window_tests.c`, lines 397-407
 
 ### Purpose:
 Enforce that a status message reaches assistive technology (Requirement 3, WCAG 2.2 SC 4.1.3).
@@ -4870,10 +5185,10 @@ Enforce that a status message reaches assistive technology (Requirement 3, WCAG 
 ### Assertion expectation:
 In the real window, UI Automation gives the status line the live setting "polite".
 
-## Test 394
+## Test 417
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 86-88; `tests/accessibility/access_tests.c`, lines 143-146
+`tests/accessibility/accessibility_suite.c`, lines 87-89; `tests/accessibility/access_tests.c`, lines 143-146
 
 ### Purpose:
 Enforce that the text follows the text size set in Windows (Requirement 3, WCAG 2.2 SC 1.4.4).
@@ -4881,10 +5196,10 @@ Enforce that the text follows the text size set in Windows (Requirement 3, WCAG 
 ### Assertion expectation:
 At 96 dots an inch and a text size of 400%, the layout is scaled as at 225%, the most Windows offers: 216.
 
-## Test 395
+## Test 418
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 89-91; `tests/accessibility/window_tests.c`, lines 127-231
+`tests/accessibility/accessibility_suite.c`, lines 90-92; `tests/accessibility/window_tests.c`, lines 127-159
 
 ### Purpose:
 Enforce that the focus can be seen (Requirement 3, WCAG 2.2 SC 2.4.7).
@@ -4892,10 +5207,10 @@ Enforce that the focus can be seen (Requirement 3, WCAG 2.2 SC 2.4.7).
 ### Assertion expectation:
 With the focus on each control in turn, the window paints 2 or more pixels of another color just left of it.
 
-## Test 396
+## Test 419
 
 ### File residence:
-`tests/accessibility/accessibility_suite.c`, lines 92-94; `tests/accessibility/draw_tests.c`, lines 11-94
+`tests/accessibility/accessibility_suite.c`, lines 93-95; `tests/accessibility/draw_tests.c`, lines 11-27
 
 ### Purpose:
 Catch again Bug 2 of the trial: a ticked box showed a filled rectangle, not a check (Rule 24).
@@ -4903,7 +5218,7 @@ Catch again Bug 2 of the trial: a ticked box showed a filled rectangle, not a ch
 ### Assertion expectation:
 In the picture the window draws of a ticked row, the inside of the box holds marks, on less than two fifths of it.
 
-## Test 397
+## Test 420
 
 ### File residence:
 `tests/accessibility/accessibility_suite.c`, lines 95-97; `tests/accessibility/choice_tests.c`, lines 11-26
@@ -4914,7 +5229,7 @@ Enforce that a list or choice shows what the design holds, after an undo too (Re
 ### Assertion expectation:
 In the real window, after another civ to edit is picked and the pick undone, the choice shows the Britons again.
 
-## Test 398
+## Test 421
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 218-226
@@ -4925,7 +5240,7 @@ Verify that the real window reflows when it is made narrow (Req. 3, WCAG 1.4.10)
 ### Assertion expectation:
 In a window 420 wide, the Architecture list starts as far left as the Name field.
 
-## Test 399
+## Test 422
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 228-239
@@ -4936,7 +5251,7 @@ Verify that the real window brings the control in focus into view (Req. 3, WCAG 
 ### Assertion expectation:
 In a window 420 by 360, the Scout list lies between the window's top and bottom once it has the focus.
 
-## Test 400
+## Test 423
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 241-257
@@ -4947,7 +5262,7 @@ Verify that the window can be made as small as WCAG 1.4.10 asks to be usable (Re
 ### Assertion expectation:
 The least size the window reports is the frame around 320 by 256, at the scale in use.
 
-## Test 401
+## Test 424
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 259-262
@@ -4958,7 +5273,7 @@ Verify that the keyboard scrolls a step: Go, Scroll down, Ctrl+Down (Req. 3, WCA
 ### Assertion expectation:
 In a window 420 by 360, the scroll bar's place is above 0 after Scroll down.
 
-## Test 402
+## Test 425
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 264-268
@@ -4969,7 +5284,7 @@ Verify that the keyboard scrolls a step back: Go, Scroll up, Ctrl+Up (Req. 3, WC
 ### Assertion expectation:
 Scroll down twice and Scroll up once leave the scroll bar where one Scroll down leaves it.
 
-## Test 403
+## Test 426
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 270-279
@@ -4980,7 +5295,7 @@ Verify that the mouse wheel scrolls a step (Req. 3).
 ### Assertion expectation:
 In a window 420 by 360, the scroll bar's place is above 0 after one notch of the wheel downwards.
 
-## Test 404
+## Test 427
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 293-296
@@ -4991,7 +5306,7 @@ Verify that a row too long for its list is shown on more lines, not cut (Req. 3,
 ### Assertion expectation:
 In a window 420 wide, the first row of the bonuses is higher than the third, "Shepherds work 25% faster".
 
-## Test 405
+## Test 428
 
 ### File residence:
 `tests/reflow/reflow_tests.c`, lines 298-305
@@ -5002,10 +5317,10 @@ Prevent a row of one line from becoming smaller than a target (Req. 3, WCAG 2.5.
 ### Assertion expectation:
 The third row of the bonuses is 44 high at the scale in use.
 
-## Test 406
+## Test 429
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, lines 19-21; `tests/maintainability/code_rules.c`, lines 52-67
+`tests/maintainability/maintainability_suite.c`, lines 21-23; `tests/maintainability/code_rules.c`, lines 52-67
 
 ### Purpose:
 Enforce that the code holds no comments (Rule 10).
@@ -5013,10 +5328,10 @@ Enforce that the code holds no comments (Rule 10).
 ### Assertion expectation:
 No `.c` or `.h` file holds `//` or `/*` outside a string; a failure names the file and line.
 
-## Test 407
+## Test 430
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, lines 22-24; `tests/maintainability/code_rules.c`, lines 22-35
+`tests/maintainability/maintainability_suite.c`, lines 24-26; `tests/maintainability/code_rules.c`, lines 22-35
 
 ### Purpose:
 Enforce that no function is longer than 60 lines of code (Rule 11, P10 rule 4).
@@ -5024,10 +5339,10 @@ Enforce that no function is longer than 60 lines of code (Rule 11, P10 rule 4).
 ### Assertion expectation:
 Every function, from its opening to its closing brace, has at most 60 lines that are not blank.
 
-## Test 408
+## Test 431
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, lines 25-27; `tests/maintainability/code_rules.c`, lines 37-50
+`tests/maintainability/maintainability_suite.c`, lines 27-29; `tests/maintainability/code_rules.c`, lines 37-50
 
 ### Purpose:
 Enforce that no line of code is longer than 120 characters (Rule 12).
@@ -5035,10 +5350,10 @@ Enforce that no line of code is longer than 120 characters (Rule 12).
 ### Assertion expectation:
 Every line of every `.c` and `.h` file has at most 120 characters; a failure names the file and line.
 
-## Test 409
+## Test 432
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, lines 28-30; `tests/maintainability/code_rules.c`, lines 52-67
+`tests/maintainability/maintainability_suite.c`, lines 30-32; `tests/maintainability/code_rules.c`, lines 52-67
 
 ### Purpose:
 Enforce that no file of code is longer than 400 lines of code (Rule 13).
@@ -5046,7 +5361,7 @@ Enforce that no file of code is longer than 400 lines of code (Rule 13).
 ### Assertion expectation:
 Every `.c` and `.h` file has at most 400 lines that are not blank.
 
-## Test 410
+## Test 433
 
 ### File residence:
 `tests/maintainability/maintainability_suite.c`, line 45; `tests/maintainability/code_patterns.c`, lines 78-81
@@ -5057,7 +5372,7 @@ Enforce simple control flow without jumps (Rule 26, P10 rule 1).
 ### Assertion expectation:
 The words `goto`, `setjmp` and `longjmp` appear in no code.
 
-## Test 411
+## Test 434
 
 ### File residence:
 `tests/maintainability/maintainability_suite.c`, line 47; `tests/maintainability/code_rules.c`, lines 155-171
@@ -5068,7 +5383,7 @@ Enforce that no function calls itself, directly or through others (Rule 26, P10 
 ### Assertion expectation:
 The graph of calls between the functions of all `.c` files has no cycle; a failure names a function in one.
 
-## Test 412
+## Test 435
 
 ### File residence:
 `tests/maintainability/maintainability_suite.c`, line 49; `tests/maintainability/code_patterns.c`, lines 83-86
@@ -5079,10 +5394,10 @@ Enforce that no memory is allocated while the program runs (Rule 26, P10 rule 3)
 ### Assertion expectation:
 None of `malloc`, `calloc`, `realloc`, `free`, `alloca`, `strdup` or the Win32 allocators appears in the code.
 
-## Test 413
+## Test 436
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, line 51; `tests/maintainability/code_patterns.c`, lines 88-144
+`tests/maintainability/maintainability_suite.c`, line 51; `tests/maintainability/code_patterns.c`, lines 88-97
 
 ### Purpose:
 Enforce that the preprocessor only includes files and guards headers (Rule 26, P10 rule 8).
@@ -5090,10 +5405,10 @@ Enforce that the preprocessor only includes files and guards headers (Rule 26, P
 ### Assertion expectation:
 Only `#include`, `#ifndef`, `#endif` and `#define` of a `_H` guard or of `CHECK(` appear.
 
-## Test 414
+## Test 437
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, line 53; `tests/maintainability/code_patterns.c`, lines 146-188
+`tests/maintainability/maintainability_suite.c`, line 53; `tests/maintainability/code_patterns.c`, lines 146-159
 
 ### Purpose:
 Enforce at most one level of dereferencing (Rule 26, P10 rule 9).
@@ -5101,10 +5416,10 @@ Enforce at most one level of dereferencing (Rule 26, P10 rule 9).
 ### Assertion expectation:
 No `**`, no `*const *` and no chain of two `->` in the code.
 
-## Test 415
+## Test 438
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, lines 54-55; `tests/maintainability/code_patterns.c`, lines 190-219
+`tests/maintainability/maintainability_suite.c`, lines 55-56; `tests/maintainability/code_patterns.c`, lines 190-199
 
 ### Purpose:
 Enforce that no function pointer is used but the one window procedure Win32 needs (Rule 26, P10 rule 9).
@@ -5112,10 +5427,10 @@ Enforce that no function pointer is used but the one window procedure Win32 need
 ### Assertion expectation:
 No `(*name)(`, no callback API; `lpfnWndProc` only in `src/win/app_window.c`.
 
-## Test 416
+## Test 439
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, line 69; `tests/rules/repo_rules.c`, lines 30-80
+`tests/maintainability/maintainability_suite.c`, line 69; `tests/rules/repo_rules.c`, lines 30-45
 
 ### Purpose:
 Enforce that no folder holds more than 7 files, the main folder 8 (Rule 14).
@@ -5123,10 +5438,10 @@ Enforce that no folder holds more than 7 files, the main folder 8 (Rule 14).
 ### Assertion expectation:
 Every folder of the files Git sees holds at most 7 files, the main one 8; `documentation/DEVLOG/` is not counted.
 
-## Test 417
+## Test 440
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, line 71; `tests/rules/repo_rules.c`, lines 82-161
+`tests/maintainability/maintainability_suite.c`, line 71; `tests/rules/repo_rules.c`, lines 82-95
 
 ### Purpose:
 Enforce that no two files share a name (Rule 15).
@@ -5134,10 +5449,10 @@ Enforce that no two files share a name (Rule 15).
 ### Assertion expectation:
 No two file names are equal when case is ignored, `SKILL.md` aside.
 
-## Test 418
+## Test 441
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, line 73; `tests/rules/repo_rules.c`, lines 119-166
+`tests/maintainability/maintainability_suite.c`, line 73; `tests/rules/repo_rules.c`, lines 119-132
 
 ### Purpose:
 Enforce that the project holds only C and documents (Rule 29).
@@ -5145,10 +5460,10 @@ Enforce that the project holds only C and documents (Rule 29).
 ### Assertion expectation:
 Every file ends in `.c`, `.h`, `.md`, `.txt`, `.json` or `.png`, or is `LICENSE`, `.gitignore` or `.gitattributes`.
 
-## Test 419
+## Test 442
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, line 75; `tests/rules/repo_rules.c`, lines 168-231
+`tests/maintainability/maintainability_suite.c`, line 75; `tests/rules/repo_rules.c`, lines 168-174
 
 ### Purpose:
 Enforce that the documents of repo_template are filled in (Rule 3).
@@ -5156,10 +5471,10 @@ Enforce that the documents of repo_template are filled in (Rule 3).
 ### Assertion expectation:
 No `.md` file holds two opening braces before a capital, or the template's start or end mark.
 
-## Test 420
+## Test 443
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, line 77; `tests/rules/log_rules.c`, lines 31-217
+`tests/maintainability/maintainability_suite.c`, line 77; `tests/rules/log_rules.c`, lines 31-44
 
 ### Purpose:
 Enforce the form of the development log (Rules 18 to 21).
@@ -5167,10 +5482,10 @@ Enforce the form of the development log (Rules 18 to 21).
 ### Assertion expectation:
 `DEVLOG1.md` has its title, at most 1000 lines, dated days listed in order at its top, and times as hh:mm:ss.
 
-## Test 421
+## Test 444
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, line 79; `tests/rules/log_rules.c`, lines 219-293
+`tests/maintainability/maintainability_suite.c`, line 79; `tests/rules/log_rules.c`, lines 219-234
 
 ### Purpose:
 Enforce that TESTS.md numbers its tests 1, 2, 3 in order, with short fields (Rules 5, 6).
@@ -5178,10 +5493,10 @@ Enforce that TESTS.md numbers its tests 1, 2, 3 in order, with short fields (Rul
 ### Assertion expectation:
 Headings and contents both count up from 1, agree, and no field line passes 120 characters.
 
-## Test 422
+## Test 445
 
 ### File residence:
-`tests/maintainability/maintainability_suite.c`, line 81; `tests/rules/log_rules.c`, lines 295-332
+`tests/maintainability/maintainability_suite.c`, line 81; `tests/rules/log_rules.c`, lines 295-307
 
 ### Purpose:
 Enforce that TESTS.md documents every test and no more (Rule 6).
@@ -5189,7 +5504,7 @@ Enforce that TESTS.md documents every test and no more (Rule 6).
 ### Assertion expectation:
 The `## Test` headings are as many as the `case` lines of the three suites.
 
-## Test 423
+## Test 446
 
 ### File residence:
 `tests/maintainability/maintainability_suite.c`, line 83; `tests/rules/log_rules.c`, lines 334-348
@@ -5200,7 +5515,7 @@ Enforce that every term is one short line (Rule 9).
 ### Assertion expectation:
 No line of `TERMINOLOGY.md` passes 120 characters.
 
-## Test 424
+## Test 447
 
 ### File residence:
 `tests/rules/gate_tests.c`, lines 29-32
@@ -5211,7 +5526,7 @@ Prevent the test of simple control flow from passing a `goto` unseen (Rule 26).
 ### Assertion expectation:
 In `tests/fixtures/broken_rules.txt`, `pattern_forbidden_flow_line` gives 5, the line of `goto out;`.
 
-## Test 425
+## Test 448
 
 ### File residence:
 `tests/rules/gate_tests.c`, lines 34-37
@@ -5222,7 +5537,7 @@ Prevent the test of dynamic memory from passing an allocation unseen (Rule 26).
 ### Assertion expectation:
 In `tests/fixtures/broken_rules.txt`, `pattern_allocation_line` gives 12, the line of `malloc(4)`.
 
-## Test 426
+## Test 449
 
 ### File residence:
 `tests/rules/gate_tests.c`, lines 39-42
@@ -5233,7 +5548,7 @@ Prevent the test of the preprocessor from passing a macro unseen (Rule 26).
 ### Assertion expectation:
 In `tests/fixtures/broken_rules.txt`, `pattern_complex_directive_line` gives 23, the line of `#define TWICE(x)`.
 
-## Test 427
+## Test 450
 
 ### File residence:
 `tests/rules/gate_tests.c`, lines 44-47
@@ -5244,7 +5559,7 @@ Prevent the test of pointer depth from passing two dereferences in a row unseen 
 ### Assertion expectation:
 In `tests/fixtures/broken_rules.txt`, `pattern_deep_pointer_line` gives 27, the line of `outer->inner->value`.
 
-## Test 428
+## Test 451
 
 ### File residence:
 `tests/rules/gate_tests.c`, lines 49-52
@@ -5255,7 +5570,7 @@ Prevent the test of function pointers from passing one unseen (Rule 26).
 ### Assertion expectation:
 In `tests/fixtures/broken_rules.txt`, `pattern_function_pointer_line` gives 30, the line of `(*callback)(int)`.
 
-## Test 429
+## Test 452
 
 ### File residence:
 `tests/rules/gate_tests.c`, lines 54-57
@@ -5266,7 +5581,7 @@ Prevent the test of comments from passing a comment unseen (Rule 10).
 ### Assertion expectation:
 After `source_scan` of `tests/fixtures/broken_rules.txt`, `comment_line` is 34, the line of its one comment.
 
-## Test 430
+## Test 453
 
 ### File residence:
 `tests/rules/gate_tests.c`, lines 59-66
@@ -5277,8 +5592,7 @@ Prevent the test of recursion from passing a function that calls itself unseen (
 ### Assertion expectation:
 The call graph of `tests/fixtures/broken_rules.txt` has a cycle, and the function named is `again`.
 
-
-## Test 431
+## Test 454
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 82-85
@@ -5289,7 +5603,7 @@ Verify that the build reads the sources of a folder and of the folders in it (Ru
 ### Assertion expectation:
 `source_list_collect` of `tests` and `.txt` lists `tests/fixtures/broken_rules.txt`.
 
-## Test 432
+## Test 455
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 89-102
@@ -5300,7 +5614,7 @@ Verify that the build lists a folder's sources and nothing before them or beside
 ### Assertion expectation:
 Every file that `source_list_collect` lists of `tests` and `.txt` lies in `tests/`, and there is at least one.
 
-## Test 433
+## Test 456
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 111-116
@@ -5311,7 +5625,7 @@ Verify that the build reads the sources of `src`, `tests` and `tools`, each once
 ### Assertion expectation:
 `source_list_collect_all` of `.h` lists as many files as `source_list_collect` of `src`, `tests` and `tools` together.
 
-## Test 434
+## Test 457
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 118-124
@@ -5322,7 +5636,7 @@ Verify that a header changed after an object makes the build compile again (Rule
 ### Assertion expectation:
 Of two files changed at 9 and at 5, `source_list_newest` gives 9.
 
-## Test 435
+## Test 458
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 126-132
@@ -5333,7 +5647,7 @@ Verify that each program finds the object of a source where the build put it (Ru
 ### Assertion expectation:
 `source_built_path` of `build/obj_quick`, `src/core/text.c` and `.o` gives `build/obj_quick/text.o`.
 
-## Test 436
+## Test 459
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 134-137
@@ -5344,7 +5658,7 @@ Verify that a build compiles only what changed (Rule 3).
 ### Assertion expectation:
 A source changed at 0, with headers changed at 0, is fresh against an object that exists.
 
-## Test 437
+## Test 460
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 139-142
@@ -5355,7 +5669,7 @@ Prevent a stale object after a header changed (Rule 3).
 ### Assertion expectation:
 A source is not fresh when a header is changed one tick after its object.
 
-## Test 438
+## Test 461
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 144-147
@@ -5366,7 +5680,7 @@ Prevent a stale object when a source is saved in the tick its object was made (R
 ### Assertion expectation:
 A source changed at the very time of its object is not fresh.
 
-## Test 439
+## Test 462
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 149-152
@@ -5377,7 +5691,7 @@ Verify that the build tool is linked from its own sources and `src/core/` only (
 ### Assertion expectation:
 For the build tool, `src/core/text.c` and `tools/build/build.c` give `obj/text.o` and `obj/build.o`, and no library.
 
-## Test 440
+## Test 463
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 154-157
@@ -5388,7 +5702,7 @@ Verify that `build.exe coverage` builds the tests to measure what they run (Req.
 ### Assertion expectation:
 `build_mode_of` of "build.exe coverage" is `BUILD_MODE_COVERAGE`.
 
-## Test 441
+## Test 464
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 159-163
@@ -5399,7 +5713,7 @@ Verify that `nowindow`, `norules` and `redundancy` given to the build are passed
 ### Assertion expectation:
 `build_test_arguments` of "build.exe quick nowindow norules redundancy" is " nowindow norules redundancy".
 
-## Test 442
+## Test 465
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 165-170
@@ -5410,7 +5724,7 @@ Verify that a coverage build links the tests and no other program (Req. 10).
 ### Assertion expectation:
 `build_programs_of(BUILD_MODE_COVERAGE)` starts at `SOURCE_PROGRAM_TESTS`, ends before `SOURCE_PROGRAM_BUILD_TOOL`.
 
-## Test 443
+## Test 466
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 172-176
@@ -5421,7 +5735,7 @@ Verify that a coverage build links the tests with gcc's coverage (Req. 10).
 ### Assertion expectation:
 The link command of the tests in a coverage build holds "gcc -g --coverage -o build/tests.exe".
 
-## Test 444
+## Test 467
 
 ### File residence:
 `tests/rules/tool_tests.c`, lines 178-182
@@ -5578,62 +5892,62 @@ The Britons compared with the Britons give no step as done.
 ## Redundancy test 14
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 191-195
+`tests/redundancy/civ_tests.c`, lines 191-196
 
 ### Purpose:
-Verify that the review step is done once the civ is in the mod as it is (Req. 12).
+Verify that the Finish step is done once a whole civ differs from the game's (Req. 12).
 
 ### Assertion expectation:
-A finished civ held by the mod marks the review step done.
+The Britons renamed Testonia mark the Finish step done.
 
 ## Redundancy test 15
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 205-209
+`tests/redundancy/civ_tests.c`, lines 206-210
 
 ### Purpose:
-Verify that a changed civ saved in the mod is counted among the civs changed (Req. 12).
+Verify that a changed civ is counted among the civs changed (Req. 12).
 
 ### Assertion expectation:
-The Britons renamed "Testonia" and saved make the count of civs in the mod 1.
+After the Britons renamed Testonia are kept, the roster counts 1 civ.
 
 ## Redundancy test 16
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 211-215
+`tests/redundancy/civ_tests.c`, lines 212-216
 
 ### Purpose:
 Verify that a civ as the game has it is not put in the mod (Req. 12).
 
 ### Assertion expectation:
-Saving the Britons unchanged answers that the civ is left out.
+Keeping the Britons unchanged flips no mark, and the roster counts 0 civs.
 
 ## Redundancy test 17
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 217-223
+`tests/redundancy/civ_tests.c`, lines 218-224
 
 ### Purpose:
-Verify that saving a civ again replaces what the mod holds of it (Req. 12).
+Verify that a civ changed again is in the mod with its newer edits (Req. 12).
 
 ### Assertion expectation:
-A second save answers "updated", and the mod's first civ is then named "Newer".
+Testonia kept, renamed Newer and kept again: no mark flips and the mod's first civ is named Newer.
 
 ## Redundancy test 18
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 225-229
+`tests/redundancy/civ_tests.c`, lines 226-230
 
 ### Purpose:
 Verify that a civ saved as the game has it again is taken out of the mod (Req. 12).
 
 ### Assertion expectation:
-Saving the Britons unchanged after a changed save answers that the civ is taken out.
+Testonia kept, then kept as the game has it: the mark flips and the roster counts 0 civs.
 
 ## Redundancy test 19
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 231-236
+`tests/redundancy/civ_tests.c`, lines 232-238
 
 ### Purpose:
 Verify that the edits of a civ are kept while another civ is edited (Req. 12).
@@ -5644,29 +5958,29 @@ After the Franks are kept, the draft of the Britons is still named "Testonia".
 ## Redundancy test 20
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 238-242
+`tests/redundancy/civ_tests.c`, lines 240-243
 
 ### Purpose:
-Verify that the mod is known to hold a civ just as it was saved (Req. 12).
+Verify that the roster marks a civ that differs from the game's as changed (Req. 12).
 
 ### Assertion expectation:
-Right after Save civ, the mod holds the civ as it is.
+Keeping the Britons renamed Testonia flips their mark, and `roster_is_changed` is true for them.
 
 ## Redundancy test 21
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 244-249
+`tests/redundancy/civ_tests.c`, lines 245-250
 
 ### Purpose:
-Verify that a civ changed after its save is no longer held as it is (Req. 12).
+Verify that the roster marks no civ as changed that is as the game has it (Req. 12).
 
 ### Assertion expectation:
-A civ renamed after its save is not held by the mod as it now is.
+The Britons kept unchanged are not marked, and neither is a slot past the last.
 
 ## Redundancy test 22
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 251-258
+`tests/redundancy/civ_tests.c`, lines 284-291
 
 ### Purpose:
 Verify that the civs of the mod come in the order of the slots they take (Req. 12).
@@ -5677,7 +5991,7 @@ With the Franks saved before the Britons, the mod's first civ is the Britons, sl
 ## Redundancy test 23
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 260-265
+`tests/redundancy/civ_tests.c`, lines 293-298
 
 ### Purpose:
 Verify that a window opened anew holds no draft kept before it (Req. 12).
@@ -5688,18 +6002,62 @@ After a draft of the Britons is kept and the civs are started anew, no draft of 
 ## Redundancy test 24
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 267-272
+`tests/redundancy/civ_tests.c`, lines 300-305
 
 ### Purpose:
 Verify that a civ replacing a slot past the last one is left out of the mod (Req. 12).
 
 ### Assertion expectation:
-A changed civ replacing slot 64 is answered as left out, and the mod then holds no civ.
+A civ whose slot is `ROSTER_SLOT_LIMIT` flips no mark, and the roster counts 0 civs.
 
 ## Redundancy test 25
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 274-279
+`tests/redundancy/civ_tests.c`, lines 259-263
+
+### Purpose:
+Verify that the roster counts a changed civ in slot 0, the first (Req. 12).
+
+### Assertion expectation:
+A changed civ kept with slot 0 makes the roster count 1 civ.
+
+## Redundancy test 26
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 265-269
+
+### Purpose:
+Verify that the roster gives the mod a changed civ in slot 0, the first (Req. 12).
+
+### Assertion expectation:
+With a changed civ kept in slot 0, `roster_civ` gives a civ at index 0.
+
+## Redundancy test 27
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 271-275
+
+### Purpose:
+Verify that the roster marks a changed civ in slot 0, the first (Req. 12).
+
+### Assertion expectation:
+With a changed civ kept in slot 0, `roster_is_changed` is true for slot 0.
+
+## Redundancy test 28
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 277-282
+
+### Purpose:
+Verify that a roster started anew forgets a changed civ in slot 0, the first (Req. 12).
+
+### Assertion expectation:
+A changed civ kept in slot 0, then `roster_start`: the roster counts 0 civs.
+
+## Redundancy test 29
+
+### File residence:
+`tests/redundancy/civ_tests.c`, lines 307-312
 
 ### Purpose:
 Verify that a civ with another first look, its architecture, is not the civ of the game (Req. 12).
@@ -5707,10 +6065,10 @@ Verify that a civ with another first look, its architecture, is not the civ of t
 ### Assertion expectation:
 The Britons with the next architecture are not the same as the Britons of the game.
 
-## Redundancy test 26
+## Redundancy test 30
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 281-286
+`tests/redundancy/civ_tests.c`, lines 314-319
 
 ### Purpose:
 Verify that a civ whose Castle Age tech costs more of the first resource is not the civ of the game (Req. 12).
@@ -5718,10 +6076,10 @@ Verify that a civ whose Castle Age tech costs more of the first resource is not 
 ### Assertion expectation:
 The Britons whose Castle Age tech costs 1 more of the first resource are not the Britons of the game.
 
-## Redundancy test 27
+## Redundancy test 31
 
 ### File residence:
-`tests/redundancy/civ_tests.c`, lines 288-295
+`tests/redundancy/civ_tests.c`, lines 321-328
 
 ### Purpose:
 Verify that a civ given a bonus of the civ edited before it is not taken for its civ of the game (Req. 12).
@@ -5729,7 +6087,7 @@ Verify that a civ given a bonus of the civ edited before it is not taken for its
 ### Assertion expectation:
 The Britons, after the Franks, with their bonus swapped for the Franks' second, are not the Britons of the game.
 
-## Redundancy test 28
+## Redundancy test 32
 
 ### File residence:
 `tests/redundancy/game_tests.c`, lines 53-56
@@ -5740,7 +6098,7 @@ Verify that the game's description of a civ gives it its tagline (Req. 12).
 ### Assertion expectation:
 "Foot Archer civilization" on the first line of the description gives the tagline "Foot Archer".
 
-## Redundancy test 29
+## Redundancy test 33
 
 ### File residence:
 `tests/redundancy/game_tests.c`, lines 58-61
@@ -5751,7 +6109,7 @@ Verify that a civ's description is the game's text after its first line (Req. 12
 ### Assertion expectation:
 The Britons' description starts with "- Shepherds", the text after the empty line.
 
-## Redundancy test 30
+## Redundancy test 34
 
 ### File residence:
 `tests/redundancy/game_tests.c`, lines 63-66
@@ -5762,7 +6120,7 @@ Verify that a line break written as \n by the game is a line break of the field 
 ### Assertion expectation:
 The description holds "faster", a carriage return, a line feed and "Towers".
 
-## Redundancy test 31
+## Redundancy test 35
 
 ### File residence:
 `tests/redundancy/game_tests.c`, lines 68-71
@@ -5773,7 +6131,7 @@ Verify that a quote escaped by the game is a plain quote in the description (Req
 ### Assertion expectation:
 The description holds "shoot" between two plain quotes.
 
-## Redundancy test 32
+## Redundancy test 36
 
 ### File residence:
 `tests/redundancy/game_tests.c`, lines 73-76
@@ -5784,7 +6142,7 @@ Verify that a civ the game does not describe gets no tagline, not one from befor
 ### Assertion expectation:
 The Franks, whose description is not in the strings, have their stale tagline emptied.
 
-## Redundancy test 33
+## Redundancy test 37
 
 ### File residence:
 `tests/redundancy/game_tests.c`, lines 78-82
@@ -5795,7 +6153,7 @@ Verify that reading the texts of a game that is found succeeds (Req. 12).
 ### Assertion expectation:
 Reading the small described game answers true.
 
-## Redundancy test 34
+## Redundancy test 38
 
 ### File residence:
 `tests/redundancy/game_tests.c`, lines 84-87
@@ -5806,7 +6164,7 @@ Verify that a civ the game does not describe gets no description, not one from b
 ### Assertion expectation:
 The Franks, whose description is not in the strings, have their stale description emptied.
 
-## Redundancy test 35
+## Redundancy test 39
 
 ### File residence:
 `tests/redundancy/game_tests.c`, lines 89-92
@@ -5817,7 +6175,7 @@ Verify that a text of the game without its closing quote ends where its line end
 ### Assertion expectation:
 An unclosed description followed by another line gives the description "Shepherds" alone.
 
-## Redundancy test 36
+## Redundancy test 40
 
 ### File residence:
 `tests/redundancy/game_tests.c`, lines 94-97
@@ -5828,7 +6186,7 @@ Verify that the spaces and line breaks at the end of a text of the game are cut 
 ### Assertion expectation:
 A description that ends in a space and a \n gives the description "Shepherds".
 
-## Redundancy test 37
+## Redundancy test 41
 
 ### File residence:
 `tests/redundancy/game_tests.c`, lines 99-102
@@ -5839,7 +6197,7 @@ Verify that a first line not ending in " civilization" is the whole tagline (Req
 ### Assertion expectation:
 The first line "Archers of the north" gives the tagline "Archers of the north".
 
-## Redundancy test 38
+## Redundancy test 42
 
 ### File residence:
 `tests/redundancy/game_tests.c`, lines 104-115
@@ -5850,7 +6208,7 @@ Verify that a tagline longer than its field holds is cut to fit (Req. 12).
 ### Assertion expectation:
 A first line of 300 letters gives a tagline of 255 letters, all that its field of 256 holds.
 
-## Redundancy test 39
+## Redundancy test 43
 
 ### File residence:
 `tests/redundancy/tools/plan_tests.c`, lines 8-15
@@ -5861,7 +6219,7 @@ Verify that the analyzed build compiles each source with gcc's static analyzer (
 ### Assertion expectation:
 The compile command of `src/core/check.c` in the analyzed build holds " -fanalyzer -c src/core/check.c -o ".
 
-## Redundancy test 40
+## Redundancy test 44
 
 ### File residence:
 `tests/redundancy/dat/patch_tests.c`, lines 9-13
@@ -5872,7 +6230,7 @@ Verify that the first patch of the dat file is found, so that no civ patches its
 ### Assertion expectation:
 After a patch of the first byte of a small dat file, that byte is said to be patched.
 
-## Redundancy test 41
+## Redundancy test 45
 
 ### File residence:
 `tests/redundancy/mod/built_mod_tests.c`, lines 48-55
@@ -5883,7 +6241,7 @@ Verify that a build with no civ in the mod is refused before anything is built (
 ### Assertion expectation:
 The civs of a build of none are answered as not finished.
 
-## Redundancy test 42
+## Redundancy test 46
 
 ### File residence:
 `tests/redundancy/mod/built_mod_tests.c`, lines 57-66
@@ -5894,7 +6252,7 @@ Verify that building a mod of an unfinished civ fails (Req. 9, 12).
 ### Assertion expectation:
 Building a mod of one civ just reset answers false.
 
-## Redundancy test 43
+## Redundancy test 47
 
 ### File residence:
 `tests/redundancy/mod/built_mod_tests.c`, lines 68-75
@@ -5905,7 +6263,7 @@ Verify that a civ's description takes the place of the game's description of its
 ### Assertion expectation:
 A civ named by the Jurchens' string id leaves no 120200 "Jurchens" in the mod's strings, and 120200 once.
 
-## Redundancy test 44
+## Redundancy test 48
 
 ### File residence:
 `tests/redundancy/mod/built_mod_tests.c`, lines 77-80
@@ -5916,7 +6274,7 @@ Verify that the game's descriptions of the civs not in the mod are kept in its s
 ### Assertion expectation:
 The mod's strings of a civ for the Britons still hold the game's 120200 "Jurchens".
 
-## Redundancy test 45
+## Redundancy test 49
 
 ### File residence:
 `tests/redundancy/mod/built_mod_tests.c`, lines 82-85
@@ -5927,7 +6285,7 @@ Verify that a civ whose description id lies past the game's descriptions still g
 ### Assertion expectation:
 A civ named by string id 10399 gets its description as 120278 in the mod's strings.
 
-## Redundancy test 46
+## Redundancy test 50
 
 ### File residence:
 `tests/redundancy/mod/built_mod_tests.c`, lines 87-90
@@ -5938,7 +6296,7 @@ Verify that a civ left from a bigger build, past the count of the mod, gets no d
 ### Assertion expectation:
 With the Franks left past a count of one civ, the mod's strings hold no line 120151 for them.
 
-## Redundancy test 47
+## Redundancy test 51
 
 ### File residence:
 `tests/redundancy/mod/built_mod_tests.c`, lines 141-146
@@ -5949,7 +6307,7 @@ Verify that the description of the Britons, the first id of the game's descripti
 ### Assertion expectation:
 A civ named by the Britons' string id leaves one line 120150 in the mod's strings, not two.
 
-## Redundancy test 48
+## Redundancy test 52
 
 ### File residence:
 `tests/redundancy/mod/built_mod_tests.c`, lines 100-112
@@ -5960,7 +6318,7 @@ Verify that a tech of the game takes the requirements of a mod's civs only while
 ### Assertion expectation:
 With the 4 free places of a tech's requirements taken by 4 civs, a fifth civ's requirement is refused.
 
-## Redundancy test 49
+## Redundancy test 53
 
 ### File residence:
 `tests/redundancy/mod/built_mod_tests.c`, lines 132-139
@@ -5971,7 +6329,392 @@ Verify that a civ whose description passes the 8192 bytes of its room fails the 
 ### Assertion expectation:
 With 24 bonuses of 300 letters, the strings are written for the description "Archers", not for 1535 letters.
 
-## Redundancy test 50
+## Redundancy test 54
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 144-145
+
+### Purpose:
+Verify that a civ's name in a filter leaves that civ's castle tech alone (Req. 12).
+
+### Assertion expectation:
+In a small catalog, the filter "brit" leaves 1 row of the castle techs.
+
+## Redundancy test 55
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 146-148
+
+### Purpose:
+Verify that a civ's name in a filter leaves the castle tech of that civ, not another's (Req. 12).
+
+### Assertion expectation:
+The filter "franks" leaves Bearded Axe, row 2, first of the castle techs.
+
+## Redundancy test 56
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 149-151
+
+### Purpose:
+Verify that a civ's name in a filter leaves the imperial tech of that civ (Req. 12).
+
+### Assertion expectation:
+The filter "franks" leaves Chivalry, row 3, first of the imperial techs.
+
+## Redundancy test 57
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 152-154
+
+### Purpose:
+Verify that a civ's name in a filter leaves the unique unit of that civ (Req. 12).
+
+### Assertion expectation:
+The filter "franks" leaves the Throwing Axeman, row 1, first of the unique units.
+
+## Redundancy test 58
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 155-156
+
+### Purpose:
+Verify that a civ's name in a filter leaves no unique unit of another civ (Req. 12).
+
+### Assertion expectation:
+The filter "brit" leaves 1 row of the unique units.
+
+## Redundancy test 59
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 157-159
+
+### Purpose:
+Verify that a civ's name in a filter leaves every civ bonus of that civ (Req. 12).
+
+### Assertion expectation:
+The filter "franks" leaves 2 rows of the civ bonuses, the two of the Franks.
+
+## Redundancy test 60
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 160-162
+
+### Purpose:
+Verify that a civ's name in a filter leaves no civ bonus of another civ (Req. 12).
+
+### Assertion expectation:
+The filter "brit" leaves 1 row of the civ bonuses.
+
+## Redundancy test 61
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 163-165
+
+### Purpose:
+Verify that a civ's name in a filter leaves the team bonus of that civ (Req. 12).
+
+### Assertion expectation:
+The filter "franks" leaves the team bonus of the Franks, row 1, first.
+
+## Redundancy test 62
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 166-167
+
+### Purpose:
+Verify that a civ's name in a filter leaves the nodes that civ has (Req. 12).
+
+### Assertion expectation:
+The filter "franks" leaves 2 rows of the tech tree.
+
+## Redundancy test 63
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 168-169
+
+### Purpose:
+Verify that a civ's name in a filter leaves no node that civ lacks (Req. 12).
+
+### Assertion expectation:
+The filter "brit" leaves 1 row of the tech tree.
+
+## Redundancy test 64
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 170-172
+
+### Purpose:
+Verify that a filter is a civ's name only from the name's start (Req. 12).
+
+### Assertion expectation:
+The filter "ritons" leaves 0 rows of the castle techs.
+
+## Redundancy test 65
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 173-174
+
+### Purpose:
+Verify that a civ's name in the filter of the heroes leaves none, as no civ has a hero (Req. 12).
+
+### Assertion expectation:
+The filter "franks" leaves 0 rows of the heroes.
+
+## Redundancy test 66
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 183-185
+
+### Purpose:
+Verify that a filter still leaves the rows that hold its text (Req. 12).
+
+### Assertion expectation:
+The filter "bearded" leaves Bearded Axe, row 2, first of the castle techs.
+
+## Redundancy test 67
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 186-187
+
+### Purpose:
+Verify that Civ to edit leaves out a civ that is not a ranked civ (Req. 12).
+
+### Assertion expectation:
+Of the Britons, the Franks and the unranked Spartans, Civ to edit has 2 rows.
+
+## Redundancy test 68
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 188-189
+
+### Purpose:
+Verify that a civ without an `unranked` line is a ranked civ (Req. 12).
+
+### Assertion expectation:
+`catalog_is_ranked` is true for the Britons, slot 1.
+
+## Redundancy test 69
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 190-192
+
+### Purpose:
+Verify that a civ with an `unranked` line is not a ranked civ (Req. 12).
+
+### Assertion expectation:
+`catalog_is_ranked` is false for the Spartans, slot 48.
+
+## Redundancy test 70
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 193-195
+
+### Purpose:
+Verify that the first filter of the layout names the list it narrows (Req. 12).
+
+### Assertion expectation:
+`binding_filtered_list(CONTROL_TREE_FILTER)` is `CONTROL_TREE_LIST`.
+
+## Redundancy test 71
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 196-198
+
+### Purpose:
+Verify that the last filter of the layout names the list it narrows (Req. 12).
+
+### Assertion expectation:
+`binding_filtered_list(CONTROL_IMPERIAL_TECH_FILTER)` is `CONTROL_IMPERIAL_TECH_LIST`.
+
+## Redundancy test 72
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 199-201
+
+### Purpose:
+Verify that a control that is no filter narrows no list (Req. 12).
+
+### Assertion expectation:
+`binding_filtered_list(CONTROL_NAME)` is `CONTROL_COUNT`.
+
+## Redundancy test 73
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 202-203
+
+### Purpose:
+Verify that a list of numbers holds its first number (Req. 12).
+
+### Assertion expectation:
+`tsv_list_holds` is true for 100 in the list 100, 101, 102.
+
+## Redundancy test 74
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 204-205
+
+### Purpose:
+Verify that a list of numbers holds its last number (Req. 12).
+
+### Assertion expectation:
+`tsv_list_holds` is true for 102 in the list 100, 101, 102.
+
+## Redundancy test 75
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 206-207
+
+### Purpose:
+Verify that a list of numbers holds no number past its count (Req. 12).
+
+### Assertion expectation:
+`tsv_list_holds` is false for 102 in the list 100, 101, 102 counted as 2.
+
+## Redundancy test 76
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 208-209
+
+### Purpose:
+Verify that an empty list of numbers holds nothing (Req. 12).
+
+### Assertion expectation:
+`tsv_list_holds` is false for 100 in a list counted as 0.
+
+## Redundancy test 77
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 210-212
+
+### Purpose:
+Verify that a look choice, held by the Appearance popup, is shown on no step (Req. 12).
+
+### Assertion expectation:
+`layout_shows(CONTROL_ARCHITECTURE, STEP_NAME_AND_TREE)` is false.
+
+## Redundancy test 78
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 221-222
+
+### Purpose:
+Verify that a build with nothing skipped is whole (Req. 12).
+
+### Assertion expectation:
+`summary_build_is_whole` is true for a report with nothing skipped.
+
+## Redundancy test 79
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 223-224
+
+### Purpose:
+Verify that a build that skipped the team bonus is not whole (Req. 12).
+
+### Assertion expectation:
+`summary_build_is_whole` is false with `team_bonuses_skipped` 1.
+
+## Redundancy test 80
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 225-226
+
+### Purpose:
+Verify that a build that skipped a multiplier is not whole (Req. 12).
+
+### Assertion expectation:
+`summary_build_is_whole` is false with `multipliers_skipped` 1.
+
+## Redundancy test 81
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 227-228
+
+### Purpose:
+Verify that a build that skipped a unique tech is not whole (Req. 12).
+
+### Assertion expectation:
+`summary_build_is_whole` is false with `unique_techs_skipped` 1.
+
+## Redundancy test 82
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 229-230
+
+### Purpose:
+Verify that a build that skipped the unique unit is not whole (Req. 12).
+
+### Assertion expectation:
+`summary_build_is_whole` is false with `unit_skipped` true.
+
+## Redundancy test 83
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 231-232
+
+### Purpose:
+Verify that a build whose tech tree overflowed is not whole (Req. 12).
+
+### Assertion expectation:
+`summary_build_is_whole` is false with `tree_overflowed` true.
+
+## Redundancy test 84
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 233-234
+
+### Purpose:
+Verify that a build that skipped the hero is not whole (Req. 12).
+
+### Assertion expectation:
+`summary_build_is_whole` is false with `hero_skipped` true.
+
+## Redundancy test 85
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 235-236
+
+### Purpose:
+Verify that clearing the civ bonuses of a civ that has one is a change (Req. 12).
+
+### Assertion expectation:
+`civ_design_clear_bonuses` is true for a design with one civ bonus.
+
+## Redundancy test 86
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 237-238
+
+### Purpose:
+Verify that clearing the civ bonuses of a civ without any is no change (Req. 12).
+
+### Assertion expectation:
+`civ_design_clear_bonuses` is false for a new design.
+
+## Redundancy test 87
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 239-241
+
+### Purpose:
+Verify that clearing the civ bonuses leaves the civ none (Req. 12).
+
+### Assertion expectation:
+After `civ_design_clear_bonuses`, the design no longer has the civ bonus it had.
+
+## Redundancy test 88
+
+### File residence:
+`tests/redundancy/present/filter_tests.c`, lines 242-243
+
+### Purpose:
+Verify that the built mark, which only tells, takes no focus (Req. 12).
+
+### Assertion expectation:
+`layout_is_focusable(CONTROL_BUILT)` is false.
+
+## Redundancy test 89
 
 ### File residence:
 `tests/redundancy/review_tests.c`, lines 93-104
@@ -5982,7 +6725,7 @@ Verify that the window opens with the Britons as the civ to edit (Req. 12).
 ### Assertion expectation:
 The row chosen in the civ to edit reads "Britons" when the window opens.
 
-## Redundancy test 51
+## Redundancy test 90
 
 ### File residence:
 `tests/redundancy/review_tests.c`, lines 106-111
@@ -5993,7 +6736,7 @@ Verify that the Name field holds the name of the civ to edit when the window ope
 ### Assertion expectation:
 The Name field reads "Britons" when the window opens.
 
-## Redundancy test 52
+## Redundancy test 91
 
 ### File residence:
 `tests/redundancy/review_tests.c`, lines 113-121
@@ -6004,65 +6747,65 @@ Verify that choosing another civ to edit and back keeps the edits made before (R
 ### Assertion expectation:
 "Testonia" typed for the Britons is back in the Name field after the Franks and the Britons are chosen.
 
-## Redundancy test 53
+## Redundancy test 92
 
 ### File residence:
 `tests/redundancy/review_tests.c`, lines 123-126
 
 ### Purpose:
-Verify that the review says that no civ is changed before any is saved (Req. 12).
+Verify that Finish says that no civ is changed at first (Req. 12).
 
 ### Assertion expectation:
-The label at the top right of the review reads "0 civs changed".
+The label at the top right of Finish reads "0 civs changed".
 
-## Redundancy test 54
+## Redundancy test 93
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 128-135
+`tests/redundancy/review_tests.c`, lines 128-134
 
 ### Purpose:
-Verify that Save civ counts the civ it puts in the mod (Req. 12).
+Verify that Finish counts a civ once it is changed (Req. 12).
 
 ### Assertion expectation:
-After "Testonia" is typed and Save civ pressed, the label reads "1 civ changed".
+After "Testonia" is typed, the label of Finish reads "1 civ changed".
 
-## Redundancy test 55
+## Redundancy test 94
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 137-143
+`tests/redundancy/review_tests.c`, lines 136-143
 
 ### Purpose:
-Verify that Save civ of a civ as the game has it says the mod leaves it out (Req. 12).
+Verify that Finish no longer counts a civ changed back to the game's (Req. 12).
 
 ### Assertion expectation:
-Save civ of the Britons unchanged gives a status that holds "leaves it out".
+After "Testonia" and then "Britons" are typed, the label of Finish reads "0 civs changed".
 
-## Redundancy test 56
+## Redundancy test 95
 
 ### File residence:
 `tests/redundancy/review_tests.c`, lines 145-156
 
 ### Purpose:
-Verify that the review's text, which cannot be typed in, shows no blinking caret in focus (Req. 12).
+Verify that the text of Finish, which cannot be typed in, shows no blinking caret in focus (Req. 12).
 
 ### Assertion expectation:
-With the review's text in focus, the thread's caret is not shown.
+With the text of Finish in focus, the thread's caret is not shown.
 
-## Redundancy test 57
+## Redundancy test 96
 
 ### File residence:
 `tests/redundancy/review_tests.c`, lines 171-177
 
 ### Purpose:
-Verify that Build with no civ saved in the mod says so (Req. 9, 12).
+Verify that Build with no civ changed says so (Req. 9, 12).
 
 ### Assertion expectation:
-Build in a new window gives a message that holds "No civ is saved in the mod".
+Build in a new window gives a message that holds "No civ is changed yet".
 
-## Redundancy test 58
+## Redundancy test 97
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 188-195
+`tests/redundancy/review_tests.c`, lines 187-194
 
 ### Purpose:
 Verify that the mod's name is civeditor_mod until another is given (Req. 7, 12).
@@ -6070,10 +6813,10 @@ Verify that the mod's name is civeditor_mod until another is given (Req. 7, 12).
 ### Assertion expectation:
 A saved civ built with the name question answered as offered is built as "civeditor_mod-data".
 
-## Redundancy test 59
+## Redundancy test 98
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 251-259
+`tests/redundancy/review_tests.c`, lines 250-258
 
 ### Purpose:
 Verify that the filter of the bonuses leaves the bonuses that hold its text and no other (Req. 10, 12).
@@ -6081,10 +6824,10 @@ Verify that the filter of the bonuses leaves the bonuses that hold its text and 
 ### Assertion expectation:
 After "food" is typed in the filter, the list holds as many rows as held "food" before, and each holds it.
 
-## Redundancy test 60
+## Redundancy test 99
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 261-274
+`tests/redundancy/review_tests.c`, lines 260-273
 
 ### Purpose:
 Verify that each category of bonuses lists its own bonuses, so that together they list each once (Req. 10, 12).
@@ -6092,21 +6835,21 @@ Verify that each category of bonuses lists its own bonuses, so that together the
 ### Assertion expectation:
 The rows of the categories, chosen one by one, add up to the rows of all bonuses, with two categories or more.
 
-## Redundancy test 61
+## Redundancy test 100
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 197-204
+`tests/redundancy/review_tests.c`, lines 196-203
 
 ### Purpose:
 Verify that Build mod with an empty mod name builds no mod (Req. 7, 12).
 
 ### Assertion expectation:
-With a whole civ saved in the mod and an empty mod name given, the status line reads "No mod was built."
+With a whole civ changed and an empty mod name given, the status line reads "No mod was built."
 
-## Redundancy test 62
+## Redundancy test 101
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 218-221
+`tests/redundancy/review_tests.c`, lines 217-220
 
 ### Purpose:
 Verify that the civ file of a civ with a long name is named after the first 48 letters of it (Req. 12).
@@ -6114,21 +6857,21 @@ Verify that the civ file of a civ with a long name is named after the first 48 l
 ### Assertion expectation:
 A civ named with 60 letters is saved, by Save civ file..., as its first 48 letters and `.civeditor.json`.
 
-## Redundancy test 63
+## Redundancy test 102
 
 ### File residence:
 `tests/redundancy/review_tests.c`, lines 158-169
 
 ### Purpose:
-Verify that a field that can be typed in shows its caret in focus, unlike the review's text (Req. 12).
+Verify that a field that can be typed in shows its caret in focus, unlike the text of Finish (Req. 12).
 
 ### Assertion expectation:
 With the Name field in focus, the thread's caret is shown blinking.
 
-## Redundancy test 64
+## Redundancy test 103
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 276-281
+`tests/redundancy/review_tests.c`, lines 275-280
 
 ### Purpose:
 Verify that the window opens with the first control of the first step in focus (Req. 12).
@@ -6136,21 +6879,21 @@ Verify that the window opens with the first control of the first step in focus (
 ### Assertion expectation:
 Right after the window opens, the focus is on Civ to edit.
 
-## Redundancy test 65
+## Redundancy test 104
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 283-298
+`tests/redundancy/review_tests.c`, lines 282-297
 
 ### Purpose:
 Verify that the menu Go lists every step by its number and its title as written, "&" too (Req. 12).
 
 ### Assertion expectation:
-The items after the separator read "&1 Name and tech tree\tCtrl+1" to "&4 Review\tCtrl+4", "&3 UU&&UT\tCtrl+3" third.
+The items after the separator read "&1 Name and tech tree\tCtrl+1" to "&4 Finish\tCtrl+4", "&3 UU&&UT\tCtrl+3" third.
 
-## Redundancy test 66
+## Redundancy test 105
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 300-310
+`tests/redundancy/review_tests.c`, lines 299-309
 
 ### Purpose:
 Verify that a wheel turn while the window is minimized does not scroll the step it shows (Req. 12).
@@ -6158,10 +6901,10 @@ Verify that a wheel turn while the window is minimized does not scroll the step 
 ### Assertion expectation:
 At 480 by 360, minimized, turned a notch down and shown again, the window's scroll bar is at 0.
 
-## Redundancy test 67
+## Redundancy test 106
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 337-342
+`tests/redundancy/review_tests.c`, lines 336-341
 
 ### Purpose:
 Verify that Choose hero... lists every hero of the catalog, each once (Req. 12).
@@ -6169,10 +6912,10 @@ Verify that Choose hero... lists every hero of the catalog, each once (Req. 12).
 ### Assertion expectation:
 The list of Choose hero... holds as many rows as the catalog of `data/` has heroes, 30.
 
-## Redundancy test 68
+## Redundancy test 107
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 344-349
+`tests/redundancy/review_tests.c`, lines 343-348
 
 ### Purpose:
 Verify that the list of Choose hero... is labelled, so that a screen reader names it (Req. 12).
@@ -6180,10 +6923,10 @@ Verify that the list of Choose hero... is labelled, so that a screen reader name
 ### Assertion expectation:
 The text just before the list in the dialog of Choose hero... reads "Heroes".
 
-## Redundancy test 69
+## Redundancy test 108
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 351-356
+`tests/redundancy/review_tests.c`, lines 350-355
 
 ### Purpose:
 Verify that Choose hero... opens with the focus on its list of heroes (Req. 12).
@@ -6191,10 +6934,10 @@ Verify that Choose hero... opens with the focus on its list of heroes (Req. 12).
 ### Assertion expectation:
 When the dialog of Choose hero... has started, the control in focus is its list.
 
-## Redundancy test 70
+## Redundancy test 109
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 365-369
+`tests/redundancy/review_tests.c`, lines 364-368
 
 ### Purpose:
 Verify that a name typed in Choose hero... stays when its list takes the focus again (Req. 12).
@@ -6202,10 +6945,10 @@ Verify that a name typed in Choose hero... stays when its list takes the focus a
 ### Assertion expectation:
 With Saladin picked, "Testhero" typed and the focus moved to the field and back to the list, the name is "Testhero".
 
-## Redundancy test 71
+## Redundancy test 110
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 388-396
+`tests/redundancy/review_tests.c`, lines 387-395
 
 ### Purpose:
 Verify that the first row of Choose hero... can be picked like any other (Req. 12).
@@ -6213,10 +6956,10 @@ Verify that the first row of Choose hero... can be picked like any other (Req. 1
 ### Assertion expectation:
 With Saladin picked, then the catalog's first hero, Cao Cao, the name shown is "Cao Cao".
 
-## Redundancy test 72
+## Redundancy test 111
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 398-401
+`tests/redundancy/review_tests.c`, lines 397-400
 
 ### Purpose:
 Verify that a hero's name of one letter, typed in Choose hero..., is taken (Req. 12).
@@ -6224,10 +6967,10 @@ Verify that a hero's name of one letter, typed in Choose hero..., is taken (Req.
 ### Assertion expectation:
 With Saladin picked and "X" typed as his name, the name shown is "X".
 
-## Redundancy test 73
+## Redundancy test 112
 
 ### File residence:
-`tests/redundancy/review_tests.c`, lines 223-226
+`tests/redundancy/review_tests.c`, lines 222-225
 
 ### Purpose:
 Verify that a civ named with one letter is saved under that letter (Req. 1, 12).

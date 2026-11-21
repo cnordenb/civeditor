@@ -219,7 +219,7 @@ bool test_a_narrow_window_places_its_controls_in_one_column(void)
 {
     HWND window = sized_window(NARROW_WINDOW, TALL_WINDOW);
     bool stacked = (window != NULL) &&
-                   (place_of(window, CONTROL_ARCHITECTURE).left == place_of(window, CONTROL_NAME).left);
+                   (place_of(window, CONTROL_TREE_LIST).left == place_of(window, CONTROL_NAME).left);
 
     window_fixture_close(window);
     return stacked;
@@ -231,9 +231,9 @@ bool test_the_control_in_focus_is_scrolled_into_a_short_window(void)
     RECT client = { 0, 0, 0, 0 };
     RECT place;
 
-    (void)SetFocus(GetDlgItem(window, CONTROL_ID_BASE + CONTROL_SCOUT));
+    (void)SetFocus(GetDlgItem(window, CONTROL_ID_BASE + CONTROL_TREE_LIST));
     (void)GetClientRect(window, &client);
-    place = place_of(window, CONTROL_SCOUT);
+    place = place_of(window, CONTROL_TREE_LIST);
     window_fixture_close(window);
     return (place.top >= 0) && (place.bottom <= client.bottom) && (place.bottom > place.top);
 }

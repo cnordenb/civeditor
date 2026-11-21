@@ -18,7 +18,7 @@ enum {
 };
 
 static const wchar_t CLASSES[WIDGET_KIND_COUNT][CLASS_WIDTH] = {
-    L"STATIC", L"EDIT", L"EDIT", L"COMBOBOX", L"LISTBOX", L"LISTBOX", L"BUTTON", L"EDIT", L"BUTTON"
+    L"STATIC", L"EDIT", L"EDIT", L"COMBOBOX", L"LISTBOX", L"LISTBOX", L"BUTTON", L"EDIT", L"BUTTON", L"STATIC"
 };
 
 static const DWORD STYLES[WIDGET_KIND_COUNT] = {
@@ -31,7 +31,8 @@ static const DWORD STYLES[WIDGET_KIND_COUNT] = {
         LBS_MULTIPLESEL,
     WS_TABSTOP | BS_PUSHBUTTON | BS_NOTIFY,
     WS_BORDER | WS_TABSTOP | WS_VSCROLL | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL,
-    WS_TABSTOP | BS_AUTOCHECKBOX | BS_NOTIFY
+    WS_TABSTOP | BS_AUTOCHECKBOX | BS_NOTIFY,
+    SS_OWNERDRAW
 };
 
 static ControlId creation_order(int position)
@@ -49,6 +50,7 @@ static ControlId creation_order(int position)
 }
 
 typedef struct {
+    HWND parent;
     const wchar_t *kind;
     DWORD style;
     int identifier;
@@ -57,7 +59,7 @@ typedef struct {
 static HWND create_child(AppState *app, ChildSpec child)
 {
     HWND window = CreateWindowExW(WS_EX_LEFT, child.kind, L"", WS_CHILD | child.style, CW_USEDEFAULT, CW_USEDEFAULT,
-                                  CW_USEDEFAULT, CW_USEDEFAULT, app->window, (HMENU)(INT_PTR)child.identifier,
+                                  CW_USEDEFAULT, CW_USEDEFAULT, child.parent, (HMENU)(INT_PTR)child.identifier,
                                   app->instance, NULL);
 
     if ((child.style & WS_VSCROLL) == WS_VSCROLL) {
@@ -69,7 +71,7 @@ static HWND create_child(AppState *app, ChildSpec child)
 static bool create_control(AppState *app, ControlId control)
 {
     ControlSpec spec = layout_spec(control);
-    ChildSpec child = { L"STATIC", SS_LEFT | SS_NOPREFIX, 0 };
+    ChildSpec child = { layout_in_popup(control) ? app->popup : app->window, L"STATIC", SS_LEFT | SS_NOPREFIX, 0 };
     wchar_t label[LAYOUT_LABEL_WIDTH];
 
     if (!dialogs_widen(spec.label, label, LAYOUT_LABEL_WIDTH)) {
@@ -126,7 +128,7 @@ static COLORREF color_of(const AppState *app, ColorRole role)
 {
     static const int SYSTEM_COLORS[COLOR_ROLE_COUNT] = { COLOR_WINDOW,    COLOR_WINDOWTEXT,    COLOR_WINDOW,
                                                          COLOR_WINDOWTEXT, COLOR_HIGHLIGHT,     COLOR_HIGHLIGHTTEXT,
-                                                         COLOR_HIGHLIGHT };
+                                                         COLOR_HIGHLIGHT,  COLOR_WINDOWTEXT };
     Rgb color = palette_color(role);
 
     return app->high_contrast ? GetSysColor(SYSTEM_COLORS[role]) : RGB(color.red, color.green, color.blue);
@@ -216,7 +218,7 @@ static Box control_box(const AppState *app, ControlId control, Room room, bool l
 {
     Box box;
 
-    if (!room.narrow) {
+    if (!room.narrow || layout_in_popup(control)) {
         return label ? layout_label_box(control, room.width, room.height)
                      : layout_box(control, app->step, room.width, room.height);
     }
@@ -245,8 +247,11 @@ void controls_place(AppState *app)
 
 static bool is_shown(const AppState *app, ControlId control)
 {
-    return layout_shows(control, app->step) &&
-           (!layout_needs_hero(control) || civ_design_has_hero(&app->history.present));
+    if (layout_in_popup(control) || !layout_shows(control, app->step)) {
+        return layout_in_popup(control);
+    }
+    return (control == CONTROL_BUILT) ? app->built
+                                      : (!layout_needs_hero(control) || civ_design_has_hero(&app->history.present));
 }
 
 void controls_show(const AppState *app)
@@ -391,6 +396,21 @@ static void draw_row_focus(const AppState *app, const DRAWITEMSTRUCT *item, bool
                scaled(app, FOCUS_LINE));
 }
 
+static void draw_mark(const AppState *app, const DRAWITEMSTRUCT *item)
+{
+    wchar_t text[ROW_TEXT_CAPACITY];
+    RECT box = check_box(app, item->rcItem);
+    RECT area = item->rcItem;
+
+    (void)FillRect(item->hDC, &item->rcItem, app->paper_brush);
+    draw_check(item->hDC, box, color_of(app, COLOR_ROLE_SUCCESS), scaled(app, FOCUS_LINE));
+    area.left = box.right + scaled(app, TEXT_INSET);
+    (void)SetBkMode(item->hDC, TRANSPARENT);
+    (void)SetTextColor(item->hDC, color_of(app, COLOR_ROLE_INK));
+    (void)GetWindowTextW(item->hwndItem, text, ROW_TEXT_CAPACITY);
+    (void)DrawTextW(item->hDC, text, -1, &area, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX);
+}
+
 void controls_draw_item(const AppState *app, const DRAWITEMSTRUCT *item)
 {
     wchar_t text[ROW_TEXT_CAPACITY];
@@ -398,6 +418,10 @@ void controls_draw_item(const AppState *app, const DRAWITEMSTRUCT *item)
     bool checklist;
     RECT area;
 
+    if (item->CtlType == ODT_STATIC) {
+        draw_mark(app, item);
+        return;
+    }
     if (item->itemID == (UINT)-1) {
         return;
     }

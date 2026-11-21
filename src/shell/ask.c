@@ -74,29 +74,21 @@ bool ask_file(OPENFILENAMEW *dialog, bool saving)
     return script.active ? scripted_file(dialog, saving) : shown_file(dialog, saving);
 }
 
-static bool scripted_folders(wchar_t *game, wchar_t *mods)
+static bool scripted_folder(AskedFolder asked, wchar_t *folder)
 {
-    if ((script.steam == NULL) || (script.home == NULL)) {
-        return false;
+    if (asked == ASKED_GAME_FOLDER) {
+        return (script.steam != NULL) && mod_find_game_under(script.steam, folder, FILE_PATH_CAPACITY);
     }
-    return mod_find_game_under(script.steam, game, FILE_PATH_CAPACITY) &&
-           mod_find_mods_under(script.home, mods, FILE_PATH_CAPACITY);
+    return (script.home != NULL) && mod_find_mods_under(script.home, folder, FILE_PATH_CAPACITY);
 }
 
-static bool found_folders(wchar_t *game, wchar_t *mods)
+static bool found_folder(AskedFolder asked, wchar_t *folder)
 {
-    return mod_find_game_folder(game, FILE_PATH_CAPACITY) && mod_find_local_mods(mods, FILE_PATH_CAPACITY);
+    return (asked == ASKED_GAME_FOLDER) ? mod_find_game_folder(folder, FILE_PATH_CAPACITY)
+                                        : mod_find_local_mods(folder, FILE_PATH_CAPACITY);
 }
 
-bool ask_game_folder(wchar_t *game)
+bool ask_folder(AskedFolder asked, wchar_t *folder)
 {
-    if (script.active) {
-        return (script.steam != NULL) && mod_find_game_under(script.steam, game, FILE_PATH_CAPACITY);
-    }
-    return mod_find_game_folder(game, FILE_PATH_CAPACITY);
-}
-
-bool ask_game_folders(wchar_t *game, wchar_t *mods)
-{
-    return script.active ? scripted_folders(game, mods) : found_folders(game, mods);
+    return script.active ? scripted_folder(asked, folder) : found_folder(asked, folder);
 }

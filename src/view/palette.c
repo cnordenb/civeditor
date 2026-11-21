@@ -11,7 +11,8 @@ static const Rgb COLORS[COLOR_ROLE_COUNT] = {
     { 58, 58, 58 },
     { 24, 52, 96 },
     { 255, 255, 255 },
-    { 24, 52, 96 }
+    { 24, 52, 96 },
+    { 20, 110, 40 }
 };
 
 static const ColorPair PAIRS[PALETTE_PAIR_COUNT] = {
@@ -21,7 +22,8 @@ static const ColorPair PAIRS[PALETTE_PAIR_COUNT] = {
     { COLOR_ROLE_MUTED, COLOR_ROLE_FIELD },
     { COLOR_ROLE_CHOSEN_INK, COLOR_ROLE_CHOSEN },
     { COLOR_ROLE_FOCUS, COLOR_ROLE_FIELD },
-    { COLOR_ROLE_FOCUS, COLOR_ROLE_PAPER }
+    { COLOR_ROLE_FOCUS, COLOR_ROLE_PAPER },
+    { COLOR_ROLE_SUCCESS, COLOR_ROLE_PAPER }
 };
 
 static const double LINEAR_LIMIT = 0.04045;

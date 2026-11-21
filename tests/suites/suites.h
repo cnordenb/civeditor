@@ -7,7 +7,7 @@ enum {
     BUILD_SUITE_SIZE = 85,
     MOD_SUITE_SIZE = 30,
     CORE_SUITE_SIZE = 76,
-    MODEL_SUITE_SIZE = 67
+    MODEL_SUITE_SIZE = 70
 };
 
 TestOutcome build_suite_run(int index);

@@ -6,9 +6,10 @@
 #include "mod/built_mod_tests.h"
 #include "game_tests.h"
 #include "review_tests.h"
+#include "present/filter_tests.h"
 #include "tools/plan_tests.h"
 
-enum { CIV_GROUP_SIZE = 7, PICK_GROUP_SIZE = 7, SAVE_GROUP_SIZE = 4, ROSTER_GROUP_SIZE = 6, COMPARE_GROUP_SIZE = 3,
+enum { CIV_GROUP_SIZE = 7, PICK_GROUP_SIZE = 7, SAVE_GROUP_SIZE = 4, ROSTER_GROUP_SIZE = 10, COMPARE_GROUP_SIZE = 3,
        GAME_GROUP_SIZE = 7, CUT_GROUP_SIZE = 4, PLAN_GROUP_SIZE = 1, PATCH_GROUP_SIZE = 1, BUILT_GROUP_SIZE = 7,
        ROOM_GROUP_SIZE = 2, REVIEW_GROUP_SIZE = 6, BUILD_GROUP_SIZE = 8 };
 enum {
@@ -22,7 +23,8 @@ enum {
     PATCH_START = PLAN_START + PLAN_GROUP_SIZE,
     BUILT_START = PATCH_START + PATCH_GROUP_SIZE,
     ROOM_START = BUILT_START + BUILT_GROUP_SIZE,
-    REVIEW_START = ROOM_START + ROOM_GROUP_SIZE,
+    FILTER_START = ROOM_START + ROOM_GROUP_SIZE,
+    REVIEW_START = FILTER_START + FILTER_TEST_COUNT,
     BUILD_START = REVIEW_START + REVIEW_GROUP_SIZE,
     OPENED_START = BUILD_START + BUILD_GROUP_SIZE
 };
@@ -77,8 +79,8 @@ static TestOutcome run_pick_test(int index)
     case 6:
         return test_outcome_of("a civ of the game shows no step done", test_a_civ_of_the_game_shows_no_step_done());
     case 7:
-        return test_outcome_of("the Review is done once the civ is saved in the mod as it is",
-                               test_the_review_is_done_once_the_civ_is_saved_in_the_mod_as_it_is());
+        return test_outcome_of("Finish is done once a whole civ differs from the game's",
+                               test_finish_is_done_once_a_whole_civ_differs_from_the_games());
     default:
         return test_outcome_missing();
     }
@@ -88,13 +90,13 @@ static TestOutcome run_save_test(int index)
 {
     switch (index) {
     case 1:
-        return test_outcome_of("a civ saved in the mod is counted", test_a_civ_saved_in_the_mod_is_counted());
+        return test_outcome_of("a changed civ is counted", test_a_changed_civ_is_counted());
     case 2:
         return test_outcome_of("a civ as the game has it is left out of the mod",
                                test_a_civ_as_the_game_has_it_is_left_out_of_the_mod());
     case 3:
-        return test_outcome_of("a civ saved again holds its newer edits in the mod",
-                               test_a_civ_saved_again_holds_its_newer_edits_in_the_mod());
+        return test_outcome_of("a civ changed again holds its newer edits in the mod",
+                               test_a_civ_changed_again_holds_its_newer_edits_in_the_mod());
     case 4:
         return test_outcome_of("a civ made as the game has it again is taken out of the mod",
                                test_a_civ_made_as_the_game_has_it_again_is_taken_out_of_the_mod());
@@ -110,10 +112,10 @@ static TestOutcome run_roster_test(int index)
         return test_outcome_of("the draft of a civ is kept while another is edited",
                                test_the_draft_of_a_civ_is_kept_while_another_is_edited());
     case 2:
-        return test_outcome_of("the mod holds a civ as it was saved", test_the_mod_holds_a_civ_as_it_was_saved());
+        return test_outcome_of("a changed civ is marked as changed", test_a_changed_civ_is_marked_as_changed());
     case 3:
-        return test_outcome_of("a civ changed after it was saved is not held as it is",
-                               test_a_civ_changed_after_it_was_saved_is_not_held_as_it_is());
+        return test_outcome_of("a civ as the game has it is not marked as changed",
+                               test_a_civ_as_the_game_has_it_is_not_marked_as_changed());
     case 4:
         return test_outcome_of("the civs of the mod are given in the order of their slots",
                                test_the_civs_of_the_mod_are_given_in_the_order_of_their_slots());
@@ -122,6 +124,18 @@ static TestOutcome run_roster_test(int index)
     case 6:
         return test_outcome_of("a civ past the last slot is left out of the mod",
                                test_a_civ_past_the_last_slot_is_left_out_of_the_mod());
+    case 7:
+        return test_outcome_of("a changed civ in the first slot is counted",
+                               test_a_changed_civ_in_the_first_slot_is_counted());
+    case 8:
+        return test_outcome_of("a changed civ in the first slot is given to the mod",
+                               test_a_changed_civ_in_the_first_slot_is_given_to_the_mod());
+    case 9:
+        return test_outcome_of("a changed civ in the first slot is marked as changed",
+                               test_a_changed_civ_in_the_first_slot_is_marked_as_changed());
+    case 10:
+        return test_outcome_of("a roster started anew forgets a changed civ in the first slot",
+                               test_a_roster_started_anew_forgets_a_changed_civ_in_the_first_slot());
     default:
         return test_outcome_missing();
     }
@@ -208,11 +222,11 @@ static TestOutcome run_review_test(int index)
         return test_outcome_of("the review counts no civ changed at first",
                                test_the_review_counts_no_civ_changed_at_first());
     case 5:
-        return test_outcome_of("Save civ counts the civ it puts in the mod",
-                               test_save_civ_counts_the_civ_it_puts_in_the_mod());
+        return test_outcome_of("Finish counts a civ that was changed",
+                               test_finish_counts_a_civ_that_was_changed());
     case 6:
-        return test_outcome_of("Save civ leaves a civ as the game has it out of the mod",
-                               test_save_civ_leaves_a_civ_as_the_game_has_it_out_of_the_mod());
+        return test_outcome_of("Finish counts no civ that was changed back",
+                               test_finish_counts_no_civ_that_was_changed_back());
     default:
         return test_outcome_missing();
     }
@@ -284,7 +298,7 @@ static TestOutcome run_build_test(int index)
         return test_outcome_of("the review text shows no caret when clicked",
                                test_the_review_text_shows_no_caret_when_clicked());
     case 2:
-        return test_outcome_of("a build with no civ saved says so", test_a_build_with_no_civ_saved_says_so());
+        return test_outcome_of("a build with no civ changed says so", test_a_build_with_no_civ_changed_says_so());
     case 3:
         return test_outcome_of("a mod is named civeditor_mod unless named otherwise",
                                test_a_mod_is_named_civeditor_mod_unless_named_otherwise());
@@ -394,8 +408,8 @@ TestOutcome redundancy_suite_run(int index)
     if (index <= ROOM_START) {
         return run_built_test(index - BUILT_START);
     }
-    if (index <= REVIEW_START) {
+    if (index <= FILTER_START) {
         return run_room_test(index - ROOM_START);
     }
-    return run_window_test(index);
+    return (index <= REVIEW_START) ? filter_tests_run(index - FILTER_START) : run_window_test(index);
 }

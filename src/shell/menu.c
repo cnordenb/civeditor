@@ -94,6 +94,7 @@ HMENU menu_make(void)
     add_item(file, ACTION_OPEN, L"&Open civ file...\tCtrl+O");
     add_item(file, ACTION_SAVE, L"&Save civ file...\tCtrl+S");
     add_item(file, ACTION_BUILD, L"&Build mod...\tCtrl+B");
+    add_item(file, ACTION_OPTIONS, L"O&ptions...");
     (void)AppendMenuW(file, MF_SEPARATOR, 0, NULL);
     add_item(file, ACTION_EXIT, L"E&xit\tAlt+F4");
     add_item(edit, ACTION_UNDO, L"&Undo\tCtrl+Z");

@@ -62,6 +62,9 @@ static bool apply_toggle(CivDesign *design, const Command *command)
     if (command->kind == COMMAND_TOGGLE_TEAM_BONUS) {
         return civ_design_toggle_team_bonus(design, command->value);
     }
+    if (command->kind == COMMAND_CLEAR_BONUSES) {
+        return civ_design_clear_bonuses(design);
+    }
     return (command->kind == COMMAND_TOGGLE_TREE) &&
            civ_design_toggle_tree(design, (TreeKind)command->field, command->value);
 }

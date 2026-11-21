@@ -71,7 +71,7 @@ bool test_next_walks_every_step_in_order(void)
         }
         step = wizard_move(step, 1);
     }
-    return (step == STEP_REVIEW) && (wizard_move(step, 1) == STEP_REVIEW);
+    return (step == STEP_FINISH) && (wizard_move(step, 1) == STEP_FINISH);
 }
 
 static bool summary_of_a_named_civ_holds(const char *words)
@@ -96,5 +96,5 @@ bool test_summary_labels_the_name(void)
 
 bool test_the_last_step_shows_no_next_button(void)
 {
-    return !layout_shows(CONTROL_NEXT, STEP_REVIEW);
+    return !layout_shows(CONTROL_NEXT, STEP_FINISH);
 }

@@ -22,7 +22,7 @@ static const wchar_t LONG_NAME[] = L"AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbc
 static const wchar_t CUT_FILE[] = L"build\\AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefgh.civeditor.json";
 static const char STALE[] = "stale";
 static const wchar_t GO_STEPS[] = L"&1 Name and tech tree\tCtrl+1|&2 Bonuses\tCtrl+2|&3 UU&&UT\tCtrl+3|"
-                                  L"&4 Review\tCtrl+4|";
+                                  L"&4 Finish\tCtrl+4|";
 
 static wchar_t shown[SHOWN_CAPACITY];
 static char saved[SAVED_CAPACITY];
@@ -86,7 +86,7 @@ static bool closed(HWND window, bool passed)
 
 static bool review_says(HWND window, ControlId control, const wchar_t *words)
 {
-    window_fixture_act(window, ACTION_FIRST_STEP + STEP_REVIEW);
+    window_fixture_act(window, ACTION_FIRST_STEP + STEP_FINISH);
     return closed(window, wcsstr(text_of(window, control), words) != NULL);
 }
 
@@ -125,21 +125,21 @@ bool test_the_review_counts_no_civ_changed_at_first(void)
     return review_says(app_open(GetModuleHandleW(NULL)), CONTROL_CHANGED, L"0 civs changed");
 }
 
-bool test_save_civ_counts_the_civ_it_puts_in_the_mod(void)
+bool test_finish_counts_a_civ_that_was_changed(void)
 {
     HWND window = app_open(GetModuleHandleW(NULL));
 
     type_into(window, CONTROL_NAME, L"Testonia");
-    window_fixture_act(window, ACTION_ADD);
     return review_says(window, CONTROL_CHANGED, L"1 civ changed");
 }
 
-bool test_save_civ_leaves_a_civ_as_the_game_has_it_out_of_the_mod(void)
+bool test_finish_counts_no_civ_that_was_changed_back(void)
 {
     HWND window = app_open(GetModuleHandleW(NULL));
 
-    window_fixture_act(window, ACTION_ADD);
-    return review_says(window, CONTROL_STATUS, L"leaves it out");
+    type_into(window, CONTROL_NAME, L"Testonia");
+    type_into(window, CONTROL_NAME, L"Britons");
+    return review_says(window, CONTROL_CHANGED, L"0 civs changed");
 }
 
 bool test_the_review_text_shows_no_caret_when_clicked(void)
@@ -149,7 +149,7 @@ bool test_the_review_text_shows_no_caret_when_clicked(void)
     GUITHREADINFO caret = { 0 };
 
     caret.cbSize = sizeof caret;
-    window_fixture_act(window, ACTION_FIRST_STEP + STEP_REVIEW);
+    window_fixture_act(window, ACTION_FIRST_STEP + STEP_FINISH);
     (void)SetFocus(summary);
     (void)GetGUIThreadInfo(GetCurrentThreadId(), &caret);
     return closed(window, (GetFocus() == summary) && ((caret.flags & GUI_CARETBLINKING) == 0U));
@@ -168,37 +168,36 @@ bool test_a_text_field_shows_its_caret_when_it_takes_the_focus(void)
     return closed(window, (GetFocus() == name) && ((caret.flags & GUI_CARETBLINKING) != 0U));
 }
 
-bool test_a_build_with_no_civ_saved_says_so(void)
+bool test_a_build_with_no_civ_changed_says_so(void)
 {
     HWND window = opened_with_game(NULL);
 
     window_fixture_act(window, ACTION_BUILD);
-    return closed(window, wcsstr(ask_last_message(), L"No civ is saved in the mod") != NULL);
+    return closed(window, wcsstr(ask_last_message(), L"No civ is changed yet") != NULL);
 }
 
-static void save_a_whole_civ(HWND window)
+static void change_a_whole_civ(HWND window)
 {
     type_into(window, CONTROL_NAME, L"Testonia");
     choose_row(window, CONTROL_UNIT_LIST, 0, LB_SETCURSEL, LBN_SELCHANGE);
     choose_row(window, CONTROL_CASTLE_TECH_LIST, 0, LB_SETCURSEL, LBN_SELCHANGE);
     choose_row(window, CONTROL_IMPERIAL_TECH_LIST, 0, LB_SETCURSEL, LBN_SELCHANGE);
-    window_fixture_act(window, ACTION_ADD);
 }
 
 bool test_a_mod_is_named_civeditor_mod_unless_named_otherwise(void)
 {
     HWND window = opened_with_game(NULL);
 
-    save_a_whole_civ(window);
+    change_a_whole_civ(window);
     window_fixture_act(window, ACTION_BUILD);
-    return closed(window, wcsstr(ask_last_message(), L"built as civeditor_mod-data") != NULL);
+    return closed(window, wcsstr(text_of(window, CONTROL_STATUS), L"built as civeditor_mod-data") != NULL);
 }
 
 bool test_an_empty_mod_name_builds_no_mod(void)
 {
     HWND window = opened_with_game(L"");
 
-    save_a_whole_civ(window);
+    change_a_whole_civ(window);
     window_fixture_act(window, ACTION_BUILD);
     return closed(window, wcscmp(text_of(window, CONTROL_STATUS), L"No mod was built.") == 0);
 }

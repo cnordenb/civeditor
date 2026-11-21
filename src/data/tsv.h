@@ -40,6 +40,7 @@ int tsv_number(const TsvRecord *record, int field);
 int tsv_hundredths(const TsvRecord *record, int field);
 bool tsv_decimal(const TsvRecord *record, int field, float *value);
 TsvNumberList tsv_number_list(const TsvRecord *record, int field);
+bool tsv_list_holds(const TsvNumberList *list, int value);
 uint64_t tsv_bits(const TsvRecord *record, int field);
 
 #endif

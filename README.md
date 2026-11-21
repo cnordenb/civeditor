@@ -17,22 +17,23 @@ window of its own made with the Win32 API: no browser, no Python, nothing to ins
 
 A civ of the game is changed in three steps: Name and tech tree (its name, looks and tech tree), Bonuses (its civ
 bonuses and team bonus) and UU&UT (its unique unit, two unique techs and, if Hero is ticked, a hero). In the fourth,
-Review, it is saved in the mod, and every civ saved is built into one mod. A civ can also be saved as a civ file that
-the original also opens.
+Finish, every civ changed is listed and built into one mod; nothing needs saving first. A civ can also be saved as a
+civ file that the original also opens.
 
 ## Usage
 0. Fetch binary from [releases](https://github.com/cnordenb/civeditor/releases).
 1. Choose which civ to edit.  
 2. Edit what you want.  
-3. Save.  
-4. Build mod.  
-5. Start the game.  
-6. In lobby, choose your mod as data mod.  
+3. Build mod.  
+4. Start the game.  
+5. In lobby, choose your mod as data mod.  
 
 ## Compilation
 1. Install [MinGW-w64](https://www.mingw-w64.org/).  
 2. Add gcc to PATH in system environment variables.  
-3. Run build.exe in the project's folder.  
+3. In the project's folder, make the build program (the first time only):  
+   `gcc -o build.exe tools/build/*.c src/core/*.c`
+4. Run it: `.\build.exe`. It compiles the code, runs the tests and leaves the binary at `build\civeditor.exe`.  
 
 ## Contributing
 

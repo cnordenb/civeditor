@@ -7,6 +7,7 @@
 #include "../core/text.h"
 #include "../present/details.h"
 #include "../present/summary.h"
+#include "../shell/shell.h"
 
 enum { BYTES_PER_CHARACTER = 3, CATEGORY_ROWS = BONUS_CATEGORY_COUNT + 1, STEP_ROW_CAPACITY = 64 };
 
@@ -113,13 +114,22 @@ static ListQuery query_of(AppState *app, ControlId control)
     ListQuery query = { CONTROL_TITLE, "", LIST_ALL_CATEGORIES };
 
     query.control = control;
-    if (control == CONTROL_TREE_LIST) {
-        (void)read_text(app->controls[CONTROL_TREE_FILTER], query.filter, LIST_FILTER_CAPACITY);
-    } else if (control == CONTROL_BONUS_LIST) {
-        (void)read_text(app->controls[CONTROL_BONUS_FILTER], query.filter, LIST_FILTER_CAPACITY);
-        query.category = app->bonus_category;
+    if (binding_of(control)->filter != BINDING_NO_CONTROL) {
+        (void)read_text(app->controls[binding_of(control)->filter], query.filter, LIST_FILTER_CAPACITY);
     }
+    query.category = (control == CONTROL_BONUS_LIST) ? app->bonus_category : LIST_ALL_CATEGORIES;
     return query;
+}
+
+static RowText row_text(const AppState *app, ListItem item)
+{
+    RowText row = list_item_text(&app->catalog, item);
+
+    if (item.control == CONTROL_CIV) {
+        detail = details_civ_row(row.text, roster_is_changed(&app->roster, app->catalog.appearance[item.item].id));
+        (void)text_copy(row.text, sizeof row.text, detail.text);
+    }
+    return row;
 }
 
 void sync_list(AppState *app, ControlId control)
@@ -138,7 +148,7 @@ void sync_list(AppState *app, ControlId control)
     item.control = control;
     for (index = 0; (index < app->lists[control].count) && (index < LIST_ROW_CAPACITY); ++index) {
         item.item = app->lists[control].items[index];
-        row = list_item_text(&app->catalog, item);
+        row = row_text(app, item);
         if (dialogs_widen(row.text, wide, WIDE_TEXT_CAPACITY)) {
             (void)SendMessageW(app->controls[control], combo ? CB_ADDSTRING : LB_ADDSTRING, 0, (LPARAM)wide);
         }
@@ -171,10 +181,6 @@ static void sync_steps(AppState *app)
     char row[STEP_ROW_CAPACITY];
     int step;
 
-    bool in_mod = roster_holds(&app->roster, &app->history.present);
-
-    base_design = app->history.present;
-    (void)base_civ_apply(&base_design, &app->catalog, app->history.present.choices[CHOICE_REPLACE]);
     (void)SendMessageW(app->controls[CONTROL_STEPS], WM_SETREDRAW, FALSE, 0);
     (void)SendMessageW(app->controls[CONTROL_STEPS], LB_RESETCONTENT, 0, 0);
     for (step = 0; step < STEP_COUNT; ++step) {
@@ -183,7 +189,7 @@ static void sync_steps(AppState *app)
         (void)text_append(row, sizeof row, ". ");
         (void)text_append(row, sizeof row, wizard_page((WizardStep)step)->title);
         (void)text_append(row, sizeof row,
-                          wizard_step_is_done(&app->history.present, &base_design, in_mod, (WizardStep)step)
+                          wizard_step_is_done(&app->history.present, &base_design, (WizardStep)step)
                               ? " (done)"
                               : "");
         if (dialogs_widen(row, wide, WIDE_TEXT_CAPACITY)) {
@@ -200,7 +206,11 @@ void sync_details(AppState *app)
     int control;
 
     app->syncing = true;
-    roster_keep(&app->roster, &app->history.present);
+    base_design = app->history.present;
+    (void)base_civ_apply(&base_design, &app->catalog, app->history.present.choices[CHOICE_REPLACE]);
+    if (roster_keep(&app->roster, &app->history.present, &base_design)) {
+        sync_list(app, CONTROL_CIV);
+    }
     detail = details_window_title(&app->history.present, app->step);
     show_text(app->window, detail.text);
     detail = details_title(app->step);
@@ -217,7 +227,7 @@ void sync_details(AppState *app)
             show_text(app->controls[control], detail.text);
         }
     }
-    if ((app->step == STEP_REVIEW) && summary_write(&summary, &app->history.present, &app->catalog)) {
+    if ((app->step == STEP_FINISH) && summary_write(&summary, &app->history.present, &app->catalog)) {
         show_text(app->controls[CONTROL_SUMMARY], summary.text);
     }
     sync_steps(app);
@@ -256,9 +266,10 @@ void sync_design(AppState *app, bool refill)
 static void apply(AppState *app, const Command *command)
 {
     if (!history_do(&app->history, command)) {
-        dialogs_status(app, "That change cannot be made: the civ is full or the text is too long.");
+        dialogs_status(app, "That change cannot be made: the civ is full, the text is too long or nothing is ticked.");
     } else {
         app->unsaved = true;
+        app->built = false;
     }
     app->syncing = true;
     sync_choices(app, false);
@@ -278,8 +289,8 @@ static void on_text_change(AppState *app, ControlId control)
     int field = binding_of(control)->text_field;
     Command command;
 
-    if ((control == CONTROL_TREE_FILTER) || (control == CONTROL_BONUS_FILTER)) {
-        fill_list_again(app, (control == CONTROL_TREE_FILTER) ? CONTROL_TREE_LIST : CONTROL_BONUS_LIST);
+    if (binding_filtered_list(control) != CONTROL_COUNT) {
+        fill_list_again(app, binding_filtered_list(control));
         return;
     }
     if ((field == BINDING_NO_FIELD) || !read_text(app->controls[control], narrow, WIDE_TEXT_CAPACITY)) {
@@ -293,7 +304,6 @@ static void choose_civ(AppState *app, int slot)
 {
     static CivDesign chosen;
 
-    roster_keep(&app->roster, &app->history.present);
     if (!roster_draft(&app->roster, slot, &chosen) && !base_civ_apply(&chosen, &app->catalog, slot)) {
         dialogs_status(app, "That civ is not in the catalog.");
         return;
@@ -304,27 +314,6 @@ static void choose_civ(AppState *app, int slot)
     (void)text_append(narrow, sizeof narrow, catalog_appearance_name(&app->catalog, APPEARANCE_BASE, slot));
     (void)text_append(narrow, sizeof narrow, ".");
     dialogs_status(app, narrow);
-}
-
-static const char SAVINGS[ROSTER_LEFT_OUT + 1][STATUS_CAPACITY] = {
-    "The civ is saved in the mod. Build mod builds it with every other civ saved.",
-    "The mod now holds the civ as it is now.",
-    "The civ is as the game has it again, so the mod no longer changes it.",
-    "The civ is as the game has it, so the mod leaves it out."
-};
-
-void sync_save_civ(AppState *app)
-{
-    static CivDesign game;
-    RosterSaving saving;
-
-    if (!base_civ_apply(&game, &app->catalog, app->history.present.choices[CHOICE_REPLACE])) {
-        dialogs_status(app, "That civ is not in the catalog.");
-        return;
-    }
-    saving = roster_save(&app->roster, &app->history.present, &game);
-    sync_details(app);
-    dialogs_status(app, SAVINGS[saving]);
 }
 
 static void on_pick(AppState *app, ControlId control, int row)
@@ -365,17 +354,29 @@ static void on_checklist_change(AppState *app, ControlId control)
     }
 }
 
+static bool click_command(AppState *app, ControlId control, Command *command)
+{
+    if (control == CONTROL_HERO) {
+        *command = hero_box_command(&app->catalog,
+                                    SendMessageW(app->controls[control], BM_GETCHECK, 0, 0) == BST_CHECKED);
+        return true;
+    }
+    if (control == CONTROL_BONUS_CLEAR) {
+        *command = command_of(COMMAND_CLEAR_BONUSES, 0, 0);
+        return true;
+    }
+    return (control == CONTROL_HERO_CHOOSE) && dialogs_choose_hero(app, command);
+}
+
 static void on_click(AppState *app, ControlId control)
 {
     Command command;
 
-    if (control == CONTROL_HERO) {
-        command = hero_box_command(&app->catalog,
-                                   SendMessageW(app->controls[control], BM_GETCHECK, 0, 0) == BST_CHECKED);
-    } else if ((control != CONTROL_HERO_CHOOSE) || !dialogs_choose_hero(app, &command)) {
-        return;
+    if ((control == CONTROL_APPEARANCE) || (control == CONTROL_APPEARANCE_CLOSE)) {
+        popup_show(app, control == CONTROL_APPEARANCE);
+    } else if (click_command(app, control, &command)) {
+        apply(app, &command);
     }
-    apply(app, &command);
 }
 
 static bool is_text_change(WidgetKind kind, int code)
@@ -409,6 +410,8 @@ void sync_on_notify(AppState *app, int control, int code)
         on_text_change(app, (ControlId)control);
     } else if (code == LBN_SELCHANGE) {
         on_selection(app, (ControlId)control, kind);
+    } else if ((kind == WIDGET_CHOICE) && (code == CBN_DROPDOWN)) {
+        list_scroll_open(app->controls[control]);
     } else if (code == BN_CLICKED) {
         on_click(app, (ControlId)control);
     }

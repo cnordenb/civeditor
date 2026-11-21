@@ -72,7 +72,7 @@ An unticked box says how civeditor meets the criterion, or would meet it, and wh
   Human review needed.
 - [x] **1.4.10 Reflow (AA).** Test: no control reaches past a window 320 wide; no two controls overlap in a window
   320 wide; the window may be as small as 320 by 256; a narrow window places its controls in one column; a long row
-  of a narrow list is higher than a short one. A window narrower than 960 or shorter than 560 shows a step in one
+  of a narrow list is higher than a short one. A window narrower than 960 or shorter than 640 shows a step in one
   column as wide as the window and scrolls up and down only: with the scroll bar, the wheel, Scroll up and Scroll
   down of the menu Go (Ctrl+Up, Ctrl+Down), and by itself to the control in focus. The rows of the lists wrap
   instead of being cut. Not looked at: a row of a list is at most 255 pixels high, a limit of Windows, so at the

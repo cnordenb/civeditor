@@ -25,6 +25,7 @@ bool text_is_digit(char letter);
 bool text_is_line_break(char letter);
 bool text_equal(const char *left, const char *right);
 bool text_starts_with(const char *text, const char *prefix);
+bool text_starts_folded(const char *text, const char *prefix);
 bool text_contains_folded(const char *text, const char *needle);
 TextNumber text_to_number(const char *text, size_t length);
 bool text_widen(const char *text, wchar_t *wide, size_t capacity);

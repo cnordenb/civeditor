@@ -34,7 +34,7 @@ typedef enum {
     ACTION_UNDO,
     ACTION_REDO,
     ACTION_BUILD,
-    ACTION_ADD,
+    ACTION_OPTIONS,
     ACTION_EXIT,
     ACTION_HELP,
     ACTION_SCROLL_UP,
@@ -47,6 +47,7 @@ typedef struct {
     HINSTANCE instance;
     HWND window;
     HWND bar;
+    HWND popup;
     HWND framed;
     HWND controls[CONTROL_COUNT];
     HWND labels[CONTROL_COUNT];
@@ -61,11 +62,9 @@ typedef struct {
     bool high_contrast;
     bool unsaved;
     bool catalog_loaded;
+    bool built;
     int dpi;
     int scroll;
-    int wheel_rest;
-    HWND held_list;
-    int held_rows;
     History history;
     CivRoster roster;
     Catalog catalog;
@@ -73,6 +72,7 @@ typedef struct {
     int bonus_category;
     wchar_t file_path[FILE_PATH_CAPACITY];
     wchar_t mod_name[MOD_NAME_CAPACITY];
+    wchar_t mods_folder[FILE_PATH_CAPACITY];
 } AppState;
 
 bool controls_create(AppState *app);
@@ -104,7 +104,6 @@ void sync_design(AppState *app, bool refill);
 void sync_list(AppState *app, ControlId control);
 void sync_on_notify(AppState *app, int control, int code);
 void sync_details(AppState *app);
-void sync_save_civ(AppState *app);
 
 bool dialogs_widen(const char *text, wchar_t *wide, int capacity);
 bool dialogs_narrow(const wchar_t *wide, char *text, int capacity);
@@ -114,7 +113,13 @@ bool dialogs_open(AppState *app);
 bool dialogs_load_catalog(AppState *app);
 bool dialogs_may_discard(AppState *app);
 bool dialogs_build(AppState *app);
+bool dialogs_options(AppState *app);
 bool dialogs_choose_hero(AppState *app, Command *command);
+
+extern const wchar_t POPUP_CLASS_NAME[];
+LRESULT CALLBACK popup_procedure(HWND popup, UINT message, WPARAM wparam, LPARAM lparam);
+bool popup_make(AppState *app);
+void popup_show(AppState *app, bool shown);
 
 HWND app_open(HINSTANCE instance);
 int app_run(HINSTANCE instance, int show);

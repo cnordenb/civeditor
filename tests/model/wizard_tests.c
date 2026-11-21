@@ -1,6 +1,7 @@
 #include "wizard_tests.h"
 
 #include "../../src/core/check.h"
+#include "../../src/core/text.h"
 #include "../../src/view/wizard.h"
 
 enum { A_BUILDING = 12, A_BONUS = 4, A_TEAM_BONUS = 8, A_UNIT = 1, A_TECH = 3, A_HERO = 1911 };
@@ -17,7 +18,7 @@ static CivDesign *fresh(void)
 
 static bool is_done(WizardStep step)
 {
-    return wizard_step_is_done(&design, &blank, false, step);
+    return wizard_step_is_done(&design, &blank, step);
 }
 
 static int steps_done(void)
@@ -115,4 +116,9 @@ bool test_the_base_civs_own_team_bonus_is_no_change(void)
     (void)CHECK(civ_design_toggle_team_bonus(fresh(), A_TEAM_BONUS));
     (void)CHECK(civ_design_toggle_team_bonus(&blank, A_TEAM_BONUS));
     return !is_done(STEP_BONUSES);
+}
+
+bool test_the_last_step_is_titled_finish(void)
+{
+    return text_equal(wizard_page(STEP_FINISH)->title, "Finish");
 }

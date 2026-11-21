@@ -225,3 +225,21 @@ bool test_the_build_report_of_a_whole_civ_names_the_two_folders(void)
     return build_report_holds(&WHOLE_CIV, "built as testonia-data and testonia-ui in the game's mods folder.\n\n"
                                           "Testonia\nCiv bonuses built: 2 of 2.\n\nTurn on");
 }
+
+static bool build_is_whole(const RecipeReport *report)
+{
+    BuiltCivs built = { { NULL }, NULL, 1 };
+
+    built.reports = report;
+    return CHECK(report != NULL) && summary_build_is_whole(&built);
+}
+
+bool test_a_build_that_left_nothing_out_is_whole(void)
+{
+    return build_is_whole(&WHOLE_CIV);
+}
+
+bool test_a_build_that_skipped_a_civ_bonus_is_not_whole(void)
+{
+    return !build_is_whole(&SKIPPED_BONUS);
+}

@@ -33,5 +33,7 @@ bool test_the_build_report_counts_the_civ_bonuses_built_and_skipped(void);
 bool test_the_build_report_says_when_the_hero_was_not_built(void);
 bool test_the_build_report_says_when_a_bonus_counts_only_once(void);
 bool test_the_build_report_of_a_whole_civ_names_the_two_folders(void);
+bool test_a_build_that_left_nothing_out_is_whole(void);
+bool test_a_build_that_skipped_a_civ_bonus_is_not_whole(void);
 
 #endif

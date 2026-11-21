@@ -127,3 +127,8 @@ int catalog_find_base(const Catalog *catalog, int base_id)
 {
     return catalog_find(catalog, CATALOG_BASES, 0, base_id);
 }
+
+bool catalog_is_ranked(const Catalog *catalog, int slot)
+{
+    return catalog_find(catalog, CATALOG_APPEARANCES, (int)APPEARANCE_UNRANKED, slot) == CATALOG_MISSING;
+}

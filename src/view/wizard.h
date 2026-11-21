@@ -9,7 +9,7 @@ typedef enum {
     STEP_NAME_AND_TREE,
     STEP_BONUSES,
     STEP_UU_UT,
-    STEP_REVIEW,
+    STEP_FINISH,
     STEP_COUNT
 } WizardStep;
 
@@ -22,6 +22,6 @@ typedef struct {
 
 const WizardPage *wizard_page(WizardStep step);
 WizardStep wizard_move(WizardStep step, int by);
-bool wizard_step_is_done(const CivDesign *design, const CivDesign *base, bool in_mod, WizardStep step);
+bool wizard_step_is_done(const CivDesign *design, const CivDesign *base, WizardStep step);
 
 #endif

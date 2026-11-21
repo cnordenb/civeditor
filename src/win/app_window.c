@@ -12,7 +12,7 @@ enum {
     START_HEIGHT = 760,
     WINDOW_STYLE = WS_OVERLAPPEDWINDOW,
     WINDOW_EXTRA_STYLE = WS_EX_CONTROLPARENT,
-    BUTTON_COUNT = 4,
+    BUTTON_COUNT = 3,
     NO_ACTION = -1
 };
 
@@ -58,6 +58,7 @@ static void move_in_history(bool undo)
         return;
     }
     app.unsaved = true;
+    app.built = false;
     sync_design(&app, false);
     dialogs_status(&app, undo ? "The last change was undone." : "The change was made again.");
 }
@@ -79,8 +80,8 @@ static bool run_file_action(int action)
         (void)dialogs_build(&app);
         return true;
     }
-    if (action == ACTION_ADD) {
-        sync_save_civ(&app);
+    if (action == ACTION_OPTIONS) {
+        (void)dialogs_options(&app);
         return true;
     }
     return false;
@@ -144,7 +145,6 @@ static int button_action(int control)
 {
     static const int BUTTONS[BUTTON_COUNT][2] = { { CONTROL_BACK, ACTION_BACK },
                                                   { CONTROL_NEXT, ACTION_NEXT },
-                                                  { CONTROL_ADD, ACTION_ADD },
                                                   { CONTROL_BUILD, ACTION_BUILD } };
     int button;
 
@@ -200,7 +200,7 @@ static void read_game_texts(void)
 {
     wchar_t game[FILE_PATH_CAPACITY];
 
-    if (ask_game_folder(game)) {
+    if (ask_folder(ASKED_GAME_FOLDER, game)) {
         (void)game_text_read(&app.catalog, game);
     }
 }
@@ -209,7 +209,7 @@ static bool on_create(HWND window)
 {
     app.window = window;
     assist_make_bar(&app);
-    if (!controls_create(&app)) {
+    if (!popup_make(&app) || !controls_create(&app)) {
         return false;
     }
     if (!dialogs_load_catalog(&app)) {
@@ -374,6 +374,12 @@ static bool register_class(HINSTANCE instance)
     window_class.hCursor = LoadCursorW(NULL, IDC_ARROW);
     window_class.hIcon = LoadIconW(NULL, IDI_APPLICATION);
     window_class.lpszClassName = CLASS_NAME;
+    if ((RegisterClassExW(&window_class) == 0) && (GetLastError() != ERROR_CLASS_ALREADY_EXISTS)) {
+        return false;
+    }
+    window_class.lpfnWndProc = popup_procedure;
+    window_class.hIcon = NULL;
+    window_class.lpszClassName = POPUP_CLASS_NAME;
     return (RegisterClassExW(&window_class) != 0) || (GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
 }
 
@@ -405,6 +411,8 @@ HWND app_open(HINSTANCE instance)
     app.bonus_category = LIST_ALL_CATEGORIES;
     app.unsaved = false;
     app.file_path[0] = L'\0';
+    app.mods_folder[0] = L'\0';
+    app.built = false;
     (void)lstrcpynW(app.mod_name, L"civeditor_mod", MOD_NAME_CAPACITY);
     history_start(&app.history);
     roster_start(&app.roster);

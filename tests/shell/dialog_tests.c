@@ -36,6 +36,8 @@ static const Answers SAVING = { IDOK, BUILD, NULL, GAME_FOLDER_STEAM, NULL };
 static const Answers SAVING_AND_OPENING = { IDNO, BUILD, NAMED_FILE, GAME_FOLDER_STEAM, NULL };
 static const Answers OPENING_NO_CIV = { IDOK, NULL, L"README.md", GAME_FOLDER_STEAM, NULL };
 static const Answers WITHOUT_GAME = { IDOK, NULL, NULL, L"build\\no_steam", NULL };
+static const Answers FOLDER_GIVEN = { IDOK, NULL, NULL, GAME_FOLDER_STEAM, L"build" };
+static const Answers NO_FOLDER_GIVEN = { IDOK, NULL, NULL, GAME_FOLDER_STEAM, L"build\\no_such_folder" };
 
 static char saved[TEXT_CAPACITY];
 
@@ -282,9 +284,9 @@ bool test_build_is_refused_when_the_game_is_not_found(void)
     return message_after(&WITHOUT_GAME, ACTION_BUILD, L"cannot be built");
 }
 
-bool test_build_writes_nothing_when_the_question_is_not_confirmed(void)
+bool test_build_writes_nothing_when_the_mod_is_not_named(void)
 {
-    HWND window = opened_and_run(&CANCEL, NAME, ACTION_ADD);
+    HWND window = opened_and_run(&CANCEL, NAME, NO_ACTION);
 
     window_fixture_act(window, ACTION_BUILD);
     return closed(window, text_holds(control_of(window, CONTROL_STATUS), L"No mod was built."));
@@ -292,22 +294,47 @@ bool test_build_writes_nothing_when_the_question_is_not_confirmed(void)
 
 bool test_build_of_an_unfinished_civ_says_that_it_is_not_finished(void)
 {
-    HWND window = opened_and_run(&YES, L"", ACTION_ADD);
+    HWND window = opened_and_run(&YES, L"", NO_ACTION);
 
     window_fixture_act(window, ACTION_BUILD);
     return closed(window, wcsstr(ask_last_message(), L"not finished") != NULL);
 }
 
-bool test_build_from_the_window_reports_the_mod_it_built(void)
+static HWND built(void)
 {
     HWND window = opened_and_run(&NAMING, NAME, NO_ACTION);
 
     pick_first(window, CONTROL_UNIT_LIST);
     pick_first(window, CONTROL_CASTLE_TECH_LIST);
     pick_first(window, CONTROL_IMPERIAL_TECH_LIST);
-    window_fixture_act(window, ACTION_ADD);
     window_fixture_act(window, ACTION_BUILD);
-    return closed(window, wcsstr(ask_last_message(), L"The mod was built as testonia-data") != NULL);
+    return window;
+}
+
+bool test_a_build_that_left_something_out_says_what_in_a_message(void)
+{
+    HWND window = built();
+
+    return closed(window, wcsstr(ask_last_message(), L"not built yet") != NULL);
+}
+
+bool test_a_build_is_written_without_a_question_of_its_folder(void)
+{
+    HWND window = built();
+
+    return closed(window, text_holds(control_of(window, CONTROL_STATUS), L"The mod was built as testonia-data"));
+}
+
+bool test_options_takes_a_mods_folder_that_exists(void)
+{
+    return status_after(&FOLDER_GIVEN, ACTION_OPTIONS, L"now writes into the mods folder given");
+}
+
+bool test_options_refuses_a_mods_folder_that_does_not_exist(void)
+{
+    HWND window = opened_and_run(&NO_FOLDER_GIVEN, NULL, ACTION_OPTIONS);
+
+    return closed(window, wcsstr(ask_last_message(), L"does not exist") != NULL);
 }
 
 bool test_the_help_line_is_written_in_the_muted_colour(void)

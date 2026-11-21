@@ -5,10 +5,10 @@
 #include <windowsx.h>
 
 #include "../core/check.h"
+#include "../shell/shell.h"
 
 enum { LIVE_POLITE = 1, TEXT_PERCENT_PLAIN = 100, FRAME_REACH = 3, FRAME_WIDTH = 2, FRAME_LIMIT = 64 };
 enum { WHEEL_LINES = 3, BAR_MOVES = 4, ROW_TEXT_ROOM = 512, ROW_PAD = 12, ROW_MOST = 255 };
-enum { REPEAT_FIRST = 400, REPEAT_NEXT = 50, CLASS_ROOM = 16 };
 
 typedef struct {
     int index;
@@ -197,112 +197,12 @@ void assist_scroll(AppState *app, UINT message, WPARAM wparam)
     }
 }
 
-static bool is_list(HWND window)
-{
-    wchar_t kind[CLASS_ROOM] = L"";
-
-    (void)GetClassNameW(window, kind, CLASS_ROOM);
-    return lstrcmpiW(kind, L"LISTBOX") == 0;
-}
-
-static void move_list(HWND list, int rows)
-{
-    int moved;
-
-    SetWindowRedraw(list, FALSE);
-    for (moved = 0; moved < rows; ++moved) {
-        (void)SendMessageW(list, WM_VSCROLL, SB_LINEDOWN, (LPARAM)NULL);
-    }
-    for (moved = 0; moved > rows; --moved) {
-        (void)SendMessageW(list, WM_VSCROLL, SB_LINEUP, (LPARAM)NULL);
-    }
-    SetWindowRedraw(list, TRUE);
-    (void)InvalidateRect(list, NULL, TRUE);
-}
-
-static void turn_wheel(AppState *app, const MSG *message)
-{
-    int rows;
-
-    app->wheel_rest += GET_WHEEL_DELTA_WPARAM(message->wParam);
-    rows = app->wheel_rest / WHEEL_DELTA;
-    app->wheel_rest %= WHEEL_DELTA;
-    move_list(message->hwnd, -rows);
-}
-
-static int arrow_rows(HWND list, int y)
-{
-    SCROLLBARINFO bar;
-    bool up;
-    bool down;
-
-    bar.cbSize = sizeof bar;
-    (void)GetScrollBarInfo(list, OBJID_VSCROLL, &bar);
-    up = y < bar.rcScrollBar.top + bar.dxyLineButton;
-    down = y >= bar.rcScrollBar.bottom - bar.dxyLineButton;
-    return (int)down - (int)up;
-}
-
-static bool press_arrow(AppState *app, const MSG *message)
-{
-    int rows = arrow_rows(message->hwnd, GET_Y_LPARAM(message->lParam));
-
-    if (rows != 0) {
-        move_list(message->hwnd, rows);
-        app->held_list = message->hwnd;
-        app->held_rows = rows;
-        (void)SetCapture(message->hwnd);
-        (void)SetTimer(app->window, LIST_REPEAT_TIMER, REPEAT_FIRST, NULL);
-    }
-    return rows != 0;
-}
-
-static bool holds_arrow(const AppState *app)
-{
-    return GetCapture() == app->held_list;
-}
-
-static void repeat_arrow(AppState *app)
-{
-    if (!holds_arrow(app)) {
-        (void)KillTimer(app->window, LIST_REPEAT_TIMER);
-        return;
-    }
-    move_list(app->held_list, app->held_rows);
-    (void)SetTimer(app->window, LIST_REPEAT_TIMER, REPEAT_NEXT, NULL);
-}
-
-static void follow_arrow(AppState *app, const MSG *message)
-{
-    if ((message->message == WM_LBUTTONUP) && holds_arrow(app)) {
-        (void)KillTimer(app->window, LIST_REPEAT_TIMER);
-        (void)ReleaseCapture();
-    }
-    if ((message->message == WM_TIMER) && (message->wParam == LIST_REPEAT_TIMER) && (message->hwnd == app->window)) {
-        repeat_arrow(app);
-    }
-}
-
-static bool is_arrow_press(const MSG *message)
-{
-    return ((message->message == WM_NCLBUTTONDOWN) || (message->message == WM_NCLBUTTONDBLCLK)) &&
-           (message->wParam == HTVSCROLL) && is_list(message->hwnd);
-}
-
-static bool takes_list_input(AppState *app, const MSG *message)
-{
-    follow_arrow(app, message);
-    if ((message->message == WM_MOUSEWHEEL) && is_list(message->hwnd)) {
-        turn_wheel(app, message);
-        return true;
-    }
-    return is_arrow_press(message) && press_arrow(app, message);
-}
-
 void assist_run_message(AppState *app, MSG *message)
 {
-    if (takes_list_input(app, message) || (TranslateAcceleratorW(app->window, app->accelerators, message) != 0) ||
-        (IsDialogMessageW(app->window, message) != 0)) {
+    HWND dialog = (GetActiveWindow() == app->popup) ? app->popup : app->window;
+
+    if (list_scroll_takes(message) || (TranslateAcceleratorW(app->window, app->accelerators, message) != 0) ||
+        (IsDialogMessageW(dialog, message) != 0)) {
         return;
     }
     (void)TranslateMessage(message);

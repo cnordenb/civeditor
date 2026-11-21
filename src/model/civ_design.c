@@ -116,6 +116,14 @@ bool civ_design_toggle_bonus(CivDesign *design, int bonus_id)
     return true;
 }
 
+bool civ_design_clear_bonuses(CivDesign *design)
+{
+    bool had_any = design->bonus_count > 0;
+
+    design->bonus_count = 0;
+    return had_any;
+}
+
 bool civ_design_has_bonus(const CivDesign *design, int bonus_id)
 {
     return find_pick(design->bonuses, design->bonus_count, bonus_id) >= 0;

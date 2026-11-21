@@ -24,5 +24,6 @@ void summary_add_tree(SummaryText *summary, const CivDesign *design, const char 
                       const char *after_techs);
 bool summary_write(SummaryText *summary, const CivDesign *design, const Catalog *catalog);
 bool summary_write_build(SummaryText *summary, const char *prefix, const BuiltCivs *built);
+bool summary_build_is_whole(const BuiltCivs *built);
 
 #endif

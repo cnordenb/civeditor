@@ -189,3 +189,12 @@ DetailText details_changed(int count)
     summary_add(&detail, (count == 1) ? " civ changed" : " civs changed");
     return detail;
 }
+
+DetailText details_civ_row(const char *name, bool changed)
+{
+    DetailText detail = { .text = "" };
+
+    summary_add(&detail, name);
+    summary_add(&detail, changed ? "*" : "");
+    return detail;
+}

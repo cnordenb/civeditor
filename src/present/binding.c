@@ -12,54 +12,61 @@ typedef enum {
 } PickKind;
 
 static const Binding BINDINGS[CONTROL_COUNT] = {
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_APPEARANCE, NO, CHOICE_REPLACE, APPEARANCE_BASE },
-    { SOURCE_NONE, TEXT_FIELD_NAME, NO, NO },
-    { SOURCE_NONE, TEXT_FIELD_TAGLINE, NO, NO },
-    { SOURCE_APPEARANCE, NO, CHOICE_ARCHITECTURE, APPEARANCE_ARCHITECTURE },
-    { SOURCE_APPEARANCE, NO, CHOICE_LANGUAGE, APPEARANCE_CIV },
-    { SOURCE_APPEARANCE, NO, CHOICE_WONDER, APPEARANCE_CIV },
-    { SOURCE_APPEARANCE, NO, CHOICE_CASTLE, APPEARANCE_CIV },
-    { SOURCE_APPEARANCE, NO, CHOICE_MONK, APPEARANCE_MONK },
-    { SOURCE_APPEARANCE, NO, CHOICE_SCOUT, APPEARANCE_SCOUT },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_TREE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_BONUS, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_TEAM_BONUS, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_UNIT, NO, NO, NO },
-    { SOURCE_NONE, TEXT_FIELD_UNIT_NAME, NO, NO },
-    { SOURCE_NONE, TEXT_FIELD_UNIT_DESCRIPTION, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_CASTLE_TECH, NO, NO, NO },
-    { SOURCE_NONE, TEXT_FIELD_CASTLE_TECH_NAME, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_IMPERIAL_TECH, NO, NO, NO },
-    { SOURCE_NONE, TEXT_FIELD_IMPERIAL_TECH_NAME, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_HERO, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO },
-    { SOURCE_NONE, NO, NO, NO }
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_APPEARANCE, NO, CHOICE_REPLACE, APPEARANCE_BASE, NO },
+    { SOURCE_NONE, TEXT_FIELD_NAME, NO, NO, NO },
+    { SOURCE_NONE, TEXT_FIELD_TAGLINE, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_APPEARANCE, NO, CHOICE_ARCHITECTURE, APPEARANCE_ARCHITECTURE, NO },
+    { SOURCE_APPEARANCE, NO, CHOICE_LANGUAGE, APPEARANCE_CIV, NO },
+    { SOURCE_APPEARANCE, NO, CHOICE_WONDER, APPEARANCE_CIV, NO },
+    { SOURCE_APPEARANCE, NO, CHOICE_CASTLE, APPEARANCE_CIV, NO },
+    { SOURCE_APPEARANCE, NO, CHOICE_MONK, APPEARANCE_MONK, NO },
+    { SOURCE_APPEARANCE, NO, CHOICE_SCOUT, APPEARANCE_SCOUT, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_TREE, NO, NO, NO, CONTROL_TREE_FILTER },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_BONUS, NO, NO, NO, CONTROL_BONUS_FILTER },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_TEAM_BONUS, NO, NO, NO, CONTROL_TEAM_FILTER },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_UNIT, NO, NO, NO, CONTROL_UNIT_FILTER },
+    { SOURCE_NONE, TEXT_FIELD_UNIT_NAME, NO, NO, NO },
+    { SOURCE_NONE, TEXT_FIELD_UNIT_DESCRIPTION, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_CASTLE_TECH, NO, NO, NO, CONTROL_CASTLE_TECH_FILTER },
+    { SOURCE_NONE, TEXT_FIELD_CASTLE_TECH_NAME, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_IMPERIAL_TECH, NO, NO, NO, CONTROL_IMPERIAL_TECH_FILTER },
+    { SOURCE_NONE, TEXT_FIELD_IMPERIAL_TECH_NAME, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_HERO, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO }
 };
 
 static const char TREE_KIND_NAMES[TREE_KIND_COUNT][KIND_NAME_WIDTH] = { "Unit: ", "Building: ", "Tech: " };
 
 const Binding *binding_of(ControlId control)
 {
-    static const Binding NONE = { SOURCE_NONE, NO, NO, NO };
+    static const Binding NONE = { SOURCE_NONE, NO, NO, NO, NO };
 
     if (!CHECK((int)control >= 0) || !CHECK(control < CONTROL_COUNT)) {
         return &NONE;
@@ -125,9 +132,45 @@ static bool item_belongs(const Catalog *catalog, ListItem item)
         return catalog->techs[item.item].tier == tier_of(source);
     }
     if (source == SOURCE_APPEARANCE) {
-        return (int)catalog->appearance[item.item].kind == BINDINGS[item.control].appearance;
+        return ((int)catalog->appearance[item.item].kind == BINDINGS[item.control].appearance) &&
+               ((BINDINGS[item.control].appearance != (int)APPEARANCE_BASE) ||
+                catalog_is_ranked(catalog, catalog->appearance[item.item].id));
     }
     return source != SOURCE_NONE;
+}
+
+static bool civ_has(const Catalog *catalog, const BaseCiv *civ, ListSource source, int item)
+{
+    switch ((int)source) {
+    case SOURCE_TREE:
+        return ((catalog->tree[item].civs >> civ->id) & 1U) != 0U;
+    case SOURCE_BONUS:
+        return tsv_list_holds(&civ->bonuses, catalog->bonuses[item].id);
+    case SOURCE_TEAM_BONUS:
+        return civ->values[BASE_TEAM_BONUS] == catalog->team_bonuses[item].id;
+    case SOURCE_UNIT:
+        return (catalog->units[item].role == UNIT_ROLE_VANILLA) && (civ->values[BASE_UNIT] == catalog->units[item].id);
+    case SOURCE_CASTLE_TECH:
+        return civ->values[BASE_CASTLE_TECH] == catalog->techs[item].id;
+    case SOURCE_IMPERIAL_TECH:
+        return civ->values[BASE_IMPERIAL_TECH] == catalog->techs[item].id;
+    default:
+        return false;
+    }
+}
+
+static bool civ_matches(const Catalog *catalog, ListItem item, const char *filter)
+{
+    ListSource source = BINDINGS[item.control].source;
+    int civ;
+
+    for (civ = 0; civ < catalog->base_count; ++civ) {
+        if (text_starts_folded(catalog_appearance_name(catalog, APPEARANCE_BASE, catalog->bases[civ].id), filter) &&
+            civ_has(catalog, &catalog->bases[civ], source, item.item)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 static bool item_matches(const Catalog *catalog, ListItem item, const ListQuery *query)
@@ -142,7 +185,19 @@ static bool item_matches(const Catalog *catalog, ListItem item, const ListQuery 
         return true;
     }
     row = list_item_text(catalog, item);
-    return text_contains_folded(row.text, query->filter);
+    return text_contains_folded(row.text, query->filter) || civ_matches(catalog, item, query->filter);
+}
+
+ControlId binding_filtered_list(ControlId filter)
+{
+    int control;
+
+    for (control = 0; control < CONTROL_COUNT; ++control) {
+        if (BINDINGS[control].filter == (int)filter) {
+            return (ControlId)control;
+        }
+    }
+    return CONTROL_COUNT;
 }
 
 static void add_row(ListModel *model, int item)

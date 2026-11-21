@@ -32,6 +32,7 @@ typedef enum {
     APPEARANCE_SCOUT,
     APPEARANCE_MONK,
     APPEARANCE_BASE,
+    APPEARANCE_UNRANKED,
     APPEARANCE_KIND_COUNT
 } AppearanceKind;
 
@@ -235,5 +236,6 @@ int catalog_find_look(const Catalog *catalog, AppearanceKind kind, int id);
 int catalog_find_bonus(const Catalog *catalog, bool team, int bonus_id);
 int catalog_find(const Catalog *catalog, CatalogTable table, int kind, int id);
 int catalog_find_base(const Catalog *catalog, int base_id);
+bool catalog_is_ranked(const Catalog *catalog, int slot);
 
 #endif

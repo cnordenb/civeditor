@@ -21,12 +21,10 @@ static const wchar_t TITLE[] = L"civeditor";
 static CivDesign opened;
 static wchar_t chosen_path[FILE_PATH_CAPACITY];
 static ForgeResult built;
-static char message[MESSAGE_CAPACITY];
 static wchar_t wide_message[MESSAGE_CAPACITY];
 
 typedef struct {
     wchar_t game[FILE_PATH_CAPACITY];
-    wchar_t mods[FILE_PATH_CAPACITY];
     char name[FORGE_PREFIX_CAPACITY];
     char prefix[FORGE_PREFIX_CAPACITY];
 } BuildPlaces;
@@ -162,6 +160,7 @@ bool dialogs_open(AppState *app)
     (void)history_replace(&app->history, &opened);
     (void)wcsncpy(app->file_path, chosen_path, FILE_PATH_CAPACITY - 1);
     app->unsaved = false;
+    app->built = false;
     sync_design(app, true);
     dialogs_status(app, "The civ file was opened.");
     return true;
@@ -174,22 +173,6 @@ static bool tell(const AppState *app, const char *text, UINT icon)
     }
     (void)ask_message(app->window, wide_message, TITLE, MB_OK | icon);
     return false;
-}
-
-static bool may_build_into(const AppState *app, const wchar_t *mods)
-{
-    char folder[FILE_PATH_CAPACITY];
-
-    if (!dialogs_narrow(mods, folder, FILE_PATH_CAPACITY)) {
-        return false;
-    }
-    message[0] = '\0';
-    (void)text_append_three(message, sizeof message, "Build the mod into this folder?\n\n", folder,
-                            "\n\nAn earlier build of a mod with the same name is replaced.");
-    if (!dialogs_widen(message, wide_message, MESSAGE_CAPACITY)) {
-        return false;
-    }
-    return ask_message(app->window, wide_message, TITLE, MB_OKCANCEL | MB_ICONQUESTION) == IDOK;
 }
 
 static bool civs_are_ready(AppState *app, ForgeJob *job)
@@ -213,19 +196,55 @@ static bool is_named(AppState *app, BuildPlaces *places)
     return forge_prefix(places->name, places->prefix, sizeof places->prefix);
 }
 
+static bool knows_mods_folder(AppState *app)
+{
+    if ((app->mods_folder[0] == L'\0') && !ask_folder(ASKED_MODS_FOLDER, app->mods_folder)) {
+        app->mods_folder[0] = L'\0';
+    }
+    return app->mods_folder[0] != L'\0';
+}
+
+static bool is_folder(const wchar_t *path)
+{
+    DWORD attributes = GetFileAttributesW(path);
+
+    return (attributes != INVALID_FILE_ATTRIBUTES) && ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0U);
+}
+
+bool dialogs_options(AppState *app)
+{
+    static wchar_t folder[FILE_PATH_CAPACITY];
+
+    (void)knows_mods_folder(app);
+    (void)lstrcpynW(folder, app->mods_folder, FILE_PATH_CAPACITY);
+    if (!ask_text(app->window, L"The game's local mods folder, where Build mod writes. Correct it if it is wrong.",
+                  folder, FILE_PATH_CAPACITY)) {
+        dialogs_status(app, "The mods folder was left as it was.");
+        return false;
+    }
+    if (!is_folder(folder)) {
+        dialogs_status(app, "The mods folder was left as it was.");
+        return tell(app, "That folder does not exist, so the mods folder was left as it was.", MB_ICONERROR);
+    }
+    (void)lstrcpynW(app->mods_folder, folder, FILE_PATH_CAPACITY);
+    dialogs_status(app, "Build mod now writes into the mods folder given.");
+    return true;
+}
+
 static bool can_build(AppState *app, BuildPlaces *places, ForgeJob *job)
 {
-    if (!app->catalog_loaded || !ask_game_folders(places->game, places->mods)) {
+    if (!app->catalog_loaded || !ask_folder(ASKED_GAME_FOLDER, places->game) || !knows_mods_folder(app)) {
         return tell(app, "A mod cannot be built: the data folder, the game or its mods folder was not found on "
-                         "this computer.", MB_ICONERROR);
+                         "this computer. Options in the menu File sets the mods folder.", MB_ICONERROR);
     }
-    return civs_are_ready(app, job) && is_named(app, places) && may_build_into(app, places->mods);
+    return civs_are_ready(app, job) && is_named(app, places);
 }
 
 static void report_build(AppState *app, const BuildPlaces *places, const ForgeJob *job)
 {
     static SummaryText report;
     static BuiltCivs civs;
+    static char line[STATUS_CAPACITY];
     int civ;
 
     civs.reports = built.recipes;
@@ -234,8 +253,21 @@ static void report_build(AppState *app, const BuildPlaces *places, const ForgeJo
         civs.designs[civ] = job->designs[civ];
     }
     (void)summary_write_build(&report, places->prefix, &civs);
-    dialogs_status(app, "The mod was built.");
-    (void)tell(app, report.text, MB_ICONINFORMATION);
+    app->built = summary_build_is_whole(&civs);
+    controls_show(app);
+    line[0] = '\0';
+    (void)text_append_three(line, sizeof line, "The mod was built as ", places->prefix, "-data and its UI mod.");
+    dialogs_status(app, line);
+    if (!app->built) {
+        (void)tell(app, report.text, MB_ICONINFORMATION);
+    }
+}
+
+static bool not_built(AppState *app)
+{
+    controls_show(app);
+    dialogs_status(app, "No mod was built.");
+    return false;
 }
 
 bool dialogs_build(AppState *app)
@@ -245,20 +277,19 @@ bool dialogs_build(AppState *app)
     HCURSOR previous;
     bool done;
 
+    app->built = false;
     if (!can_build(app, &places, &job)) {
-        dialogs_status(app, "No mod was built.");
-        return false;
+        return not_built(app);
     }
     job.mod_name = places.name;
     job.catalog = &app->catalog;
     job.game_folder = places.game;
-    job.mods_folder = places.mods;
+    job.mods_folder = app->mods_folder;
     previous = SetCursor(LoadCursorW(NULL, IDC_WAIT));
     done = forge_build(&job, &built);
     (void)SetCursor(previous);
     if (!done) {
-        dialogs_status(app, "No mod was built.");
-        return tell(app, built.problem, MB_ICONERROR);
+        return not_built(app) || tell(app, built.problem, MB_ICONERROR);
     }
     report_build(app, &places, &job);
     return true;

@@ -4,7 +4,7 @@ static const WizardPage PAGES[STEP_COUNT] = {
     { "Name and tech tree", "Choose which civ to edit, then change its name, its looks and what its tech tree holds." },
     { "Bonuses", "Select up to 24 bonuses and the one team bonus. Type to filter them, or choose a category." },
     { "UU&UT", "Select the unique unit and the castle and imperial techs, and name them. Tick Hero for a hero." },
-    { "Review", "Check the civ. Save civ puts it in the mod; Build mod builds every civ saved into one mod." }
+    { "Finish", "Check the civ. Every change is kept as it is made; Build mod builds every civ changed into one mod." }
 };
 
 const WizardPage *wizard_page(WizardStep step)
@@ -32,10 +32,10 @@ static bool differs(const CivDesign *design, const CivDesign *base, WizardStep s
            !civ_design_same_tech(design, base, TECH_TIER_IMPERIAL) || !civ_design_same_hero(design, base);
 }
 
-bool wizard_step_is_done(const CivDesign *design, const CivDesign *base, bool in_mod, WizardStep step)
+bool wizard_step_is_done(const CivDesign *design, const CivDesign *base, WizardStep step)
 {
-    if (step == STEP_REVIEW) {
-        return in_mod && civ_design_is_complete(design);
+    if (step == STEP_FINISH) {
+        return !civ_design_same(design, base) && civ_design_is_complete(design);
     }
     return differs(design, base, step);
 }

@@ -4,10 +4,11 @@
 #include "../../src/shell/shell.h"
 #include "../../src/win/win_parts.h"
 
-enum { MESSAGE_DRAIN_LIMIT = 64 };
+enum { MESSAGE_DRAIN_LIMIT = 64, FAR_AWAY = -20000 };
 
 static const wchar_t *answer_row;
 static const wchar_t *answer_name;
+static const wchar_t *answer_filter;
 static HHOOK answer_hook;
 static AskedDialog asked;
 static bool refocus_list;
@@ -67,6 +68,11 @@ static void answer(HWND dialog)
     HWND list = GetDlgItem(dialog, ASK_LIST_ID);
     LRESULT row = SendMessageW(list, LB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)answer_row);
 
+    if (answer_filter != NULL) {
+        (void)SetDlgItemTextW(dialog, ASK_FILTER_ID, answer_filter);
+        row = SendMessageW(list, LB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)answer_row);
+        answer_filter = NULL;
+    }
     look_at(list);
     (void)SendMessageW(list, LB_SETCURSEL, (WPARAM)row, 0);
     (void)SendMessageW(dialog, WM_COMMAND, MAKEWPARAM(ASK_LIST_ID, LBN_SELCHANGE), (LPARAM)list);
@@ -78,7 +84,8 @@ static void answer(HWND dialog)
         (void)SetFocus(list);
         refocus_list = false;
     }
-    (void)SendMessageW(dialog, WM_COMMAND, IDOK, 0);
+    (void)SetWindowPos(dialog, NULL, FAR_AWAY, FAR_AWAY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+    (void)PostMessageW(dialog, WM_COMMAND, IDOK, 0);
 }
 
 static LRESULT CALLBACK answer_dialog(int code, WPARAM wparam, LPARAM lparam)
@@ -101,6 +108,11 @@ void window_fixture_answer(const wchar_t *row, const wchar_t *name)
     answer_name = name;
     answer_hook = SetWindowsHookExW(WH_CALLWNDPROCRET, answer_dialog, NULL, GetCurrentThreadId());
     (void)CHECK(answer_hook != NULL);
+}
+
+void window_fixture_filter(const wchar_t *filter)
+{
+    answer_filter = filter;
 }
 
 void window_fixture_refocus(void)

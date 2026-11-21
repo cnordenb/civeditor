@@ -353,7 +353,7 @@ bool forge_civs_are_finished(const ForgeJob *job, ForgeResult *result)
     int civ;
 
     if (job->design_count < 1) {
-        return fail(result, "No civ is saved in the mod yet: Save civ in the review step puts the civ shown in it.");
+        return fail(result, "No civ is changed yet, so there is nothing to build: change a civ first.");
     }
     for (civ = 0; civ < job->design_count; ++civ) {
         if (!civ_design_is_complete(job->designs[civ])) {

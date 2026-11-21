@@ -30,13 +30,20 @@ regional node - a node that only some civs of the game have, e.g. the Camel Ride
 unique node - a node that only one civ of the game has, e.g. the Folwark
 step - one page of the wizard, e.g. "Bonuses"; there are four
 UU&UT - the step of the unique unit, the two unique techs and the hero, each picked and named
-wizard - the four steps in which a design is made: name and tech tree, bonuses, UU&UT and review
+wizard - the four steps in which a design is made: name and tech tree, bonuses, UU&UT and Finish
 base civ - a civ of the game as civeditor holds it: its tech tree, bonuses, looks, names, tagline and description
 civ to edit - the civ of the game that the steps show and change, chosen in the first step; the Britons at first
 draft - the design of a civ to edit as it was last left, kept while another civ is edited
+changed civ - a civ to edit whose draft differs from its base civ; Civ to edit marks it with an asterisk, e.g. "Britons*"
+ranked civ - a civ of the game played in ranked games; only these are offered as civ to edit, so not the Spartans
 catalog - the lists civeditor offers in the steps, read from data/*.txt: looks, bonuses, units, techs, nodes
 control - one part of a step that the user reads or acts on, e.g. the list of bonuses; each has a visible label
 checklist - a control whose rows are ticked and unticked, e.g. the bonuses; in a plain list one row is picked
+dropdown - a control that shows its picked row and opens its rows as a list under it when pressed
+look choice - one of the six controls that choose how the civ looks and sounds, e.g. the architecture
+Appearance popup - the small window that holds the look choices, opened by the button Appearance of the first step
+filter - the field above a list that leaves the rows holding its text or belonging to a civ whose name starts with it
+Clear - the button under the civ bonuses that unticks every one of them
 Hero box - the control of UU&UT ticked to give the civ a hero, Attila the Hun at first, and unticked to take it away
 Choose hero... - the button left of the Hero box that lists the heroes; picking one fills in its name in the game
 notch - one step of the mouse wheel; a notch over a list moves it one row
@@ -62,6 +69,7 @@ requirement tech - a tech of one civ, researched by itself, that a tech of every
 multiplier - how many times a bonus counts, 1 to 10, kept in the civ file; each change of the bonus is scaled to it
 mod - a folder the game loads from its local mods folder; civeditor makes a data mod and a UI mod
 mods folder - the game's local mods folder, mods\local in the user's newest profile, where a mod is built
+Options... - the item of the menu File that shows the mods folder found and lets the user correct it
 data mod - the mod with a changed dat file that holds the new civ
 civ list - civilizations.json, the game's list of civs, their names, unique techs and unique unit; the data mod has one
 tech tree file - the game's file of one civ's tech tree screen, e.g. CivTechTrees\BRITONS.json; the data mod has one
@@ -70,11 +78,11 @@ string id - the number of a text of the game, e.g. 10271 for "Britons"; the UI m
 description id - the string id of a civ's description, named by the civ list; the design's is its own, 990100 + its slot
 mod name - the name the user gives a mod when Build mod asks for it, e.g. "Testonia"; civeditor_mod at first
 prefix - the start of both mod folders' names, made from the mod name, e.g. "testonia" in "testonia-data"
-review - the last step: the whole design, and what it still needs before a mod can be built from it
-Save civ - the button of the review that puts the design, as it is, in the mod; a civ as the game has it is left out
-civs changed - the count of civs Save civ has put in the mod, shown at the top right of the review, e.g. "1 civ changed"
-roster - what civeditor keeps of each slot while it runs: the draft of its civ, and the design Save civ put in the mod
-job - what Build mod puts in one mod: every design that Save civ put in it, up to 64, held in ForgeJob
+Finish - the last step: the whole design, and what it still needs before a mod can be built from it
+built mark - the green check mark and "Successfully built mod" that Finish shows after a build that left nothing out
+civs changed - the count of changed civs, shown at the top right of Finish, e.g. "1 civ changed"
+roster - what civeditor keeps of each slot while it runs: the draft of its civ, and whether it is a changed civ
+job - what Build mod puts in one mod: the draft of every changed civ, up to 64, held in ForgeJob
 replaced civ - the civ of the game whose slot a design takes in the mod: the civ to edit it was made from
 recipe - what is done to the dat file to put a design in the slot of its replaced civ, in src/forge/recipe.c
 aim - to turn what a unique tech does to another civ's unique unit to the design's own, as the recipe does

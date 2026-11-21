@@ -1,6 +1,7 @@
 #include "shell.h"
 
 #include <uxtheme.h>
+#include <wchar.h>
 
 #include "../core/check.h"
 
@@ -15,18 +16,21 @@ enum {
     LIST_HEIGHT = 120,
     BUTTON_WIDTH = 70,
     BUTTON_HEIGHT = 26,
-    ITEM_LIMIT = 6,
-    LIST_ITEMS = 2,
+    ITEM_LIMIT = 8,
+    LIST_ITEMS = 4,
     STATIC_CLASS = 0x0082,
     EDIT_CLASS = 0x0081,
     BUTTON_CLASS = 0x0080,
-    LIST_CLASS = 0x0083
+    LIST_CLASS = 0x0083,
+    MESSAGE_LIMIT = 2147483647,
+    STILL_OPEN = 0
 };
 
 enum {
-    LIST_TOP = MARGIN + LABEL_HEIGHT,
-    LIST_ROOM = LABEL_HEIGHT + LIST_HEIGHT + MARGIN,
     FIELD_TOP = MARGIN + LABEL_HEIGHT,
+    FIELD_ROOM = LABEL_HEIGHT + FIELD_HEIGHT + MARGIN,
+    LIST_TOP = FIELD_ROOM + MARGIN + LABEL_HEIGHT,
+    LIST_ROOM = FIELD_ROOM + LABEL_HEIGHT + LIST_HEIGHT + MARGIN,
     BUTTON_TOP = FIELD_TOP + FIELD_HEIGHT + MARGIN,
     HEIGHT = BUTTON_TOP + BUTTON_HEIGHT + MARGIN,
     INNER_WIDTH = WIDTH - (2 * MARGIN)
@@ -47,6 +51,8 @@ typedef union {
 
 static DialogBytes bytes;
 static int length;
+static AskQuestion *asked;
+static WORD answered;
 
 static void put_word(WORD word)
 {
@@ -101,7 +107,10 @@ static void make_template(const AskQuestion *question)
     short shift = (short)((question->rows != NULL) ? LIST_ROOM : 0);
     const short whole[4] = { 0, 0, WIDTH, (short)(HEIGHT + shift) };
     DialogItem items[ITEM_LIMIT] = {
-        { SS_LEFT, { MARGIN, MARGIN, INNER_WIDTH, LABEL_HEIGHT }, 0xFFFFU, STATIC_CLASS, L"" },
+        { SS_LEFT, { MARGIN, MARGIN, INNER_WIDTH, LABEL_HEIGHT }, 0xFFFFU, STATIC_CLASS, L"Filter" },
+        { WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL, { MARGIN, FIELD_TOP, INNER_WIDTH, FIELD_HEIGHT }, ASK_FILTER_ID,
+          EDIT_CLASS, L"" },
+        { SS_LEFT, { MARGIN, FIELD_ROOM + MARGIN, INNER_WIDTH, LABEL_HEIGHT }, 0xFFFFU, STATIC_CLASS, L"" },
         { WS_BORDER | WS_TABSTOP | WS_VSCROLL | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT,
           { MARGIN, LIST_TOP, INNER_WIDTH, LIST_HEIGHT }, ASK_LIST_ID, LIST_CLASS, L"" },
         { SS_LEFT, { MARGIN, (short)(MARGIN + shift), INNER_WIDTH, LABEL_HEIGHT }, 0xFFFFU, STATIC_CLASS, L"" },
@@ -117,8 +126,8 @@ static void make_template(const AskQuestion *question)
     int first = (question->rows != NULL) ? 0 : LIST_ITEMS;
     int item;
 
-    items[0].text = question->list_label;
-    items[2].text = question->question;
+    items[2].text = question->list_label;
+    items[4].text = question->question;
     length = 0;
     put_long(DS_MODALFRAME | DS_SETFONT | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU);
     put_long(0U);
@@ -134,19 +143,45 @@ static void make_template(const AskQuestion *question)
     }
 }
 
-static INT_PTR start_answer(HWND dialog, const AskQuestion *question)
+static bool row_holds(const wchar_t *row, const wchar_t *filter)
+{
+    wchar_t folded[ASK_ROW_WIDTH];
+
+    (void)lstrcpynW(folded, row, ASK_ROW_WIDTH);
+    (void)CharLowerW(folded);
+    return wcsstr(folded, filter) != NULL;
+}
+
+static void fill_list(HWND dialog)
+{
+    HWND list = GetDlgItem(dialog, ASK_LIST_ID);
+    wchar_t filter[ASK_ROW_WIDTH] = L"";
+    LRESULT placed;
+    int row;
+
+    (void)GetDlgItemTextW(dialog, ASK_FILTER_ID, filter, ASK_ROW_WIDTH);
+    (void)CharLowerW(filter);
+    (void)SendMessageW(list, LB_RESETCONTENT, 0, 0);
+    for (row = 0; row < asked->row_count; ++row) {
+        if (row_holds(asked->rows[row], filter)) {
+            placed = SendMessageW(list, LB_ADDSTRING, 0, (LPARAM)asked->rows[row]);
+            (void)SendMessageW(list, LB_SETITEMDATA, (WPARAM)placed, (LPARAM)row);
+            if (row == asked->row) {
+                (void)SendMessageW(list, LB_SETCURSEL, (WPARAM)placed, 0);
+            }
+        }
+    }
+}
+
+static INT_PTR start_answer(HWND dialog)
 {
     HWND field = GetDlgItem(dialog, ASK_ANSWER_ID);
     HWND list = GetDlgItem(dialog, ASK_LIST_ID);
-    int row;
 
-    for (row = 0; row < question->row_count; ++row) {
-        (void)SendMessageW(list, LB_ADDSTRING, 0, (LPARAM)question->rows[row]);
-    }
-    (void)SendMessageW(list, LB_SETCURSEL, (WPARAM)question->row, 0);
+    fill_list(dialog);
     (void)SetWindowTheme(list, L"", L"");
-    (void)SetWindowTextW(field, question->answer);
-    (void)SendMessageW(field, EM_LIMITTEXT, (WPARAM)(question->capacity - 1U), 0);
+    (void)SetWindowTextW(field, asked->answer);
+    (void)SendMessageW(field, EM_LIMITTEXT, (WPARAM)(asked->capacity - 1U), 0);
     (void)SendMessageW(field, EM_SETSEL, 0, -1);
     (void)SetFocus((list != NULL) ? list : field);
     return FALSE;
@@ -160,20 +195,17 @@ static void take_row(HWND dialog)
     if ((picked < 0) || (SendDlgItemMessageW(dialog, ASK_LIST_ID, LB_GETTEXTLEN, (WPARAM)picked, 0) >= ASK_ROW_WIDTH)) {
         return;
     }
+    asked->row = (int)SendDlgItemMessageW(dialog, ASK_LIST_ID, LB_GETITEMDATA, (WPARAM)picked, 0);
     (void)SendDlgItemMessageW(dialog, ASK_LIST_ID, LB_GETTEXT, (WPARAM)picked, (LPARAM)row);
     (void)SetDlgItemTextW(dialog, ASK_ANSWER_ID, row);
 }
 
 static void end_answer(HWND dialog, WORD command)
 {
-    LONG_PTR kept = GetWindowLongPtrW(dialog, DWLP_USER);
-    AskQuestion *question = (AskQuestion *)kept;
-
-    if ((command == IDOK) && (question != NULL)) {
-        (void)GetDlgItemTextW(dialog, ASK_ANSWER_ID, question->answer, (int)question->capacity);
-        question->row = (int)SendDlgItemMessageW(dialog, ASK_LIST_ID, LB_GETCURSEL, 0, 0);
+    if (command == IDOK) {
+        (void)GetDlgItemTextW(dialog, ASK_ANSWER_ID, asked->answer, (int)asked->capacity);
     }
-    (void)EndDialog(dialog, command);
+    answered = command;
 }
 
 static INT_PTR answer_command(HWND dialog, WPARAM wparam)
@@ -182,6 +214,10 @@ static INT_PTR answer_command(HWND dialog, WPARAM wparam)
 
     if ((command == ASK_LIST_ID) && (HIWORD(wparam) == LBN_SELCHANGE)) {
         take_row(dialog);
+        return TRUE;
+    }
+    if ((command == ASK_FILTER_ID) && (HIWORD(wparam) == EN_CHANGE)) {
+        fill_list(dialog);
         return TRUE;
     }
     if ((command != IDOK) && (command != IDCANCEL)) {
@@ -193,22 +229,49 @@ static INT_PTR answer_command(HWND dialog, WPARAM wparam)
 
 static INT_PTR CALLBACK answer_proc(HWND dialog, UINT message, WPARAM wparam, LPARAM lparam)
 {
+    (void)lparam;
     if (message == WM_INITDIALOG) {
-        (void)SetWindowLongPtrW(dialog, DWLP_USER, lparam);
-        return start_answer(dialog, (const AskQuestion *)lparam);
+        return start_answer(dialog);
     }
     return (message == WM_COMMAND) ? answer_command(dialog, wparam) : FALSE;
 }
 
+static void run_dialog(HWND owner, HWND dialog)
+{
+    MSG message;
+    int step;
+
+    (void)EnableWindow(owner, FALSE);
+    (void)ShowWindow(dialog, SW_SHOW);
+    for (step = 0; (step < MESSAGE_LIMIT) && (answered == STILL_OPEN); ++step) {
+        if (GetMessageW(&message, NULL, 0, 0) <= 0) {
+            PostQuitMessage(0);
+            answered = IDCANCEL;
+        } else if (!list_scroll_takes(&message) && (IsDialogMessageW(dialog, &message) == 0)) {
+            (void)TranslateMessage(&message);
+            (void)DispatchMessageW(&message);
+        }
+    }
+    (void)EnableWindow(owner, TRUE);
+}
+
 bool text_dialog_show(HWND owner, AskQuestion *question)
 {
-    INT_PTR chosen;
+    HWND dialog;
 
     if (!CHECK(question->capacity > 1U)) {
         return false;
     }
     make_template(question);
-    chosen = DialogBoxIndirectParamW(GetModuleHandleW(NULL), (LPCDLGTEMPLATEW)bytes.aligned, owner, answer_proc,
-                                     (LPARAM)question);
-    return (chosen == IDOK) && (question->answer[0] != L'\0');
+    asked = question;
+    answered = STILL_OPEN;
+    dialog = CreateDialogIndirectParamW(GetModuleHandleW(NULL), (LPCDLGTEMPLATEW)bytes.aligned, owner, answer_proc, 0);
+    if (dialog == NULL) {
+        return false;
+    }
+    if (answered == STILL_OPEN) {
+        run_dialog(owner, dialog);
+    }
+    (void)DestroyWindow(dialog);
+    return (answered == IDOK) && (question->answer[0] != L'\0');
 }

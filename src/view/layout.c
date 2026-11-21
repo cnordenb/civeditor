@@ -30,38 +30,45 @@ static const ControlSpec SPECS[CONTROL_COUNT] = {
     { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Civ to edit" },
     { STEP_NAME_AND_TREE, WIDGET_LINE, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Name" },
     { STEP_NAME_AND_TREE, WIDGET_LINE, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Tagline" },
-    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Architecture" },
-    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Language" },
-    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_MIDDLE, LAYOUT_TARGET_SIZE, "Wonder" },
-    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_MIDDLE, LAYOUT_TARGET_SIZE, "Castle" },
-    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_MIDDLE, LAYOUT_TARGET_SIZE, "Monk" },
-    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_MIDDLE, LAYOUT_TARGET_SIZE, "Scout" },
-    { STEP_NAME_AND_TREE, WIDGET_LINE, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Filter" },
+    { STEP_NAME_AND_TREE, WIDGET_BUTTON, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Appearance" },
+    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_POPUP, LAYOUT_TARGET_SIZE, "Architecture" },
+    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_POPUP, LAYOUT_TARGET_SIZE, "Language" },
+    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_POPUP, LAYOUT_TARGET_SIZE, "Wonder" },
+    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_POPUP, LAYOUT_TARGET_SIZE, "Castle" },
+    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_POPUP, LAYOUT_TARGET_SIZE, "Monk" },
+    { STEP_NAME_AND_TREE, WIDGET_CHOICE, PLACE_POPUP, LAYOUT_TARGET_SIZE, "Scout" },
+    { STEP_NAME_AND_TREE, WIDGET_BUTTON, PLACE_POPUP, LAYOUT_TARGET_SIZE, "Close" },
+    { STEP_NAME_AND_TREE, WIDGET_LINE, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Filter of the tech tree" },
     { STEP_NAME_AND_TREE, WIDGET_CHECKLIST, PLACE_RIGHT, STRETCH, "Units, buildings and techs" },
     { STEP_NAME_AND_TREE, WIDGET_TEXT, PLACE_RIGHT, NOTE_HEIGHT, "In the tree" },
-    { STEP_BONUSES, WIDGET_LINE, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Filter" },
+    { STEP_BONUSES, WIDGET_LINE, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Filter of the bonuses" },
     { STEP_BONUSES, WIDGET_CHOICE, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Category" },
     { STEP_BONUSES, WIDGET_CHECKLIST, PLACE_LEFT, STRETCH, "Bonuses" },
+    { STEP_BONUSES, WIDGET_BUTTON, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Clear" },
     { STEP_BONUSES, WIDGET_TEXT, PLACE_MIDDLE, STRETCH, "Chosen bonuses" },
+    { STEP_BONUSES, WIDGET_LINE, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Filter of the team bonuses" },
     { STEP_BONUSES, WIDGET_LIST, PLACE_RIGHT, STRETCH, "Team bonuses" },
     { STEP_BONUSES, WIDGET_TEXT, PLACE_RIGHT, NOTE_HEIGHT, "The selected team bonus" },
+    { STEP_UU_UT, WIDGET_LINE, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Filter of the units" },
     { STEP_UU_UT, WIDGET_LIST, PLACE_LEFT, STRETCH, "Units" },
     { STEP_UU_UT, WIDGET_LINE, PLACE_LEFT, LAYOUT_TARGET_SIZE, "Name of the unique unit" },
     { STEP_UU_UT, WIDGET_PARAGRAPH, PLACE_LEFT, PARAGRAPH_HEIGHT, "Description of the unique unit" },
     { STEP_UU_UT, WIDGET_TEXT, PLACE_LEFT, STRETCH, "The selected unit" },
+    { STEP_UU_UT, WIDGET_LINE, PLACE_MIDDLE, LAYOUT_TARGET_SIZE, "Filter of the castle techs" },
     { STEP_UU_UT, WIDGET_LIST, PLACE_MIDDLE, STRETCH, "Castle techs" },
     { STEP_UU_UT, WIDGET_LINE, PLACE_MIDDLE, LAYOUT_TARGET_SIZE, "Name of the castle tech" },
     { STEP_UU_UT, WIDGET_TEXT, PLACE_MIDDLE, STRETCH, "What the castle tech does" },
+    { STEP_UU_UT, WIDGET_LINE, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Filter of the imperial techs" },
     { STEP_UU_UT, WIDGET_LIST, PLACE_RIGHT, STRETCH, "Imperial techs" },
     { STEP_UU_UT, WIDGET_LINE, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Name of the imperial tech" },
     { STEP_UU_UT, WIDGET_TEXT, PLACE_RIGHT, STRETCH, "What the imperial tech does" },
     { STEP_UU_UT, WIDGET_TEXT, PLACE_FRAME, LABEL_HEIGHT, "" },
     { STEP_UU_UT, WIDGET_BUTTON, PLACE_FRAME, LAYOUT_TARGET_SIZE, "Choose hero..." },
     { STEP_UU_UT, WIDGET_CHECKBOX, PLACE_FRAME, LAYOUT_TARGET_SIZE, "Hero" },
-    { STEP_REVIEW, WIDGET_REPORT, PLACE_LEFT, STRETCH, "The civ" },
-    { STEP_REVIEW, WIDGET_TEXT, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "" },
-    { STEP_REVIEW, WIDGET_BUTTON, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Save civ" },
-    { STEP_REVIEW, WIDGET_BUTTON, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Build mod..." }
+    { STEP_FINISH, WIDGET_REPORT, PLACE_LEFT, STRETCH, "The civ" },
+    { STEP_FINISH, WIDGET_TEXT, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "" },
+    { STEP_FINISH, WIDGET_BUTTON, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Build mod..." },
+    { STEP_FINISH, WIDGET_MARK, PLACE_RIGHT, LAYOUT_TARGET_SIZE, "Successfully built mod" }
 };
 
 ControlSpec layout_spec(ControlId control)
@@ -72,13 +79,18 @@ ControlSpec layout_spec(ControlId control)
     return SPECS[control];
 }
 
+static bool leads_nowhere(ControlId control, WizardStep step)
+{
+    return ((control == CONTROL_NEXT) && (wizard_move(step, 1) == step)) ||
+           ((control == CONTROL_BACK) && (wizard_move(step, -1) == step));
+}
+
 bool layout_shows(ControlId control, WizardStep step)
 {
     if (!CHECK((int)control >= 0) || !CHECK(control < CONTROL_COUNT) || (step >= STEP_COUNT)) {
         return false;
     }
-    if (((control == CONTROL_NEXT) && (wizard_move(step, 1) == step)) ||
-        ((control == CONTROL_BACK) && (wizard_move(step, -1) == step))) {
+    if (leads_nowhere(control, step) || layout_in_popup(control)) {
         return false;
     }
     return (SPECS[control].step == STEP_COUNT) || (SPECS[control].step == step);
@@ -86,14 +98,21 @@ bool layout_shows(ControlId control, WizardStep step)
 
 bool layout_is_focusable(ControlId control)
 {
-    return layout_spec(control).kind != WIDGET_TEXT;
+    WidgetKind kind = layout_spec(control).kind;
+
+    return (kind != WIDGET_TEXT) && (kind != WIDGET_MARK);
+}
+
+bool layout_in_popup(ControlId control)
+{
+    return layout_spec(control).place == PLACE_POPUP;
 }
 
 bool layout_names_itself(ControlId control)
 {
     WidgetKind kind = layout_spec(control).kind;
 
-    return (kind == WIDGET_BUTTON) || (kind == WIDGET_CHECKBOX);
+    return (kind == WIDGET_BUTTON) || (kind == WIDGET_CHECKBOX) || (kind == WIDGET_MARK);
 }
 
 bool layout_has_label(ControlId control)
@@ -200,7 +219,8 @@ static int step_columns(WizardStep step)
     int other;
 
     for (other = 0; other < CONTROL_COUNT; ++other) {
-        if ((SPECS[other].step == step) && (SPECS[other].place != PLACE_FRAME)) {
+        if ((SPECS[other].step == step) && (SPECS[other].place != PLACE_FRAME) &&
+            (SPECS[other].place != PLACE_POPUP)) {
             used[SPECS[other].place - PLACE_LEFT] = true;
         }
     }
@@ -231,6 +251,9 @@ static Box column_of(ControlId control, int width, int height)
     int column_width;
     int index;
 
+    if (layout_in_popup(control)) {
+        return box_of(MARGIN, MARGIN, LAYOUT_POPUP_WIDTH - (2 * MARGIN), LAYOUT_POPUP_HEIGHT - (2 * MARGIN));
+    }
     if (!CHECK(width >= LAYOUT_MIN_WIDTH) || !CHECK(height >= LAYOUT_MIN_HEIGHT) || (columns < 1)) {
         return box_of(0, 0, 0, 0);
     }

@@ -45,7 +45,7 @@ static const char CATEGORY_NAMES[BONUS_CATEGORY_COUNT + 1][NAME_WIDTH] = {
 };
 
 static const char APPEARANCE_NAMES[APPEARANCE_KIND_COUNT][NAME_WIDTH] = {
-    "civ", "architecture", "scout", "monk", "base"
+    "civ", "architecture", "scout", "monk", "base", "unranked"
 };
 static const char TREE_NAMES[TREE_KIND_COUNT][NAME_WIDTH] = { "unit", "building", "tech" };
 static const char STATUS_NAMES[1][NAME_WIDTH] = { "required" };

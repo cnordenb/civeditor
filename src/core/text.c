@@ -144,15 +144,15 @@ static char fold_case(char letter)
     return letter;
 }
 
-static bool matches_at(const char *text, const char *needle)
+bool text_starts_folded(const char *text, const char *prefix)
 {
     size_t index;
 
     for (index = 0U; index < (size_t)TEXT_SCAN_LIMIT; ++index) {
-        if (needle[index] == '\0') {
+        if (prefix[index] == '\0') {
             return true;
         }
-        if (fold_case(text[index]) != fold_case(needle[index])) {
+        if (fold_case(text[index]) != fold_case(prefix[index])) {
             return false;
         }
     }
@@ -164,7 +164,7 @@ bool text_contains_folded(const char *text, const char *needle)
     size_t start;
 
     for (start = 0U; start < (size_t)TEXT_SCAN_LIMIT; ++start) {
-        if (matches_at(&text[start], needle)) {
+        if (text_starts_folded(&text[start], needle)) {
             return true;
         }
         if (text[start] == '\0') {

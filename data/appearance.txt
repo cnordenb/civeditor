@@ -152,3 +152,9 @@ base	59	Tupi	372,373,374,375,410	83	90	61	60	12	21	2550
 base	60	Saxons	429,430,431,432	84	94	65	62	2	1	448
 base	61	Varangians	433,434,435,436	85	95	66	63	13	11	448
 base	62	Danes	437,438,439,440	86	96	67	64	13	11	448
+unranked	46	Achaemenids
+unranked	47	Athenians
+unranked	48	Spartans
+unranked	54	Macedonians
+unranked	55	Thracians
+unranked	56	Puru

@@ -13,6 +13,7 @@ enum {
     LIST_TEXT_CAPACITY = 400,
     LIST_ALL_CATEGORIES = -1,
     BINDING_NO_FIELD = -1,
+    BINDING_NO_CONTROL = -1,
     HERO_AT_FIRST = 777
 };
 
@@ -34,6 +35,7 @@ typedef struct {
     int text_field;
     int choice;
     int appearance;
+    int filter;
 } Binding;
 
 typedef struct {
@@ -62,5 +64,6 @@ RowText list_item_text(const Catalog *catalog, ListItem item);
 bool list_item_is_chosen(const Catalog *catalog, const CivDesign *design, ListItem item);
 Command list_item_command(const Catalog *catalog, ListItem item);
 Command hero_box_command(const Catalog *catalog, bool ticked);
+ControlId binding_filtered_list(ControlId filter);
 
 #endif

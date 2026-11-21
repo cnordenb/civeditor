@@ -17,6 +17,7 @@ void window_fixture_act(HWND window, int action);
 void window_fixture_click(HWND window, int control);
 void window_fixture_tick(HWND window, int control);
 void window_fixture_answer(const wchar_t *row, const wchar_t *name);
+void window_fixture_filter(const wchar_t *filter);
 void window_fixture_refocus(void);
 const AskedDialog *window_fixture_asked(void);
 
