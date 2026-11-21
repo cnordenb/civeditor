@@ -7,7 +7,7 @@
 # Civ Editor
 
 ## But why?
-The app had 9 steps and required two windows to run. I wanted 3 steps and just one native window.
+For an simpler, lighter app with fewer steps.
 
 ## Description
 
