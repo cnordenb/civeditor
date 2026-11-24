@@ -1,6 +1,7 @@
 #include "win_parts.h"
 
 #include "../core/check.h"
+#include "../shell/shell.h"
 
 enum {
     TEXT_POINTS = 11,
@@ -9,16 +10,16 @@ enum {
     DROP_HEIGHT = 320,
     BOX_INSET = 4,
     BOX_LINE = 2,
-    FOCUS_LINE = 3,
     RING_LIMIT = 4 * BOX_SIZE,
     CHECK_KNEE_DIVISOR = 2,
-    CLASS_WIDTH = 16,
+
     ROW_TEXT_CAPACITY = 512,
     CREATION_COUNT = CONTROL_COUNT
 };
 
-static const wchar_t CLASSES[WIDGET_KIND_COUNT][CLASS_WIDTH] = {
-    L"STATIC", L"EDIT", L"EDIT", L"COMBOBOX", L"LISTBOX", L"LISTBOX", L"BUTTON", L"EDIT", L"BUTTON", L"STATIC"
+static const wchar_t *const CLASSES[WIDGET_KIND_COUNT] = {
+    L"STATIC", L"EDIT", L"EDIT", L"COMBOBOX", L"LISTBOX", L"LISTBOX", L"BUTTON", L"EDIT", L"BUTTON", L"STATIC",
+    CHOSEN_CLASS_NAME
 };
 
 static const DWORD STYLES[WIDGET_KIND_COUNT] = {
@@ -32,7 +33,8 @@ static const DWORD STYLES[WIDGET_KIND_COUNT] = {
     WS_TABSTOP | BS_PUSHBUTTON | BS_NOTIFY,
     WS_BORDER | WS_TABSTOP | WS_VSCROLL | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL,
     WS_TABSTOP | BS_AUTOCHECKBOX | BS_NOTIFY,
-    SS_OWNERDRAW
+    SS_OWNERDRAW,
+    WS_BORDER | WS_VSCROLL | WS_CLIPCHILDREN
 };
 
 static ControlId creation_order(int position)
@@ -134,6 +136,11 @@ static COLORREF color_of(const AppState *app, ColorRole role)
     return app->high_contrast ? GetSysColor(SYSTEM_COLORS[role]) : RGB(color.red, color.green, color.blue);
 }
 
+COLORREF controls_row_color(const AppState *app, bool chosen, ColorRole plain)
+{
+    return color_of(app, chosen ? COLOR_ROLE_CHOSEN_INK : plain);
+}
+
 static void replace_brush(HBRUSH *brush, COLORREF color)
 {
     if (!CHECK(color != CLR_INVALID)) {
@@ -153,6 +160,7 @@ static void make_fonts(AppState *app)
     }
     app->font = make_font(app->dpi, TEXT_POINTS, FW_NORMAL);
     app->title_font = make_font(app->dpi, TITLE_POINTS, FW_SEMIBOLD);
+    assist_forget_rows(app);
 }
 
 void controls_refresh_style(AppState *app)
@@ -250,6 +258,7 @@ static bool is_shown(const AppState *app, ControlId control)
     if (layout_in_popup(control) || !layout_shows(control, app->step)) {
         return layout_in_popup(control);
     }
+
     return (control == CONTROL_BUILT) ? app->built
                                       : (!layout_needs_hero(control) || civ_design_has_hero(&app->history.present));
 }
@@ -292,20 +301,15 @@ HBRUSH controls_color(const AppState *app, HDC context, HWND control)
     muted = (control == app->controls[CONTROL_HELP]);
     (void)SetTextColor(context, color_of(app, muted ? COLOR_ROLE_MUTED : COLOR_ROLE_INK));
     (void)SetBkColor(context, color_of(app, field ? COLOR_ROLE_FIELD : COLOR_ROLE_PAPER));
-    return field ? app->field_brush : app->paper_brush;
-}
-
-static int scaled(const AppState *app, int units)
-{
-    return MulDiv(units, app->dpi, LAYOUT_BASE_DPI);
+    return list_scroll_brush(context, control, field ? app->field_brush : app->paper_brush);
 }
 
 int controls_row_height(const AppState *app)
 {
-    return scaled(app, LAYOUT_ROW_HEIGHT);
+    return assist_scaled(app, LAYOUT_ROW_HEIGHT);
 }
 
-static void frame_rect(HDC context, RECT area, COLORREF color, int thickness)
+void controls_frame_rect(HDC context, RECT area, COLORREF color, int thickness)
 {
     HBRUSH brush;
     int ring;
@@ -342,9 +346,9 @@ static void draw_check(HDC context, RECT box, COLORREF color, int width)
 static RECT check_box(const AppState *app, RECT row)
 {
     RECT box;
-    int size = scaled(app, BOX_SIZE);
+    int size = assist_scaled(app, BOX_SIZE);
 
-    box.left = row.left + scaled(app, TEXT_INSET);
+    box.left = row.left + assist_scaled(app, TEXT_INSET);
     box.top = ((row.top + row.bottom) - size) / 2;
     box.right = box.left + size;
     box.bottom = box.top + size;
@@ -379,10 +383,10 @@ static int draw_box(const AppState *app, const DRAWITEMSTRUCT *item, bool chosen
 
     box = check_box(app, item->rcItem);
     right = box.right;
-    frame_rect(item->hDC, box, color_of(app, chosen ? COLOR_ROLE_CHOSEN_INK : COLOR_ROLE_INK), scaled(app, BOX_LINE));
-    (void)InflateRect(&box, -scaled(app, BOX_INSET), -scaled(app, BOX_INSET));
+    controls_frame_rect(item->hDC, box, controls_row_color(app, chosen, COLOR_ROLE_INK), assist_scaled(app, BOX_LINE));
+    (void)InflateRect(&box, -assist_scaled(app, BOX_INSET), -assist_scaled(app, BOX_INSET));
     if (chosen) {
-        draw_check(item->hDC, box, color_of(app, COLOR_ROLE_CHOSEN_INK), scaled(app, BOX_LINE));
+        draw_check(item->hDC, box, color_of(app, COLOR_ROLE_CHOSEN_INK), assist_scaled(app, BOX_LINE));
     }
     return right;
 }
@@ -392,8 +396,8 @@ static void draw_row_focus(const AppState *app, const DRAWITEMSTRUCT *item, bool
     if ((item->itemState & ODS_FOCUS) == 0) {
         return;
     }
-    frame_rect(item->hDC, item->rcItem, color_of(app, chosen ? COLOR_ROLE_CHOSEN_INK : COLOR_ROLE_FOCUS),
-               scaled(app, FOCUS_LINE));
+    controls_frame_rect(item->hDC, item->rcItem, controls_row_color(app, chosen, COLOR_ROLE_FOCUS),
+                        assist_scaled(app, FOCUS_LINE));
 }
 
 static void draw_mark(const AppState *app, const DRAWITEMSTRUCT *item)
@@ -403,8 +407,8 @@ static void draw_mark(const AppState *app, const DRAWITEMSTRUCT *item)
     RECT area = item->rcItem;
 
     (void)FillRect(item->hDC, &item->rcItem, app->paper_brush);
-    draw_check(item->hDC, box, color_of(app, COLOR_ROLE_SUCCESS), scaled(app, FOCUS_LINE));
-    area.left = box.right + scaled(app, TEXT_INSET);
+    draw_check(item->hDC, box, color_of(app, COLOR_ROLE_SUCCESS), assist_scaled(app, FOCUS_LINE));
+    area.left = box.right + assist_scaled(app, TEXT_INSET);
     (void)SetBkMode(item->hDC, TRANSPARENT);
     (void)SetTextColor(item->hDC, color_of(app, COLOR_ROLE_INK));
     (void)GetWindowTextW(item->hwndItem, text, ROW_TEXT_CAPACITY);
@@ -429,12 +433,12 @@ void controls_draw_item(const AppState *app, const DRAWITEMSTRUCT *item)
     checklist = is_checklist((int)item->CtlID - CONTROL_ID_BASE);
     (void)FillRect(item->hDC, &item->rcItem, chosen ? app->chosen_brush : app->field_brush);
     area = item->rcItem;
-    area.left += scaled(app, TEXT_INSET);
+    area.left += assist_scaled(app, TEXT_INSET);
     if (checklist) {
-        area.left = draw_box(app, item, chosen) + scaled(app, TEXT_INSET);
+        area.left = draw_box(app, item, chosen) + assist_scaled(app, TEXT_INSET);
     }
     (void)SetBkMode(item->hDC, TRANSPARENT);
-    (void)SetTextColor(item->hDC, color_of(app, chosen ? COLOR_ROLE_CHOSEN_INK : COLOR_ROLE_INK));
+    (void)SetTextColor(item->hDC, controls_row_color(app, chosen, COLOR_ROLE_INK));
     if (item_text(item, text, ROW_TEXT_CAPACITY)) {
         (void)DrawTextW(item->hDC, text, -1, &area, assist_row_format(app, item, text, &area));
     }

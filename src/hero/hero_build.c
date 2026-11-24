@@ -132,17 +132,6 @@ static bool name_hero(const DatTarget *target, const Hero *hero)
            dat_edit_patch_i32(edit, at + DAT_UNIT_HELP_AT, hero->name_sid + MOD_HELP_OFFSET);
 }
 
-static bool put_cost(DatEdit *edit, size_t at, const DatTechCost *cost)
-{
-    DatPatch patch = { 0U, 0U, { 0U } };
-    DatSink sink = dat_sink_over(patch.bytes, sizeof patch.bytes, 0U);
-
-    dat_sink_i16(&sink, cost->type);
-    dat_sink_i16(&sink, cost->amount);
-    dat_sink_i16(&sink, cost->flag);
-    return dat_edit_patch_sunk(edit, at, &patch, &sink);
-}
-
 static bool train_in_castle(DatEdit *edit, size_t at)
 {
     return dat_edit_patch_i16(edit, at, TRAIN_TIME) && dat_edit_patch_i16(edit, at + DAT_TRAIN_BUILDING_AT, CASTLE) &&
@@ -163,7 +152,7 @@ static bool train_at_castle(const DatTarget *target, const Hero *hero)
     fine = train_in_castle(edit, hero->unit.train_locations_at) &&
            dat_edit_patch_u8(edit, hero->unit.hero_mode_at, HERO_STATUS);
     for (slot = 0; fine && (slot < DAT_UNIT_COST_SLOTS); ++slot) {
-        fine = put_cost(edit, hero->unit.costs_at + ((size_t)slot * DAT_UNIT_COST_SIZE), &HERO_COSTS[slot]);
+        fine = dat_edit_patch_cost(edit, hero->unit.costs_at + ((size_t)slot * DAT_UNIT_COST_SIZE), &HERO_COSTS[slot]);
     }
     return fine;
 }

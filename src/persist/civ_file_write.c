@@ -59,6 +59,46 @@ static void write_hero(const CivDesign *design, JsonWriter *writer)
     json_end(writer, '}');
 }
 
+bool civ_file_stat_key(UnitRank rank, UnitStat stat, char *key, size_t capacity)
+{
+    static const char ENDINGS[UNIT_RANK_COUNT][CIV_FILE_KEY_WIDTH] = { "_base", "_elite" };
+    static const char NAMES[UNIT_STAT_COUNT][CIV_FILE_KEY_WIDTH] = {
+        "cost_food", "cost_wood", "cost_stone", "cost_gold", "hp", "attack", "melee", "pierce", "range", "speed",
+        "reload"
+    };
+
+    if (stat < UNIT_STAT_HP) {
+        return (rank == UNIT_RANK_BASE) && text_copy(key, capacity, NAMES[stat]);
+    }
+    return text_join(key, capacity, NAMES[stat], ENDINGS[rank]);
+}
+
+static void write_override(JsonWriter *writer, const char *key, Override override, unsigned places)
+{
+    if (override.set) {
+        json_write_decimal(writer, key, override.value, places);
+    } else {
+        json_write_null(writer, key);
+    }
+}
+
+static void write_stats(JsonWriter *writer, const UnitPick *unit)
+{
+    char key[CIV_FILE_KEY_WIDTH];
+    int rank;
+    int stat;
+
+    json_begin(writer, "overrides", '{');
+    for (rank = 0; rank < (int)UNIT_RANK_COUNT; ++rank) {
+        for (stat = 0; stat < (int)UNIT_STAT_COUNT; ++stat) {
+            if (civ_file_stat_key((UnitRank)rank, (UnitStat)stat, key, sizeof key)) {
+                write_override(writer, key, unit->stats[rank][stat], civ_stat_places((UnitStat)stat));
+            }
+        }
+    }
+    json_end(writer, '}');
+}
+
 static void write_unique_unit(const CivDesign *design, JsonWriter *writer)
 {
     UnitOrigin origin;
@@ -69,7 +109,7 @@ static void write_unique_unit(const CivDesign *design, JsonWriter *writer)
     write_optional(writer, "vanilla_id", (origin == UNIT_ORIGIN_VANILLA) ? design->unique_unit.id : CIV_NO_CHOICE);
     json_write_string(writer, "name", design->texts[TEXT_FIELD_UNIT_NAME]);
     json_write_string(writer, "description", design->texts[TEXT_FIELD_UNIT_DESCRIPTION]);
-    write_empty(writer, "overrides", "{}");
+    write_stats(writer, &design->unique_unit);
     write_empty(writer, "advanced_flags", "{}");
     json_end(writer, '}');
 }
@@ -82,7 +122,7 @@ static void write_bonus_list(JsonWriter *writer, const char *key, const BonusPic
     for (index = 0; (index < count) && (index < CIV_BONUS_CAPACITY); ++index) {
         json_begin(writer, NULL, '{');
         json_write_number(writer, "id", picks[index].id);
-        json_write_number(writer, "multiplier", picks[index].multiplier);
+        json_write_decimal(writer, "multiplier", picks[index].multiplier.millionths, CIV_MILLIONTH_PLACES);
         json_end(writer, '}');
     }
     json_end(writer, ']');
@@ -93,17 +133,17 @@ static void write_tech(JsonWriter *writer, const char *key, const TechPick *tech
     int resource;
 
     json_begin(writer, key, '{');
-    json_write_string(writer, "mode", "vanilla");
+    json_write_string(writer, "mode", (tech->effect_count > 0) ? "custom" : "vanilla");
     write_optional(writer, "vanilla_km_idx", tech->km_index);
     json_write_string(writer, "name", name);
     json_write_string(writer, "description", "");
     json_begin(writer, "cost", '{');
     for (resource = 0; resource < RESOURCE_KIND_COUNT; ++resource) {
-        json_write_number(writer, CIV_FILE_RESOURCE_KEYS[resource], tech->cost[resource]);
+        write_override(writer, CIV_FILE_RESOURCE_KEYS[resource], tech->values[resource], 0U);
     }
     json_end(writer, '}');
-    json_write_number(writer, "time", tech->time);
-    write_empty(writer, "effects", "[]");
+    write_override(writer, "time", tech->values[TECH_VALUE_TIME], 0U);
+    write_bonus_list(writer, "effects", tech->effects, tech->effect_count);
     write_empty(writer, "custom_bonuses", "[]");
     json_end(writer, '}');
 }

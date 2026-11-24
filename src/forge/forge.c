@@ -10,6 +10,7 @@
 #include "../mod/mod_places.h"
 #include "../mod/mod_strings.h"
 #include "../deflate/deflate.h"
+#include "../gamedata/game_numbers.h"
 #include "../pack/deflate_store.h"
 #include "../techtree/tech_tree.h"
 
@@ -120,28 +121,47 @@ static bool chain_civ_list(void)
     return json_parse(&civilizations);
 }
 
-static bool unpack_game(ForgeRun *run)
+static const char *unpack_problem(const wchar_t *game_folder, size_t *plain_size)
 {
     wchar_t path[FILE_PATH_CAPACITY];
     ByteBuffer plain = { buffer_one, sizeof buffer_one, 0U };
     ByteSpan packed = { buffer_two, 0U };
-    const ForgeJob *job;
     FileRead read;
 
-    job = run->job;
-    if (!mod_game_path(job->game_folder, "resources\\_common\\dat\\empires2_x2_p1.dat", path)) {
-        return fail(run->result, "The game's data file could not be found.");
+    if (!mod_game_path(game_folder, "resources\\_common\\dat\\empires2_x2_p1.dat", path)) {
+        return "The game's data file could not be found.";
     }
     read = file_read_all(path, (char *)buffer_two, sizeof buffer_two);
     packed.size = read.length;
     if (!read.succeeded || !inflate_raw(packed, &plain)) {
-        return fail(run->result, "The game's data file could not be read or unpacked.");
+        return "The game's data file could not be read or unpacked.";
     }
     if (!dat_map_read(buffer_one, plain.size, &map)) {
-        return fail(run->result, "The game's data file has a layout this version does not know.");
+        return "The game's data file has a layout this version does not know.";
     }
-    run->plain_size = plain.size;
-    return true;
+    *plain_size = plain.size;
+    return NULL;
+}
+
+static bool unpack_game(ForgeRun *run)
+{
+    const ForgeJob *job = run->job;
+    const char *problem = unpack_problem(job->game_folder, &run->plain_size);
+
+    return (problem == NULL) || fail(run->result, problem);
+}
+
+bool forge_read_game(Catalog *catalog, const wchar_t *game_folder)
+{
+    DatBytes game = { buffer_one, 0U };
+    bool unpacked = unpack_problem(game_folder, &game.size) == NULL;
+    bool listed = civ_list_read(&civilizations, game_folder) &&
+                  tech_tree_read_game(catalog, &civilizations, game_folder);
+
+    if (unpacked) {
+        game_numbers_read(catalog, &game, &map);
+    }
+    return unpacked || listed;
 }
 
 static long unit_field(const RecipeInput *input, size_t at)

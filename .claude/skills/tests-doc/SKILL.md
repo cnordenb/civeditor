@@ -39,9 +39,11 @@ No file but `settings.py` writes `settings.json`; the failure names the file tha
 
 - A test's number is its place in the order the tests run. Entries, and the table of contents, are in that order.
 - The table of contents lists each test once, under its category, as `- [Test 18](#test-18): <its purpose in a few
-  words>`. The categories are: functional completeness & correctness, accessibility, maintainability. Run the
-  categories in that order too, so the numbers run through them. Remove the accessibility category from both the tests
-  and `TESTS.md` if the project has no user interface.
+  words>`. The categories are those of Rule 34: the core tests of functional completeness & correctness, the
+  accessibility tests and the core tests of maintainability, numbered together in that order; then the regression
+  tests and the redundancy tests, each numbered on their own, as `Regression test 1` and `Redundancy test 1`. Run the
+  categories in that order too. Remove the accessibility category from both the tests and `TESTS.md` if the project
+  has no user interface.
 - So that the report can say "Test 18 failed", give every test its number in its name or description, such as
   `test_18_only_the_model_saves_settings`, or have the test runner number the tests as they run.
 - When a test is added, removed or moved, renumber every test after it: the headings, the table of contents, the
@@ -54,7 +56,10 @@ No file but `settings.py` writes `settings.json`; the failure names the file tha
 - A test covers a requirement, or catches again a bug that was found before (Rule 5). Its purpose names the
   requirement, the rule or the bug (Rule 6): "(Req. 8)", "Rule 13", "(Bug 2 of 2026-11-16)". A test that can name none
   of them is not written, and one already written is taken out.
-- There is no limit on how many tests there are.
+- The core tests are at most one of each requirement, rule and bug, and so at most as many as these together
+  (Rules 31 and 34); the accessibility tests are at most 55 (Rule 32). A further test of what a core test covers is
+  a regression test when the log names a bug that it catches again, written only at a human's direction (Rule 34),
+  and otherwise a redundancy test, kept only for a mutant that survives the other tests (Rule 32).
 - Tests should _sufficiently_ ensure that the project is complete, correct, maintainable and accessible; coverage is
   not a goal. Do not write a test that another test already makes.
 - A test that fails without a real fault, a false positive, is mended or removed, not left to be ignored.

@@ -3,7 +3,7 @@
 #include "../core/check.h"
 #include "../core/text.h"
 
-enum { NAME_CAPACITY = 32, NODE_LIST_COUNT = 2, NODE_LIMIT = 4096 };
+enum { NAME_CAPACITY = 32, NODE_LIST_COUNT = 2, NODE_LIMIT = 4096, SLOT_LIMIT = 64 };
 
 static const char USE_TYPES[TREE_KIND_COUNT][NAME_CAPACITY] = { "Unit", "Building", "Tech" };
 static const char NODE_LISTS[NODE_LIST_COUNT][NAME_CAPACITY] = { "civ_techs_buildings", "civ_techs_units" };
@@ -15,6 +15,8 @@ typedef struct {
 } TreeNode;
 
 static JsonPatch patch;
+static Catalog *marked;
+static uint64_t marked_civ;
 
 static bool string_is(const JsonDocument *tree, int token, const char *expected)
 {
@@ -81,7 +83,16 @@ static void set_status(const TechTreeJob *job, int node)
     }
 }
 
-static void set_statuses(const TechTreeJob *job, int list)
+static void mark_node(const TechTreeJob *job, int node)
+{
+    TreeNode found;
+
+    if (read_node(job, node, &found) && !string_is(job->tree, found.status, "NotAvailable")) {
+        marked->tree[found.entry].civs |= marked_civ;
+    }
+}
+
+static void visit_nodes(const TechTreeJob *job, int list)
 {
     const JsonDocument *tree;
     int node;
@@ -90,18 +101,45 @@ static void set_statuses(const TechTreeJob *job, int list)
     tree = job->tree;
     node = json_is_kind(tree, list, JSON_KIND_ARRAY) ? json_first_child(tree, list) : JSON_NONE;
     for (index = 0; (index < NODE_LIMIT) && (node != JSON_NONE); ++index) {
-        set_status(job, node);
+        if (job->design == NULL) {
+            mark_node(job, node);
+        } else {
+            set_status(job, node);
+        }
         node = json_next_sibling(tree, list, node);
     }
 }
 
-bool tech_tree_write(const TechTreeJob *job, JsonPatchOutput *output)
+static void visit_lists(const TechTreeJob *job)
 {
     int list;
 
+    for (list = 0; list < NODE_LIST_COUNT; ++list) {
+        visit_nodes(job, json_member(job->tree, 0, NODE_LISTS[list]));
+    }
+}
+
+void tech_tree_mark(const JsonDocument *tree, Catalog *catalog, int slot)
+{
+    TechTreeJob job = { tree, NULL, catalog };
+    int entry;
+
+    if (!CHECK(slot >= 0) || !CHECK(slot < SLOT_LIMIT)) {
+        return;
+    }
+    marked = catalog;
+    marked_civ = (uint64_t)1U << (unsigned)slot;
+    for (entry = 0; (entry < catalog->tree_count) && (entry < CATALOG_TREE_CAPACITY); ++entry) {
+        catalog->tree[entry].civs &= ~marked_civ;
+    }
+    visit_lists(&job);
+}
+
+bool tech_tree_write(const TechTreeJob *job, JsonPatchOutput *output)
+{
     json_patch_start(&patch, job->tree);
-    for (list = 0; (list < NODE_LIST_COUNT) && !civ_design_tree_is_empty(job->design); ++list) {
-        set_statuses(job, json_member(job->tree, 0, NODE_LISTS[list]));
+    if (!civ_design_tree_is_empty(job->design)) {
+        visit_lists(job);
     }
     return json_patch_write(&patch, output);
 }

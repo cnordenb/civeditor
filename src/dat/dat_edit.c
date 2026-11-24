@@ -147,6 +147,17 @@ bool dat_edit_patch_f32(DatEdit *edit, size_t at, float value)
     return dat_edit_patch_sunk(edit, at, &patch, &sink);
 }
 
+bool dat_edit_patch_cost(DatEdit *edit, size_t at, const DatTechCost *cost)
+{
+    DatPatch patch = { 0U, 0U, { 0U } };
+    DatSink sink = dat_sink_over(patch.bytes, sizeof patch.bytes, 0U);
+
+    dat_sink_i16(&sink, cost->type);
+    dat_sink_i16(&sink, cost->amount);
+    dat_sink_i16(&sink, cost->flag);
+    return dat_edit_patch_sunk(edit, at, &patch, &sink);
+}
+
 int dat_edit_add_effect(DatEdit *edit, const char *name)
 {
     DatSink sink;

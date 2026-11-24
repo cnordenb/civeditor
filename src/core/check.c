@@ -54,3 +54,8 @@ int check_index(int index, int count, int fallback)
 {
     return (CHECK(index >= 0) && CHECK(index < count)) ? index : fallback;
 }
+
+bool check_is_index(int index, int count)
+{
+    return (index >= 0) && (index < count);
+}

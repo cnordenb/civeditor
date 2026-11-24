@@ -97,12 +97,16 @@ an earlier one, the earlier one is named after it, with its own link.
 - **Functions that differ only in a literal are made one** (Rule 31), such as `json_begin` for an object and an
   array.
   [2026-11-10 08:27:52](DEVLOG/DEVLOG3.md#082752-answers-recorded-check-left-out-of-the-tools-the-first-merges-unfinished)
-- **There is no cap on the number of tests.** Each test covers a requirement or catches again a bug found before, and
-  its purpose names the requirement, rule or bug (Rules 5 and 6). Replaced: at most 100 tests; then a cap of 100 in a
-  test, left for a human to raise.
+- **The core tests are at most one of each requirement, rule and bug,** and so at most as many as these together
+  (Rules 31 and 34); the accessibility tests are at most 55 (Rule 32), and the regression and redundancy tests are not
+  counted. Of a requirement, the core test is the one that checks most nearly what its words say. Each test covers a
+  requirement or catches again a bug found before, and its purpose names the requirement, rule or bug (Rules 5 and
+  6). Replaced: no cap on the number of tests; before it, at most 100 tests, then a cap of 100 in a test, left for a
+  human to raise.
   [2026-11-10 08:27:52](DEVLOG/DEVLOG3.md#082752-answers-recorded-check-left-out-of-the-tools-the-first-merges-unfinished)
   [2026-11-15 21:14:09](DEVLOG/DEVLOG4.md#211409-tests-101-to-103-documented-and-a-cap-of-100-tests-that-still-stops-the-build-and-the-mutator)
   [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
+  [2026-11-22 23:08:30](DEVLOG/DEVLOG8.md#230830-the-core-tests-within-rule-31-and-a-list-joined-by-commas-scaled-as-one)
 - **Requirements 10, 11 and 12 are measured by the original tools only:** the crapper, the dryer and the mutator
   that lie beside the project, in `..\crapper`, `..\dryer` and `..\mutator`. The project holds no copy of them. The
   crapper and the mutator read the coverage of `build.exe coverage`, made into LCOV by gcovr. Replaced: the three
@@ -245,12 +249,17 @@ an earlier one, the earlier one is named after it, with its own link.
 - **A bonus's multiplier scales each of its changes, as the original's `_scale_ec_for_multiplier` does:** an amount
   added is multiplied by it, a factor raised to it, a spawn's count multiplied; armor and attack past 255 are split
   into several changes, a percent halfway rounded to the even one; a value set, the spawn limit and the effect function
-  are kept. It applies to the civ bonuses built from changes and to the team bonus. A civ bonus made of the game's
-  techs counts once, and Build says so (Requirement 9).
+  are kept. It applies to the civ bonuses built from changes, to the team bonus and to the copies of the civ techs
+  that a civ bonus names. A tech that every civ shares is only unlocked, so it counts once, and Build says so
+  (Requirement 9). Replaced: a civ bonus made of the game's techs counts once.
   [2026-11-17 04:37:52](DEVLOG/DEVLOG6.md#043752-a-bonuss-multiplier-applied-to-the-bonuses-built-from-changes-and-to-the-team-bonus)
-- **A multiplier is 1 to 10.** Read from a civ file, it is checked where it enters (`civ_design_set_multiplier`); any
-  other value leaves the bonus at 1. The original has no bound.
+  [2026-11-21 21:19:41](DEVLOG/DEVLOG8.md#211941-unticking-a-node-unticks-its-descendants-and-stronger-and-weaker-edit-a-bonus)
+- **A multiplier is from 1 to 10, and may lie between,** as 1.5: `Multiplier` keeps it in millionths, and the civ
+  file writes it as a decimal. Read from a civ file, it is checked where it enters (`civ_design_set_multiplier`); any
+  other value leaves the bonus at 1. The original has no bound. A factor is raised to a count that is not whole, and
+  armor, attack and the units of a spawn are rounded to the nearest whole. Replaced: a whole number from 1 to 10.
   [2026-11-17 04:37:52](DEVLOG/DEVLOG6.md#043752-a-bonuss-multiplier-applied-to-the-bonuses-built-from-changes-and-to-the-team-bonus)
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
 - **A bonus that brings a tech of the game an age early is built as the game builds its own civs' bonuses.** Bonuses
   81, 103, 247, 283 and 352 are `require` lines of `bonus_effects.txt`: the requirement tech that the game gives the
   civ with the bonus, such as 768 for the Cavalier, is copied for the civ, and the copy goes in the first free slot of
@@ -266,11 +275,13 @@ an earlier one, the earlier one is named after it, with its own link.
   upgrades and disables the game's own. 286 names the game's Houfnice, 787, copied as every tech that a bonus names;
   the Imperial Age that the original adds to its requirements is not added, since 787 already needs it.
   [2026-11-17 05:27:22](DEVLOG/DEVLOG6.md#052722-bonuses-221-and-286-built-from-the-games-techs)
-- **A civ bonus that names techs builds its lines too, and they count once, as its techs do.** Bonus 356 copies the
-  game's pasture techs 1008, 1012, 1013 and 1014, and its line disables the Farms (216) and their upgrades at the Mill
-  (14, 13 and 12), as the game disables techs from the effect of a tech of one civ. The original copies only the three
-  upgrades, and puts the pasture and the disabled techs in the civ's tech tree.
+- **A civ bonus that names techs builds its lines too, and they count as often as the bonus, as its techs do.**
+  Bonus 356 copies the game's pasture techs 1008, 1012, 1013 and 1014, and its line disables the Farms (216) and their
+  upgrades at the Mill (14, 13 and 12), as the game disables techs from the effect of a tech of one civ. The original
+  copies only the three upgrades, and puts the pasture and the disabled techs in the civ's tech tree. Replaced: the
+  lines count once.
   [2026-11-17 05:41:10](DEVLOG/DEVLOG6.md#054110-bonus-356-built-from-the-games-pasture-techs-and-a-line-that-disables-the-farms)
+  [2026-11-21 21:19:41](DEVLOG/DEVLOG8.md#211941-unticking-a-node-unticks-its-descendants-and-stronger-and-weaker-edit-a-bonus)
 - **A bonus that moves where a unit is trained is a `train` line: a unit patch placed in the unit's first train
   location.** Bonus 222 moves the cow from the Town Center to the Mill, as the original does; a unit with no train
   location leaves the bonus skipped. The `train` line takes the columns of a `unit` line, so the catalog keeps one list
@@ -412,6 +423,76 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
 - **Clear unticks every civ bonus as one change.** With none ticked it changes nothing and the status line says so.
   [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **Unticking a node of the tech tree unticks its descendants, and ticking a node ticks its needs, as one
+  change.** A node needs its parent in `tree.txt`, the node of that id in the same building or else the building of
+  that id, and a unit or a tech also the building it is made in. Ticking ticks the needs of its needs too, a node
+  that every civ keeps among them. Replaced: ticking a node ticks only it.
+  [2026-11-21 21:19:41](DEVLOG/DEVLOG8.md#211941-unticking-a-node-unticks-its-descendants-and-stronger-and-weaker-edit-a-bonus)
+  [2026-11-22 02:10:47](DEVLOG/DEVLOG8.md#021047-ticking-a-node-ticks-its-needs-in-the-first-regression-test)
+- **A node that every civ keeps is unticked alone.** The Villager, both Town Centers, the Mill and the two camps
+  keep their descendants when unticked, and no other node unticks them, since the build keeps them anyway.
+  [2026-11-21 21:19:41](DEVLOG/DEVLOG8.md#211941-unticking-a-node-unticks-its-descendants-and-stronger-and-weaker-edit-a-bonus)
+- **The building column of a building in `tree.txt` is the column of the screen,** not a node it needs, as the
+  Wonder under the House and the towers under the Outpost; a building needs only its parent.
+  [2026-11-21 21:19:41](DEVLOG/DEVLOG8.md#211941-unticking-a-node-unticks-its-descendants-and-stronger-and-weaker-edit-a-bonus)
+- **A bonus's number is typed where it is read.** Each ticked civ bonus is a label in Chosen bonuses, and each
+  number to set in it is a field that holds the number, as "Shepherds work [25]% faster"; the value wanted is typed
+  there, or set by the slider just below it, from 1 to 10 in hundredths. The multiplier is worked out from the
+  value, so "-50%" typed as "-60%" counts 1.32 times. Replaced: Stronger and Weaker, which raised or lowered the
+  multiplier by one, so that no value between two counts could be set; and one value field and one slider under the
+  list, to which a click on an underlined number moved the focus.
+  [2026-11-21 21:19:41](DEVLOG/DEVLOG8.md#211941-unticking-a-node-unticks-its-descendants-and-stronger-and-weaker-edit-a-bonus)
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
+- **A value typed is taken within the range of its number,** its values at the multipliers 1 and 10, compared in
+  tenths as they are shown; otherwise the status line names the range, as "Type a value from -50% to -99.9%.". A
+  value may be typed with its sign, its percent or its "x", or without them.
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+- **The slider is on a card just below the field of the number in focus,** with the least and the most value of the
+  number at its ends. The card is shown while the field or its slider has the focus, and Esc hides it, the focus
+  left on the field. Dragged, the slider shows in the field the value it would set; let go, it sets it. Replaced:
+  one slider under the value field, with a label that named the range.
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
+- **A change that takes away the number in focus gives the focus to the list of civ bonuses,** as Clear or an undo
+  can, and the field it leaves sets nothing.
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
+- **The field of a number holds its sign and digits, and its unit stays in the label after it,** as "[-50]% wood";
+  the ends of the slider and the status line give the number with its unit. A number that no count changes is none:
+  a cut of 100% or more, a power of 1 or less, an amount of 0. Replaced: a number to set that took in its "%" or "x",
+  so that the whole of "-50%" was underlined, framed and found by a click.
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
+- **No text says how often a bonus counts.** Chosen bonuses, the summary and the game's texts never add "(counts 2
+  times)" or "(counts 1 time)": a bonus's count is set through its numbers, and a bonus with no number to set has
+  no field. All three scale a bonus's text in one way, at a count of 1 too. Replaced: "(counts 2 times)" after a
+  text with a number kept, or none; "(counts 1 time)" in Chosen bonuses, there to be clicked; and the text of a
+  bonus counted once copied as it is for the summary and the game's texts.
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
+- **A field of a number is at least 24 by 24,** where the other controls are at least 44 by 44: it stands in the text
+  of a bonus, which WCAG 2.2 SC 2.5.8 leaves out as inline; see question 6 of the section.
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
+- **The team bonus's numbers are set in fields, as a civ bonus's.** The picked team bonus is shown under its list in
+  a number panel of one row, with a field for each number to set and the card with the slider; Finish and the mod's
+  texts show it as it counts. Replaced: the team bonus had no number to set.
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
+  [2026-11-24 06:15:02](DEVLOG/DEVLOG10.md#061502-the-team-bonuss-numbers-set-in-fields-as-a-civ-bonuss)
+- **A bonus's text shows its numbers as often as the bonus counts,** in Chosen bonuses, the summary and the civ's
+  texts in the game: an amount with a sign is multiplied, a percent with a sign is a factor raised to the multiplier
+  and "2x" is raised, each number shown with one decimal at most. A sign counts only at the start of a word, and
+  numbers joined by a slash, or by a comma and a space, are one list, as "+20/30%" and "-10, 15, 20, 25%". A percent
+  without a sign before "faster", "more" or "longer" is a gain, and one before "less" or "cheaper" a cut, a number to
+  set shown without a sign: "Cavalry 20% faster" counted twice is "Cavalry 44% faster". Any other number without a
+  sign outside a list is left as it is. The team bonus's text is shown as it counts too.
+  Replaced: only a slash joining numbers into a list; every number without a sign outside a list left as it is; and
+  the team bonus's text shown as it is.
+  [2026-11-21 21:19:41](DEVLOG/DEVLOG8.md#211941-unticking-a-node-unticks-its-descendants-and-stronger-and-weaker-edit-a-bonus)
+  [2026-11-24 06:15:02](DEVLOG/DEVLOG10.md#061502-the-team-bonuss-numbers-set-in-fields-as-a-civ-bonuss)
+  [2026-11-22 23:08:30](DEVLOG/DEVLOG8.md#230830-the-core-tests-within-rule-31-and-a-list-joined-by-commas-scaled-as-one)
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
 - **Every list of a step has a filter, and a filter takes a civ's name.** A row stays when it holds the filter's
   text, or when the text starts the name of a civ that has the row's node, civ bonus, team bonus, unique unit or
   unique tech. The filter of Choose hero searches the heroes' names only.
@@ -423,6 +504,39 @@ an earlier one, the earlier one is named after it, with its own link.
 - **Options... shows and corrects the mods folder.** It takes only a folder that exists, and keeps it until
   civeditor closes.
   [2026-11-21 04:26:03](DEVLOG/DEVLOG8.md#042603-changes-kept-at-once-the-look-choices-in-a-popup-a-filter-on-every-list-a-build-without-questions)
+- **The unique unit and techs are edited in place, in number panels.** The panels under the lists of UU&UT, The
+  selected unit, What the castle tech does and What the imperial tech does, show the selected unit's or tech's name,
+  the game's description, costs, stats and research time, each stat and tech value in a field of a number, as in
+  Chosen bonuses. A stat or tech value not set is the game's, and the panel shows it.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **What a unique tech does is a set of civ bonuses, its tech effects.** Choose castle effects... and Choose imperial
+  effects... list the civ bonuses, and OK makes the ticked ones the tech effects, each counted by its own multiplier,
+  set in its fields and on its slider as in Chosen bonuses. A tech with tech effects does them instead of what its
+  game tech does, and with none ticked it does what its game tech does.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **The elite unit takes the same change as the unit.** A stat set of the unique unit changes its elite unit by as
+  much: a Longbowman of 35 hit points set to 40 gives the Elite Longbowman 45. A stat that a civ file sets for the
+  elite unit itself is kept.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **Picking another unique unit or unique tech clears its overrides and tech effects.**
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **A stat or cost that the build leaves out is reported** (Requirement 9): a cost in all four resources, which the
+  three slots of a unit's costs cannot hold, and a stat of the elite unit that the same change takes past its range.
+  The summary of the build says "A changed stat or cost of the unique unit is not built.", and the build is not whole.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **Options... says whether civeditor asks to save the civ before exiting,** with a tick box under the mods folder,
+  ticked at first. Unticked, exiting asks nothing of a civ with unsaved changes; Open civ... still asks.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-choice-of-asking-to-save-before-exiting-kept-by-options)
+- **What the game installed says replaces what the catalog files say,** as far as it has been done: the stats of the
+  game's unique units, the costs and research time of the unique techs, and the civs that have each node. The lists
+  themselves, the bonuses and the structure of the tech tree still come from `data/`.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-catalogs-numbers-and-nodes-read-from-the-game)
+- **The files of `data/` stay as the fallback.** A unit, a tech or a civ that the game lacks keeps what they say, and
+  everything does when no game is found, so civeditor opens without the game.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-catalogs-numbers-and-nodes-read-from-the-game)
+- **A unit's range is read as the game shows it,** and every other stat as the data file holds it: the Fire Archer
+  shoots 9 tiles and shows 5, and the user knows the 5.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-catalogs-numbers-and-nodes-read-from-the-game)
 
 ## Code and files
 
@@ -696,6 +810,106 @@ an earlier one, the earlier one is named after it, with its own link.
   before Windows would slide them open (`list_scroll_open`), and its wheel goes through `list_scroll.c`. The arrows
   of its scroll bar are left to Windows.
   [2026-11-21 15:13:46](DEVLOG/DEVLOG8.md#151346-a-dropdown-opens-and-scrolls-at-once-as-the-lists-do)
+- **A change of the tech tree is one command that carries the whole tree.** `COMMAND_SET_TREE` holds the tree as it
+  is after the change, made by `tree_command`, so one undo brings back every node that was unticked with another.
+  [2026-11-21 21:19:41](DEVLOG/DEVLOG8.md#211941-unticking-a-node-unticks-its-descendants-and-stronger-and-weaker-edit-a-bonus)
+- **On a chosen row, a list draws in the chosen ink:** its text, its check box and its frames of focus;
+  `controls_row_color` in `controls.c` holds the rule for every list.
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+- **Chosen bonuses is a panel of its own class,** `CHOSEN_CLASS_NAME`, that holds a label (`STATIC`) for each ticked
+  civ bonus, a field (`EDIT`) for each number to set and one card with the slider. They are made when first needed
+  and kept, hidden while not needed, until the window closes, so that no field is destroyed in its own message. A
+  window that is not a control of the main window is named for a screen reader through Windows' annotations
+  (`assist_annotate`), and its focus frame is drawn by the window around it (`assist_draw_ring`).
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
+- **A field of Chosen bonuses counts 2 pixels a side for the `EDIT` itself** (`CHOSEN_FIELD_INSET`): its border and
+  the pixel it keeps free inside the border. A field is as wide as the widest of its number's values, now and at the
+  multipliers 1 and 10, with its margins and that inset, and as tall as its text with the inset above and below, at
+  least `CHOSEN_FIELD_LEAST`.
+  [2026-11-23 16:03:28](DEVLOG/DEVLOG9.md#160328-the-fields-of-chosen-bonuses-wide-enough-for-their-widest-value-and-their-drawing-tested)
+- **A function's name is used in one file only,** even a static one, since the test of recursion joins the calls of
+  all files by name: `scroll_to` of `chosen_window.c` became `scroll_panel_to`, and `control_of` of `assist.c`
+  became `holding_control`.
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
+- **Window code that `src/win/` has no room for goes in a folder of its own** that includes `win_parts.h`, as
+  `src/popup/` and `src/chosen/` do (Rule 14); what needs no Win32 goes in a folder apart, as `src/numbers/`.
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+- **An override is a value and whether it is set** (`Override` in `civ_design.h`), for each stat of each rank of the
+  unique unit and each tech value of each unique tech; `civ_override_or` gives the game's value of one not set.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **A stat and a tech value lie in a fixed range,** typed in its field or read from a civ file: a cost from 0 to 9999,
+  hit points from 1 to 32767, attack from 0 to 999, an armor from -99 to 999, range from 0 to 99, speed from 0.01 to
+  9.99 and reload time from 0.01 to 99.99, kept in hundredths, and research time from 1 to 9999 seconds. A value typed
+  past it is refused, and the status line names the range.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **A unique tech has at most 6 tech effects** (`CIV_TECH_EFFECT_CAPACITY`). Ticking more says "The tech has no room
+  for more effects; the rest were not ticked.", and Choose castle effects... before a tech is picked says "A tech must
+  be picked before its effects are chosen."
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **A command of a unique tech carries its tier in its field,** as the tier times `TIER_STRIDE`, 100000, plus the tech
+  value or the id of the tech effect.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **Choose castle effects... is one change** (`history_replace`), which one undo takes back whole.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **The dialog of a question can tick rows** (`ticks` of `AskQuestion`): its list then takes many rows, it has no
+  field for an answer, it is 450 dialog units wide, and OK hands back which rows are ticked. A row of a dialog holds
+  `ASK_ROW_WIDTH`, 320, characters, at least `CATALOG_TEXT_CAPACITY`, so that a bonus's text fits.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **A unique tech with tech effects is built as one new effect,** "Unique tech effects": for each tech effect, the
+  changes of the game techs that its bonus names, then its lines in `bonus_effects.txt` (`bonus_build_lines`), each
+  scaled by its multiplier. A bonus's unit patches are not built for a tech effect, and its lines lose their ages.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **The mod describes a unique tech with tech effects by them:** their bonuses' texts, scaled by their multipliers,
+  joined by "; ". Its sheet shows no description of the game's tech.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **In the civ file a value not set is `null`,** and a tech's cost of four zeros is read as not set, the game's cost.
+  A tech with tech effects is written with `mode` `custom`, its `vanilla_km_idx` and its `effects` as `id` and
+  `multiplier`, the form of the original's custom tech.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **The lines of any bonus are built by `bonus_build_lines`,** a team bonus's or not, in place of `bonus_build_team`.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **The model keeps its check of the range of a stat or tech value,** though every caller fits the value to the range
+  first: a command is the model's way in, and the tests of a command out of range hold it. `range_holds` is that one
+  check, for the model and for the value the build gives the elite unit.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **The team bonus's panel is a fifth number panel,** `NUMBER_PANEL_TEAM`, and a value set in it a command of its
+  own, `COMMAND_SET_TEAM_MULTIPLIER`, so that it is undone as any other change.
+  [2026-11-24 06:15:02](DEVLOG/DEVLOG10.md#061502-the-team-bonuss-numbers-set-in-fields-as-a-civ-bonuss)
+- **The choice is kept in the options file,** `civeditor_options.txt` in the user's application data, as one
+  character; without the file the program asks. The mods folder is still kept only until civeditor closes.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-choice-of-asking-to-save-before-exiting-kept-by-options)
+- **A question may carry a tick box** (`check` and `check_label` of `AskQuestion`), which `text_dialog.c` shows only
+  then; Options... is one dialog, not two.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-choice-of-asking-to-save-before-exiting-kept-by-options)
+- **A question with a tick box may be answered with an empty text,** so that Options... takes the tick while no mods
+  folder is known.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-choice-of-asking-to-save-before-exiting-kept-by-options)
+- **The height of a list's row is kept for as long as the list keeps its width,** and measured only for an item not
+  yet measured; only the lists of the step shown are wrapped. Measuring rows was nearly all the time of a refill.
+  [2026-11-24](DEVLOG/DEVLOG10.md#rows-measured-once-a-width-and-less-redrawn)
+- **Every control is still placed at every placing,** the hidden ones too: a hidden list left unplaced kept a width
+  of 0, which its rows cannot be measured for.
+  [2026-11-24](DEVLOG/DEVLOG10.md#rows-measured-once-a-width-and-less-redrawn)
+- **The game is read once the window is shown,** by a message that `app_run` posts (`APP_GAME_WANTED`), not while the
+  window is made: the read takes most of a second.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-catalogs-numbers-and-nodes-read-from-the-game)
+- **A civ to edit with no unsaved change and no file is made its base civ anew after the read,** so that its tech
+  tree is the game's; a civ already changed is left as it is.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-catalogs-numbers-and-nodes-read-from-the-game)
+- **The numbers are read with the places the build writes them to** (`unique_stats_read` beside
+  `unique_build_stats`), and a unit is found as a build finds it, by its make-available tech.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-catalogs-numbers-and-nodes-read-from-the-game)
+- **A list is erased with a brush that paints nothing,** and `list_scroll_brush` paints the room under its last row
+  when that row ends inside the list, so no row is white before it is drawn, however the list is scrolled. Not
+  chosen: drawing without erasing in `move_list` alone, which leaves the room under the last row unpainted at the end
+  of a list, since Windows paints nothing there; `WS_EX_COMPOSITED`, with which a list drew no row; a window
+  procedure of the list's own, which the project's reading of P10 forbids.
+  [2026-11-24 11:26:10](DEVLOG/DEVLOG10.md#112610-a-list-never-paints-its-rows-white-the-team-bonuss-panel-lower-an-error-box-traced-to-a-mutant)
+- **The panel of the selected team bonus is 124 high and does not stretch** (`TEAM_PANEL_HEIGHT`): the room of two
+  lines of text and the card under them. The list of team bonuses takes the rest of the column, and a longer text
+  scrolls in the panel. Replaced: the panel stretched and shared the column with the list. Whether 124 is right is
+  an open question.
+  [2026-11-24 11:26:10](DEVLOG/DEVLOG10.md#112610-a-list-never-paints-its-rows-white-the-team-bonuss-panel-lower-an-error-box-traced-to-a-mutant)
 
 ## Tests
 
@@ -713,20 +927,26 @@ an earlier one, the earlier one is named after it, with its own link.
   once; `--mutate-all` measures again what such a run reported killed.
   [2026-11-20 03:00:57](DEVLOG/DEVLOG7.md#030057-the-hero-is-chosen-in-uuut-with-a-hero-box-and-choose-hero)
 - **A test of a bug that a human found is a core test,** in the group of its subject: the bug raises Rule 31's
-  count by one. Rule 34's category Regression is kept for tests ordered to cover a requirement, a rule or a bug
-  that a test covers already.
+  count by one. A test of what a core test covers already is a regression test when the log names a bug that breaks
+  what it covers, and a redundancy test otherwise; a test past the limit with no such bug is added only when its
+  reason, with how plausibly what it tests could fail, has been accepted. Replaced: Rule 34's category Regression
+  kept for tests ordered to cover what a test covers already.
   [2026-11-19 21:28:52](DEVLOG/DEVLOG7.md#212852-a-turn-of-the-wheel-that-cannot-scroll-the-step-does-nothing)
+  [2026-11-22 23:08:30](DEVLOG/DEVLOG8.md#230830-the-core-tests-within-rule-31-and-a-list-joined-by-commas-scaled-as-one)
 - **A test may read what Windows has left to redraw** (`GetUpdateRect`) when what the user saw was the window
-  drawn again, as Test 349 does; the window is then shown far off the screen, since a hidden one has nothing to
+  drawn again, as Test 8 does; the window is then shown far off the screen, since a hidden one has nothing to
   redraw.
   [2026-11-19 21:28:52](DEVLOG/DEVLOG7.md#212852-a-turn-of-the-wheel-that-cannot-scroll-the-step-does-nothing)
 - **A run that opens the window waits until the computer is free.** With the window's tests the mutator runs a
   worker for each core, each opening the real window again and again, which leaves the computer unusable; such a
   run, and a build without `nowindow`, is started only when the computer can be given over to it.
   [2026-11-19 20:19:34](DEVLOG/DEVLOG7.md#201934-five-steps-and-no-field-for-the-civs-description)
-- **The tests number themselves.** `tests/runner.c` runs the functional, accessibility and maintainability tests in
-  that order and numbers them as they run.
+- **The tests number themselves.** `tests/runner.c` runs the core tests of the requirements and bugs, the
+  accessibility tests and the core tests of the rules, numbering them together as they run, then the regression tests
+  and, with `redundancy`, the redundancy tests, each numbered on their own. Replaced: the functional, accessibility
+  and maintainability tests, in that order.
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
+  [2026-11-22 23:08:30](DEVLOG/DEVLOG8.md#230830-the-core-tests-within-rule-31-and-a-list-joined-by-commas-scaled-as-one)
 - **Mutation by hand.** ub-mode's mutator does not read C, so a new test is shown to fail by breaking the code
   (Rules 33 and 34).
   [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
@@ -771,13 +991,21 @@ an earlier one, the earlier one is named after it, with its own link.
 - **While the mutator cannot run, a new test is shown honest by mutants made by hand,** one at a time, each undone,
   and the log names those that survived.
   [2026-11-15](DEVLOG/DEVLOG4.md#the-recipe-run-by-tests-on-a-small-game-237-functions-at-crap-10-or-above)
-- **New tests are named in `tests/suites/`.** `functional_suite.c` holds its first 54 tests and passes on to
-  `build_suite.c`, `mod_suite.c` and `core_suite.c`, each of groups of at most eight tests so that no group's
-  complexity reaches 10. The test "TESTS.md documents every test" counts the tests of every suite file.
+- **A new test is named in the suite of its category,** in groups of at most eight tests, so that no group's
+  complexity reaches 10: `requirement_suite.c` for the core tests of the requirements and bugs,
+  `maintainability_suite.c` for those of the rules, `regression_suite.c` for the regression tests, and
+  `redundancy_suite.c`, `functional_suite.c` with the suites of `tests/suites/`, `shell_suite.c` or
+  `rule_redundancy.c` for the redundancy tests. The test "TESTS.md documents every test" counts the cases of the
+  suites of the core and accessibility tests. Replaced: every new test named in `tests/suites/`, after the first 54
+  of `functional_suite.c`.
   [2026-11-15 22:14:14](DEVLOG/DEVLOG4.md#221414-a-mod-built-end-to-end-by-tests-166-functions-at-crap-10-or-above)
-- **The test runner tries up to 400 tests of a category.** `CATEGORY_TEST_LIMIT` in `tests/runner.c` bounds a loop
-  (P10) and is no rule of how many tests there may be. Replaced: 100.
+  [2026-11-22 23:08:30](DEVLOG/DEVLOG8.md#230830-the-core-tests-within-rule-31-and-a-list-joined-by-commas-scaled-as-one)
+- **The test runner tries up to 1000 tests of a category, and a category that reaches them fails the run.**
+  `CATEGORY_TEST_LIMIT` in `tests/runner.c` bounds a loop (P10) and is no rule of how many tests there may be; the
+  run fails with a line that names it, since at 400 the 401st functional test was left out without a word.
+  Replaced: 100; 400, reached without a failure.
   [2026-11-15 22:14:14](DEVLOG/DEVLOG4.md#221414-a-mod-built-end-to-end-by-tests-166-functions-at-crap-10-or-above)
+  [2026-11-22 02:10:47](DEVLOG/DEVLOG8.md#021047-ticking-a-node-ticks-its-needs-in-the-first-regression-test)
 - **A whole mod is built by the tests,** from a small game written to `build/test_game` into `build/test_mods`;
   both are build output and are written over by each run.
   [2026-11-15 22:14:14](DEVLOG/DEVLOG4.md#221414-a-mod-built-end-to-end-by-tests-166-functions-at-crap-10-or-above)
@@ -818,12 +1046,13 @@ an earlier one, the earlier one is named after it, with its own link.
   that no requirement names names Requirement 10.
   [2026-11-16 21:03:39](DEVLOG/DEVLOG5.md#210339-the-answers-recorded-no-cap-on-tests-p10s-bounds-and-check-count-given-up-aa-only-coverage-measured)
   [2026-11-17 10:57:53](DEVLOG/DEVLOG7.md#105753-no-test-names-rule-4-alone-the-21-that-did-are-removed)
-- **Tests may be written again; a test that only ub-mode needs is a redundancy test.** It is kept in
-  `tests/redundancy/`, which no other test shares (Rule 34), runs after the other tests only when `redundancy` is
-  given, as the measures of Requirements 10 and 12 give it, and is numbered on its own, "Redundancy test 3".
-  Replaced: no test is written for now.
+- **Tests may be written again; a test that only ub-mode needs is a redundancy test.** It is in a file that no test
+  of another category shares (Rule 34), in `tests/redundancy/` or in the folder of its subject, runs after the other
+  tests only when `redundancy` is given, as the measures of Requirements 10 and 12 give it, and is numbered on its
+  own, "Redundancy test 3". Replaced: no test is written for now; then, kept in `tests/redundancy/` alone.
   [2026-11-17 10:57:53](DEVLOG/DEVLOG7.md#105753-no-test-names-rule-4-alone-the-21-that-did-are-removed)
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+  [2026-11-22 23:08:30](DEVLOG/DEVLOG8.md#230830-the-core-tests-within-rule-31-and-a-list-joined-by-commas-scaled-as-one)
 - **The crapper measures a coverage built anew.** Every `.c` file is touched before `build.exe coverage redundancy`,
   since gcc adds the counts of a run to those of the runs before while an object stays the same.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
@@ -852,12 +1081,12 @@ an earlier one, the earlier one is named after it, with its own link.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
 - **A test of an order uses values that differ,** such as numbered changes, not one value put on and off.
   [2026-11-16 04:39:06](DEVLOG/DEVLOG5.md#043906-ub-modes-mutator-run-and-read-three-survivors-in-four-are-made-by-p10s-checks-and-bounds)
-- **A test may measure time when what it checks is a time,** as Test 352 does for sliding: each move must take less
-  than 150 ms, where sliding takes 190 ms or more. It shows the window on the screen for a moment, since Windows
-  slides only what can be seen.
+- **A test may measure time when what it checks is a time,** as Regression test 27 does for sliding: each move must
+  take less than 150 ms, where sliding takes 190 ms or more. It shows the window on the screen for a moment, since
+  Windows slides only what can be seen.
   [2026-11-16 23:56:00](DEVLOG/DEVLOG5.md#235600-lists-scroll-a-row-a-notch-and-a-row-an-arrow-without-sliding-under-classic-scroll-bars)
 - **A test of writing and reading back compares what is read,** not only two writings, since two writings by the same
-  writer agree even when both lose something, as Test 6 does.
+  writer agree even when both lose something, as Redundancy test 492 does.
   [2026-11-17 02:40:05](DEVLOG/DEVLOG6.md#024005-a-number-past-the-largest-long-refused-and-the-checks-the-mutator-showed-always-true-taken-out)
 - **No test checks that every test defined is run.** The test that compared the tests run with the `case`s of the
   suites named Rule 4 alone and was removed, so a wrong size of a suite or start of a group leaves tests out without
@@ -876,6 +1105,77 @@ an earlier one, the earlier one is named after it, with its own link.
 - **A test that passed before its fix is not kept.** The time of a wheel turn over an open dropdown was under 150 ms
   before the change too, so only the row it moves to is tested.
   [2026-11-21 15:13:46](DEVLOG/DEVLOG8.md#151346-a-dropdown-opens-and-scrolls-at-once-as-the-lists-do)
+- **Regression tests are in `tests/regression/`, run every time and numbered on their own.** `tests/runner.c` runs
+  them after the core tests of the rules, as "Regression test 1". Each catches again a bug that the log names, and
+  cites it, or covers what the chief developer asked for; a new one is written only at the chief developer's
+  direction (Rule 34).
+  [2026-11-22 02:10:47](DEVLOG/DEVLOG8.md#021047-ticking-a-node-ticks-its-needs-in-the-first-regression-test)
+  [2026-11-22 23:08:30](DEVLOG/DEVLOG8.md#230830-the-core-tests-within-rule-31-and-a-list-joined-by-commas-scaled-as-one)
+- **Tests 278, 81 and 401 are regression tests of Requirement 8,** Regression tests 2, 3 and 19; the other 16 tests
+  that the core category was given at 2026-11-21 21:19:41 are redundancy tests.
+  [2026-11-22 23:08:30](DEVLOG/DEVLOG8.md#230830-the-core-tests-within-rule-31-and-a-list-joined-by-commas-scaled-as-one)
+- **A helper that a test of another category needs stays in its file,** named in a header of its folder, its name
+  starting with its file's subject, as `mod_tests_named_civ`. A helper that only the tests moved used moves with
+  them, and a constant or a helper of a few lines is copied.
+  [2026-11-22 23:08:30](DEVLOG/DEVLOG8.md#230830-the-core-tests-within-rule-31-and-a-list-joined-by-commas-scaled-as-one)
+- **Of the checks of P10, only that of goto is a core test** (Test 62). The other five and the gate tests are
+  redundancy tests while questions 1 and 2 of 2026-11-22 23:08:30 are open.
+  [2026-11-22 23:08:30](DEVLOG/DEVLOG8.md#230830-the-core-tests-within-rule-31-and-a-list-joined-by-commas-scaled-as-one)
+- **The test of Tab moves the focus to each control it passes,** as Tab does, since a control can be shown by the
+  focus, as the slider is, and a control is reached when the focus is on a window inside it, as on a field of
+  Chosen bonuses.
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
+- **Chosen bonuses is an input that needs a label of its own** (Test 13), as the text fields and the lists do; its
+  fields are named by the text of their bonus and its slider by its range. Replaced: the slider as an input of its
+  own, with a label in `layout.c`.
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+  [2026-11-23 14:02:39](DEVLOG/DEVLOG9.md#140239-the-numbers-of-chosen-bonuses-typed-in-their-own-fields-the-slider-just-below)
+- **The mutator runs a folder of the window with one worker** (`--max-workers 1`): with a worker for each core, the
+  windows of their runs got in each other's way, and a test of the window failed before the first mutant.
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+- **A mutant that a new test kills is checked by hand when the mutator cannot run it:** it is written into the
+  file, the tests are run with the window and seen to fail at the new test, and the file is put back and compared
+  with its copy, one build at a time.
+  [2026-11-23 16:03:28](DEVLOG/DEVLOG9.md#160328-the-fields-of-chosen-bonuses-wide-enough-for-their-widest-value-and-their-drawing-tested)
+- **A test build that opens the window may run when a test needs it,** one at a time, in the foreground. A run of the
+  mutator with the window still needs to be agreed first.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **gcovr reads the coverage with `--gcov-ignore-parse-errors=suspicious_hits.warn`,** since the counts of
+  `build/obj_coverage` add up over the runs and no agent may delete them (Rule 30).
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **The civ of stats of the test game also has a castle tech effect,** `MIXED_BONUS` counted twice, so that the tests
+  of tech effects need no civ of their own while `recipe_game.c` is at 400 lines (Rule 13).
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **The call graph of the tests holds 3200 functions and 32000 calls,** since the code passed 2400 functions.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **The window fixture ticks a row in a list that takes ticks,** as Choose castle effects... has, and picks it in
+  any other list.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **The small game grows only for a test that asks for it:** with `small.elite` set, the soldier of each civ costs
+  food, gold and population, has an attack bonus before its attack, and an elite unit with hit points and a reload
+  time of its own; the game of every other test stays as it was.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **A survivor that only the window meets is killed by a test that asks what the window asks,** without the window:
+  `civ_design_has_tech_effect` as the ticks of Choose castle effects... ask it, and `number_name` as a field's name.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)
+- **A bug reported gets a row in `BUGS.md` and a core test.** The team bonus that could not be edited is Bug 1 of
+  2026-11-24, covered by Test 10; the tests written for the rest of that change are redundancy tests.
+  [2026-11-24 06:15:02](DEVLOG/DEVLOG10.md#061502-the-team-bonuss-numbers-set-in-fields-as-a-civ-bonuss)
+- **No test measures a speed.** No requirement names one, and a test of a time fails by chance; the speed of the
+  window is measured with a probe that is not kept in the tests, and its numbers are written in the log.
+  [2026-11-24](DEVLOG/DEVLOG10.md#rows-measured-once-a-width-and-less-redrawn)
+- **The mutator with the window runs with one worker, on the lines of the change** (`--max-workers 1 --lines`), about
+  20 seconds a mutant: with two workers its baseline fails, since the test of the popup of the look choices does not
+  hold while another test program shows a window. Whether such a run may be made without asking is an open question.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-changes-of-the-day-gated-and-measured)
+- **A survivor on a line that no change touched is counted, not read,** in the section of the run; reading those is
+  a task of its own.
+  [2026-11-24](DEVLOG/DEVLOG10.md#the-changes-of-the-day-gated-and-measured)
+- **What a list erases is tested with a picture in memory:** the list is sent `WM_ERASEBKGND` with a black picture
+  and a pixel of it is read, since a window far off the screen, where the tests keep it, draws nothing that can be
+  read. A blink itself is measured on the screen of the built program, before and after, outside the tests.
+  [2026-11-24 11:26:10](DEVLOG/DEVLOG10.md#112610-a-list-never-paints-its-rows-white-the-team-bonuss-panel-lower-an-error-box-traced-to-a-mutant)
 
 ## Documents
 
@@ -886,9 +1186,13 @@ an earlier one, the earlier one is named after it, with its own link.
   bug's "Discovered" is the time it was recorded when the time it was found is not known. The bugs found before
   it are not added while question 4 of 2026-11-17 10:57:53 is open.
   [2026-11-19 21:28:52](DEVLOG/DEVLOG7.md#212852-a-turn-of-the-wheel-that-cannot-scroll-the-step-does-nothing)
-- **`TESTS.md` lists the redundancy tests apart,** after the other tests, under headings "Redundancy test N" that
-  its checks of the other tests do not count.
+- **`TESTS.md` lists the regression and the redundancy tests apart,** after the other tests, under headings
+  "Regression test N" and "Redundancy test N" that its checks of the other tests do not count.
   [2026-11-18 07:24:48](DEVLOG/DEVLOG7.md#072448-civs-of-the-game-edited-and-saved-into-one-named-mod)
+  [2026-11-22 02:10:47](DEVLOG/DEVLOG8.md#021047-ticking-a-node-ticks-its-needs-in-the-first-regression-test)
+- **The test numbers of `BUGS.md` follow the tests.** When the tests are renumbered, the number in a bug's status is
+  corrected; a bug is still added only when a human reports it (Rule 33).
+  [2026-11-22 02:10:47](DEVLOG/DEVLOG8.md#021047-ticking-a-node-ticks-its-needs-in-the-first-regression-test)
 - **repo_template's documents, without its setup.** `.claude/skills/project-setup` is not copied: the project is set
   up. [2026-11-09 00:44:18](DEVLOG/DEVLOG1.md#004418-civbuilder-begun-in-c-with-its-own-build-and-rule-tests)
 - **The documents point at no file that Git ignores.** The instructions, the answers to the first questions and
@@ -905,3 +1209,9 @@ an earlier one, the earlier one is named after it, with its own link.
 - **The tree's items are nodes.** The universal, regional and unique items of the order are universal, regional and
   unique nodes, as `TERMINOLOGY.md` names each unit, building and tech of the tree a node.
   [2026-11-09 10:07:36](DEVLOG/DEVLOG2.md#100736-a-design-begun-from-a-base-civ-generic-at-first)
+- **An entry of `TESTS.md` carries its test's name,** as a run of the tests prints it; the entries are made again
+  from such a run.
+  [2026-11-23 03:53:22](DEVLOG/DEVLOG9.md#035322-the-numbers-of-chosen-bonuses-typed-or-slid-in-place-of-stronger-and-weaker)
+- **A unique tech's ticked bonuses are its tech effects,** apart from an effect of the dat file; a stat is any number
+  of the unique unit, its costs too, and a tech value is a cost or the research time of a unique tech.
+  [2026-11-24 06:14:27](DEVLOG/DEVLOG10.md#061427-the-unique-units-stats-and-the-unique-techs-tech-values-and-tech-effects-set-in-uuut)

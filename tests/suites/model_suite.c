@@ -10,14 +10,16 @@ enum {
     COMMAND_END = 8,
     PICKS_END = 10,
     ROWS_TICK_END = 14,
-    ROWS_PICK_END = 20,
-    SUMMARY_END = 26,
-    REPORT_END = 30,
-    STEP_MADE_END = 37,
-    STEP_PICKED_END = 45,
-    HISTORY_FIRST_END = 51,
-    HISTORY_MORE_END = 56,
-    DESIGN_END = 64,
+    TREE_END = 19,
+    STRENGTH_END = 20,
+    ROWS_PICK_END = 26,
+    SUMMARY_END = 32,
+    REPORT_END = 36,
+    STEP_MADE_END = 41,
+    STEP_PICKED_END = 47,
+    HISTORY_FIRST_END = 53,
+    HISTORY_MORE_END = 58,
+    DESIGN_END = 66,
     SAVED_TEST_COUNT = 3
 };
 
@@ -75,6 +77,39 @@ static TestOutcome run_rows_tick_test(int index)
     case 4:
         return test_outcome_of("a row of a look gives the command to set that choice",
                                test_a_row_of_a_look_gives_the_command_to_set_that_choice());
+    default:
+        return test_outcome_missing();
+    }
+}
+
+static TestOutcome run_tree_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("unticking the archer leaves the skirmisher",
+                               test_unticking_the_archer_leaves_the_skirmisher());
+    case 2:
+        return test_outcome_of("unticking iron casting unticks blast furnace",
+                               test_unticking_iron_casting_unticks_blast_furnace());
+    case 3:
+        return test_outcome_of("unticking the outpost unticks the watch tower",
+                               test_unticking_the_outpost_unticks_the_watch_tower());
+    case 4:
+        return test_outcome_of("unticking the archery range unticks the archer",
+                               test_unticking_the_archery_range_unticks_the_archer());
+    case 5:
+        return test_outcome_of("unticking the mill which every civ keeps leaves the farm",
+                               test_unticking_the_mill_which_every_civ_keeps_leaves_the_farm());
+    default:
+        return test_outcome_missing();
+    }
+}
+
+static TestOutcome run_strength_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("the summary shows a bonus as it counts", test_the_summary_shows_a_bonus_as_it_counts());
     default:
         return test_outcome_missing();
     }
@@ -169,12 +204,6 @@ static TestOutcome run_step_made_test(int index)
     case 5:
         return test_outcome_of("the bonuses step is done once a team bonus is picked",
                                test_the_bonuses_step_is_done_once_a_team_bonus_is_picked());
-    case 6:
-        return test_outcome_of("a tree that swaps a node of the base civ is changed",
-                               test_a_tree_that_swaps_a_node_of_the_base_civ_is_changed());
-    case 7:
-        return test_outcome_of("bonuses that swap one of the base civ are changed",
-                               test_bonuses_that_swap_one_of_the_base_civ_are_changed());
     default:
         return test_outcome_missing();
     }
@@ -200,12 +229,6 @@ static TestOutcome run_step_picked_test(int index)
     case 6:
         return test_outcome_of("back from the second step goes to the first",
                                test_back_from_the_second_step_goes_to_the_first());
-    case 7:
-        return test_outcome_of("a team bonus other than the base civ's is a change",
-                               test_a_team_bonus_other_than_the_base_civs_is_a_change());
-    case 8:
-        return test_outcome_of("the base civ's own team bonus is no change",
-                               test_the_base_civs_own_team_bonus_is_no_change());
     default:
         return test_outcome_missing();
     }
@@ -327,8 +350,14 @@ TestOutcome model_suite_run(int index)
     if (index <= ROWS_TICK_END) {
         return run_rows_tick_test(index - PICKS_END);
     }
+    if (index <= TREE_END) {
+        return run_tree_test(index - ROWS_TICK_END);
+    }
+    if (index <= STRENGTH_END) {
+        return run_strength_test(index - TREE_END);
+    }
     if (index <= ROWS_PICK_END) {
-        return run_rows_pick_test(index - ROWS_TICK_END);
+        return run_rows_pick_test(index - STRENGTH_END);
     }
     if (index <= SUMMARY_END) {
         return run_summary_test(index - ROWS_PICK_END);

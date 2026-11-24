@@ -71,12 +71,18 @@ bool test_a_units_tooltip_carries_its_description(void)
 bool test_the_first_tip_names_the_first_civ_bonus(void)
 {
     return strings_hold(FULL_CIV, TEXT_FIELD_TAGLINE, "North",
-                        "IDS_CIVTIPS_1_0 \"Civilization bonus: Infantry is stronger.\"");
+                        "IDS_CIVTIPS_1_0 \"Civilization bonus: Infantry +1 attack.\"");
 }
 
 bool test_the_first_tip_names_the_team_bonus_of_a_civ_without_civ_bonuses(void)
 {
     return strings_hold(BARE_CIV, TEXT_FIELD_TAGLINE, "North", "IDS_CIVTIPS_1_0 \"Team bonus: Allies are faster.\"");
+}
+
+bool test_the_first_tip_shows_a_civ_bonus_as_it_counts(void)
+{
+    return strings_hold(MULTIPLIED_CIV, TEXT_FIELD_TAGLINE, "North",
+                        "IDS_CIVTIPS_1_0 \"Civilization bonus: Infantry +2 attack.\"");
 }
 
 bool test_the_tip_of_a_unique_tech_says_where_it_is_researched(void)

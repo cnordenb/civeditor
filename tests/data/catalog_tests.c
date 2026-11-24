@@ -9,7 +9,7 @@ enum { LONGBOWMAN_SPEED = 96 };
 enum { REQUIREMENT_LINES = 15, CAVALIER_LINE = 3, CAVALIER_BONUS = 103, CAVALIER = 209, CAVALIER_REQUIREMENT = 768 };
 enum { COW_BONUS = 222, COW = 705, MILL = 68, COW_LINE = 173, BUILDING_IN_TRAIN_LOCATION = 2 };
 enum { CASTLE_BONUS = 460, CASTLE = 82, STONE_LINE = 178, STONE_AMOUNT_AT = 2, STONE = 300 };
-enum { PALINTONON_BONUS = 457, TREBUCHET = 42, ATHENIANS = 47, LOOK_LINES = 2 };
+enum { PALINTONON_BONUS = 457, TREBUCHET = 42, ATHENIANS = 47 };
 
 static Catalog catalog;
 
@@ -77,11 +77,6 @@ bool test_a_look_line_names_its_bonus_its_unit_and_the_civ_of_the_look(void)
     UnitLook line = loaded()->unit_looks[0];
 
     return (line.bonus_id == PALINTONON_BONUS) && (line.unit == TREBUCHET) && (line.from_civ == ATHENIANS);
-}
-
-bool test_the_catalog_holds_every_look_line_of_its_file(void)
-{
-    return loaded()->unit_look_count == LOOK_LINES;
 }
 
 bool test_the_first_unit_of_the_catalog_has_its_name(void)

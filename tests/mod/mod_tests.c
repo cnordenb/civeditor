@@ -19,7 +19,7 @@ static Catalog catalog;
 static ModStrings strings;
 static ForgeResult result;
 
-static ModCiv named_civ(void)
+ModCiv mod_tests_named_civ(void)
 {
     ModCiv civ;
 
@@ -35,36 +35,12 @@ static ModCiv named_civ(void)
 
 bool test_the_name_is_written_under_the_replaced_civs_name_id(void)
 {
-    ModCiv civ = named_civ();
+    ModCiv civ = mod_tests_named_civ();
 
     if (!CHECK(mod_strings_write(&strings, &civ, 1, VANILLA))) {
         return false;
     }
     return strncmp(strings.text, NAME_LINE, strlen(NAME_LINE)) == 0;
-}
-
-bool test_the_civ_descriptions_are_written_in_id_order(void)
-{
-    ModCiv civ = named_civ();
-    const char *jurchens;
-    const char *khitans;
-
-    if (!CHECK(mod_strings_write(&strings, &civ, 1, VANILLA))) {
-        return false;
-    }
-    jurchens = strstr(strings.text, "\n120200 ");
-    khitans = strstr(strings.text, "\n120201 ");
-    return (jurchens != NULL) && (khitans != NULL) && (jurchens < khitans);
-}
-
-bool test_the_mod_folder_name_is_made_from_the_mod_name(void)
-{
-    char prefix[FORGE_PREFIX_CAPACITY];
-
-    if (!CHECK(forge_prefix("\xC3\x86sir Kings 2!", prefix, sizeof prefix))) {
-        return false;
-    }
-    return strcmp(prefix, "_sir_kings_2_") == 0;
 }
 
 bool test_a_mod_is_not_built_from_an_unfinished_civ(void)
@@ -155,7 +131,7 @@ static bool written_under(CivString kind, int sid, const char *line)
 
 bool test_a_unique_techs_name_is_written_under_its_slots_string_id(void)
 {
-    (void)named_civ();
+    (void)mod_tests_named_civ();
     catalog.techs[0].tier = TECH_TIER_CASTLE;
     catalog.techs[0].id = CASTLE_TECH;
     catalog.tech_count = 1;
@@ -170,7 +146,7 @@ static const char UNIT_LINE[] = "\n69802 \"Testbowman\"\n";
 
 bool test_a_unique_units_name_is_written_under_the_string_id_of_its_slot(void)
 {
-    (void)named_civ();
+    (void)mod_tests_named_civ();
     (void)CHECK(civ_design_pick_unit(&design, UNIT_ORIGIN_VANILLA, 0));
     (void)CHECK(civ_design_set_text(&design, TEXT_FIELD_UNIT_NAME, "Testbowman"));
     return written_under(CIV_STRING_UNIT, UNIT_SID, UNIT_LINE);
@@ -180,9 +156,9 @@ enum { LIU_BEI = 1966, HERO_SID = 44500 };
 
 static const char HERO_LINE[] = "\n44500 \"Testhero\"\n";
 
-static bool write_hero_strings(bool hero_skipped)
+bool mod_tests_write_hero_strings(bool hero_skipped)
 {
-    ModCiv civ = named_civ();
+    ModCiv civ = mod_tests_named_civ();
     bool written;
 
     civ.hero_skipped = hero_skipped;
@@ -197,14 +173,14 @@ static bool write_hero_strings(bool hero_skipped)
     return written;
 }
 
-bool test_a_heros_name_is_written_under_the_string_id_of_its_slot(void)
+const char *mod_tests_written_strings(void)
 {
-    return write_hero_strings(false) && (strstr(strings.text, HERO_LINE) != NULL);
+    return strings.text;
 }
 
-bool test_a_skipped_heros_name_is_not_written(void)
+bool test_a_heros_name_is_written_under_the_string_id_of_its_slot(void)
 {
-    return write_hero_strings(true) && (strstr(strings.text, HERO_LINE) == NULL);
+    return mod_tests_write_hero_strings(false) && (strstr(strings.text, HERO_LINE) != NULL);
 }
 
 enum { LIST_SLOT = 1 };
@@ -228,7 +204,7 @@ static bool written_is(const char *expected)
     return (written_list.length == strlen(expected)) && (memcmp(written_list.text, expected, written_list.length) == 0);
 }
 
-static bool list_written_as(const char *list, const CivListEntry *entry, const char *expected)
+bool mod_tests_list_written_as(const char *list, const CivListEntry *entry, const char *expected)
 {
     return parsed(list) && CHECK(civ_list_write(&civ_list, entry, &written_list)) && written_is(expected);
 }
@@ -239,7 +215,7 @@ static const CivListEntry OWN_UNIT_ENTRY = { LIST_SLOT,     LONGBOWMAN,    CIV_L
 
 bool test_the_civ_list_names_the_civs_own_unique_unit(void)
 {
-    return list_written_as(CIV_LIST, &OWN_UNIT_ENTRY, TWO_LONGBOWMEN);
+    return mod_tests_list_written_as(CIV_LIST, &OWN_UNIT_ENTRY, TWO_LONGBOWMEN);
 }
 
 enum { UNLISTED_UNIT = 9, UNLISTED_ICON = 7, UNLISTED_NAME = 5200, UNLISTED_DESCRIPTION = 26200 };
@@ -257,22 +233,10 @@ static const CivListEntry UNLISTED_ENTRY = { LIST_SLOT,     UNLISTED_UNIT, CIV_L
 
 bool test_a_unique_unit_missing_from_the_civ_list_takes_its_own_icon_and_texts(void)
 {
-    return list_written_as(LIST_WITH_TEXTS, &UNLISTED_ENTRY, UNLISTED_UNIT_SHOWN);
+    return mod_tests_list_written_as(LIST_WITH_TEXTS, &UNLISTED_ENTRY, UNLISTED_UNIT_SHOWN);
 }
-
-enum { OWN_DESCRIPTION_SID = 990101 };
 
 static const char DESCRIBED_LIST[] = "{\"civilization_list\":[{},{\"tech_tree_description_string_id\":120150}]}";
-static const char OWN_DESCRIPTION[] = "{\"civilization_list\":[{},{\"tech_tree_description_string_id\":990101}]}";
-
-static const CivListEntry DESCRIBED_ENTRY = { LIST_SLOT,     CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP,
-                                              CIV_LIST_KEEP, false,         CIV_LIST_KEEP, CIV_LIST_KEEP,
-                                              CIV_LIST_KEEP, CIV_LIST_KEEP, OWN_DESCRIPTION_SID };
-
-bool test_the_civ_list_points_at_the_civs_own_description(void)
-{
-    return list_written_as(DESCRIBED_LIST, &DESCRIBED_ENTRY, OWN_DESCRIPTION);
-}
 
 static const CivListEntry KEEPING_ENTRY = { LIST_SLOT,     CIV_LIST_KEEP, CIV_LIST_KEEP, CIV_LIST_KEEP,
                                             CIV_LIST_KEEP, false,         CIV_LIST_KEEP, CIV_LIST_KEEP,
@@ -280,21 +244,19 @@ static const CivListEntry KEEPING_ENTRY = { LIST_SLOT,     CIV_LIST_KEEP, CIV_LI
 
 bool test_a_value_the_civ_keeps_stays_the_games_in_the_civ_list(void)
 {
-    return list_written_as(DESCRIBED_LIST, &KEEPING_ENTRY, DESCRIBED_LIST);
+    return mod_tests_list_written_as(DESCRIBED_LIST, &KEEPING_ENTRY, DESCRIBED_LIST);
 }
 
 enum { STABLE = 101, KEEP = 235, BARRACKS_NODE = 12, VILLAGER = 83, NOTHING_TICKED = -1 };
 
 static const char OPEN_TREE[] = "{\"civ_techs_buildings\":[{\"Use Type\":\"Building\",\"Node ID\":101,"
                                 "\"Node Status\":\"ResearchedCompleted\"}],\"civ_techs_units\":[]}";
-static const char LOCKED_TREE[] = "{\"civ_techs_buildings\":[{\"Use Type\":\"Building\",\"Node ID\":101,"
-                                  "\"Node Status\":\"NotAvailable\"}],\"civ_techs_units\":[]}";
 static const char VILLAGER_TREE[] = "{\"civ_techs_buildings\":[],\"civ_techs_units\":[{\"Use Type\":\"Unit\","
                                     "\"Node ID\":83,\"Node Status\":\"ResearchedCompleted\"}]}";
 static const char KEEP_TREE[] = "{\"civ_techs_buildings\":[{\"Use Type\":\"Building\",\"Node ID\":235,"
                                 "\"Node Status\":\"ResearchRequired\"}],\"civ_techs_units\":[]}";
 
-static bool tree_written_as(const char *tree, int ticked, const char *expected)
+bool mod_tests_tree_written_as(const char *tree, int ticked, const char *expected)
 {
     TechTreeJob job = { &civ_list, &design, &catalog };
 
@@ -312,29 +274,19 @@ static bool tree_written_as(const char *tree, int ticked, const char *expected)
     return parsed(tree) && CHECK(tech_tree_write(&job, &written_list)) && written_is(expected);
 }
 
-bool test_a_building_the_civ_lacks_is_not_available_in_its_tech_tree(void)
-{
-    return tree_written_as(OPEN_TREE, BARRACKS_NODE, LOCKED_TREE);
-}
-
-bool test_a_building_the_civ_has_is_available_in_its_tech_tree(void)
-{
-    return tree_written_as(LOCKED_TREE, STABLE, OPEN_TREE);
-}
-
 bool test_a_civ_with_an_empty_tree_keeps_the_games_tech_tree(void)
 {
-    return tree_written_as(OPEN_TREE, NOTHING_TICKED, OPEN_TREE);
+    return mod_tests_tree_written_as(OPEN_TREE, NOTHING_TICKED, OPEN_TREE);
 }
 
 bool test_a_civ_keeps_its_villagers_in_its_tech_tree(void)
 {
-    return tree_written_as(VILLAGER_TREE, BARRACKS_NODE, VILLAGER_TREE);
+    return mod_tests_tree_written_as(VILLAGER_TREE, BARRACKS_NODE, VILLAGER_TREE);
 }
 
 bool test_a_building_the_civ_has_keeps_the_research_it_needs_in_its_tech_tree(void)
 {
-    return tree_written_as(KEEP_TREE, KEEP, KEEP_TREE);
+    return mod_tests_tree_written_as(KEEP_TREE, KEEP, KEEP_TREE);
 }
 
 static const char LOCKED_KEEP_TREE[] = "{\"civ_techs_buildings\":[{\"Use Type\":\"Building\",\"Node ID\":235,"
@@ -345,7 +297,7 @@ bool test_a_building_the_replaced_civ_lacked_takes_its_usual_status(void)
     bool written;
 
     catalog.tree[2].needs_research = true;
-    written = tree_written_as(LOCKED_KEEP_TREE, KEEP, KEEP_TREE);
+    written = mod_tests_tree_written_as(LOCKED_KEEP_TREE, KEEP, KEEP_TREE);
     catalog.tree[2].needs_research = false;
     return written;
 }

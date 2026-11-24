@@ -308,10 +308,7 @@ static int count_cases(const wchar_t *path)
 
 static int defined_tests(void)
 {
-    return count_cases(L"tests/functional/functional_suite.c") +
-           count_cases(L"tests/suites/build_suite.c") + count_cases(L"tests/suites/mod_suite.c") +
-           count_cases(L"tests/suites/core_suite.c") + count_cases(L"tests/suites/model_suite.c") +
-           count_cases(L"tests/suites/shell_suite.c") +
+    return count_cases(L"tests/requirements/requirement_suite.c") +
            count_cases(L"tests/accessibility/accessibility_suite.c") +
            count_cases(L"tests/maintainability/maintainability_suite.c");
 }

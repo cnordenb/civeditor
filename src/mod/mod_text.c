@@ -1,17 +1,60 @@
 #include "mod_text.h"
 
+#include "../bonus/bonus_text.h"
 #include "../core/check.h"
 #include "../core/text.h"
+
+enum { EFFECTS_TEXT_CAPACITY = CIV_TECH_EFFECT_CAPACITY * (BONUS_TEXT_CAPACITY + 2) };
 
 static const char BULLET[] = "\xE2\x80\xA2 ";
 
 static const TextField TECH_NAMES[TECH_TIER_COUNT] = { TEXT_FIELD_CASTLE_TECH_NAME, TEXT_FIELD_IMPERIAL_TECH_NAME };
 
+static const char *scaled_text(const Catalog *catalog, bool team, const BonusPick *pick)
+{
+    static char scaled[BONUS_TEXT_CAPACITY];
+    const BonusEntry *entries = team ? catalog->team_bonuses : catalog->bonuses;
+    const char *description;
+    int found = catalog_find_bonus(catalog, team, pick->id);
+
+    if (found == CATALOG_MISSING) {
+        return "";
+    }
+    description = entries[found].description;
+    return bonus_text_scaled(description, civ_multiplier_times(pick->multiplier), scaled, sizeof scaled) ? scaled
+                                                                                                          : description;
+}
+
+static const char *effects_text(const Catalog *catalog, const TechPick *tech, TechTier tier)
+{
+    static char described[TECH_TIER_COUNT][EFFECTS_TEXT_CAPACITY];
+    char *text = described[tier];
+    int effect;
+
+    text[0] = '\0';
+    for (effect = 0; effect < tech->effect_count; ++effect) {
+        (void)text_append_two(text, EFFECTS_TEXT_CAPACITY, (effect == 0) ? "" : "; ",
+                              scaled_text(catalog, false, &tech->effects[effect]));
+    }
+    return text;
+}
+
+static const char *game_tech_text(const ModCiv *civ, TechTier tier, bool want_name)
+{
+    const CivDesign *design = civ->design;
+    const Catalog *catalog = civ->catalog;
+    int found = catalog_find(catalog, CATALOG_TECHS, (int)tier, design->techs[tier].km_index);
+
+    if (found == CATALOG_MISSING) {
+        return "";
+    }
+    return want_name ? catalog->techs[found].name : catalog->techs[found].description;
+}
+
 const char *mod_unit_name(const ModCiv *civ)
 {
     const CivDesign *design;
     const Catalog *catalog;
-    UnitRole role;
     int found;
 
     design = civ->design;
@@ -19,8 +62,7 @@ const char *mod_unit_name(const ModCiv *civ)
     if (design->texts[TEXT_FIELD_UNIT_NAME][0] != '\0') {
         return design->texts[TEXT_FIELD_UNIT_NAME];
     }
-    role = (design->unique_unit.origin == UNIT_ORIGIN_CUSTOM) ? UNIT_ROLE_CUSTOM : UNIT_ROLE_VANILLA;
-    found = catalog_find(catalog, CATALOG_UNITS, (int)role, design->unique_unit.id);
+    found = catalog_find_unit(catalog, &design->unique_unit);
     return (found == CATALOG_MISSING) ? "" : catalog->units[found].name;
 }
 
@@ -37,49 +79,32 @@ bool mod_unit_has_own_texts(const CivDesign *design)
 const char *mod_tech_text(const ModCiv *civ, TechTier tier, bool want_name)
 {
     const CivDesign *design;
-    const Catalog *catalog;
-    int found;
 
     if (!CHECK((tier == TECH_TIER_CASTLE) || (tier == TECH_TIER_IMPERIAL))) {
         return "";
     }
     design = civ->design;
-    catalog = civ->catalog;
     if (want_name && (design->texts[TECH_NAMES[tier]][0] != '\0')) {
         return design->texts[TECH_NAMES[tier]];
     }
-    found = catalog_find(catalog, CATALOG_TECHS, (int)tier, design->techs[tier].km_index);
-    if (found == CATALOG_MISSING) {
-        return "";
+    if (!want_name && (design->techs[tier].effect_count > 0)) {
+        return effects_text(civ->catalog, &design->techs[tier], tier);
     }
-    return want_name ? catalog->techs[found].name : catalog->techs[found].description;
+    return game_tech_text(civ, tier, want_name);
 }
 
 static const char *bonus_text(const ModCiv *civ, int pick)
 {
-    const CivDesign *design;
-    const Catalog *catalog;
-    int found;
+    const CivDesign *design = civ->design;
 
-    design = civ->design;
-    catalog = civ->catalog;
-    found = catalog_find_bonus(catalog, false, design->bonuses[pick].id);
-    return (found == CATALOG_MISSING) ? "" : catalog->bonuses[found].description;
+    return scaled_text(civ->catalog, false, &design->bonuses[pick]);
 }
 
 static const char *team_text(const ModCiv *civ)
 {
-    const CivDesign *design;
-    const Catalog *catalog;
-    int found;
+    const CivDesign *design = civ->design;
 
-    design = civ->design;
-    catalog = civ->catalog;
-    if (design->team_bonus_count == 0) {
-        return "";
-    }
-    found = catalog_find_bonus(catalog, true, design->team_bonuses[0].id);
-    return (found == CATALOG_MISSING) ? "" : catalog->team_bonuses[found].description;
+    return (design->team_bonus_count == 0) ? "" : scaled_text(civ->catalog, true, &design->team_bonuses[0]);
 }
 
 static const char *head_text(const CivDesign *design)

@@ -1,5 +1,6 @@
 #include "summary.h"
 
+#include "../bonus/bonus_text.h"
 #include "../core/text.h"
 
 enum { LOOK_LABEL_WIDTH = 16, LOOK_COUNT = (int)CHOICE_SCOUT + 1 };
@@ -18,6 +19,15 @@ static const AppearanceKind LOOK_KINDS[LOOK_COUNT] = {
 void summary_add(SummaryText *summary, const char *text)
 {
     (void)text_append(summary->text, sizeof summary->text, text);
+}
+
+void summary_add_bonus(SummaryText *summary, const char *description, Multiplier multiplier)
+{
+    static char scaled[BONUS_TEXT_CAPACITY];
+
+    bool fits = bonus_text_scaled(description, civ_multiplier_times(multiplier), scaled, sizeof scaled);
+
+    summary_add(summary, fits ? scaled : description);
 }
 
 static void add_line(SummaryText *summary, const char *label, const char *value)
@@ -75,25 +85,34 @@ static void add_bonuses(SummaryText *summary, const CivDesign *design, const Cat
         if (found == CATALOG_MISSING) {
             add_number(summary, "bonus #", design->bonuses[pick].id);
         } else {
-            summary_add(summary, catalog->bonuses[found].description);
+            summary_add_bonus(summary, catalog->bonuses[found].description, design->bonuses[pick].multiplier);
         }
         summary_add(summary, NEW_LINE);
     }
-    found = (design->team_bonus_count > 0) ? catalog_find_bonus(catalog, true, design->team_bonuses[0].id)
-                                           : CATALOG_MISSING;
-    add_line(summary, "Team bonus: ", (found == CATALOG_MISSING) ? "" : catalog->team_bonuses[found].description);
+}
+
+static void add_team_bonus(SummaryText *summary, const CivDesign *design, const Catalog *catalog)
+{
+    int found = (design->team_bonus_count > 0) ? catalog_find_bonus(catalog, true, design->team_bonuses[0].id)
+                                               : CATALOG_MISSING;
+
+    summary_add(summary, "Team bonus: ");
+    if (found == CATALOG_MISSING) {
+        summary_add(summary, NOTHING);
+    } else {
+        summary_add_bonus(summary, catalog->team_bonuses[found].description, design->team_bonuses[0].multiplier);
+    }
+    summary_add(summary, NEW_LINE);
 }
 
 static const char *unit_name(const CivDesign *design, const Catalog *catalog)
 {
-    UnitRole role;
     int found;
 
     if (design->unique_unit.origin == UNIT_ORIGIN_NONE) {
         return "";
     }
-    role = (design->unique_unit.origin == UNIT_ORIGIN_CUSTOM) ? UNIT_ROLE_CUSTOM : UNIT_ROLE_VANILLA;
-    found = catalog_find(catalog, CATALOG_UNITS, (int)role, design->unique_unit.id);
+    found = catalog_find_unit(catalog, &design->unique_unit);
     return (found == CATALOG_MISSING) ? "an unknown unit" : catalog->units[found].name;
 }
 
@@ -161,6 +180,7 @@ bool summary_write(SummaryText *summary, const CivDesign *design, const Catalog 
     summary_add(summary, "Tech tree: ");
     summary_add_tree(summary, design, " buildings, ", " techs\r\n");
     add_bonuses(summary, design, catalog);
+    add_team_bonus(summary, design, catalog);
     summary_add(summary, NEW_LINE);
     summary_add(summary, "Unique unit: ");
     add_named(summary, design->texts[TEXT_FIELD_UNIT_NAME], unit_name(design, catalog));
@@ -186,8 +206,10 @@ static void add_report(SummaryText *summary, const char *name, const RecipeRepor
     add_number(summary, " of ", report->bonuses_built + report->bonuses_skipped);
     summary_add(summary, (report->bonuses_skipped > 0) ? "; the others are not built yet." : ".");
     add_when(summary, report->team_bonuses_skipped > 0, "\nThe team bonus is not built yet.");
-    add_when(summary, report->multipliers_skipped > 0, "\nA bonus made of the game's techs counts only once.");
+    add_when(summary, report->multipliers_skipped > 0,
+             "\nA tech that every civ of the game shares counts only once in a bonus.");
     add_when(summary, report->unit_skipped, "\nOnly the game's own unique units are built.");
+    add_when(summary, report->unit_stats_skipped > 0, "\nA changed stat or cost of the unique unit is not built.");
     add_when(summary, report->unique_techs_skipped > 0, "\nA unique tech is not built yet.");
     add_when(summary, report->tree_overflowed, "\nThe tech tree needed too many changes.");
     add_when(summary, report->hero_skipped, "\nThe hero is not built: the civ lacks its unit.");
@@ -213,7 +235,7 @@ static bool is_whole(const RecipeReport *report)
 {
     return (report->bonuses_skipped == 0) && (report->team_bonuses_skipped == 0) &&
            (report->multipliers_skipped == 0) && (report->unique_techs_skipped == 0) && !report->unit_skipped &&
-           !report->tree_overflowed && !report->hero_skipped;
+           (report->unit_stats_skipped == 0) && !report->tree_overflowed && !report->hero_skipped;
 }
 
 bool summary_build_is_whole(const BuiltCivs *built)

@@ -35,5 +35,11 @@ bool test_the_build_report_says_when_a_bonus_counts_only_once(void);
 bool test_the_build_report_of_a_whole_civ_names_the_two_folders(void);
 bool test_a_build_that_left_nothing_out_is_whole(void);
 bool test_a_build_that_skipped_a_civ_bonus_is_not_whole(void);
+bool test_unticking_the_archer_leaves_the_skirmisher(void);
+bool test_unticking_iron_casting_unticks_blast_furnace(void);
+bool test_unticking_the_outpost_unticks_the_watch_tower(void);
+bool test_unticking_the_archery_range_unticks_the_archer(void);
+bool test_unticking_the_mill_which_every_civ_keeps_leaves_the_farm(void);
+bool test_the_summary_shows_a_bonus_as_it_counts(void);
 
 #endif

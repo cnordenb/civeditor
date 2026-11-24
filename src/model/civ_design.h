@@ -9,7 +9,10 @@ enum {
     CIV_DESCRIPTION_CAPACITY = 1536,
     CIV_BONUS_CAPACITY = 24,
     CIV_TEAM_BONUS_CAPACITY = 1,
+    CIV_TECH_EFFECT_CAPACITY = 6,
     CIV_MULTIPLIER_LIMIT = 10,
+    CIV_MILLIONTHS = 1000000,
+    CIV_MILLIONTH_PLACES = 6,
     CIV_TREE_CAPACITY = 400,
     CIV_NO_CHOICE = -1,
     CIV_DEFAULT_ARCHITECTURE = 2,
@@ -60,14 +63,58 @@ typedef enum {
 } UnitOrigin;
 
 typedef enum {
+    UNIT_STAT_FOOD,
+    UNIT_STAT_WOOD,
+    UNIT_STAT_STONE,
+    UNIT_STAT_GOLD,
+    UNIT_STAT_HP,
+    UNIT_STAT_ATTACK,
+    UNIT_STAT_MELEE_ARMOR,
+    UNIT_STAT_PIERCE_ARMOR,
+    UNIT_STAT_RANGE,
+    UNIT_STAT_SPEED,
+    UNIT_STAT_RELOAD,
+    UNIT_STAT_COUNT
+} UnitStat;
+
+typedef enum {
+    UNIT_RANK_BASE,
+    UNIT_RANK_ELITE,
+    UNIT_RANK_COUNT
+} UnitRank;
+
+typedef enum {
     TECH_TIER_CASTLE,
     TECH_TIER_IMPERIAL,
     TECH_TIER_COUNT
 } TechTier;
 
+typedef enum {
+    TECH_VALUE_FOOD,
+    TECH_VALUE_WOOD,
+    TECH_VALUE_STONE,
+    TECH_VALUE_GOLD,
+    TECH_VALUE_TIME,
+    TECH_VALUE_COUNT
+} TechValue;
+
+typedef struct {
+    bool set;
+    int value;
+} Override;
+
+typedef struct {
+    int least;
+    int most;
+} StatRange;
+
+typedef struct {
+    int millionths;
+} Multiplier;
+
 typedef struct {
     int id;
-    int multiplier;
+    Multiplier multiplier;
 } BonusPick;
 
 typedef struct {
@@ -78,12 +125,14 @@ typedef struct {
 typedef struct {
     UnitOrigin origin;
     int id;
+    Override stats[UNIT_RANK_COUNT][UNIT_STAT_COUNT];
 } UnitPick;
 
 typedef struct {
     int km_index;
-    int cost[RESOURCE_KIND_COUNT];
-    int time;
+    Override values[TECH_VALUE_COUNT];
+    BonusPick effects[CIV_TECH_EFFECT_CAPACITY];
+    int effect_count;
 } TechPick;
 
 typedef struct {
@@ -109,12 +158,27 @@ bool civ_design_has_bonus(const CivDesign *design, int bonus_id);
 bool civ_design_clear_bonuses(CivDesign *design);
 bool civ_design_toggle_team_bonus(CivDesign *design, int bonus_id);
 bool civ_design_has_team_bonus(const CivDesign *design, int bonus_id);
-void civ_design_set_multiplier(CivDesign *design, bool team, int bonus_id, int multiplier);
+Multiplier civ_multiplier_of(double times);
+double civ_multiplier_times(Multiplier multiplier);
+bool civ_design_set_multiplier(CivDesign *design, bool team, int bonus_id, Multiplier multiplier);
+Multiplier civ_design_multiplier(const CivDesign *design, int bonus_id);
 bool civ_design_toggle_tree(CivDesign *design, TreeKind kind, int node_id);
 bool civ_design_tree_has(const CivDesign *design, TreeKind kind, int node_id);
 bool civ_design_tree_is_empty(const CivDesign *design);
+bool civ_design_always_keeps(TreeKind kind, int node_id);
 bool civ_design_tree_keeps(const CivDesign *design, TreeKind kind, int node_id);
 bool civ_design_pick_unit(CivDesign *design, UnitOrigin origin, int unit_id);
+bool civ_design_set_unit_stat(CivDesign *design, UnitRank rank, UnitStat stat, int value);
+bool civ_stat_fits(UnitStat stat, int value);
+unsigned civ_stat_places(UnitStat stat);
+StatRange civ_stat_range(UnitStat stat);
+StatRange civ_tech_range(TechValue value);
+bool civ_fit_decimal(StatRange range, unsigned places, double value, int *stored);
+bool civ_design_set_tech_value(CivDesign *design, TechTier tier, TechValue value, int amount);
+bool civ_design_toggle_tech_effect(CivDesign *design, TechTier tier, int bonus_id);
+bool civ_design_has_tech_effect(const CivDesign *design, TechTier tier, int bonus_id);
+bool civ_design_set_tech_effect(CivDesign *design, TechTier tier, int bonus_id, Multiplier multiplier);
+int civ_override_or(Override override, int fallback);
 bool civ_design_pick_tech(CivDesign *design, TechTier tier, int km_index);
 bool civ_design_pick_hero(CivDesign *design, int unit_id);
 bool civ_design_is_complete(const CivDesign *design);

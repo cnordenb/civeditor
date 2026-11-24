@@ -15,7 +15,7 @@ static int multiplier_of(const BonusPick *picks, int count, int bonus_id)
 
     for (index = 0; index < count; ++index) {
         if (picks[index].id == bonus_id) {
-            return picks[index].multiplier;
+            return picks[index].multiplier.millionths;
         }
     }
     return 0;
@@ -29,7 +29,7 @@ static bool same_picks(const BonusPick *picks, int count, const BonusPick *other
         return false;
     }
     for (index = 0; index < count; ++index) {
-        if (multiplier_of(others, other_count, picks[index].id) != picks[index].multiplier) {
+        if (multiplier_of(others, other_count, picks[index].id) != picks[index].multiplier.millionths) {
             return false;
         }
     }
@@ -75,29 +75,53 @@ bool civ_design_same_bonuses(const CivDesign *design, const CivDesign *other, Bo
     return same_picks(design->bonuses, design->bonus_count, other->bonuses, other->bonus_count);
 }
 
+static bool same_override(Override override, Override other)
+{
+    return (override.set == other.set) && (override.value == other.value);
+}
+
+static bool same_stats(const UnitPick *pick, const UnitPick *other)
+{
+    int rank;
+    int stat;
+
+    for (rank = 0; rank < (int)UNIT_RANK_COUNT; ++rank) {
+        for (stat = 0; stat < (int)UNIT_STAT_COUNT; ++stat) {
+            if (!same_override(pick->stats[rank][stat], other->stats[rank][stat])) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 bool civ_design_same_unit(const CivDesign *design, const CivDesign *other)
 {
     return (design->unique_unit.origin == other->unique_unit.origin) &&
-           (design->unique_unit.id == other->unique_unit.id) && same_text(design, other, TEXT_FIELD_UNIT_NAME) &&
-           same_text(design, other, TEXT_FIELD_UNIT_DESCRIPTION);
+           (design->unique_unit.id == other->unique_unit.id) && same_stats(&design->unique_unit, &other->unique_unit) &&
+           same_text(design, other, TEXT_FIELD_UNIT_NAME) && same_text(design, other, TEXT_FIELD_UNIT_DESCRIPTION);
 }
 
-static bool same_costs(const TechPick *pick, const TechPick *other)
+static bool same_values(const TechPick *pick, const TechPick *other)
 {
-    int kind;
+    int value;
 
-    for (kind = 0; kind < (int)RESOURCE_KIND_COUNT; ++kind) {
-        if (pick->cost[kind] != other->cost[kind]) {
+    for (value = 0; value < (int)TECH_VALUE_COUNT; ++value) {
+        if (!same_override(pick->values[value], other->values[value])) {
             return false;
         }
     }
-    return pick->time == other->time;
+    return true;
 }
 
 bool civ_design_same_tech(const CivDesign *design, const CivDesign *other, TechTier tier)
 {
-    return (design->techs[tier].km_index == other->techs[tier].km_index) &&
-           same_costs(&design->techs[tier], &other->techs[tier]) && same_text(design, other, TECH_NAMES[tier]);
+    const TechPick *tech = &design->techs[tier];
+    const TechPick *another = &other->techs[tier];
+
+    return (tech->km_index == another->km_index) && same_values(tech, another) &&
+           same_picks(tech->effects, tech->effect_count, another->effects, another->effect_count) &&
+           same_text(design, other, TECH_NAMES[tier]);
 }
 
 bool civ_design_same_hero(const CivDesign *design, const CivDesign *other)

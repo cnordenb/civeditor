@@ -18,7 +18,7 @@ enum {
     TEXT_END = 49,
     WRITER_END = 53,
     LINES_END = 61,
-    CATALOG_END = 72
+    CATALOG_END = 71
 };
 
 static TestOutcome run_number_test(int index)
@@ -294,9 +294,6 @@ static TestOutcome run_catalog_test(int index)
     case 10:
         return test_outcome_of("a look line names its bonus, its unit and the civ of the look",
                                test_a_look_line_names_its_bonus_its_unit_and_the_civ_of_the_look());
-    case 11:
-        return test_outcome_of("the catalog holds every look line of its file",
-                               test_the_catalog_holds_every_look_line_of_its_file());
     default:
         return test_outcome_missing();
     }

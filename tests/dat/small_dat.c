@@ -57,6 +57,9 @@ enum {
     TRAIN_LOCATION_COUNT_AT = 365,
     CIV_RECORD_SIZE = 576,
     TASK_COUNT_AT = 259,
+    ARMS_AT = 263,
+    ARMS_SIZE = 20,
+    COSTS_SIZE = 18,
     RESOURCE_SIZE = 4,
     BYTE_VALUES = 256
 };
@@ -64,7 +67,7 @@ enum {
 static const char VERSION[] = "VER 8.9";
 static const unsigned char EMPTY_TEXT[EMPTY_TEXT_SIZE] = { 0x60, 0x0A, 0x00, 0x00 };
 
-SmallDat small = { .unit = { 0, SMALL_BUILDING_CLASS, SMALL_BUILDING_TYPE, 0 } };
+SmallDat small = { .unit = { 0, SMALL_BUILDING_CLASS, SMALL_BUILDING_TYPE, 0, false } };
 
 static size_t put_empty_text(size_t at)
 {
@@ -103,12 +106,60 @@ static size_t put_tasks(size_t unit_at, int graphic)
     return DAT_TASK_SIZE;
 }
 
+static size_t put_arms(size_t at)
+{
+    static const unsigned char ARMS[ARMS_SIZE] = {
+        2U, 0U, SMALL_MELEE_CLASS, 0U, SMALL_ATTACK, 0U, SMALL_PIERCE_CLASS, 0U, SMALL_PIERCE_ATTACK, 0U,
+        2U, 0U, SMALL_MELEE_CLASS, 0U, SMALL_MELEE_ARMOR, 0U, SMALL_PIERCE_CLASS, 0U, SMALL_PIERCE_ARMOR, 0U
+    };
+    static const unsigned char RANKED_ARMS[ARMS_SIZE] = {
+        2U, 0U, SMALL_BONUS_CLASS, 0U, SMALL_BONUS_ATTACK, 0U, SMALL_MELEE_CLASS, 0U, SMALL_ATTACK, 0U,
+        2U, 0U, SMALL_MELEE_CLASS, 0U, SMALL_MELEE_ARMOR, 0U, SMALL_PIERCE_CLASS, 0U, SMALL_PIERCE_ARMOR, 0U
+    };
+
+    if (!small.unit.armed || !CHECK(at + ARMS_SIZE < SMALL_DAT_CAPACITY)) {
+        return 0U;
+    }
+    (void)memcpy(&small.data[at], (small.elite > 0) ? RANKED_ARMS : ARMS, sizeof ARMS);
+    return ARMS_SIZE - (2U * COUNT_SIZE);
+}
+
+static void put_costs(size_t costs_at)
+{
+    static const unsigned char COSTS[COSTS_SIZE] = { 0U, 0U, SMALL_FOOD,       0U, 1U, 0U, 3U, 0U, SMALL_GOLD,
+                                                     0U, 1U, 0U, SMALL_POPULATION, 0U, 1U, 0U, 0U, 0U };
+
+    if (small.elite > 0) {
+        (void)memcpy(&small.data[costs_at], COSTS, sizeof COSTS);
+    }
+}
+
+static size_t put_elite(size_t unit_at, size_t end, size_t combat_at)
+{
+    const float reload = (float)SMALL_ELITE_RELOAD;
+    size_t size = end - unit_at;
+
+    if ((small.elite == 0) || !CHECK(end + size < SMALL_DAT_CAPACITY)) {
+        return end;
+    }
+    (void)memcpy(&small.data[end], &small.data[unit_at], size);
+    small.data[end + DAT_UNIT_HIT_POINTS_AT] = (unsigned char)SMALL_ELITE_HP;
+    (void)memcpy(&small.data[end + (combat_at - unit_at) + DAT_COMBAT_RELOAD_AT], &reload, sizeof reload);
+    return end + size;
+}
+
+static int last_unit(void)
+{
+    return (small.elite > small.unit.index) ? small.elite : small.unit.index;
+}
+
 static size_t put_civ(size_t at, int standing_graphic)
 {
-    size_t pointers = (size_t)(small.unit.index + 1) * UNIT_POINTER_SIZE;
+    size_t pointers = (size_t)(last_unit() + 1) * UNIT_POINTER_SIZE;
     size_t resources = (size_t)small.resources * RESOURCE_SIZE;
     size_t unit_at;
     size_t tasks;
+    size_t grown;
 
     if (!CHECK(at > 0U) || !CHECK(small.unit.index >= 0) || !CHECK(small.unit.index < SMALL_UNIT_LIMIT) ||
         !CHECK(at + CIV_RECORD_SIZE + pointers + resources < SMALL_DAT_CAPACITY)) {
@@ -118,8 +169,9 @@ static size_t put_civ(size_t at, int standing_graphic)
     small.data[at] = (unsigned char)(small.resources % BYTE_VALUES);
     small.data[at + 1U] = (unsigned char)(small.resources / BYTE_VALUES);
     at += CIV_IDS_AND_ICON_SIZE + resources;
-    small.data[at] = (unsigned char)(small.unit.index + 1);
+    small.data[at] = (unsigned char)(last_unit() + 1);
     unit_at = at + UNIT_COUNT_SIZE + pointers;
+    small.data[at + UNIT_COUNT_SIZE + ((size_t)small.unit.index * UNIT_POINTER_SIZE)] = 1U;
     small.data[unit_at - UNIT_POINTER_SIZE] = 1U;
     small.data[unit_at] = (unsigned char)small.unit.type;
     small.data[unit_at + DAT_UNIT_CLASS_AT] = (unsigned char)small.unit.unit_class;
@@ -129,8 +181,10 @@ static size_t put_civ(size_t at, int standing_graphic)
         return unit_at + BUILDING_UNIT_SIZE;
     }
     tasks = put_tasks(unit_at, standing_graphic);
-    small.data[unit_at + TRAIN_LOCATION_COUNT_AT + tasks] = 1U;
-    return unit_at + CREATABLE_UNIT_SIZE + tasks;
+    grown = tasks + put_arms(unit_at + ARMS_AT + tasks);
+    small.data[unit_at + TRAIN_LOCATION_COUNT_AT + grown] = 1U;
+    put_costs(unit_at + TRAIN_LOCATION_COUNT_AT + grown - COSTS_SIZE);
+    return put_elite(unit_at, unit_at + CREATABLE_UNIT_SIZE + grown, unit_at + ARMS_AT + tasks + ARMS_SIZE);
 }
 
 static size_t put_sounds(size_t at)

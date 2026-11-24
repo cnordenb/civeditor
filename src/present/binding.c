@@ -50,8 +50,10 @@ static const Binding BINDINGS[CONTROL_COUNT] = {
     { SOURCE_NONE, TEXT_FIELD_CASTLE_TECH_NAME, NO, NO, NO },
     { SOURCE_NONE, NO, NO, NO, NO },
     { SOURCE_NONE, NO, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
     { SOURCE_IMPERIAL_TECH, NO, NO, NO, CONTROL_IMPERIAL_TECH_FILTER },
     { SOURCE_NONE, TEXT_FIELD_IMPERIAL_TECH_NAME, NO, NO, NO },
+    { SOURCE_NONE, NO, NO, NO, NO },
     { SOURCE_NONE, NO, NO, NO, NO },
     { SOURCE_NONE, NO, NO, NO, NO },
     { SOURCE_HERO, NO, NO, NO, NO },
@@ -139,6 +141,10 @@ static bool item_belongs(const Catalog *catalog, ListItem item)
     return source != SOURCE_NONE;
 }
 
+typedef struct {
+    bool civs[CATALOG_BASE_CAPACITY];
+} NamedCivs;
+
 static bool civ_has(const Catalog *catalog, const BaseCiv *civ, ListSource source, int item)
 {
     switch ((int)source) {
@@ -159,21 +165,31 @@ static bool civ_has(const Catalog *catalog, const BaseCiv *civ, ListSource sourc
     }
 }
 
-static bool civ_matches(const Catalog *catalog, ListItem item, const char *filter)
+static void name_civs(const Catalog *catalog, const char *filter, NamedCivs *named)
+{
+    int civ;
+
+    for (civ = 0; (civ < catalog->base_count) && (civ < CATALOG_BASE_CAPACITY); ++civ) {
+        named->civs[civ] = (filter[0] != '\0') &&
+                           text_starts_folded(catalog_appearance_name(catalog, APPEARANCE_BASE, catalog->bases[civ].id),
+                                              filter);
+    }
+}
+
+static bool civ_matches(const Catalog *catalog, ListItem item, const NamedCivs *named)
 {
     ListSource source = BINDINGS[item.control].source;
     int civ;
 
-    for (civ = 0; civ < catalog->base_count; ++civ) {
-        if (text_starts_folded(catalog_appearance_name(catalog, APPEARANCE_BASE, catalog->bases[civ].id), filter) &&
-            civ_has(catalog, &catalog->bases[civ], source, item.item)) {
+    for (civ = 0; (civ < catalog->base_count) && (civ < CATALOG_BASE_CAPACITY); ++civ) {
+        if (named->civs[civ] && civ_has(catalog, &catalog->bases[civ], source, item.item)) {
             return true;
         }
     }
     return false;
 }
 
-static bool item_matches(const Catalog *catalog, ListItem item, const ListQuery *query)
+static bool item_matches(const Catalog *catalog, ListItem item, const ListQuery *query, const NamedCivs *named)
 {
     RowText row;
 
@@ -185,7 +201,7 @@ static bool item_matches(const Catalog *catalog, ListItem item, const ListQuery 
         return true;
     }
     row = list_item_text(catalog, item);
-    return text_contains_folded(row.text, query->filter) || civ_matches(catalog, item, query->filter);
+    return text_contains_folded(row.text, query->filter) || civ_matches(catalog, item, named);
 }
 
 ControlId binding_filtered_list(ControlId filter)
@@ -211,14 +227,16 @@ static void add_row(ListModel *model, int item)
 
 bool list_model_fill(ListModel *model, const Catalog *catalog, const ListQuery *query)
 {
+    static NamedCivs named;
     ListItem item;
     int size;
 
+    name_civs(catalog, query->filter, &named);
     model->count = 0;
     item.control = query->control;
     size = source_size(catalog, BINDINGS[query->control].source);
     for (item.item = 0; (item.item < size) && (item.item < LIST_ROW_CAPACITY); ++item.item) {
-        if (item_belongs(catalog, item) && item_matches(catalog, item, query)) {
+        if (item_belongs(catalog, item) && item_matches(catalog, item, query, &named)) {
             add_row(model, item.item);
         }
     }
@@ -326,10 +344,10 @@ static Command pick_command(const Catalog *catalog, ListItem item, ListSource so
                         unit->name);
 }
 
-static Command tick_command(const Catalog *catalog, ListItem item, ListSource source)
+static Command tick_command(const Catalog *catalog, const CivDesign *design, ListItem item, ListSource source)
 {
     if (source == SOURCE_TREE) {
-        return command_of(COMMAND_TOGGLE_TREE, (int)catalog->tree[item.item].kind, catalog->tree[item.item].id);
+        return tree_command(catalog, design, item.item);
     }
     if (source == SOURCE_BONUS) {
         return command_of(COMMAND_TOGGLE_BONUS, 0, catalog->bonuses[item.item].id);
@@ -343,11 +361,12 @@ static Command tick_command(const Catalog *catalog, ListItem item, ListSource so
     return command_nothing();
 }
 
-Command list_item_command(const Catalog *catalog, ListItem item)
+Command list_item_command(const Catalog *catalog, const CivDesign *design, ListItem item)
 {
     ListSource source = BINDINGS[item.control].source;
 
-    return is_pick_source(source) ? pick_command(catalog, item, source) : tick_command(catalog, item, source);
+    return is_pick_source(source) ? pick_command(catalog, item, source)
+                                  : tick_command(catalog, design, item, source);
 }
 
 Command hero_box_command(const Catalog *catalog, bool ticked)
@@ -358,5 +377,5 @@ Command hero_box_command(const Catalog *catalog, bool ticked)
     if (item.item == CATALOG_MISSING) {
         return command_of(COMMAND_PICK_HERO, 0, CIV_NO_CHOICE);
     }
-    return list_item_command(catalog, item);
+    return pick_command(catalog, item, SOURCE_HERO);
 }

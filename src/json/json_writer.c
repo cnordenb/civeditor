@@ -124,13 +124,18 @@ void json_write_string(JsonWriter *writer, const char *key, const char *value)
     put_string(writer, value);
 }
 
-void json_write_number(JsonWriter *writer, const char *key, long value)
+void json_write_decimal(JsonWriter *writer, const char *key, long value, unsigned places)
 {
     char digits[TEXT_NUMBER_CAPACITY] = "";
 
-    (void)text_append_number(digits, sizeof digits, value);
+    (void)text_append_decimal(digits, sizeof digits, value, places);
     start_item(writer, key);
     put_letters(writer, digits, false);
+}
+
+void json_write_number(JsonWriter *writer, const char *key, long value)
+{
+    json_write_decimal(writer, key, value, 0U);
 }
 
 void json_write_bool(JsonWriter *writer, const char *key, bool value)

@@ -1,0 +1,16 @@
+#ifndef DESIGN_REGRESSION_H
+#define DESIGN_REGRESSION_H
+
+#include <stdbool.h>
+
+bool test_original_example_civ_keeps_its_language(void);
+bool test_summary_labels_the_name(void);
+bool test_the_last_step_shows_no_next_button(void);
+bool test_a_new_civ_starts_with_the_tech_tree_of_its_civ(void);
+bool test_a_tree_that_swaps_a_node_of_the_base_civ_is_changed(void);
+bool test_bonuses_that_swap_one_of_the_base_civ_are_changed(void);
+bool test_a_team_bonus_other_than_the_base_civs_is_a_change(void);
+bool test_the_base_civs_own_team_bonus_is_no_change(void);
+bool test_a_list_joined_by_commas_is_scaled_as_one(void);
+
+#endif

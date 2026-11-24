@@ -145,3 +145,20 @@ void list_scroll_open(HWND choice)
 {
     (void)ShowWindow(rows_of(choice), SW_SHOWNA);
 }
+
+HBRUSH list_scroll_brush(HDC context, HWND control, HBRUSH brush)
+{
+    RECT rest = { 0, 0, 0, 0 };
+    RECT last = { 0, 0, 0, 0 };
+
+    if (!is_list(control)) {
+        return brush;
+    }
+    (void)GetClientRect(control, &rest);
+    (void)SendMessageW(control, LB_GETITEMRECT, (WPARAM)(SendMessageW(control, LB_GETCOUNT, 0, 0) - 1), (LPARAM)&last);
+    rest.top = last.bottom;
+    if (rest.top < rest.bottom) {
+        (void)FillRect(context, &rest, brush);
+    }
+    return (HBRUSH)GetStockObject(HOLLOW_BRUSH);
+}

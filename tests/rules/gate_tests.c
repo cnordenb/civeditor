@@ -3,6 +3,7 @@
 #include "../../src/core/check.h"
 #include "../../src/core/text.h"
 #include "../maintainability/code_patterns.h"
+#include "../redundancy/rules/p10_patterns.h"
 #include "../scan/call_graph.h"
 
 enum {

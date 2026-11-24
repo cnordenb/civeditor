@@ -16,8 +16,7 @@ enum {
     READING_COLUMN = 10000,
     SCROLLED_ROW = 30,
     TICKED_ROW = 34,
-    FRAME_SEARCH = 16,
-    FRAME_LEAST = 2
+    NESTING = 3
 };
 
 typedef enum {
@@ -42,9 +41,10 @@ static bool tab_reaches(HWND window, HWND target)
         return false;
     }
     for (step = 0; (step < TAB_LIMIT) && (at != NULL); ++step) {
-        if (at == target) {
+        if ((at == target) || (IsChild(target, at) != 0)) {
             return true;
         }
+        (void)SetFocus(at);
         at = GetNextDlgTabItem(window, at, FALSE);
     }
     return false;
@@ -124,40 +124,6 @@ static bool help_is_given(HWND window, HWND target, ControlId control)
     return (help[0] != L'\0') && (wcscmp(status, help) == 0);
 }
 
-static bool focus_frame_shows(HWND window, HWND target)
-{
-    RECT client;
-    RECT place;
-    HDC screen;
-    HDC memory;
-    HBITMAP picture;
-    HGDIOBJ before;
-    int thick = 0;
-    int reach;
-
-    if (!CHECK(window != NULL) || (target == NULL) || (GetClientRect(window, &client) == 0) ||
-        (GetWindowRect(target, &place) == 0)) {
-        return false;
-    }
-    (void)MapWindowPoints(NULL, window, (POINT *)&place, 2);
-    (void)SetFocus(target);
-    screen = GetDC(window);
-    memory = CreateCompatibleDC(screen);
-    picture = CreateCompatibleBitmap(screen, client.right, client.bottom);
-    before = SelectObject(memory, picture);
-    (void)SendMessageW(window, WM_ERASEBKGND, (WPARAM)memory, 0);
-    for (reach = 1; reach <= FRAME_SEARCH; ++reach) {
-        thick += (GetPixel(memory, place.left - reach, (place.top + place.bottom) / 2) != GetPixel(memory, 0, 0))
-                     ? 1
-                     : 0;
-    }
-    (void)SelectObject(memory, before);
-    (void)DeleteObject(picture);
-    (void)DeleteDC(memory);
-    (void)ReleaseDC(window, screen);
-    return thick >= FRAME_LEAST;
-}
-
 static bool control_passes(HWND window, ControlId control, ControlQuestion question)
 {
     HWND target = GetDlgItem(window, CONTROL_ID_BASE + (int)control);
@@ -175,7 +141,7 @@ static bool control_passes(HWND window, ControlId control, ControlQuestion quest
     case ASK_HELP:
         return help_is_given(window, target, control);
     case ASK_FOCUS_FRAME:
-        return focus_frame_shows(window, target);
+        return access_frame_shows(window, target);
     default:
         return false;
     }
@@ -263,6 +229,38 @@ static long reading_place(HWND window, HWND control)
     return ((long)box.left * READING_COLUMN) + box.top;
 }
 
+static HWND control_holding(HWND window, HWND inner)
+{
+    HWND holder = inner;
+    int depth;
+
+    for (depth = 0; (depth < NESTING) && (holder != NULL) && (GetParent(holder) != window); ++depth) {
+        holder = GetParent(holder);
+    }
+    return holder;
+}
+
+static bool reads_on(HWND at, HWND next)
+{
+    RECT from = { 0, 0, 0, 0 };
+    RECT to = { 0, 0, 0, 0 };
+
+    (void)GetWindowRect(at, &from);
+    (void)GetWindowRect(next, &to);
+    return (to.top > from.top) || ((to.top == from.top) && (to.left > from.left));
+}
+
+static bool follows(HWND window, HWND at, HWND next)
+{
+    HWND from = control_holding(window, at);
+    HWND to = control_holding(window, next);
+
+    if (from == to) {
+        return reads_on(at, next);
+    }
+    return reading_place(window, to) > reading_place(window, from);
+}
+
 static bool tab_follows_reading(HWND window)
 {
     HWND at = GetNextDlgTabItem(window, NULL, FALSE);
@@ -274,11 +272,11 @@ static bool tab_follows_reading(HWND window)
     }
     for (walked = 0; (walked < TAB_LIMIT) && (at != NULL); ++walked) {
         next = GetNextDlgTabItem(window, at, FALSE);
-        if (reading_place(window, next) == 0L) {
+        if (reading_place(window, control_holding(window, next)) == 0L) {
             return true;
         }
-        if (reading_place(window, next) <= reading_place(window, at)) {
-            test_note(layout_spec((ControlId)(GetDlgCtrlID(next) - CONTROL_ID_BASE)).label);
+        if (!follows(window, at, next)) {
+            test_note(layout_spec((ControlId)(GetDlgCtrlID(control_holding(window, next)) - CONTROL_ID_BASE)).label);
             return false;
         }
         at = next;

@@ -20,6 +20,7 @@ typedef struct {
 } BuiltCivs;
 
 void summary_add(SummaryText *summary, const char *text);
+void summary_add_bonus(SummaryText *summary, const char *description, Multiplier multiplier);
 void summary_add_tree(SummaryText *summary, const CivDesign *design, const char *before_techs,
                       const char *after_techs);
 bool summary_write(SummaryText *summary, const CivDesign *design, const Catalog *catalog);

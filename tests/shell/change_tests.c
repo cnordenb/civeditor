@@ -6,7 +6,7 @@
 #include "../../src/win/win_parts.h"
 #include "../accessibility/window_fixture.h"
 
-enum { ROW_CAPACITY = 2048 };
+enum { ROW_CAPACITY = 2048, NARROW_WINDOW = 420, TALL_WINDOW = 2000, FAR_AWAY = -20000 };
 
 static wchar_t row_text[ROW_CAPACITY];
 
@@ -76,6 +76,83 @@ bool test_appearance_opens_the_popup_of_the_look_choices(void)
     shown = IsWindowVisible(popup_of(window)) != 0;
     window_fixture_close(window);
     return shown;
+}
+
+static int rows_height(HWND list)
+{
+    int count = (int)SendMessageW(list, LB_GETCOUNT, 0, 0);
+    int height = 0;
+    int row;
+
+    for (row = 0; (row < count) && (row < ROW_CAPACITY); ++row) {
+        height += (int)SendMessageW(list, LB_GETITEMHEIGHT, (WPARAM)row, 0);
+    }
+    return height;
+}
+
+static void make_narrow(HWND window)
+{
+    int dpi = assist_dpi(window);
+
+    (void)SetWindowPos(window, NULL, 0, 0, MulDiv(NARROW_WINDOW, dpi, LAYOUT_BASE_DPI),
+                       MulDiv(TALL_WINDOW, dpi, LAYOUT_BASE_DPI), SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+}
+
+bool test_the_rows_of_a_list_shown_are_measured_anew_when_it_becomes_wider(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+    HWND list = control_of(window, CONTROL_BONUS_LIST);
+    int before;
+    int after;
+
+    window_fixture_act(window, ACTION_FIRST_STEP + (int)STEP_BONUSES);
+    before = rows_height(list);
+    make_narrow(window);
+    after = rows_height(list);
+    window_fixture_close(window);
+    return (after > 0) && (after < before);
+}
+
+bool test_a_letter_typed_into_the_name_leaves_the_tech_tree_nothing_to_redraw(void)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+    bool still;
+
+    (void)SetWindowPos(window, NULL, FAR_AWAY, FAR_AWAY, 0, 0,
+                       SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+    (void)UpdateWindow(window);
+    type_into(window, CONTROL_NAME, L"T");
+    still = GetUpdateRect(control_of(window, CONTROL_TREE_LIST), NULL, FALSE) == FALSE;
+    window_fixture_close(window);
+    return still;
+}
+
+static int team_row_height(bool longest)
+{
+    HWND window = app_open(GetModuleHandleW(NULL));
+    HWND list = control_of(window, CONTROL_TEAM_LIST);
+    int count;
+    int found = 0;
+    int row;
+    int height;
+
+    make_narrow(window);
+    window_fixture_act(window, ACTION_FIRST_STEP + (int)STEP_BONUSES);
+    count = (int)SendMessageW(list, LB_GETCOUNT, 0, 0);
+    for (row = 1; (row < count) && (row < ROW_CAPACITY); ++row) {
+        LRESULT length = SendMessageW(list, LB_GETTEXTLEN, (WPARAM)row, 0);
+        LRESULT kept = SendMessageW(list, LB_GETTEXTLEN, (WPARAM)found, 0);
+
+        found = (longest == (length > kept)) ? row : found;
+    }
+    height = (int)SendMessageW(list, LB_GETITEMHEIGHT, (WPARAM)found, 0);
+    window_fixture_close(window);
+    return height;
+}
+
+bool test_the_longest_row_of_the_narrow_list_of_team_bonuses_is_higher_than_the_shortest(void)
+{
+    return team_row_height(true) > team_row_height(false);
 }
 
 bool test_the_popup_of_the_look_choices_is_hidden_until_asked_for(void)

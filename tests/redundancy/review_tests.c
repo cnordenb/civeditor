@@ -54,7 +54,7 @@ static void choose_row(HWND window, ControlId control, int row, UINT message, in
 
 static HWND opened_with(const wchar_t *steam, const wchar_t *mod_name)
 {
-    AskScript script = { true, IDOK, ROOT, NULL, NULL, HOME, NULL };
+    AskScript script = { true, IDOK, ROOT, NULL, NULL, HOME, NULL, true };
 
     script.steam = steam;
     script.text = mod_name;

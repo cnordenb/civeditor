@@ -5,39 +5,38 @@
 #include "../look/look_tests.h"
 
 enum {
-    RECIPE_UNIT_END = 8,
-    RECIPE_BONUS_END = 22,
-    RECIPE_TEAM_END = 26,
-    RECIPE_CHANGE_END = 34,
-    RECIPE_BARE_END = 46,
-    RECIPE_PLAN_END = 55,
-    LOOK_END = 67
+    RECIPE_UNIT_END = 7,
+    RECIPE_BONUS_END = 20,
+    RECIPE_TEAM_END = 24,
+    RECIPE_CHANGE_END = 32,
+    RECIPE_BARE_END = 44,
+    RECIPE_PLAN_END = 53,
+    LOOK_END = 65,
+    SCALE_END = 83
 };
 
 static TestOutcome run_recipe_unit_test(int index)
 {
     switch (index) {
     case 1:
-        return test_outcome_of("the replaced civ loses its own techs", test_the_replaced_civ_loses_its_own_techs());
-    case 2:
         return test_outcome_of("the unique unit is made by a tech of the civ",
                                test_the_unique_unit_is_made_by_a_tech_of_the_civ());
-    case 3:
+    case 2:
         return test_outcome_of("a unique tech is researched at the castle in its age",
                                test_a_unique_tech_is_researched_at_the_castle_in_its_age());
-    case 4:
+    case 3:
         return test_outcome_of("a built unique tech changes the civ's own unit",
                                test_a_built_unique_tech_changes_the_civs_own_unit());
-    case 5:
+    case 4:
         return test_outcome_of("a chosen cost takes the place of the tech's own",
                                test_a_chosen_cost_takes_the_place_of_the_techs_own());
-    case 6:
+    case 5:
         return test_outcome_of("the built tech tree disables the tech of a unit the civ lacks",
                                test_the_built_tech_tree_disables_the_tech_of_a_unit_the_civ_lacks());
-    case 7:
+    case 6:
         return test_outcome_of("the report counts the unique techs built",
                                test_the_report_counts_the_unique_techs_built());
-    case 8:
+    case 7:
         return test_outcome_of("the built unique unit is named by the string id of its slot",
                                test_the_built_unique_unit_is_named_by_the_string_id_of_its_slot());
     default:
@@ -64,30 +63,27 @@ static TestOutcome run_recipe_bonus_test(int index)
         return test_outcome_of("the report counts the civ bonuses built",
                                test_the_report_counts_the_civ_bonuses_built());
     case 6:
-        return test_outcome_of("the report counts a civ bonus the catalog lacks as skipped",
-                               test_the_report_counts_a_civ_bonus_the_catalog_lacks_as_skipped());
-    case 7:
         return test_outcome_of("a bonus with nothing to build is counted as skipped",
                                test_a_bonus_with_nothing_to_build_is_counted_as_skipped());
+    case 7:
+        return test_outcome_of("the report counts a multiplier of a bonus that names a generic tech",
+                               test_the_report_counts_a_multiplier_of_a_bonus_that_names_a_generic_tech());
     case 8:
-        return test_outcome_of("the report counts a multiplier of a bonus made of the game's techs",
-                               test_the_report_counts_a_multiplier_of_a_bonus_made_of_the_games_techs());
-    case 9:
         return test_outcome_of("a bonus requirement is a tech of the civ",
                                test_a_bonus_requirement_is_a_tech_of_the_civ());
-    case 10:
+    case 9:
         return test_outcome_of("two techs given one requirement share its copy",
                                test_two_techs_given_one_requirement_share_its_copy());
-    case 11:
+    case 10:
         return test_outcome_of("a bonus of requirements is counted as built",
                                test_a_bonus_of_requirements_is_counted_as_built());
-    case 12:
+    case 11:
         return test_outcome_of("a bonus whose tech has no room is skipped",
                                test_a_bonus_whose_tech_has_no_room_is_skipped());
-    case 13:
+    case 12:
         return test_outcome_of("a second build keeps no requirement of the first",
                                test_a_second_build_keeps_no_requirement_of_the_first());
-    case 14:
+    case 13:
         return test_outcome_of("a tech that no line names keeps its requirements",
                                test_a_tech_that_no_line_names_keeps_its_requirements());
     default:
@@ -169,8 +165,8 @@ static TestOutcome run_recipe_bare_test(int index)
     case 7:
         return test_outcome_of("a bonus of techs builds its lines too", test_a_bonus_of_techs_builds_its_lines_too());
     case 8:
-        return test_outcome_of("the lines of a bonus of techs count once",
-                               test_the_lines_of_a_bonus_of_techs_count_once());
+        return test_outcome_of("the lines of a bonus of techs count as often as the bonus",
+                               test_the_lines_of_a_bonus_of_techs_count_as_often_as_the_bonus());
     case 9:
         return test_outcome_of("a team bonus with nothing to build is counted as skipped",
                                test_a_team_bonus_with_nothing_to_build_is_counted_as_skipped());
@@ -322,6 +318,32 @@ static TestOutcome run_bonus_scale_test(int index)
     }
 }
 
+static TestOutcome run_bonus_text_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("a cost cut by half that counts twice is cut by three quarters",
+                               test_a_cost_cut_by_half_that_counts_twice_is_cut_by_three_quarters());
+    case 2:
+        return test_outcome_of("an amount added that counts twice is added twice",
+                               test_an_amount_added_that_counts_twice_is_added_twice());
+    case 3:
+        return test_outcome_of("each percent of a list that counts twice is scaled",
+                               test_each_percent_of_a_list_that_counts_twice_is_scaled());
+    case 4:
+        return test_outcome_of("a twofold amount that counts twice becomes fourfold",
+                               test_a_twofold_amount_that_counts_twice_becomes_fourfold());
+    case 5:
+        return test_outcome_of("a percent that counts twice shows one decimal",
+                               test_a_percent_that_counts_twice_shows_one_decimal());
+    case 6:
+        return test_outcome_of("a percent without a sign before faster that counts twice is raised",
+                               test_a_percent_without_a_sign_before_faster_that_counts_twice_is_raised());
+    default:
+        return test_outcome_missing();
+    }
+}
+
 TestOutcome build_suite_run(int index)
 {
     if (index <= RECIPE_UNIT_END) {
@@ -345,5 +367,8 @@ TestOutcome build_suite_run(int index)
     if (index <= LOOK_END) {
         return run_look_test(index - RECIPE_PLAN_END);
     }
-    return run_bonus_scale_test(index - LOOK_END);
+    if (index <= SCALE_END) {
+        return run_bonus_scale_test(index - LOOK_END);
+    }
+    return run_bonus_text_test(index - SCALE_END);
 }

@@ -26,6 +26,7 @@ typedef struct {
     int unique_techs_built;
     int unique_techs_skipped;
     int tree_disabled;
+    int unit_stats_skipped;
     bool unit_skipped;
     bool tree_overflowed;
     bool hero_skipped;

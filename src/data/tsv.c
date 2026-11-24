@@ -6,19 +6,10 @@
 
 enum { DECIMAL_BASE = 10, HUNDRED = 100, FRACTION_DIGITS = 2 };
 
-static const long long DIGITS_LIMIT = 100000000000000000LL;
-
 typedef struct {
     int value;
     int fraction_digits;
 } Hundredths;
-
-typedef struct {
-    long long digits;
-    double scale;
-    bool fraction;
-    int digit_count;
-} Decimal;
 
 bool tsv_open(TsvFile *file, const wchar_t *path)
 {
@@ -74,7 +65,7 @@ bool tsv_next(TsvFile *file, TsvRecord *record)
 
 static bool has_field(const TsvRecord *record, int field)
 {
-    return (field >= 0) && (field < record->field_count);
+    return check_is_index(field, record->field_count);
 }
 
 bool tsv_text(const TsvRecord *record, int field, char *destination, size_t capacity)
@@ -173,56 +164,18 @@ TsvNumberList tsv_number_list(const TsvRecord *record, int field)
     return list;
 }
 
-static bool take_decimal_letter(Decimal *number, char letter)
-{
-    if (!CHECK(number->digit_count >= 0)) {
-        return false;
-    }
-    if ((letter == '.') && !number->fraction) {
-        number->fraction = true;
-        return true;
-    }
-    if ((letter < '0') || (letter > '9') || (number->digits > DIGITS_LIMIT)) {
-        return false;
-    }
-    number->digits = (number->digits * DECIMAL_BASE) + (long long)(letter - '0');
-    ++number->digit_count;
-    if (number->fraction) {
-        number->scale *= (double)DECIMAL_BASE;
-    }
-    return true;
-}
-
-static bool take_decimal(Decimal *number, const char *text, int length)
-{
-    int index;
-
-    for (index = 0; (index < length) && (index < TEXT_NUMBER_CAPACITY); ++index) {
-        if (!take_decimal_letter(number, text[index])) {
-            return false;
-        }
-    }
-    return (number->digit_count > 0) && (index == length);
-}
-
 bool tsv_decimal(const TsvRecord *record, int field, float *value)
 {
-    Decimal number = { 0LL, 1.0, false, 0 };
-    float size;
-    int start;
-    int sign;
+    TextDecimal number;
 
     if (!has_field(record, field) || (record->lengths[field] < 1)) {
         return false;
     }
-    start = record->starts[field];
-    sign = (int)(record->text[start] == '-');
-    if (!take_decimal(&number, &record->text[start + sign], record->lengths[field] - sign)) {
-        return false;
+    number = text_to_decimal(&record->text[record->starts[field]], (size_t)record->lengths[field]);
+    if (number.valid) {
+        *value = (float)number.value;
     }
-    size = (float)((double)number.digits / number.scale);
-    *value = (sign == 1) ? -size : size;
-    return true;
+    return number.valid;
 }
 
 static uint64_t bit_of(const char *text, int length)

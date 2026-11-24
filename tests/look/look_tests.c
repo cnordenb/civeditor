@@ -47,7 +47,7 @@ static int looked(SmallUnit unit, int civ_count, const LookSources *sources, siz
 
 static int look_of(int unit_class, int tasks, size_t field_at)
 {
-    const SmallUnit unit = { FIRST_UNIT, unit_class, SMALL_CREATABLE_TYPE, tasks };
+    const SmallUnit unit = { FIRST_UNIT, unit_class, SMALL_CREATABLE_TYPE, tasks, false };
     const LookSources sources = { ARCHITECTURE_CIV, LOOK_NONE, LOOK_NONE, { LOOK_NONE, { 0, 0, 0 } } };
 
     return CHECK(unit_class > 0) ? looked(unit, TWO_CIVS, &sources, field_at) : -1;
@@ -65,7 +65,7 @@ bool test_a_trade_carts_load_takes_the_look_of_its_architectures_civ(void)
 
 bool test_a_monks_healing_takes_the_look_of_its_monk_skin(void)
 {
-    const SmallUnit monk = { MONK, MONK_CLASS, SMALL_CREATABLE_TYPE, 1 };
+    const SmallUnit monk = { MONK, MONK_CLASS, SMALL_CREATABLE_TYPE, 1, false };
     const LookSources sources = { LOOK_NONE, LOOK_NONE, LOOK_NONE, { ARCHITECTURE_CIV, { MONK, MONK, MONK } } };
 
     return looked(monk, TWO_CIVS, &sources, TASK_AT + DAT_TASK_PROCEEDING_GRAPHIC_AT) ==
@@ -74,7 +74,7 @@ bool test_a_monks_healing_takes_the_look_of_its_monk_skin(void)
 
 bool test_a_castle_takes_the_look_of_the_civ_chosen_for_the_castle(void)
 {
-    const SmallUnit castle = { CASTLE, SMALL_BUILDING_CLASS, SMALL_BUILDING_TYPE, 0 };
+    const SmallUnit castle = { CASTLE, SMALL_BUILDING_CLASS, SMALL_BUILDING_TYPE, 0, false };
     const LookSources sources = { ARCHITECTURE_CIV, CASTLE_CIV, LOOK_NONE, { LOOK_NONE, { 0, 0, 0 } } };
 
     return looked(castle, THREE_CIVS, &sources, DAT_UNIT_GRAPHICS_AT) == SMALL_FIRST_GRAPHIC + CASTLE_CIV;
@@ -143,7 +143,7 @@ static size_t place_in(const DatBytes *dat, const DatMap *map, int civ, LookPlac
 
 static int copied(LookPlace place)
 {
-    const SmallUnit soldier = { FIRST_UNIT, INFANTRY_CLASS, SMALL_CREATABLE_TYPE, 0 };
+    const SmallUnit soldier = { FIRST_UNIT, INFANTRY_CLASS, SMALL_CREATABLE_TYPE, 0, false };
     const SmallUnit building = small.unit;
     const UnitLook line = { LOOK_BONUS, FIRST_UNIT, ARCHITECTURE_CIV };
     DatTarget target = { &small.bytes, &small.map, &small.edit, SLOT };

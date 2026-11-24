@@ -68,6 +68,7 @@ bool dat_edit_patch_u8(DatEdit *edit, size_t at, int value);
 bool dat_edit_patch_i16(DatEdit *edit, size_t at, int value);
 bool dat_edit_patch_i32(DatEdit *edit, size_t at, long value);
 bool dat_edit_patch_f32(DatEdit *edit, size_t at, float value);
+bool dat_edit_patch_cost(DatEdit *edit, size_t at, const DatTechCost *cost);
 bool dat_edit_copy(DatEdit *edit, const DatCopy *copy);
 int dat_edit_add_effect(DatEdit *edit, const char *name);
 bool dat_edit_add_change(DatEdit *edit, const DatChange *change);

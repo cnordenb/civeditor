@@ -1,0 +1,14 @@
+#ifndef MOD_REGRESSION_H
+#define MOD_REGRESSION_H
+
+#include <stdbool.h>
+
+bool test_a_bonus_of_the_games_techs_taken_twice_doubles_the_changes_of_its_copy(void);
+bool test_the_civ_descriptions_are_written_in_id_order(void);
+bool test_a_skipped_heros_name_is_not_written(void);
+bool test_the_civ_list_points_at_the_civs_own_description(void);
+bool test_a_building_the_civ_lacks_is_not_available_in_its_tech_tree(void);
+bool test_a_building_the_civ_has_is_available_in_its_tech_tree(void);
+bool test_the_catalog_holds_every_look_line_of_its_file(void);
+
+#endif

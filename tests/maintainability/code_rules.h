@@ -17,6 +17,5 @@ typedef enum {
 } CodeRule;
 
 bool code_rule_holds(CodeRule rule);
-bool code_has_no_recursion(void);
 
 #endif

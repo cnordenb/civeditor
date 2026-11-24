@@ -287,3 +287,14 @@ TextNumber json_number(const JsonDocument *document, int token)
     }
     return text_to_number(&document->text[document->tokens[token].start], (size_t)length);
 }
+
+TextDecimal json_decimal(const JsonDocument *document, int token)
+{
+    TextDecimal missing = { false, 0.0 };
+
+    if (!json_is_kind(document, token, JSON_KIND_NUMBER)) {
+        return missing;
+    }
+    return text_to_decimal(&document->text[document->tokens[token].start],
+                           (size_t)(document->tokens[token].end - document->tokens[token].start));
+}

@@ -4,6 +4,15 @@
 
 #include "check.h"
 
+static const long long DIGITS_LIMIT = 100000000000000000LL;
+
+typedef struct {
+    long long digits;
+    double scale;
+    bool fraction;
+    int digit_count;
+} Decimal;
+
 enum {
     DECIMAL_BASE = 10,
     ASCII_CASE_GAP = 32,
@@ -116,6 +125,38 @@ bool text_append_number(char *destination, size_t capacity, long value)
     return text_append(destination, capacity, (value < 0) ? digits : &digits[1]);
 }
 
+static unsigned put_fraction(char *fraction, long *whole, unsigned places)
+{
+    unsigned count = places;
+    unsigned index;
+
+    while ((count > 0U) && ((*whole % DECIMAL_BASE) == 0L)) {
+        *whole /= DECIMAL_BASE;
+        --count;
+    }
+    fraction[0] = '.';
+    fraction[count + 1U] = '\0';
+    for (index = count; index > 0U; --index) {
+        fraction[index] = (char)('0' + (int)(*whole % DECIMAL_BASE));
+        *whole /= DECIMAL_BASE;
+    }
+    return count;
+}
+
+bool text_append_decimal(char *destination, size_t capacity, long value, unsigned places)
+{
+    char fraction[TEXT_NUMBER_CAPACITY];
+    long whole = value;
+    unsigned count;
+
+    if (!CHECK((places <= (unsigned)TEXT_PLACES_LIMIT) && ((places == 0U) || (value >= 0L)))) {
+        return false;
+    }
+    count = put_fraction(fraction, &whole, places);
+    return text_append_number(destination, capacity, whole) &&
+           ((count == 0U) || text_append(destination, capacity, fraction));
+}
+
 bool text_starts_with(const char *text, const char *prefix)
 {
     size_t index;
@@ -205,6 +246,46 @@ TextNumber text_to_number(const char *text, size_t length)
     return result;
 }
 
+static bool take_decimal_letter(Decimal *number, char letter)
+{
+    if ((letter == '.') && !number->fraction) {
+        number->fraction = true;
+        return true;
+    }
+    if (!text_is_digit(letter) || (number->digits > DIGITS_LIMIT)) {
+        return false;
+    }
+    number->digits = (number->digits * DECIMAL_BASE) + (long long)(letter - '0');
+    ++number->digit_count;
+    if (number->fraction) {
+        number->scale *= (double)DECIMAL_BASE;
+    }
+    return true;
+}
+
+TextDecimal text_to_decimal(const char *text, size_t length)
+{
+    Decimal number = { 0LL, 1.0, false, 0 };
+    TextDecimal result = { false, 0.0 };
+    size_t sign = ((length > 0U) && (text[0] == '-')) ? 1U : 0U;
+    size_t index;
+
+    if (length > (size_t)TEXT_NUMBER_CAPACITY) {
+        return result;
+    }
+    for (index = sign; index < length; ++index) {
+        if (!take_decimal_letter(&number, text[index])) {
+            return result;
+        }
+    }
+    result.valid = number.digit_count > 0;
+    result.value = (double)number.digits / number.scale;
+    if (sign == 1U) {
+        result.value = -result.value;
+    }
+    return result;
+}
+
 static int utf8_length(unsigned char lead)
 {
     if (!CHECK(lead != 0U)) {
@@ -288,6 +369,11 @@ bool text_is_between(char letter, char first, char last)
 bool text_is_digit(char letter)
 {
     return text_is_between(letter, '0', '9');
+}
+
+bool text_is_sign(char letter)
+{
+    return (letter == '+') || (letter == '-');
 }
 
 enum { LINE_BREAK_COUNT = 2 };

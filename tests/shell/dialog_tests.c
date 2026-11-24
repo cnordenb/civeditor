@@ -21,7 +21,6 @@ typedef struct {
 } Answers;
 
 static const wchar_t BUILD[] = L"build";
-static const wchar_t DEFAULT_FILE[] = L"build\\civeditor_civ.civeditor.json";
 static const wchar_t NAMED_FILE[] = L"build\\Testonia.civeditor.json";
 static const wchar_t HOME[] = L"build\\test_home";
 static const wchar_t PROFILE[] = L"test_home\\Games\\Age of Empires 2 DE\\7656\\mods\\local";
@@ -39,11 +38,13 @@ static const Answers WITHOUT_GAME = { IDOK, NULL, NULL, L"build\\no_steam", NULL
 static const Answers FOLDER_GIVEN = { IDOK, NULL, NULL, GAME_FOLDER_STEAM, L"build" };
 static const Answers NO_FOLDER_GIVEN = { IDOK, NULL, NULL, GAME_FOLDER_STEAM, L"build\\no_such_folder" };
 
+static const wchar_t GAME_TIME_ROW[] = L"Research time: 25 seconds";
 static char saved[TEXT_CAPACITY];
+static bool unticks;
 
 static HWND opened(const Answers *answers)
 {
-    AskScript script = { true, IDOK, NULL, NULL, NULL, HOME, NULL };
+    AskScript script = { true, IDOK, NULL, NULL, NULL, HOME, NULL, true };
 
     if (!CHECK(answers != NULL) || !CHECK(mod_make_folders(BUILD, PROFILE)) || !CHECK(game_folder_is_made())) {
         return NULL;
@@ -53,6 +54,7 @@ static HWND opened(const Answers *answers)
     script.open_path = answers->open_path;
     script.steam = answers->steam;
     script.text = answers->mod_name;
+    script.tick = !unticks;
     ask_script(&script);
     return app_open(GetModuleHandleW(NULL));
 }
@@ -149,7 +151,7 @@ static bool title_after(const Answers *answers, int action, const wchar_t *words
     return closed(window, text_holds(window, words));
 }
 
-static bool saves_anew(const wchar_t *name, const wchar_t *path)
+bool dialog_saves_anew(const wchar_t *name, const wchar_t *path)
 {
     HWND window;
     FileRead read;
@@ -175,6 +177,26 @@ static bool window_stays(const Answers *answers, const wchar_t *name, int action
         (void)DispatchMessageW(&message);
     }
     return closed(window, IsWindow(window) != 0);
+}
+
+HWND dialog_opened(void)
+{
+    return opened(&YES);
+}
+
+HWND dialog_control_of(HWND window, ControlId control)
+{
+    return control_of(window, control);
+}
+
+bool dialog_closed(HWND window, bool passed)
+{
+    return closed(window, passed);
+}
+
+bool dialog_stays_after(int action)
+{
+    return window_stays(&YES, NULL, action);
 }
 
 static LRESULT step_after_next(void)
@@ -207,14 +229,9 @@ static COLORREF colour_given(UINT message, ControlId control, bool background)
     return closed(window, true) ? given : CLR_INVALID;
 }
 
-bool test_a_new_civ_is_saved_as_civeditor_civ_by_default(void)
-{
-    return saves_anew(NULL, DEFAULT_FILE);
-}
-
 bool test_a_named_civ_is_saved_under_its_name(void)
 {
-    return saves_anew(NAME, NAMED_FILE);
+    return dialog_saves_anew(NAME, NAMED_FILE);
 }
 
 bool test_a_save_that_is_cancelled_says_that_the_civ_was_not_saved(void)
@@ -247,23 +264,6 @@ bool test_redo_says_when_there_is_nothing_to_redo(void)
     return status_after(&YES, ACTION_REDO, L"There is nothing to redo.");
 }
 
-bool test_no_step_is_shown_as_done_when_the_window_opens(void)
-{
-    HWND window = opened(&YES);
-    wchar_t row[STATUS_CAPACITY] = L"";
-    bool none = true;
-    int step;
-
-    for (step = 0; (step < STEP_COUNT) && none; ++step) {
-        none = (SendMessageW(control_of(window, CONTROL_STEPS), LB_GETTEXT, (WPARAM)step, (LPARAM)row) > 0) &&
-               (wcsstr(row, L"(done)") == NULL);
-        if (!none) {
-            test_note("a step shown as done");
-        }
-    }
-    return closed(window, none);
-}
-
 bool test_closing_is_stopped_when_the_question_of_saving_is_cancelled(void)
 {
     return window_stays(&CANCEL, NAME, NO_ACTION);
@@ -274,9 +274,85 @@ bool test_closing_without_saving_closes_the_window(void)
     return !window_stays(&NO, NAME, NO_ACTION);
 }
 
-bool test_the_exit_command_closes_a_window_without_changes(void)
+bool test_closing_asks_nothing_when_the_option_says_not_to(void)
 {
-    return !window_stays(&YES, NULL, ACTION_EXIT);
+    HWND window = opened_and_run(&CANCEL, NAME, NO_ACTION);
+    bool gone;
+
+    options_set_ask_to_save(false);
+    (void)SendMessageW(window, WM_CLOSE, 0, 0);
+    gone = IsWindow(window) == 0;
+    options_set_ask_to_save(true);
+    return closed(window, gone);
+}
+
+bool test_the_window_shows_the_numbers_it_read_from_the_games_data_file(void)
+{
+    HWND window = opened(&YES);
+
+    window_fixture_act(window, ACTION_FIRST_STEP + (int)STEP_UU_UT);
+    (void)SendMessageW(window, APP_GAME_WANTED, 0, 0);
+    return closed(window, window_fixture_panel_row(window, CONTROL_CASTLE_TECH_INFO, GAME_TIME_ROW) != NULL);
+}
+
+static bool first_node_ticked_after_reading(const wchar_t *name)
+{
+    HWND window = opened_and_run(&YES, name, NO_ACTION);
+
+    (void)SendMessageW(window, APP_GAME_WANTED, 0, 0);
+    return closed(window, SendMessageW(control_of(window, CONTROL_TREE_LIST), LB_GETSEL, 0, 0) > 0);
+}
+
+bool test_a_civ_not_yet_changed_takes_its_tech_tree_from_the_games_files(void)
+{
+    return !first_node_ticked_after_reading(NULL);
+}
+
+bool test_a_changed_civ_keeps_its_tech_tree_when_the_games_files_are_read(void)
+{
+    return first_node_ticked_after_reading(NAME);
+}
+
+bool test_options_keeps_the_choice_not_to_ask_to_save(void)
+{
+    HWND window;
+    bool kept;
+
+    unticks = true;
+    window = opened_and_run(&YES, NULL, ACTION_OPTIONS);
+    unticks = false;
+    kept = !options_ask_to_save();
+    options_set_ask_to_save(true);
+    return closed(window, kept);
+}
+
+bool test_options_cancelled_leaves_the_choice_of_asking_as_it_was(void)
+{
+    HWND window;
+    bool kept;
+
+    unticks = true;
+    window = opened_and_run(&CANCEL, NULL, ACTION_OPTIONS);
+    unticks = false;
+    kept = options_ask_to_save();
+    options_set_ask_to_save(true);
+    return closed(window, kept);
+}
+
+bool test_options_with_the_mods_folder_left_says_that_the_options_were_kept(void)
+{
+    return status_after(&YES, ACTION_OPTIONS, L"The options were kept.");
+}
+
+bool test_a_changed_civ_is_asked_to_be_saved_when_no_option_is_kept(void)
+{
+    AskScript script = { true, IDOK, NULL, NULL, NULL, L"build\\no_such_home", NULL, true };
+    bool asks;
+
+    ask_script(&script);
+    asks = options_ask_to_save();
+    ask_script(NULL);
+    return asks;
 }
 
 bool test_build_is_refused_when_the_game_is_not_found(void)

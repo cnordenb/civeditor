@@ -1,8 +1,8 @@
-clanker - non-human agent, tool, large language model (LLM), artificial intelligence (AI), AI agent (eg. Claude, Claude Code, Codex, Gemini, Grok, etc.)
+clanker - a non-human agent: a tool, a large language model (LLM) or an AI agent, e.g. Claude, Codex, Gemini
 requirement - a numbered statement in REQUIREMENTS.md of what the project must do, e.g. "Requirement 4"
 rule - a numbered statement in RULES.md of how the project must be made and kept, e.g. "Rule 12"
 chief developer - the person who alone writes the requirements, named in Rule 2
-test - a check of the project, run on every push and listed by its number in TESTS.md, e.g. "Test 15"
+test - a check of the project, listed in TESTS.md under its label and number, e.g. "Test 15"
 log - the development log in documentation/DEVLOG/: what changed in the project, why, and what is left
 part - one file of the log, DEVLOG1.md, DEVLOG2.md and so on, each of at most 1000 lines
 day - the entry of the log for one date, titled by it, e.g. "2026-11-02", never split between two parts
@@ -25,6 +25,8 @@ unique tech - one of the two techs only a civ can research: the castle tech and 
 hero unit - a single strong unit a civ may have, picked from the heroes of the game; the hero, for short
 tech tree - the units, buildings and techs a civ may have; each one in it is a node
 node - one unit, building or tech of the tech tree, known by its id
+need - a node another cannot be had without, ticked with it: its parent in the tech tree, a unit's or tech's building
+descendant - a node that needs another, or needs one that does, e.g. the Arbalester of the Archer; unticked with it
 universal node - a node the game shows in the tech tree of every civ, had or not, e.g. the Archery Range
 regional node - a node that only some civs of the game have, e.g. the Camel Rider
 unique node - a node that only one civ of the game has, e.g. the Folwark
@@ -34,9 +36,9 @@ wizard - the four steps in which a design is made: name and tech tree, bonuses, 
 base civ - a civ of the game as civeditor holds it: its tech tree, bonuses, looks, names, tagline and description
 civ to edit - the civ of the game that the steps show and change, chosen in the first step; the Britons at first
 draft - the design of a civ to edit as it was last left, kept while another civ is edited
-changed civ - a civ to edit whose draft differs from its base civ; Civ to edit marks it with an asterisk, e.g. "Britons*"
+changed civ - a civ to edit whose draft differs from its base civ; Civ to edit marks it with an asterisk, as "Britons*"
 ranked civ - a civ of the game played in ranked games; only these are offered as civ to edit, so not the Spartans
-catalog - the lists civeditor offers in the steps, read from data/*.txt: looks, bonuses, units, techs, nodes
+catalog - the lists of the steps, read from data/*.txt; the numbers of units and techs and each civ's nodes, the game's
 control - one part of a step that the user reads or acts on, e.g. the list of bonuses; each has a visible label
 checklist - a control whose rows are ticked and unticked, e.g. the bonuses; in a plain list one row is picked
 dropdown - a control that shows its picked row and opens its rows as a list under it when pressed
@@ -66,10 +68,27 @@ train line - a unit patch placed in the first train location of its unit, e.g. t
 cost line - a unit patch placed in the three costs of its unit, e.g. the 300 stone of the Castle of bonus 460
 look line - a line of a bonus giving a unit of its civ the look of that unit of another civ, e.g. the Palintonon of 457
 requirement tech - a tech of one civ, researched by itself, that a tech of every civ requires, e.g. 768 for the Cavalier
-multiplier - how many times a bonus counts, 1 to 10, kept in the civ file; each change of the bonus is scaled to it
+multiplier - how many times a bonus counts, its count, from 1 to 10 and between, e.g. 1.5; each change is scaled to it
+number to set - a number of a bonus that its multiplier scales, e.g. the 25% of "Shepherds work 25% faster"
+Chosen bonuses - the panel of the ticked bonuses of the step Bonuses, a label for each, as they count
+field of a number - the box in place of a number in its label, as in Chosen bonuses, typed to change the number
+number in focus - the number whose field has the focus, framed in its panel
+range - the values a number may take, e.g. 1 to 32767 hit points; of a number to set, those at the multipliers 1 and 10
+card - the box shown just below the field of a number to set in focus, with the least and the most value of its range
+slider - the bar of the card that sets the multiplier from 1 to 10; Esc hides the card
+stat - a number of the unique unit: a cost, its hit points, attack, armors, attack range, speed or reload time
+rank - the unique unit or its elite unit, to which a stat belongs; the elite unit takes the change made to the unit
+tech value - a number of a unique tech: its cost in a resource or its research time
+override - a stat or tech value set in the design; one not set is the game's, as the catalog gives it
+number panel - a panel whose rows show numbers in fields: Chosen bonuses, the team bonus's and the three of UU&UT
+tech effect - a bonus ticked as what a unique tech does, with its multiplier, done instead of what the game's tech does
+sheet - the rows of a number panel of UU&UT above its tech effects: a name, a description and rows of numbers
+Choose castle effects... - the button of UU&UT that lists the bonuses to tick as tech effects of the castle tech
+Choose imperial effects... - the button of UU&UT that lists the bonuses to tick as tech effects of the imperial tech
 mod - a folder the game loads from its local mods folder; civeditor makes a data mod and a UI mod
 mods folder - the game's local mods folder, mods\local in the user's newest profile, where a mod is built
-Options... - the item of the menu File that shows the mods folder found and lets the user correct it
+Options... - the item of File that shows the mods folder to correct and a tick box: ask to save before exiting
+options file - civeditor_options.txt in the user's application data, where the tick box of Options... is kept
 data mod - the mod with a changed dat file that holds the new civ
 civ list - civilizations.json, the game's list of civs, their names, unique techs and unique unit; the data mod has one
 tech tree file - the game's file of one civ's tech tree screen, e.g. CivTechTrees\BRITONS.json; the data mod has one
@@ -99,7 +118,11 @@ shape - what is left of a function without its names and values: its calls, its 
 dryer - ub-mode's program for Requirement 11, in ..\dryer: finds every two functions whose shapes are 80% alike or more
 mutant - the code with one operator or constant changed, which a test should catch (Req. 12)
 mutator - ub-mode's program for Requirement 12, in ..\mutator: makes each mutant of src/ and runs the tests on it
-redundancy test - a test that only the crapper or the mutator needs, kept in tests/redundancy/ and run only when asked
+bug - a fault of the project found before and named in the log or in BUGS.md, e.g. "Bug 1 of 2026-11-16"
+core test - a test of a requirement, a rule or a bug; the core tests are at most as many as these (Rule 31)
+redundancy test - a test that only the crapper or the mutator needs, run only when asked: build.exe quick redundancy
+regression test - a test, in tests/regression/, of a bug that the log names, or one that a human asks for (Rule 34)
+category - one of the kinds of test that Rule 34 keeps apart: core, accessibility, regression and redundancy tests
 suite - the tests of one kind or subject, run in order by one file, e.g. tests/suites/mod_suite.c
 group - at most eight tests of a suite, held in one switch, e.g. run_gate_test
 fixture - a file or a small game that a test reads or builds, e.g. tests/fixtures/broken_rules.txt

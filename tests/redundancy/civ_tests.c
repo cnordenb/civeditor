@@ -91,7 +91,7 @@ static bool picked(ControlId list, int row)
 
     item.control = list;
     item.item = row;
-    command = list_item_command(&game, item);
+    command = list_item_command(&game, &design, item);
     return command_apply(&design, &command);
 }
 
@@ -314,7 +314,7 @@ bool test_a_civ_of_another_first_look_differs_from_its_civ_of_the_game(void)
 bool test_a_civ_of_another_first_cost_differs_from_its_civ_of_the_game(void)
 {
     (void)changed_civ(BRITONS, "Britons");
-    design.techs[TECH_TIER_CASTLE].cost[FIRST_RESOURCE] += 1;
+    design.techs[TECH_TIER_CASTLE].values[FIRST_RESOURCE].set = true;
     return !civ_design_same(&design, &as_game);
 }
 

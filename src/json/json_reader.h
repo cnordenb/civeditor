@@ -39,5 +39,6 @@ int json_first_child(const JsonDocument *document, int container);
 int json_next_sibling(const JsonDocument *document, int container, int child);
 bool json_copy_string(const JsonDocument *document, int token, char *destination, size_t capacity);
 TextNumber json_number(const JsonDocument *document, int token);
+TextDecimal json_decimal(const JsonDocument *document, int token);
 
 #endif

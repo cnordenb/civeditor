@@ -19,6 +19,7 @@ void json_begin(JsonWriter *writer, const char *key, char bracket);
 void json_end(JsonWriter *writer, char bracket);
 void json_write_string(JsonWriter *writer, const char *key, const char *value);
 void json_write_number(JsonWriter *writer, const char *key, long value);
+void json_write_decimal(JsonWriter *writer, const char *key, long value, unsigned places);
 void json_write_bool(JsonWriter *writer, const char *key, bool value);
 void json_write_null(JsonWriter *writer, const char *key);
 bool json_writer_succeeded(const JsonWriter *writer);

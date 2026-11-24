@@ -3,7 +3,7 @@
 #include "../../src/core/text.h"
 #include "../../src/persist/civ_file.h"
 
-enum { JAPANESE_SLOT = 5, TEXT_WIDTH = 48, FIRST_CHOICE = 3 };
+enum { TEXT_WIDTH = 48, FIRST_CHOICE = 3 };
 
 static const wchar_t EXAMPLE_PATH[] = L"tests/fixtures/example.civbuilder.json";
 
@@ -28,11 +28,6 @@ bool test_original_example_civ_keeps_its_unique_unit(void)
 {
     return civ_file_load(&loaded, EXAMPLE_PATH) && (loaded.unique_unit.origin == UNIT_ORIGIN_CUSTOM) &&
            (loaded.unique_unit.id == 5);
-}
-
-bool test_original_example_civ_keeps_its_language(void)
-{
-    return civ_file_load(&loaded, EXAMPLE_PATH) && (loaded.choices[CHOICE_LANGUAGE] == JAPANESE_SLOT);
 }
 
 static void set_every_text_and_choice(CivDesign *design)
@@ -65,10 +60,10 @@ static void design_a_civ(CivDesign *design)
     (void)civ_design_pick_unit(design, UNIT_ORIGIN_VANILLA, 1263);
     (void)civ_design_pick_tech(design, TECH_TIER_CASTLE, 3);
     (void)civ_design_pick_tech(design, TECH_TIER_IMPERIAL, 6);
-    design->techs[TECH_TIER_CASTLE].cost[0] = 250;
-    design->techs[TECH_TIER_CASTLE].time = 45;
-    design->techs[TECH_TIER_IMPERIAL].cost[1] = 600;
-    design->techs[TECH_TIER_IMPERIAL].time = 70;
+    (void)civ_design_set_tech_value(design, TECH_TIER_CASTLE, TECH_VALUE_FOOD, 250);
+    (void)civ_design_set_tech_value(design, TECH_TIER_CASTLE, TECH_VALUE_TIME, 45);
+    (void)civ_design_set_tech_value(design, TECH_TIER_IMPERIAL, TECH_VALUE_WOOD, 600);
+    (void)civ_design_set_tech_value(design, TECH_TIER_IMPERIAL, TECH_VALUE_TIME, 70);
     (void)civ_design_pick_hero(design, 1911);
 }
 
@@ -103,7 +98,7 @@ bool test_saved_civ_loads_back_unchanged(void)
 bool test_a_bonus_multiplier_is_read_back_from_a_civ_file(void)
 {
     design_a_civ(&loaded);
-    civ_design_set_multiplier(&loaded, false, 17, CIV_MULTIPLIER_LIMIT);
+    (void)civ_design_set_multiplier(&loaded, false, 17, civ_multiplier_of(CIV_MULTIPLIER_LIMIT));
     return composed_civ_is_parsed() && civ_file_interpret(&document, &reloaded) &&
-           (reloaded.bonuses[1].multiplier == CIV_MULTIPLIER_LIMIT);
+           (reloaded.bonuses[1].multiplier.millionths == CIV_MULTIPLIER_LIMIT * CIV_MILLIONTHS);
 }

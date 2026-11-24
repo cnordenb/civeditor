@@ -30,5 +30,6 @@ typedef struct {
 bool forge_prefix(const char *alias, char *prefix, size_t capacity);
 bool forge_civs_are_finished(const ForgeJob *job, ForgeResult *result);
 bool forge_build(const ForgeJob *job, ForgeResult *result);
+bool forge_read_game(Catalog *catalog, const wchar_t *game_folder);
 
 #endif

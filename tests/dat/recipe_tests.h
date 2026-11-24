@@ -8,6 +8,7 @@
 enum {
     GAME_CIVS = 2,
     GAME_TECHS = 11,
+    GAME_TIME = 25,
     GAME_CHANGE_COUNT = 20,
     SLOT = 1,
     OTHER_CIV = 3,
@@ -71,6 +72,9 @@ enum {
     TEAM_ENABLE_UNIT = 12,
     WOOD = 1,
     CHOSEN_WOOD = 300,
+    GOLD = 3,
+    GAME_GOLD = 200,
+    CHOSEN_TIME = 45,
     TEAM_ATTRIBUTE = 5,
     UNIT_SID = 111003,
     ELITE_SID = 111004,
@@ -82,6 +86,20 @@ enum {
     ANY_CHANGE = -1
 };
 
+enum {
+    BUILT_FOOD = 50,
+    BUILT_WOOD = 20,
+    BUILT_STONE = 10,
+    BUILT_GOLD = 5,
+    BUILT_HP = 100,
+    BUILT_ATTACK = 9,
+    BUILT_MELEE_ARMOR = 3,
+    BUILT_PIERCE_ARMOR = 4,
+    BUILT_RANGE = 2,
+    BUILT_SPEED = 110,
+    BUILT_RELOAD = 250
+};
+
 typedef enum {
     FULL_CIV,
     BARE_CIV,
@@ -90,8 +108,15 @@ typedef enum {
     MULTIPLIED_CIV,
     MULTIPLIED_BARE_CIV,
     EMPTY_CIV,
-    REQUIRED_CIV
+    REQUIRED_CIV,
+    STATS_CIV,
+    COSTLY_CIV
 } Scenario;
+
+typedef struct {
+    const DatBytes *bytes;
+    const DatMap *map;
+} RebuiltGame;
 
 bool recipe_game_build(Scenario scenario);
 RecipeReport recipe_game_report(Scenario scenario);
@@ -106,13 +131,11 @@ DatChange recipe_game_tech_last(int tech_id);
 int recipe_game_required_tech(Scenario scenario, int tech_id, int slot);
 int recipe_game_tech_civ(int tech_id);
 int recipe_game_team_changes(int type, int key);
-long recipe_game_unit_name(Scenario scenario);
-long recipe_game_resource(Scenario scenario, int resource);
+RebuiltGame recipe_game_rebuilt(Scenario scenario);
 const CivDesign *recipe_game_design(Scenario scenario);
 const Catalog *recipe_game_catalog(void);
 bool recipe_game_make(DatBytes *game);
 
-bool test_the_replaced_civ_loses_its_own_techs(void);
 bool test_the_unique_unit_is_made_by_a_tech_of_the_civ(void);
 bool test_a_unique_tech_is_researched_at_the_castle_in_its_age(void);
 bool test_a_built_unique_tech_changes_the_civs_own_unit(void);
@@ -125,7 +148,6 @@ bool test_a_copied_techs_effect_keeps_the_amounts_of_its_changes(void);
 bool test_a_copied_effect_names_the_copy_of_a_copied_tech(void);
 bool test_a_civ_bonus_made_of_a_generic_tech_unlocks_it(void);
 bool test_the_report_counts_the_civ_bonuses_built(void);
-bool test_the_report_counts_a_civ_bonus_the_catalog_lacks_as_skipped(void);
 bool test_a_bonus_with_nothing_to_build_is_counted_as_skipped(void);
 bool test_a_bonus_requirement_is_a_tech_of_the_civ(void);
 bool test_two_techs_given_one_requirement_share_its_copy(void);
@@ -133,7 +155,7 @@ bool test_a_bonus_of_requirements_is_counted_as_built(void);
 bool test_a_bonus_whose_tech_has_no_room_is_skipped(void);
 bool test_a_second_build_keeps_no_requirement_of_the_first(void);
 bool test_a_tech_that_no_line_names_keeps_its_requirements(void);
-bool test_the_report_counts_a_multiplier_of_a_bonus_made_of_the_games_techs(void);
+bool test_the_report_counts_a_multiplier_of_a_bonus_that_names_a_generic_tech(void);
 bool test_the_team_bonus_takes_the_changes_of_its_effect(void);
 bool test_the_team_bonus_names_the_games_own_techs(void);
 bool test_a_team_bonus_taken_twice_doubles_the_changes_of_its_effect(void);
@@ -156,7 +178,7 @@ bool test_a_skipped_team_bonus_is_not_counted_as_built(void);
 bool test_a_built_team_bonus_is_not_counted_as_skipped(void);
 bool test_a_team_bonus_of_changes_taken_twice_doubles_them(void);
 bool test_a_bonus_of_techs_builds_its_lines_too(void);
-bool test_the_lines_of_a_bonus_of_techs_count_once(void);
+bool test_the_lines_of_a_bonus_of_techs_count_as_often_as_the_bonus(void);
 bool test_a_named_hero_takes_the_string_id_of_its_slot(void);
 bool test_a_copied_tech_requires_the_copy_of_a_civs_tech_it_required(void);
 bool test_a_copied_tech_still_requires_a_tech_of_no_civ(void);

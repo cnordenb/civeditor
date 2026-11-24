@@ -59,22 +59,26 @@ static void tick_rows(AppState *app, ControlId control)
     LRESULT top;
     ListItem item;
     bool chosen;
+    bool changed = false;
     int row;
 
     list = app->controls[control];
     top = SendMessageW(list, LB_GETTOPINDEX, 0, 0);
-    (void)SendMessageW(list, WM_SETREDRAW, FALSE, 0);
     item.control = control;
     for (row = 0; (row < app->lists[control].count) && (row < LIST_ROW_CAPACITY); ++row) {
         item.item = app->lists[control].items[row];
         chosen = list_item_is_chosen(&app->catalog, &app->history.present, item);
         if (chosen != (SendMessageW(list, LB_GETSEL, (WPARAM)row, 0) > 0)) {
+            (void)SendMessageW(list, WM_SETREDRAW, FALSE, 0);
             (void)SendMessageW(list, LB_SETSEL, chosen ? TRUE : FALSE, (LPARAM)row);
+            changed = true;
         }
     }
-    (void)SendMessageW(list, LB_SETTOPINDEX, (WPARAM)((top > 0) ? top : 0), 0);
-    (void)SendMessageW(list, WM_SETREDRAW, TRUE, 0);
-    (void)InvalidateRect(list, NULL, FALSE);
+    if (changed) {
+        (void)SendMessageW(list, LB_SETTOPINDEX, (WPARAM)((top > 0) ? top : 0), 0);
+        (void)SendMessageW(list, WM_SETREDRAW, TRUE, 0);
+        (void)InvalidateRect(list, NULL, FALSE);
+    }
 }
 
 static int first_chosen_row(const AppState *app, ControlId control)
@@ -223,10 +227,11 @@ void sync_details(AppState *app)
         if ((layout_spec((ControlId)control).kind == WIDGET_TEXT) && layout_shows((ControlId)control, app->step)) {
             detail = (control == (int)CONTROL_CHANGED)
                          ? details_changed(roster_count(&app->roster))
-                         : details_of(&app->history.present, &app->catalog, (ControlId)control);
+                         : details_of(&app->history.present, (ControlId)control);
             show_text(app->controls[control], detail.text);
         }
     }
+    chosen_sync(app);
     if ((app->step == STEP_FINISH) && summary_write(&summary, &app->history.present, &app->catalog)) {
         show_text(app->controls[CONTROL_SUMMARY], summary.text);
     }
@@ -263,10 +268,11 @@ void sync_design(AppState *app, bool refill)
     sync_details(app);
 }
 
-static void apply(AppState *app, const Command *command)
+void sync_apply(AppState *app, const Command *command)
 {
     if (!history_do(&app->history, command)) {
-        dialogs_status(app, "That change cannot be made: the civ is full, the text is too long or nothing is ticked.");
+        dialogs_status(app, "That change cannot be made: the civ is full, the text is too long or nothing is "
+                            "ticked.");
     } else {
         app->unsaved = true;
         app->built = false;
@@ -297,7 +303,7 @@ static void on_text_change(AppState *app, ControlId control)
         return;
     }
     command = command_set_text((TextField)field, narrow);
-    apply(app, &command);
+    sync_apply(app, &command);
 }
 
 static void choose_civ(AppState *app, int slot)
@@ -334,8 +340,8 @@ static void on_pick(AppState *app, ControlId control, int row)
         choose_civ(app, app->catalog.appearance[item.item].id);
         return;
     }
-    command = list_item_command(&app->catalog, item);
-    apply(app, &command);
+    command = list_item_command(&app->catalog, &app->history.present, item);
+    sync_apply(app, &command);
 }
 
 static void on_checklist_change(AppState *app, ControlId control)
@@ -368,14 +374,28 @@ static bool click_command(AppState *app, ControlId control, Command *command)
     return (control == CONTROL_HERO_CHOOSE) && dialogs_choose_hero(app, command);
 }
 
+static void choose_effects(AppState *app, TechTier tier)
+{
+    static CivDesign chosen;
+
+    if (dialogs_choose_effects(app, tier, &chosen)) {
+        (void)history_replace(&app->history, &chosen);
+        app->unsaved = true;
+        app->built = false;
+        sync_design(app, false);
+    }
+}
+
 static void on_click(AppState *app, ControlId control)
 {
     Command command;
 
     if ((control == CONTROL_APPEARANCE) || (control == CONTROL_APPEARANCE_CLOSE)) {
         popup_show(app, control == CONTROL_APPEARANCE);
+    } else if ((control == CONTROL_CASTLE_TECH_EFFECTS) || (control == CONTROL_IMPERIAL_TECH_EFFECTS)) {
+        choose_effects(app, (control == CONTROL_CASTLE_TECH_EFFECTS) ? TECH_TIER_CASTLE : TECH_TIER_IMPERIAL);
     } else if (click_command(app, control, &command)) {
-        apply(app, &command);
+        sync_apply(app, &command);
     }
 }
 
@@ -398,21 +418,25 @@ static void on_selection(AppState *app, ControlId control, WidgetKind kind)
     }
 }
 
-void sync_on_notify(AppState *app, int control, int code)
+static void on_notify(AppState *app, ControlId control, int code)
 {
-    WidgetKind kind;
+    WidgetKind kind = layout_spec(control).kind;
 
-    if (app->syncing || (control < 0) || (control >= CONTROL_COUNT)) {
-        return;
-    }
-    kind = layout_spec((ControlId)control).kind;
     if (is_text_change(kind, code)) {
-        on_text_change(app, (ControlId)control);
+        on_text_change(app, control);
     } else if (code == LBN_SELCHANGE) {
-        on_selection(app, (ControlId)control, kind);
+        on_selection(app, control, kind);
     } else if ((kind == WIDGET_CHOICE) && (code == CBN_DROPDOWN)) {
         list_scroll_open(app->controls[control]);
     } else if (code == BN_CLICKED) {
-        on_click(app, (ControlId)control);
+        on_click(app, control);
     }
+}
+
+void sync_on_notify(AppState *app, int control, int code)
+{
+    if (app->syncing || (control < 0) || (control >= CONTROL_COUNT)) {
+        return;
+    }
+    on_notify(app, (ControlId)control, code);
 }

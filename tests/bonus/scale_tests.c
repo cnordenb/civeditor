@@ -1,8 +1,11 @@
 #include "scale_tests.h"
 
 #include "../../src/bonus/bonus_scale.h"
+#include "../../src/bonus/bonus_text.h"
+#include "../../src/core/text.h"
 
 enum {
+    SCALED_CAPACITY = 128,
     TWICE = 2,
     THRICE = 3,
     SET = 0,
@@ -147,4 +150,41 @@ bool test_an_armor_added_to_255_is_one_change(void)
     DatChange armor = { ADD, NONE, INFANTRY, ARMOR, (float)(PIERCE + 85) };
 
     return bonus_scale(&armor, THRICE).count == 1;
+}
+
+static bool scaled_is(const char *text, int multiplier, const char *expected)
+{
+    char scaled[SCALED_CAPACITY];
+
+    return bonus_text_scaled(text, multiplier, scaled, sizeof scaled) && text_equal(scaled, expected);
+}
+
+bool test_a_cost_cut_by_half_that_counts_twice_is_cut_by_three_quarters(void)
+{
+    return scaled_is("Town Centers cost -50% wood", TWICE, "Town Centers cost -75% wood");
+}
+
+bool test_an_amount_added_that_counts_twice_is_added_twice(void)
+{
+    return scaled_is("Infantry +1 attack", TWICE, "Infantry +2 attack");
+}
+
+bool test_each_percent_of_a_list_that_counts_twice_is_scaled(void)
+{
+    return scaled_is("Cavalry +20/30% hit points", TWICE, "Cavalry +44/69% hit points");
+}
+
+bool test_a_twofold_amount_that_counts_twice_becomes_fourfold(void)
+{
+    return scaled_is("Farms 2x HP", TWICE, "Farms 4x HP");
+}
+
+bool test_a_percent_that_counts_twice_shows_one_decimal(void)
+{
+    return scaled_is("Monks +5% faster", TWICE, "Monks +10.3% faster");
+}
+
+bool test_a_percent_without_a_sign_before_faster_that_counts_twice_is_raised(void)
+{
+    return scaled_is("Cavalry 20% faster", TWICE, "Cavalry 44% faster");
 }

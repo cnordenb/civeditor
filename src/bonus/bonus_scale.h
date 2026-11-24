@@ -9,7 +9,8 @@ typedef struct {
     int count;
 } ScaledChanges;
 
-ScaledChanges bonus_scale(const DatChange *change, int multiplier);
-bool bonus_add_scaled(DatEdit *edit, const DatChange *change, int multiplier);
+double bonus_raised(double base, double power);
+ScaledChanges bonus_scale(const DatChange *change, double times);
+bool bonus_add_scaled(DatEdit *edit, const DatChange *change, double times);
 
 #endif

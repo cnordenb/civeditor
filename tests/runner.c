@@ -2,19 +2,26 @@
 
 #include "../src/core/check.h"
 #include "../src/core/text.h"
+#include "suites/suites.h"
 #include "test_outcome.h"
 
 enum {
-    CATEGORY_COUNT = 4,
-    REDUNDANCY_CATEGORY = 3,
-    CATEGORY_TEST_LIMIT = 400,
+    CATEGORY_COUNT = 8,
+    LABEL_COUNT = 3,
+    REGRESSION_CATEGORY = 3,
+    REDUNDANCY_CATEGORY = 4,
+    CATEGORY_TEST_LIMIT = 1000,
     LINE_CAPACITY = 512,
     ARGUMENT_LIMIT = 8
 };
 
+static const char *const LABELS[LABEL_COUNT] = { "Test ", "Regression test ", "Redundancy test " };
+static const int LABEL_OF[CATEGORY_COUNT] = { 0, 0, 0, 1, 2, 2, 2, 2 };
+
 typedef struct {
     int run;
     int failed;
+    int numbered[LABEL_COUNT];
 } TestTally;
 
 static char last_note[LINE_CAPACITY];
@@ -49,6 +56,20 @@ TestOutcome test_outcome_missing(void)
 static bool rules_left_out;
 static bool redundancy_asked;
 
+static TestOutcome run_redundancy_category(int category, int index)
+{
+    switch (category) {
+    case REDUNDANCY_CATEGORY:
+        return redundancy_suite_run(index);
+    case REDUNDANCY_CATEGORY + 1:
+        return functional_suite_run(index);
+    case REDUNDANCY_CATEGORY + 2:
+        return test_window_is_left_out() ? test_outcome_missing() : shell_suite_run(index);
+    default:
+        return rules_left_out ? rule_redundancy_tools_run(index) : rule_redundancy_run(index);
+    }
+}
+
 static TestOutcome run_in_category(int category, int index)
 {
     if (!CHECK(index > 0) || !CHECK(index <= CATEGORY_TEST_LIMIT)) {
@@ -56,28 +77,26 @@ static TestOutcome run_in_category(int category, int index)
     }
     switch (category) {
     case 0:
-        return functional_suite_run(index);
+        return requirement_suite_run(index);
     case 1:
         return accessibility_suite_run(index);
     case 2:
-        return rules_left_out ? maintainability_tools_run(index) : maintainability_suite_run(index);
-    case REDUNDANCY_CATEGORY:
-        return redundancy_asked ? redundancy_suite_run(index) : test_outcome_missing();
+        return rules_left_out ? test_outcome_missing() : maintainability_suite_run(index);
+    case REGRESSION_CATEGORY:
+        return regression_suite_run(index);
     default:
-        return test_outcome_missing();
+        return redundancy_asked ? run_redundancy_category(category, index) : test_outcome_missing();
     }
 }
 
 static bool print_outcome(int category, int number, TestOutcome outcome)
 {
-    char line[LINE_CAPACITY] = "Test ";
+    char line[LINE_CAPACITY] = "";
 
     if (!CHECK(number > 0) || !CHECK(outcome.name != NULL)) {
         return false;
     }
-    if (category == REDUNDANCY_CATEGORY) {
-        (void)text_copy(line, sizeof line, "Redundancy test ");
-    }
+    (void)text_copy(line, sizeof line, LABELS[LABEL_OF[category]]);
     (void)text_append_number(line, sizeof line, number);
     (void)text_append(line, sizeof line, outcome.passed ? " passed: " : " FAILED: ");
     (void)text_append(line, sizeof line, outcome.name);
@@ -111,9 +130,12 @@ static void run_category(int category, TestTally *tally)
             return;
         }
         ++tally->run;
+        ++tally->numbered[LABEL_OF[category]];
         tally->failed += outcome.passed ? 0 : 1;
-        (void)print_outcome(category, (category == REDUNDANCY_CATEGORY) ? index : tally->run, outcome);
+        (void)print_outcome(category, tally->numbered[LABEL_OF[category]], outcome);
     }
+    ++tally->failed;
+    (void)fputs("A category holds more tests than CATEGORY_TEST_LIMIT in tests/runner.c lets run.\n", stdout);
 }
 
 static bool window_left_out;
@@ -164,7 +186,7 @@ static void read_arguments(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-    TestTally tally = { 0, 0 };
+    TestTally tally = { 0, 0, { 0, 0, 0 } };
     int category;
 
     read_arguments(argc, argv);

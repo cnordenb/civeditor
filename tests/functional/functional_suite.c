@@ -10,8 +10,8 @@
 #include "../mod/mod_tests.h"
 #include "../pack/pack_tests.h"
 
-enum { FILE_GROUP_SIZE = 7, MODEL_GROUP_SIZE = 8, PACK_GROUP_SIZE = 5, MOD_GROUP_SIZE = 9, UNIQUE_GROUP_SIZE = 8 };
-enum { CIV_LIST_GROUP_SIZE = 12, BASE_GROUP_SIZE = 8, TREE_GROUP_SIZE = 7 };
+enum { FILE_GROUP_SIZE = 6, MODEL_GROUP_SIZE = 4, PACK_GROUP_SIZE = 5, MOD_GROUP_SIZE = 7, UNIQUE_GROUP_SIZE = 8 };
+enum { CIV_LIST_GROUP_SIZE = 10, BASE_GROUP_SIZE = 5, TREE_GROUP_SIZE = 7 };
 enum {
     MODEL_START = FILE_GROUP_SIZE,
     PACK_START = MODEL_START + MODEL_GROUP_SIZE,
@@ -41,11 +41,8 @@ static TestOutcome run_file_test(int index)
         return test_outcome_of("the original's example civ keeps its unique unit",
                                test_original_example_civ_keeps_its_unique_unit());
     case 5:
-        return test_outcome_of("the original's example civ keeps its language",
-                               test_original_example_civ_keeps_its_language());
-    case 6:
         return test_outcome_of("a saved civ loads back unchanged", test_saved_civ_loads_back_unchanged());
-    case 7:
+    case 6:
         return test_outcome_of("a bonus's multiplier is read back from a civ file",
                                test_a_bonus_multiplier_is_read_back_from_a_civ_file());
     default:
@@ -60,22 +57,13 @@ static TestOutcome run_model_test(int index)
     }
     switch (index) {
     case 1:
-        return test_outcome_of("undo brings back the civ before a change",
-                               test_undo_brings_back_the_civ_before_a_change());
-    case 2:
         return test_outcome_of("typing a name is undone at once", test_typing_a_name_is_undone_at_once());
-    case 3:
+    case 2:
         return test_outcome_of("redo makes an undone change again", test_redo_makes_an_undone_change_again());
-    case 4:
-        return test_outcome_of("a 25th bonus is refused", test_a_25th_bonus_is_refused());
-    case 5:
+    case 3:
         return test_outcome_of("next walks every step in order", test_next_walks_every_step_in_order());
-    case 6:
+    case 4:
         return test_outcome_of("the summary names what is still needed", test_summary_names_what_is_still_needed());
-    case 7:
-        return test_outcome_of("the summary labels the civ's name", test_summary_labels_the_name());
-    case 8:
-        return test_outcome_of("the last step shows no Next button", test_the_last_step_shows_no_next_button());
     default:
         return test_outcome_missing();
     }
@@ -127,12 +115,6 @@ static TestOutcome run_mod_test(int index)
         return test_outcome_of("the name is written under the replaced civ's name id",
                                test_the_name_is_written_under_the_replaced_civs_name_id());
     case 7:
-        return test_outcome_of("the civ descriptions are written in id order",
-                               test_the_civ_descriptions_are_written_in_id_order());
-    case 8:
-        return test_outcome_of("the mod's folder name is made from the mod's name",
-                               test_the_mod_folder_name_is_made_from_the_mod_name());
-    case 9:
         return test_outcome_of("a mod is not built from an unfinished civ",
                                test_a_mod_is_not_built_from_an_unfinished_civ());
     default:
@@ -183,34 +165,29 @@ static TestOutcome run_civ_list_test(int index)
         return test_outcome_of("a hero's name is written under the string id of its slot",
                                test_a_heros_name_is_written_under_the_string_id_of_its_slot());
     case 2:
-        return test_outcome_of("a skipped hero's name is not written", test_a_skipped_heros_name_is_not_written());
-    case 3:
         return test_outcome_of("the civ list names the civ's own unique unit",
                                test_the_civ_list_names_the_civs_own_unique_unit());
-    case 4:
+    case 3:
         return test_outcome_of("a unique unit missing from the civ list takes its own icon and texts",
                                test_a_unique_unit_missing_from_the_civ_list_takes_its_own_icon_and_texts());
-    case 5:
+    case 4:
         return test_outcome_of("a unit patch changes its civ's unit", test_a_unit_patch_changes_its_civs_unit());
-    case 6:
+    case 5:
         return test_outcome_of("a train line moves where its civ's unit is trained",
                                test_a_train_line_moves_where_its_civs_unit_is_trained());
-    case 7:
+    case 6:
         return test_outcome_of("a train line sets the button of its civ's unit",
                                test_a_train_line_sets_the_button_of_its_civs_unit());
-    case 8:
+    case 7:
         return test_outcome_of("a unit with nowhere to train leaves its bonus skipped",
                                test_a_unit_with_nowhere_to_train_leaves_its_bonus_skipped());
-    case 9:
+    case 8:
         return test_outcome_of("a cost line sets a cost of its civ's unit",
                                test_a_cost_line_sets_a_cost_of_its_civs_unit());
-    case 10:
+    case 9:
         return test_outcome_of("a cost line reaches the last field of the costs",
                                test_a_cost_line_reaches_the_last_field_of_the_costs());
-    case 11:
-        return test_outcome_of("the civ list points at the civ's own description",
-                               test_the_civ_list_points_at_the_civs_own_description());
-    case 12:
+    case 10:
         return test_outcome_of("a value the civ keeps stays the game's in the civ list",
                                test_a_value_the_civ_keeps_stays_the_games_in_the_civ_list());
     default:
@@ -225,29 +202,20 @@ static TestOutcome run_base_test(int index)
     }
     switch (index) {
     case 1:
-        return test_outcome_of("a new civ starts with the tech tree of its civ",
-                               test_a_new_civ_starts_with_the_tech_tree_of_its_civ());
-    case 2:
         return test_outcome_of("choosing another civ takes away a regional node",
                                test_choosing_another_civ_takes_away_a_regional_node());
-    case 3:
+    case 2:
         return test_outcome_of("a base civ has the nodes its civ has in the game",
                                test_a_base_civ_has_the_nodes_its_civ_has_in_the_game());
-    case 4:
+    case 3:
         return test_outcome_of("a base civ gives the civ exactly its bonuses",
                                test_a_base_civ_gives_the_civ_exactly_its_bonuses());
-    case 5:
+    case 4:
         return test_outcome_of("a base civ gives the civ its team bonus",
                                test_a_base_civ_gives_the_civ_its_team_bonus());
-    case 6:
+    case 5:
         return test_outcome_of("a base civ gives the civ its unique unit",
                                test_a_base_civ_gives_the_civ_its_unique_unit());
-    case 7:
-        return test_outcome_of("a building the civ lacks is not available in its tech tree",
-                               test_a_building_the_civ_lacks_is_not_available_in_its_tech_tree());
-    case 8:
-        return test_outcome_of("a building the civ has is available in its tech tree",
-                               test_a_building_the_civ_has_is_available_in_its_tech_tree());
     default:
         return test_outcome_missing();
     }
@@ -284,14 +252,6 @@ static TestOutcome run_tree_test(int index)
     }
 }
 
-static TestOutcome run_window_suite_test(int index)
-{
-    if (!CHECK(index > 0) || test_window_is_left_out()) {
-        return test_outcome_missing();
-    }
-    return shell_suite_run(index);
-}
-
 static TestOutcome run_suite_test(int index)
 {
     if (index <= BUILD_SUITE_SIZE) {
@@ -303,10 +263,7 @@ static TestOutcome run_suite_test(int index)
     if (index <= BUILD_SUITE_SIZE + MOD_SUITE_SIZE + CORE_SUITE_SIZE) {
         return core_suite_run(index - BUILD_SUITE_SIZE - MOD_SUITE_SIZE);
     }
-    if (index <= BUILD_SUITE_SIZE + MOD_SUITE_SIZE + CORE_SUITE_SIZE + MODEL_SUITE_SIZE) {
-        return model_suite_run(index - BUILD_SUITE_SIZE - MOD_SUITE_SIZE - CORE_SUITE_SIZE);
-    }
-    return run_window_suite_test(index - BUILD_SUITE_SIZE - MOD_SUITE_SIZE - CORE_SUITE_SIZE - MODEL_SUITE_SIZE);
+    return model_suite_run(index - BUILD_SUITE_SIZE - MOD_SUITE_SIZE - CORE_SUITE_SIZE);
 }
 
 TestOutcome functional_suite_run(int index)

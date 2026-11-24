@@ -9,7 +9,7 @@ enum {
     FORGE_REPORT_END = 13,
     STRINGS_ESCAPE_END = 17,
     STRINGS_LABEL_END = 20,
-    STRINGS_TIP_END = 25
+    STRINGS_TIP_END = 26
 };
 
 static TestOutcome run_forge_mod_test(int index)
@@ -111,11 +111,14 @@ static TestOutcome run_strings_tip_test(int index)
         return test_outcome_of("the first tip names the team bonus of a civ without civ bonuses",
                                test_the_first_tip_names_the_team_bonus_of_a_civ_without_civ_bonuses());
     case 3:
+        return test_outcome_of("the first tip shows a civ bonus as it counts",
+                               test_the_first_tip_shows_a_civ_bonus_as_it_counts());
+    case 4:
         return test_outcome_of("the tip of a unique tech says where it is researched",
                                test_the_tip_of_a_unique_tech_says_where_it_is_researched());
-    case 4:
-        return test_outcome_of("the second tip names the unique unit", test_the_second_tip_names_the_unique_unit());
     case 5:
+        return test_outcome_of("the second tip names the unique unit", test_the_second_tip_names_the_unique_unit());
+    case 6:
         return test_outcome_of("a line break in a tip is written as a space",
                                test_a_line_break_in_a_tip_is_written_as_a_space());
     default:
@@ -136,9 +139,6 @@ static TestOutcome run_places_test(int index)
         return test_outcome_of("the game is not found where no library holds it",
                                test_the_game_is_not_found_where_no_library_holds_it());
     case 4:
-        return test_outcome_of("the local mods folder of a profile is found",
-                               test_the_local_mods_folder_of_a_profile_is_found());
-    case 5:
         return test_outcome_of("a home without a profile of the game has no mods folder",
                                test_a_home_without_a_profile_of_the_game_has_no_mods_folder());
     default:

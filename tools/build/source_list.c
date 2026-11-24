@@ -15,7 +15,7 @@ static const char PROGRAM_PREFIXES[SOURCE_PROGRAM_COUNT][SOURCE_PREFIX_LIMIT][SO
     { "tools/build/", "src/core/" }
 };
 static const char LIBRARIES[] =
-    "-lgdi32\n-lcomdlg32\n-lshell32\n-ladvapi32\n-loleacc\n-lole32\n-loleaut32\n-luxtheme\n";
+    "-lgdi32\n-lcomctl32\n-lcomdlg32\n-lshell32\n-ladvapi32\n-loleacc\n-lole32\n-loleaut32\n-luxtheme\n";
 
 typedef struct {
     char pending[SOURCE_FOLDER_CAPACITY][SOURCE_PATH_CAPACITY];

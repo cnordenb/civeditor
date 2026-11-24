@@ -26,10 +26,10 @@ bool test_every_text_contrasts_four_and_a_half_to_one(void)
     return true;
 }
 
-enum { LABELLED_KIND_COUNT = 6 };
+enum { LABELLED_KIND_COUNT = 7 };
 
-static const int LABELLED_KINDS[LABELLED_KIND_COUNT] = { WIDGET_LINE, WIDGET_PARAGRAPH, WIDGET_CHOICE,
-                                                         WIDGET_LIST, WIDGET_CHECKLIST, WIDGET_REPORT };
+static const int LABELLED_KINDS[LABELLED_KIND_COUNT] = { WIDGET_LINE,      WIDGET_PARAGRAPH, WIDGET_CHOICE, WIDGET_LIST,
+                                                         WIDGET_CHECKLIST, WIDGET_REPORT,    WIDGET_PANEL };
 
 static bool needs_label(WidgetKind kind)
 {

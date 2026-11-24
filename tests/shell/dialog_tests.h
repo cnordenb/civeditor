@@ -2,8 +2,12 @@
 #define DIALOG_TESTS_H
 
 #include <stdbool.h>
+#include <wchar.h>
+#include <windows.h>
 
-bool test_a_new_civ_is_saved_as_civeditor_civ_by_default(void);
+#include "../../src/view/layout.h"
+#include "../../src/view/wizard.h"
+
 bool test_a_named_civ_is_saved_under_its_name(void);
 bool test_a_save_that_is_cancelled_says_that_the_civ_was_not_saved(void);
 bool test_a_saved_civ_is_opened_again(void);
@@ -11,10 +15,8 @@ bool test_a_file_that_is_no_civ_file_is_refused_with_a_message(void);
 bool test_the_next_button_goes_to_the_next_step(void);
 bool test_a_typed_name_is_shown_in_the_title_of_the_window(void);
 bool test_redo_says_when_there_is_nothing_to_redo(void);
-bool test_no_step_is_shown_as_done_when_the_window_opens(void);
 bool test_closing_is_stopped_when_the_question_of_saving_is_cancelled(void);
 bool test_closing_without_saving_closes_the_window(void);
-bool test_the_exit_command_closes_a_window_without_changes(void);
 bool test_build_is_refused_when_the_game_is_not_found(void);
 bool test_build_writes_nothing_when_the_mod_is_not_named(void);
 bool test_build_of_an_unfinished_civ_says_that_it_is_not_finished(void);
@@ -23,21 +25,12 @@ bool test_the_help_line_is_written_in_the_muted_colour(void);
 bool test_a_field_is_written_on_the_colour_of_fields(void);
 bool test_a_row_in_focus_is_drawn_with_a_frame_in_the_focus_colour(void);
 bool test_picking_the_picked_row_again_makes_no_new_change(void);
-bool test_a_lists_scroll_bar_shows_its_arrows_while_the_mouse_is_away(void);
-bool test_the_windows_scroll_bar_shows_its_arrows_while_the_mouse_is_away(void);
-bool test_a_step_ends_a_margin_from_the_windows_scroll_bar(void);
 bool test_the_knob_of_the_windows_scroll_bar_reaches_its_end_with_the_step(void);
 bool test_a_step_that_just_fits_the_window_shows_no_scroll_bar(void);
 bool test_the_up_arrow_of_the_windows_scroll_bar_moves_the_step_up_a_line(void);
-bool test_a_wheel_turn_between_the_lists_redraws_nothing_when_the_step_fits(void);
-bool test_each_wheel_notch_moves_a_list_one_row_its_way(void);
-bool test_a_press_on_either_arrow_moves_a_list_one_row_its_way(void);
-bool test_a_shown_list_scrolls_without_animation(void);
-bool test_a_held_arrow_keeps_scrolling_a_list(void);
-bool test_a_press_between_a_lists_arrows_moves_it_a_page(void);
+bool test_the_room_under_the_last_row_of_a_list_is_painted_in_the_colour_of_fields(void);
+bool test_a_list_full_of_rows_paints_nothing_under_itself(void);
 bool test_a_key_in_a_list_moves_its_caret_one_row(void);
-bool test_a_dropdown_opens_without_animation(void);
-bool test_each_wheel_notch_moves_an_open_dropdown_one_row(void);
 bool test_ticking_hero_names_attila_the_hun_above_choose_hero(void);
 bool test_unticking_hero_hides_choose_hero(void);
 bool test_a_hero_picked_in_choose_hero_keeps_the_games_name(void);
@@ -47,6 +40,21 @@ bool test_a_civs_name_in_the_filter_of_the_bonuses_gives_its_civ_bonuses(void);
 bool test_a_civs_name_in_the_filter_of_the_tech_tree_gives_its_nodes(void);
 bool test_options_takes_a_mods_folder_that_exists(void);
 bool test_options_refuses_a_mods_folder_that_does_not_exist(void);
+bool test_closing_asks_nothing_when_the_option_says_not_to(void);
+bool test_options_keeps_the_choice_not_to_ask_to_save(void);
+bool test_the_window_shows_the_numbers_it_read_from_the_games_data_file(void);
+bool test_a_civ_not_yet_changed_takes_its_tech_tree_from_the_games_files(void);
+bool test_a_changed_civ_keeps_its_tech_tree_when_the_games_files_are_read(void);
+bool test_options_with_the_mods_folder_left_says_that_the_options_were_kept(void);
+bool test_a_changed_civ_is_asked_to_be_saved_when_no_option_is_kept(void);
+bool test_a_click_ticks_the_tick_box_of_a_question(void);
+bool test_a_click_unticks_a_tick_box_given_as_ticked(void);
+bool test_the_tick_box_of_a_question_lies_above_its_buttons(void);
+bool test_a_question_with_a_tick_box_takes_an_empty_text(void);
+bool test_options_cancelled_leaves_the_choice_of_asking_as_it_was(void);
+bool test_the_rows_of_a_list_shown_are_measured_anew_when_it_becomes_wider(void);
+bool test_a_letter_typed_into_the_name_leaves_the_tech_tree_nothing_to_redraw(void);
+bool test_the_longest_row_of_the_narrow_list_of_team_bonuses_is_higher_than_the_shortest(void);
 bool test_appearance_opens_the_popup_of_the_look_choices(void);
 bool test_the_popup_of_the_look_choices_is_hidden_until_asked_for(void);
 bool test_the_architecture_is_chosen_in_the_popup_of_the_look_choices(void);
@@ -60,5 +68,23 @@ bool test_a_civs_name_in_the_filter_of_the_castle_techs_gives_its_castle_tech(vo
 bool test_a_civs_name_in_the_filter_of_the_imperial_techs_gives_its_imperial_tech(void);
 bool test_clear_leaves_the_civ_without_a_civ_bonus(void);
 bool test_the_filter_of_choose_hero_leaves_the_heroes_that_hold_its_text(void);
+
+bool dialog_saves_anew(const wchar_t *name, const wchar_t *path);
+HWND dialog_opened(void);
+HWND dialog_control_of(HWND window, ControlId control);
+bool dialog_closed(HWND window, bool passed);
+bool dialog_stays_after(int action);
+
+HWND scroll_shown_list(int place);
+bool scroll_closed_with(HWND list, bool result);
+void scroll_run_posted(void);
+COLORREF scroll_erased_pixel(HWND list, int above_end);
+HWND scroll_small_window(WizardStep step);
+
+HWND dropdown_shown_choice(void);
+ULONGLONG dropdown_time_to_open(HWND choice);
+HWND dropdown_rows_of(HWND choice);
+void dropdown_wheel_down(HWND choice);
+bool dropdown_closed_with(HWND choice, bool result);
 
 #endif

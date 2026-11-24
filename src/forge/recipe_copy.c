@@ -7,6 +7,7 @@
 typedef struct {
     int from[RECIPE_COPY_CAPACITY];
     int to[RECIPE_COPY_CAPACITY];
+    double times[RECIPE_COPY_CAPACITY];
     int count;
 } TechPlan;
 
@@ -115,7 +116,7 @@ static int plan_index(int tech_id)
     return -1;
 }
 
-static bool plan_add(int tech_id)
+static bool plan_add(int tech_id, double times)
 {
     if (!CHECK(tech_id >= 0) || (plan_index(tech_id) >= 0)) {
         return true;
@@ -124,6 +125,7 @@ static bool plan_add(int tech_id)
         return false;
     }
     plan.from[plan.count] = tech_id;
+    plan.times[plan.count] = times;
     ++plan.count;
     return true;
 }
@@ -140,19 +142,19 @@ static bool plan_requirements(const RecipeInput *input, int position)
     }
     for (slot = 0; slot < DAT_REQUIRED_TECH_SLOTS; ++slot) {
         if (recipe_read_tech(input, planned.required_techs[slot], &required) && (required.civ >= 0)) {
-            fine = fine && plan_add(planned.required_techs[slot]);
+            fine = fine && plan_add(planned.required_techs[slot], 1);
         }
     }
     return fine;
 }
 
-bool recipe_plan_tech(const RecipeInput *input, int tech_id)
+bool recipe_plan_tech(const RecipeInput *input, int tech_id, double times)
 {
     int first = plan.count;
     int position;
     bool fine;
 
-    fine = plan_add(tech_id);
+    fine = plan_add(tech_id, times);
     for (position = first; fine && (position < plan.count) && (position < RECIPE_COPY_CAPACITY); ++position) {
         fine = plan_requirements(input, position);
     }
@@ -179,7 +181,7 @@ bool recipe_plan_requirement(const RecipeInput *input, const BonusRequirement *l
     DatTech tech;
 
     if (!recipe_read_tech(input, line->tech, &tech) || (free_slot(&tech) < 0) ||
-        !CHECK(requirements.count < REQUIREMENT_CAPACITY) || !recipe_plan_tech(input, line->requirement)) {
+        !CHECK(requirements.count < REQUIREMENT_CAPACITY) || !recipe_plan_tech(input, line->requirement, 1)) {
         return false;
     }
     requirements.lines[requirements.count] = *line;
@@ -209,7 +211,7 @@ void recipe_remap_change(DatChange *change)
     }
 }
 
-bool recipe_copy_changes(const RecipeInput *input, DatEdit *edit, const DatEffect *effect, bool remap, int multiplier)
+bool recipe_copy_changes(const RecipeInput *input, DatEdit *edit, const DatEffect *effect, bool remap, double times)
 {
     RecipeChange found;
     int index;
@@ -220,12 +222,12 @@ bool recipe_copy_changes(const RecipeInput *input, DatEdit *edit, const DatEffec
         if (remap) {
             recipe_remap_change(&found.change);
         }
-        fine = found.read && bonus_add_scaled(edit, &found.change, multiplier);
+        fine = found.read && bonus_add_scaled(edit, &found.change, times);
     }
     return fine;
 }
 
-int recipe_copy_effect(const RecipeInput *input, DatEdit *edit, int effect_id)
+int recipe_copy_effect(const RecipeInput *input, DatEdit *edit, int effect_id, double times)
 {
     DatEffect effect;
     int added;
@@ -234,7 +236,7 @@ int recipe_copy_effect(const RecipeInput *input, DatEdit *edit, int effect_id)
         return DAT_NO_ID;
     }
     added = dat_edit_add_effect(edit, effect.name);
-    return recipe_copy_changes(input, edit, &effect, true, 1) ? added : DAT_NO_ID;
+    return recipe_copy_changes(input, edit, &effect, true, times) ? added : DAT_NO_ID;
 }
 
 const UnitEntry *recipe_design_unit(const RecipeInput *input)
@@ -347,7 +349,7 @@ static bool copy_planned(const RecipeInput *input, DatEdit *edit, int position)
         copy.required_techs[slot] = remapped(copy.required_techs[slot]);
     }
     if (copy.effect_id >= 0) {
-        copy.effect_id = recipe_copy_effect(input, edit, copy.effect_id);
+        copy.effect_id = recipe_copy_effect(input, edit, copy.effect_id, plan.times[position]);
         if (copy.effect_id == DAT_NO_ID) {
             return false;
         }

@@ -1,0 +1,19 @@
+#ifndef WINDOW_REGRESSION_H
+#define WINDOW_REGRESSION_H
+
+#include <stdbool.h>
+
+bool test_a_cost_cut_by_half_slid_to_twice_cuts_it_by_three_quarters(void);
+bool test_no_step_is_shown_as_done_when_the_window_opens(void);
+bool test_the_exit_command_closes_a_window_without_changes(void);
+bool test_a_lists_scroll_bar_shows_its_arrows_while_the_mouse_is_away(void);
+bool test_the_windows_scroll_bar_shows_its_arrows_while_the_mouse_is_away(void);
+bool test_a_step_ends_a_margin_from_the_windows_scroll_bar(void);
+bool test_each_wheel_notch_moves_a_list_one_row_its_way(void);
+bool test_a_press_on_either_arrow_moves_a_list_one_row_its_way(void);
+bool test_a_shown_list_scrolls_without_animation(void);
+bool test_a_held_arrow_keeps_scrolling_a_list(void);
+bool test_a_press_between_a_lists_arrows_moves_it_a_page(void);
+bool test_each_wheel_notch_moves_an_open_dropdown_one_row(void);
+
+#endif

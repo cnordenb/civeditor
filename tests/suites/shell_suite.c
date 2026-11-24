@@ -3,16 +3,17 @@
 #include "../shell/dialog_tests.h"
 
 enum {
-    SAVE_END = 5,
-    VIEW_END = 9,
-    CLOSE_END = 12,
-    BUILD_END = 16,
-    DRAW_END = 19,
-    LOOP_END = 20,
-    BAR_TEST_COUNT = 7,
-    LIST_TEST_COUNT = 8,
+    SAVE_END = 4,
+    VIEW_END = 7,
+    CLOSE_END = 9,
+    BUILD_END = 13,
+    DRAW_END = 16,
+    LOOP_END = 17,
+    BAR_TEST_COUNT = 3,
+    LIST_TEST_COUNT = 3,
     HERO_TEST_COUNT = 4,
-    CHANGE_TEST_COUNT = 3,
+    CHANGE_TEST_COUNT = 12,
+    MEASURE_TEST_COUNT = 6,
     CIV_TEST_COUNT = 7
 };
 
@@ -20,16 +21,13 @@ static TestOutcome run_save_test(int index)
 {
     switch (index) {
     case 1:
-        return test_outcome_of("a new civ is saved as civeditor civ by default",
-                               test_a_new_civ_is_saved_as_civeditor_civ_by_default());
-    case 2:
         return test_outcome_of("a named civ is saved under its name", test_a_named_civ_is_saved_under_its_name());
-    case 3:
+    case 2:
         return test_outcome_of("a save that is cancelled says that the civ was not saved",
                                test_a_save_that_is_cancelled_says_that_the_civ_was_not_saved());
-    case 4:
+    case 3:
         return test_outcome_of("a saved civ is opened again", test_a_saved_civ_is_opened_again());
-    case 5:
+    case 4:
         return test_outcome_of("a file that is no civ file is refused with a message",
                                test_a_file_that_is_no_civ_file_is_refused_with_a_message());
     default:
@@ -48,9 +46,6 @@ static TestOutcome run_view_test(int index)
     case 3:
         return test_outcome_of("redo says when there is nothing to redo",
                                test_redo_says_when_there_is_nothing_to_redo());
-    case 4:
-        return test_outcome_of("no step is shown as done when the window opens",
-                               test_no_step_is_shown_as_done_when_the_window_opens());
     default:
         return test_outcome_missing();
     }
@@ -65,9 +60,6 @@ static TestOutcome run_close_test(int index)
     case 2:
         return test_outcome_of("closing without saving closes the window",
                                test_closing_without_saving_closes_the_window());
-    case 3:
-        return test_outcome_of("the exit command closes a window without changes",
-                               test_the_exit_command_closes_a_window_without_changes());
     default:
         return test_outcome_missing();
     }
@@ -181,6 +173,32 @@ static TestOutcome run_civ_test(int index)
     }
 }
 
+static TestOutcome run_measure_test(int index)
+{
+    switch (index) {
+    case 1:
+        return test_outcome_of("Options cancelled leaves the choice of asking to save as it was",
+                               test_options_cancelled_leaves_the_choice_of_asking_as_it_was());
+    case 2:
+        return test_outcome_of("the tick box of a question lies above its buttons",
+                               test_the_tick_box_of_a_question_lies_above_its_buttons());
+    case 3:
+        return test_outcome_of("the rows of a list shown are measured anew when it becomes wider",
+                               test_the_rows_of_a_list_shown_are_measured_anew_when_it_becomes_wider());
+    case 4:
+        return test_outcome_of("a letter typed into the name leaves the tech tree nothing to redraw",
+                               test_a_letter_typed_into_the_name_leaves_the_tech_tree_nothing_to_redraw());
+    case 5:
+        return test_outcome_of("the longest row of the narrow list of team bonuses is higher than the shortest",
+                               test_the_longest_row_of_the_narrow_list_of_team_bonuses_is_higher_than_the_shortest());
+    case 6:
+        return test_outcome_of("a question with a tick box takes an empty text",
+                               test_a_question_with_a_tick_box_takes_an_empty_text());
+    default:
+        return run_civ_test(index - MEASURE_TEST_COUNT);
+    }
+}
+
 static TestOutcome run_change_test(int index)
 {
     switch (index) {
@@ -193,8 +211,35 @@ static TestOutcome run_change_test(int index)
     case 3:
         return test_outcome_of("Options refuses a mods folder that does not exist",
                                test_options_refuses_a_mods_folder_that_does_not_exist());
+    case 4:
+        return test_outcome_of("closing asks nothing of a changed civ when the option says not to",
+                               test_closing_asks_nothing_when_the_option_says_not_to());
+    case 5:
+        return test_outcome_of("Options keeps the choice not to ask to save before exiting",
+                               test_options_keeps_the_choice_not_to_ask_to_save());
+    case 6:
+        return test_outcome_of("Options with the mods folder left as it is says that the options were kept",
+                               test_options_with_the_mods_folder_left_says_that_the_options_were_kept());
+    case 7:
+        return test_outcome_of("a changed civ is asked to be saved when no option is kept",
+                               test_a_changed_civ_is_asked_to_be_saved_when_no_option_is_kept());
+    case 8:
+        return test_outcome_of("a click ticks the tick box of a question",
+                               test_a_click_ticks_the_tick_box_of_a_question());
+    case 9:
+        return test_outcome_of("a click unticks a tick box given as ticked",
+                               test_a_click_unticks_a_tick_box_given_as_ticked());
+    case 10:
+        return test_outcome_of("the window shows the numbers it read from the game's data file",
+                               test_the_window_shows_the_numbers_it_read_from_the_games_data_file());
+    case 11:
+        return test_outcome_of("a civ not yet changed takes its tech tree from the game's files once they are read",
+                               test_a_civ_not_yet_changed_takes_its_tech_tree_from_the_games_files());
+    case 12:
+        return test_outcome_of("a changed civ keeps its tech tree when the game's files are read",
+                               test_a_changed_civ_keeps_its_tech_tree_when_the_games_files_are_read());
     default:
-        return run_civ_test(index - CHANGE_TEST_COUNT);
+        return run_measure_test(index - CHANGE_TEST_COUNT);
     }
 }
 
@@ -221,26 +266,14 @@ static TestOutcome run_list_test(int index)
 {
     switch (index) {
     case 1:
-        return test_outcome_of("each wheel notch moves a list one row its way",
-                               test_each_wheel_notch_moves_a_list_one_row_its_way());
-    case 2:
-        return test_outcome_of("a press on either arrow moves a list one row its way",
-                               test_a_press_on_either_arrow_moves_a_list_one_row_its_way());
-    case 3:
-        return test_outcome_of("a shown list scrolls without animation", test_a_shown_list_scrolls_without_animation());
-    case 4:
-        return test_outcome_of("a held arrow keeps scrolling a list", test_a_held_arrow_keeps_scrolling_a_list());
-    case 5:
-        return test_outcome_of("a press between a list's arrows moves it a page",
-                               test_a_press_between_a_lists_arrows_moves_it_a_page());
-    case 6:
         return test_outcome_of("a key in a list moves its caret one row",
                                test_a_key_in_a_list_moves_its_caret_one_row());
-    case 7:
-        return test_outcome_of("a dropdown opens without animation", test_a_dropdown_opens_without_animation());
-    case 8:
-        return test_outcome_of("each wheel notch moves an open dropdown one row",
-                               test_each_wheel_notch_moves_an_open_dropdown_one_row());
+    case 2:
+        return test_outcome_of("the room under the last row of a list is painted in the colour of fields",
+                               test_the_room_under_the_last_row_of_a_list_is_painted_in_the_colour_of_fields());
+    case 3:
+        return test_outcome_of("a list full of rows paints nothing under itself",
+                               test_a_list_full_of_rows_paints_nothing_under_itself());
     default:
         return run_hero_test(index - LIST_TEST_COUNT);
     }
@@ -250,26 +283,14 @@ static TestOutcome run_scroll_test(int index)
 {
     switch (index) {
     case 1:
-        return test_outcome_of("a list's scroll bar shows its arrows while the mouse is away",
-                               test_a_lists_scroll_bar_shows_its_arrows_while_the_mouse_is_away());
-    case 2:
-        return test_outcome_of("the window's scroll bar shows its arrows while the mouse is away",
-                               test_the_windows_scroll_bar_shows_its_arrows_while_the_mouse_is_away());
-    case 3:
-        return test_outcome_of("a step ends a margin from the window's scroll bar",
-                               test_a_step_ends_a_margin_from_the_windows_scroll_bar());
-    case 4:
         return test_outcome_of("the knob of the window's scroll bar reaches its end with the step",
                                test_the_knob_of_the_windows_scroll_bar_reaches_its_end_with_the_step());
-    case 5:
+    case 2:
         return test_outcome_of("a step that just fits the window shows no scroll bar",
                                test_a_step_that_just_fits_the_window_shows_no_scroll_bar());
-    case 6:
+    case 3:
         return test_outcome_of("the up arrow of the window's scroll bar moves the step up a line",
                                test_the_up_arrow_of_the_windows_scroll_bar_moves_the_step_up_a_line());
-    case 7:
-        return test_outcome_of("a wheel turn between the lists redraws nothing when the step fits",
-                               test_a_wheel_turn_between_the_lists_redraws_nothing_when_the_step_fits());
     default:
         return run_list_test(index - BAR_TEST_COUNT);
     }

@@ -4,10 +4,9 @@
 #include "../test_outcome.h"
 
 enum {
-    BUILD_SUITE_SIZE = 85,
+    BUILD_SUITE_SIZE = 89,
     MOD_SUITE_SIZE = 30,
-    CORE_SUITE_SIZE = 76,
-    MODEL_SUITE_SIZE = 70
+    CORE_SUITE_SIZE = 75
 };
 
 TestOutcome build_suite_run(int index);

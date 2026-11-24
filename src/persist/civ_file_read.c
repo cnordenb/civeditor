@@ -6,7 +6,6 @@
 
 enum { FORMAT_CAPACITY = 32 };
 
-
 static int read_number_or(const JsonDocument *document, int object, const char *key, int fallback)
 {
     int token = json_member(document, object, key);
@@ -70,6 +69,13 @@ static void read_choices(const JsonDocument *document, CivDesign *design)
                                 read_number_or(document, 0, "replace_civ", CIV_DEFAULT_REPLACE));
 }
 
+static Multiplier read_multiplier(const JsonDocument *document, int item)
+{
+    TextDecimal times = json_decimal(document, json_member(document, item, "multiplier"));
+
+    return civ_multiplier_of(times.valid ? times.value : 1.0);
+}
+
 static void read_bonuses(const JsonDocument *document, const char *key, CivDesign *design, bool team)
 {
     int list = json_member(document, 0, key);
@@ -84,7 +90,7 @@ static void read_bonuses(const JsonDocument *document, const char *key, CivDesig
         } else if ((bonus != CIV_NO_CHOICE) && !civ_design_has_bonus(design, bonus)) {
             (void)civ_design_toggle_bonus(design, bonus);
         }
-        civ_design_set_multiplier(design, team, bonus, read_number_or(document, item, "multiplier", 1));
+        (void)civ_design_set_multiplier(design, team, bonus, read_multiplier(document, item));
         item = json_next_sibling(document, list, item);
     }
 }
@@ -111,19 +117,80 @@ static void read_tree(const JsonDocument *document, CivDesign *design)
     }
 }
 
+static bool read_fitted(const JsonDocument *document, int token, StatRange range, unsigned places, int *stored)
+{
+    TextDecimal read = json_decimal(document, token);
+
+    return read.valid && civ_fit_decimal(range, places, read.value, stored);
+}
+
+static void read_stat(const JsonDocument *document, int overrides, CivDesign *design, UnitRank rank, UnitStat stat)
+{
+    char key[CIV_FILE_KEY_WIDTH];
+    int stored;
+
+    if (civ_file_stat_key(rank, stat, key, sizeof key) &&
+        read_fitted(document, json_member(document, overrides, key), civ_stat_range(stat), civ_stat_places(stat),
+                    &stored)) {
+        (void)civ_design_set_unit_stat(design, rank, stat, stored);
+    }
+}
+
 static void read_unique_unit(const JsonDocument *document, CivDesign *design)
 {
     int unit = json_member(document, 0, "unique_unit");
     int custom = read_number_or(document, unit, "km_idx", CIV_NO_CHOICE);
     int vanilla = read_number_or(document, unit, "vanilla_id", CIV_NO_CHOICE);
+    int rank;
+    int stat;
 
     if (vanilla != CIV_NO_CHOICE) {
         (void)civ_design_pick_unit(design, UNIT_ORIGIN_VANILLA, vanilla);
     } else if (custom != CIV_NO_CHOICE) {
         (void)civ_design_pick_unit(design, UNIT_ORIGIN_CUSTOM, custom);
     }
+    for (rank = 0; rank < (int)UNIT_RANK_COUNT; ++rank) {
+        for (stat = 0; stat < (int)UNIT_STAT_COUNT; ++stat) {
+            read_stat(document, json_member(document, unit, "overrides"), design, (UnitRank)rank, (UnitStat)stat);
+        }
+    }
     read_text(document, unit, "name", design, TEXT_FIELD_UNIT_NAME);
     read_text(document, unit, "description", design, TEXT_FIELD_UNIT_DESCRIPTION);
+}
+
+static void read_tech_value(const JsonDocument *document, int token, CivDesign *design, TechTier tier,
+                            TechValue value)
+{
+    int stored;
+
+    if (read_fitted(document, token, civ_tech_range(value), 0U, &stored)) {
+        (void)civ_design_set_tech_value(design, tier, value, stored);
+    }
+}
+
+static bool is_zero_cost(const JsonDocument *document, int cost)
+{
+    bool zero = true;
+    int resource;
+
+    for (resource = 0; resource < RESOURCE_KIND_COUNT; ++resource) {
+        zero = zero && (read_number_or(document, cost, CIV_FILE_RESOURCE_KEYS[resource], 1) == 0);
+    }
+    return zero;
+}
+
+static void read_effects(const JsonDocument *document, int tech, CivDesign *design, TechTier tier)
+{
+    int list = json_member(document, tech, "effects");
+    int item;
+    int bonus;
+
+    for (item = json_first_child(document, list); item != JSON_NONE; item = json_next_sibling(document, list, item)) {
+        bonus = read_number_or(document, item, "id", CIV_NO_CHOICE);
+        if ((bonus != CIV_NO_CHOICE) && civ_design_toggle_tech_effect(design, tier, bonus)) {
+            (void)civ_design_set_tech_effect(design, tier, bonus, read_multiplier(document, item));
+        }
+    }
 }
 
 static void read_tech(const JsonDocument *document, const char *key, CivDesign *design, TechTier tier)
@@ -136,10 +203,12 @@ static void read_tech(const JsonDocument *document, const char *key, CivDesign *
         return;
     }
     (void)civ_design_pick_tech(design, tier, read_number_or(document, tech, "vanilla_km_idx", CIV_NO_CHOICE));
-    for (resource = 0; resource < RESOURCE_KIND_COUNT; ++resource) {
-        design->techs[tier].cost[resource] = read_number_or(document, cost, CIV_FILE_RESOURCE_KEYS[resource], 0);
+    for (resource = 0; (resource < RESOURCE_KIND_COUNT) && !is_zero_cost(document, cost); ++resource) {
+        read_tech_value(document, json_member(document, cost, CIV_FILE_RESOURCE_KEYS[resource]), design, tier,
+                        (TechValue)resource);
     }
-    design->techs[tier].time = read_number_or(document, tech, "time", 0);
+    read_tech_value(document, json_member(document, tech, "time"), design, tier, TECH_VALUE_TIME);
+    read_effects(document, tech, design, tier);
     read_text(document, tech, "name", design,
               (tier == TECH_TIER_CASTLE) ? TEXT_FIELD_CASTLE_TECH_NAME : TEXT_FIELD_IMPERIAL_TECH_NAME);
 }

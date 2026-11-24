@@ -65,21 +65,6 @@ typedef enum {
     UNIT_ROLE_HERO
 } UnitRole;
 
-typedef enum {
-    UNIT_STAT_FOOD,
-    UNIT_STAT_WOOD,
-    UNIT_STAT_STONE,
-    UNIT_STAT_GOLD,
-    UNIT_STAT_HP,
-    UNIT_STAT_ATTACK,
-    UNIT_STAT_MELEE_ARMOR,
-    UNIT_STAT_PIERCE_ARMOR,
-    UNIT_STAT_RANGE,
-    UNIT_STAT_SPEED,
-    UNIT_STAT_RELOAD,
-    UNIT_STAT_COUNT
-} UnitStat;
-
 typedef struct {
     AppearanceKind kind;
     int id;
@@ -228,6 +213,11 @@ typedef enum {
     CATALOG_TABLE_COUNT
 } CatalogTable;
 
+typedef struct {
+    int parent;
+    int building;
+} TreeNeeds;
+
 bool catalog_load(Catalog *catalog, const wchar_t *folder);
 const char *catalog_category_name(BonusCategory category);
 const char *catalog_appearance_name(const Catalog *catalog, AppearanceKind kind, int id);
@@ -235,7 +225,9 @@ int catalog_string_id(const Catalog *catalog, int slot, CivString kind);
 int catalog_find_look(const Catalog *catalog, AppearanceKind kind, int id);
 int catalog_find_bonus(const Catalog *catalog, bool team, int bonus_id);
 int catalog_find(const Catalog *catalog, CatalogTable table, int kind, int id);
+int catalog_find_unit(const Catalog *catalog, const UnitPick *pick);
 int catalog_find_base(const Catalog *catalog, int base_id);
+TreeNeeds catalog_tree_needs(const Catalog *catalog, int node);
 bool catalog_is_ranked(const Catalog *catalog, int slot);
 
 #endif

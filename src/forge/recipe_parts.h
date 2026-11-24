@@ -40,12 +40,12 @@ void recipe_sort_changes(RecipeChanges *changes);
 
 bool recipe_neutralize(const RecipeInput *input, DatEdit *edit);
 void recipe_plan_reset(void);
-bool recipe_plan_tech(const RecipeInput *input, int tech_id);
+bool recipe_plan_tech(const RecipeInput *input, int tech_id, double times);
 bool recipe_plan_requirement(const RecipeInput *input, const BonusRequirement *line);
 bool recipe_commit_plan(const RecipeInput *input, DatEdit *edit);
-int recipe_copy_effect(const RecipeInput *input, DatEdit *edit, int effect_id);
+int recipe_copy_effect(const RecipeInput *input, DatEdit *edit, int effect_id, double times);
 void recipe_remap_change(DatChange *change);
-bool recipe_copy_changes(const RecipeInput *input, DatEdit *edit, const DatEffect *effect, bool remap, int multiplier);
+bool recipe_copy_changes(const RecipeInput *input, DatEdit *edit, const DatEffect *effect, bool remap, double times);
 UniqueSwap recipe_unique_swap(const RecipeInput *input, int source_civ);
 bool recipe_name_unique_unit(const RecipeInput *input, DatEdit *edit);
 const UnitEntry *recipe_design_unit(const RecipeInput *input);

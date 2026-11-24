@@ -9,6 +9,7 @@
    - [The narrow window](#the-narrow-window)
    - [The catalog files](#the-catalog-files)
    - [Civs to edit and the civs of the mod](#civs-to-edit-and-the-civs-of-the-mod)
+   - [The unique unit and techs](#the-unique-unit-and-techs)
    - [How a mod is built](#how-a-mod-is-built)
    - [The rules the code keeps](#the-rules-the-code-keeps)
    - [Tests](#tests)
@@ -27,8 +28,9 @@ You need Windows, and gcc from [MinGW-w64](https://www.mingw-w64.org/) on the `P
    `Build and tests passed.`, `Build failed.` or `Tests failed.`
    - `Build failed.`: gcc printed the warning or the finding of the analyzer above it, with file and line. Every
      warning is an error here; mend the code, do not silence the warning.
-   - `Tests failed.`: each failed test printed `Test N FAILED: what it checks`, and under it where it found the fault.
-     Look up Test N in [TESTS.md](TESTS.md) to see what it expects.
+   - `Tests failed.`: each failed test printed `Test N FAILED: what it checks`, or `Regression test N` or
+     `Redundancy test N`, and under it where it found the fault. Look it up in [TESTS.md](TESTS.md) to see what it
+     expects.
 4. **Faster while working.** `build.exe quick` skips the analyzer and takes a few seconds. Run `build.exe` once
    before you hand in the change.
 5. **Try it.** Start `build\civeditor.exe` and walk through the change by hand.
@@ -47,31 +49,34 @@ only by handing a `Command` to `history_do`, so that every change can be undone.
 
 | File or folder | What it holds |
 | --- | --- |
-| `src/core/` | `CHECK` (`check.c`), bounded strings (`text.c`) and reading and writing whole files (`file_io.c`). |
-| `src/model/` | `CivDesign`, the design (`civ_design.c`), and whether two designs are alike in a step (`civ_compare.c`); a change to it as a `Command` (`command.c`); undo and redo (`history.c`). |
+| `src/core/` | `CHECK` (`check.c`), bounded strings and the numbers and decimals written in them (`text.c`) and reading and writing whole files (`file_io.c`). |
+| `src/model/` | `CivDesign`, the design (`civ_design.c`), with the overrides of its unique unit and unique techs and their tech effects, and whether two designs are alike in a step (`civ_compare.c`); a change to it as a `Command` (`command.c`); undo and redo (`history.c`). |
 | `src/base/` | Making a design its base civ: its tech tree, bonuses, looks, unique unit and unique techs with their names, its name, tagline and description (`base_civ.c`). |
 | `src/roster/` | The civs of a session: the draft of each civ to edit, and which of them are changed civs, the civs of the mod (`civ_roster.c`). |
 | `src/gametext/` | Each civ's tagline and description, read from the game's English strings at the string id the civ list gives (`game_text.c`). |
 | `src/json/` | Writing JSON (`json_writer.c`), reading it (`json_reader.c`, `json_string.c`), and changing values in a JSON text while the rest stays byte for byte as it was (`json_patch.c`). |
 | `src/persist/` | Civ files: `civ_file_write.c` writes `empireforge_v2`, `civ_file_read.c` reads it and `civbuilder_v1`. |
-| `src/data/` | Reading tab-separated text (`tsv.c`), the catalog in `data/` (`catalog.c`) and finding in it (`catalog_lookup.c`). |
+| `src/data/` | Reading tab-separated text (`tsv.c`), the catalog in `data/` (`catalog.c`) and finding in it, such as the nodes a node of the tech tree needs (`catalog_lookup.c`). |
 | `src/view/` | What the window shows, without Win32: the four steps (`wizard.c`), where each control goes (`layout.c`), the help of each control (`control_help.c`), the colors (`palette.c`). |
-| `src/present/` | What each control shows and what picking in it changes (`binding.c`), the summary of Finish and the report of a build (`summary.c`), the text beside a list, the row of a civ in Civ to edit and the window's title (`details.c`). |
+| `src/present/` | What each control shows and what picking in it changes (`binding.c`), unticking a node of the tech tree with every node that needs it (`tree_command.c`), the summary of Finish and the report of a build (`summary.c`), the text beside a list, the row of a civ in Civ to edit and the window's title (`details.c`). |
 | `src/pack/` | Unpacking raw deflate (`inflate.c`, `huffman.c`) and packing in stored blocks (`deflate_store.c`). `inflate.h` holds the tables of deflate's codes. |
 | `src/deflate/` | Compressing the mod's dat file with deflate (`deflate.c`), writing the bits with `bit_writer.c`. |
 | `src/dat/` | The game's `empires2_x2_p1.dat`: finding its parts, a civ's units and the parts of a unit (`dat_map.c`, with `dat_skip.c` and `dat_field.c`) and writing it anew with changes (`dat_edit.c`). |
-| `src/mod/` | Finding the game and its mods folder (`mod_places.c`), the civ's texts (`mod_text.c`), the UI mod's strings file (`mod_strings.c`) and the two folders' `info.json` and the UI mod's files (`mod_ui.c`). |
+| `src/mod/` | Finding the game and its mods folder (`mod_places.c`), the civ's texts, a unique tech with tech effects described by them (`mod_text.c`), the UI mod's strings file (`mod_strings.c`) and the two folders' `info.json` and the UI mod's files (`mod_ui.c`). |
 | `src/forge/` | Building the mod: the changes to the game's data (`recipe.c`, `recipe_copy.c`, `recipe_tree.c`) and the whole build of every changed civ, from the game's file to the two mod folders (`forge.c`). |
-| `src/bonus/` | Building a bonus that `bonus_effects.txt` gives as changes and unit patches rather than techs (`bonus_build.c`), and the changes of a bonus scaled by its multiplier (`bonus_scale.c`). |
-| `src/unique/` | Aiming a unique tech taken from another civ at the civ's own unique unit (`unique_aim.c`), and copying the tech itself for the civ, with its costs and age (`unique_tech.c`). |
+| `src/bonus/` | Building a bonus that `bonus_effects.txt` gives as changes and unit patches rather than techs (`bonus_build.c`), and the changes of a bonus scaled by its multiplier (`bonus_scale.c`), and the text of a bonus with its numbers as often as it counts, and where its numbers to set are (`bonus_text.c`). |
+| `src/numbers/` | The numbers of a row of a number panel, without Win32: the row cut into words, spaces, numbers and units and wrapped, the piece of a number, and where the card goes under a field (`number_layout.c`); a number's text in its field and with its unit, its range and the multiplier that a value typed or the slider sets (`number_edit.c`); the sheet of the selected unit or tech, its rows and the value that a number typed sets (`number_unique.c`). |
+| `src/unique/` | Aiming a unique tech taken from another civ at the civ's own unique unit (`unique_aim.c`), writing the stats set of the unique unit into it and its elite unit (`unique_stats.c`), and copying the tech itself for the civ, with its costs and age, its tech values set, and its tech effects built into one effect (`unique_tech.c`). |
 | `src/look/` | Giving the civ the looks of other civs: which civs the design names (`look_sources.c`), and copying their buildings, castle, wonder, monks, kings, trade carts and warships, and the units of look lines (`look_copy.c`). |
 | `src/hero/` | Making the civ's hero: finding its unit, training it at the Castle and making it available in the Imperial Age (`hero_build.c`). |
 | `src/civlist/` | The civ list, `civilizations.json`: reading the game's, finding a slot's entry and writing it anew with the civ's unique techs, unique unit and description id (`civ_list.c`). |
-| `src/techtree/` | The civ's tech tree file, `CivTechTrees\<name>.json`: the game's file with each node of the catalog set to what the design has (`tech_tree.c`), read and written by `tech_tree_file.c`. |
+| `src/techtree/` | The civ's tech tree file, `CivTechTrees\<name>.json`: the game's file with each node of the catalog set to what the design has (`tech_tree.c`), read and written by `tech_tree_file.c`, which also marks in the catalog the civs that have each node, from the game's own tech tree files (`tech_tree_read_game`). |
+| `src/gamedata/` | The catalog's numbers taken from the game's data file: the stats of each unique unit of the game and the costs and research time of each unique tech (`game_numbers.c`). It finds a unit as a build does, with `RecipeInput` of `src/forge/recipe_parts.h`. |
 | `src/reflow/` | The step in one column, for a window too narrow or too short for the columns, and how far it scrolls (`reflow.c`); no Win32. |
-| `src/shell/` | What the window asks of Windows through one door, so that a test can answer in the user's place: message boxes, the file dialogs, a question answered with a text, such as the mod name, and where the game is (`ask.c`, with the dialog of that question in `text_dialog.c`, which may also offer a list whose picked row fills in the text, as Choose hero... does, under a filter of its rows), how every list scrolls, one row at a time (`list_scroll.c`), and the menu with its keys (`menu.c`). `shell.h` holds them. |
-| `src/win/` | The rest of the Win32 code: `winmain.c` starts it, `app_window.c` is the window, `controls.c` makes and draws controls, `assist.c` holds what the window does for accessibility (the text size of Windows, the focus frame, help in the status line, the status line marked for screen readers) and how it scrolls, and runs each message of the loop, `sync.c` keeps them in step with the design, `dialogs.c` opens and saves files, builds the mod and holds Options.... `win_parts.h` holds what they share. |
+| `src/shell/` | What the window asks of Windows through one door, so that a test can answer in the user's place: message boxes, the file dialogs, a question answered with a text, such as the mod name, and where the game is (`ask.c`, with the dialog of that question in `text_dialog.c`, which may also offer a list whose picked row fills in the text, as Choose hero... does, or a list of rows to tick and no text, as Choose castle effects... does, under a filter of its rows), how every list scrolls, one row at a time (`list_scroll.c`), and the menu with its keys (`menu.c`). `shell.h` holds them. |
+| `src/win/` | The rest of the Win32 code: `winmain.c` starts it, `app_window.c` is the window, `controls.c` makes and draws controls, `assist.c` holds what the window does for accessibility (the text size of Windows, the focus frame, help in the status line, the status line marked for screen readers) and how it scrolls, and runs each message of the loop, `sync.c` keeps them in step with the design, `dialogs.c` opens and saves files, builds the mod and holds Options..., Choose hero... and the dialogs that choose a unique tech's effects. `win_parts.h` holds what they share. |
 | `src/popup/` | The Appearance popup: the small window that holds the look choices (`popup.c`). |
+| `src/chosen/` | The number panels in the window, Chosen bonuses and the panels of the selected unit and techs: the panel, a label for each row with a field of a number for each of its numbers, and the card with the slider just below the field of a number to set in focus. `chosen_window.c` makes, fills, lays out and scrolls their windows, `chosen_draw.c` measures and draws them, `chosen_edit.c` follows the focus and takes a value typed, Enter, Esc and the slider; `chosen_parts.h` is what the three share. |
 | `data/` | The catalog, seven tab-separated text files; see [The catalog files](#the-catalog-files). |
 | `tests/` | The test runner (`runner.c`) and the tests, by kind; see [Tests](#tests). |
 | `tools/build/` | The build program. `source_list.c` lists the code, says which files make each of the three programs (`PROGRAM_PREFIXES`), where a source's object goes and whether it is still fresh; `build_plan.c` turns the command line into the mode, the folders, the commands of gcc and the arguments of the tests, which the tests check; `build_steps.c` makes the folders, compiles, links and runs the tests with them, each step a function of one decision at most; `build.c` is its `main`. |
@@ -94,6 +99,10 @@ all of them use, and the window's direct uses of the folders further down.
 flowchart TD
     win["src/win: the window"] --> shell["src/shell: dialogs and the menu"]
     win --> popup["src/popup: the Appearance popup"]
+    win --> chosen["src/chosen: the number panels in the window"]
+    chosen --> numbers["src/numbers: the rows and numbers of the number panels"]
+    numbers --> bonus
+    numbers --> data
     win --> reflow["src/reflow: the step in one column"]
     reflow --> view
     shell --> view
@@ -114,16 +123,22 @@ flowchart TD
     forge --> pack
     forge --> dat["src/dat: the game's data file"]
     forge --> mod["src/mod: places and strings"]
-    forge --> bonus["src/bonus: bonuses from changes"]
+    forge --> bonus["src/bonus: bonuses from changes, and their text"]
+    present --> bonus
+    mod --> bonus
     bonus --> dat
     bonus --> data
-    forge --> unique["src/unique: aiming unique techs"]
+    forge --> unique["src/unique: the unique unit and techs"]
+    unique --> bonus
     unique --> dat
     unique --> data
     forge --> look["src/look: the looks"]
     look --> dat
     forge --> hero["src/hero: the hero"]
     hero --> dat
+    forge --> gamedata["src/gamedata: the catalog's numbers from the game"]
+    gamedata --> unique
+    gamedata --> dat
     forge --> techtree["src/techtree: the tech tree file"]
     techtree --> civlist["src/civlist: the civ list"]
     techtree --> data
@@ -207,6 +222,10 @@ hero... scrolls as the others do:
 - `move_list` moves a list with its redrawing turned off (`SetWindowRedraw`), which is what keeps it from sliding, and
   draws it again after. Keys and clicks need nothing of the sort: Windows slides lists whose rows differ in height
   only on the wheel and the arrows;
+- a list never paints its rows white before it draws them, which showed as a blink of the selected rows. Windows
+  erases a list with the brush that the window answers to `WM_CTLCOLORLISTBOX`; `controls_color` in `controls.c`
+  passes that answer through `list_scroll_brush`, which gives a list a brush that paints nothing and itself paints
+  the room under the last row, the only part that no row draws;
 - a dropdown opens at once: Windows would slide its rows open, but does not when they are shown already, so
   `sync_on_notify` hands a dropdown about to open (`CBN_DROPDOWN`) to `list_scroll_open`, which shows its rows first;
 - a notch of the wheel over an open dropdown moves its rows one row too: `wheeled_list` finds the rows of the
@@ -223,7 +242,13 @@ like that of Windows 2000.
 The window may be as small as 320 by 256 units (`limit_size` in `app_window.c`), which is what a screen 1280 wide
 holds at 400%. The rows of a list are as high as their text needs: `assist_wrap_rows` measures each row for the
 list's width whenever a list is filled or the window changes size, and `assist_row_format` draws the text on as
-many lines. A new control needs nothing for the narrow window: it takes its place after the control before it.
+many lines. Measuring a row is what costs time in the window, so the height of each item is kept for as long as
+the list keeps its width (`WrappedRows` in `win_parts.h`, one for each control): a filter that shows fewer rows
+measures none again. `assist_placed` wraps only the lists of the step shown that are not yet wrapped at their
+width, and `assist_forget_rows` forgets every height when the fonts are made anew. For the same reason
+`chosen_sync` fills only the number panels of the step shown, `tick_rows` in `sync.c` redraws a list only when a
+tick changed, and `binding.c` works out the civs that a filter names once for a list, not once for a row
+(`name_civs`). A new control needs nothing for the narrow window: it takes its place after the control before it.
 
 ### The catalog files
 
@@ -272,6 +297,24 @@ string ids on the `civ` lines are the original's, five for each slot: ids of tex
 original found that the game takes a UI mod's text only for an id it already has. With the UI mod on, a few lines of
 those campaigns show the civ's texts instead.
 
+What the game itself says replaces what these files say, so that a game update does not leave them out of date.
+`app_run` posts `APP_GAME_WANTED` once the window is shown, and `dialogs_read_game` then finds the game
+(`ask_folder`) and calls `forge_read_game` in `forge.c`, which reads into the catalog:
+
+- from `empires2_x2_p1.dat`, the stats of every unit of role `V` in `units.txt` and the costs and research time of
+  every tech of `techs.txt` that is copied from a tech of the game (`game_numbers_read`). A stat is read as the
+  game holds it, but the range as the game shows it (`unique_stats_read` in `unique_stats.c`): the Fire Archer
+  shoots 9 tiles and shows 5.
+- from `civilizations.json` and each civ's file in `CivTechTrees`, the civs that have each node of `tree.txt`
+  (`tech_tree_read_game`): a node that a civ's file lacks or gives as `NotAvailable` is not that civ's.
+
+The read takes most of a second, which is why it waits until the window is shown. A unit, a tech or a civ that
+the game lacks keeps what the files say, and so does everything when no game is found. A civ to edit that has
+no unsaved change and no file is then made its base civ anew (`base_civ_apply`), so that its tech tree is the
+game's. The rest still comes from the files only: the bonuses and their changes, the team bonuses, the names,
+ages, buildings and parents of the nodes, and the string ids. A test that wants the game read sends
+`APP_GAME_WANTED` to the window itself, since `app_open` does not post it.
+
 ### Civs to edit and the civs of the mod
 
 The first list of the step Name and tech tree is the civ to edit, the Britons when the window opens. Choosing another
@@ -299,7 +342,8 @@ The hero is chosen in UU&UT. Ticking the Hero box picks Attila the Hun, unit 777
 `hero_box_command` in `binding.c`), named as the catalog names him; unticking it picks no hero. Choose hero...
 (`dialogs_choose_hero` in `dialogs.c`) shows the heroes of the catalog, the rows of `CONTROL_HERO_CHOOSE`, in the
 dialog of `text_dialog.c`, under a filter and with the hero's name in a field under them. Picking a row puts the
-catalog's name of that hero in the field; OK picks the hero with the name in the field, as one change, and Cancel changes nothing.
+catalog's name of that hero in the field; OK picks the hero with the name in the field, as one change, and Cancel
+changes nothing.
 
 The list of steps marks a step "(done)" only once the design differs there from its base civ
 (`wizard_step_is_done` in `wizard.c`, which compares with `civ_design_same_identity` and the others of
@@ -323,11 +367,64 @@ the filter's text, or when the text starts the name of a civ that has the row's 
 bonus, unique unit or unique tech (`civ_matches` in `binding.c`). Clear under the civ bonuses unticks them all as one
 change (`COMMAND_CLEAR_BONUSES`).
 
-Build mod asks only for the mod's name and writes into the mods folder (`app->mods_folder`), found when first
-needed (`ask_folder`). Options... in the menu File (`dialogs_options` in `dialogs.c`) shows that folder and takes
-another that exists; it is kept until civeditor closes. A build that left nothing out (`summary_build_is_whole`)
-shows no message: Finish shows the built mark, `CONTROL_BUILT`, until the next change. A build that left something
-out says what in a message, as before, and a build that failed says why.
+The team bonus has a number panel of its own under its list, `NUMBER_PANEL_TEAM`, with one row: the picked team
+bonus as it counts. Its fields and card work as those of Chosen bonuses below; a value set there is a
+`COMMAND_SET_TEAM_MULTIPLIER`, kept in the design beside the team bonus, and Finish, the mod's texts and the build
+scale the team bonus by it. The panel does not stretch: it is `TEAM_PANEL_HEIGHT` high (`layout.c`), 124, the room of
+two lines of text and the card under them, and the list of team bonuses above it takes the rest of the column. A
+longer text scrolls in the panel.
+
+Chosen bonuses, in the step Bonuses, is where a bonus's multiplier is set. It is a panel of its own class
+(`CHOSEN_CLASS_NAME`, registered in `app_window.c`; its window procedure is `chosen_procedure` in `chosen_window.c`)
+with a label for each ticked civ bonus, as it counts, and in each label a field of a number for each number to set,
+which holds the number without its unit: "Shepherds work [25]% faster". A value typed into a field sets the
+multiplier that shows it, with Enter or when the field is left, if the value lies in the range of the number, its
+values at the multipliers 1 and 10 (`number_typed_command` in `number_edit.c`); otherwise the status line names the
+range and the field shows the number again. While a field has the focus, the card is shown just below it, with the
+slider from 1 to 10 in hundredths and the least and the most value at its ends: dragged, the slider shows in the field
+the value it would set, and let go, it sets it (`number_slid_command`). Esc hides the card. Each of these changes is
+a `COMMAND_SET_MULTIPLIER` that goes through `sync_apply` in `sync.c`, so it can be undone. A change that takes the
+number in focus away, as Clear or an undo can, gives the focus to the list of civ bonuses (`give_up_field`).
+
+The panel's windows are made when first needed and then kept, hidden while not needed (`AppState.chosen`): a label
+(`STATIC`, `SS_OWNERDRAW`, `CHOSEN_ROW_ID_BASE` and its row) for each row, a field (`EDIT`, `chosen_field_id`) for
+each number and one card. None is destroyed while the window is open, so no field is destroyed in the middle of its
+own message. `chosen_sync` gives them their texts after every change and `chosen_arrange` lays them out:
+`number_layout.c` cuts each row into words, spaces, numbers and units and wraps it to the width of the panel, a
+number's piece as wide as its field (`chosen_lay_out` in `chosen_draw.c`), and each field is placed over its piece.
+A field is as wide as the widest of its number's values, now and at the multipliers 1 and 10, with its margins and
+2 pixels a side for the `EDIT` itself, which draws its border inside its client area and keeps one more pixel inside
+that (`CHOSEN_FIELD_INSET`). It is as tall as its text with those 2 pixels above and below, and never less than
+`CHOSEN_FIELD_LEAST`, 24 pixels at 96 dots an inch (`chosen_lines`).
+The fields come first in the Z order, in reading order (`order_fields`), so Tab walks them row by row; the card is put
+just after the field in focus, so Tab goes from the field to its slider and the card covers the line below; the
+labels come last, so that no label paints over a field. `chosen_edit.c` follows the focus after every message
+(`chosen_follow_focus`), places the card (`number_card_place` centers it under its field, inside the panel) and takes
+Enter and Esc before `IsDialogMessage` does. A field is not a child of the main window, so the label around it draws
+its focus frame (`assist_draw_ring`). The panel and the card answer `WM_PRINTCLIENT` as they paint (`chosen_print`), so
+that a test can print them. The panel scrolls itself, with room under the last row for the card.
+`chosen_draw.c` and `chosen_window.c` each keep one `ChosenRow` and lay out each row into it in turn, so no loop over
+its pieces may pass the row's `count`: the pieces after it are left from the row before.
+
+Chosen bonuses, Finish and the game's texts show a bonus's numbers as it counts, to one decimal, at a count of 1 too
+(`bonus_text_show` and `bonus_text_scaled` in `bonus_text.c`): an amount added is multiplied, as +1 counted twice is
++2; a percent is a factor, so -50% counted twice is -75% and +5% is +10.3%; "2x" counted twice is "4x". Numbers joined
+by a slash, or by a comma and a space, are one list, scaled with the sign of its first number and the percent of its
+last, as "-10, 15, 20, 25% food" (`list_end`). A percent without a sign before "faster", "more" or "longer" is a gain,
+and one before "less" or "cheaper" a cut, so "Cavalry 20% faster" counted twice is "Cavalry 44% faster"; it is a
+number to set, shown without a sign (`change_sign`). Any other number without a sign, as in "Receive 500 gold", is kept
+as it is, and a bonus with no number to set shows no count, though it is still built as often as it counts.
+
+Build mod asks only for the mod's name and writes into the mods folder (`app->mods_folder`), found when first needed
+(`ask_folder`). Options... in the menu File (`dialogs_options` in `dialogs.c`) shows that folder and takes another that
+exists; it is kept until civeditor closes. Under the folder the dialog has a tick box, Ask to save the civ before
+exiting (`check` and `check_label` of `AskQuestion`; `text_dialog.c` adds the box only when a question has one, and
+moves its buttons down by the room of the box). Unticked, closing the window asks nothing of a civ with unsaved changes
+(`handle_ending` in `app_window.c`); Open civ... still asks. The choice is kept in the options file,
+`civeditor_options.txt` in the user's application data (`%APPDATA%`), as one character, `1` or `0`
+(`options_ask_to_save` and `options_set_ask_to_save` in `ask.c`); without the file the program asks. A build that left
+nothing out (`summary_build_is_whole`) shows no message: Finish shows the built mark, `CONTROL_BUILT`, until the next
+change. A build that left something out says what in a message, as before, and a build that failed says why.
 
 A civ that a game update adds needs a `civ` and a `base` line in `appearance.txt`, and its slot in the list of civs
 of each node of `tree.txt` it has. Those lists come from the game's
@@ -335,6 +432,46 @@ of each node of `tree.txt` it has. Those lists come from the game's
 `NotAvailable`. Slots run to 63 (`TSV_BIT_LIMIT` in `tsv.h`), since each list is read into a 64-bit mask
 (`tsv_bits`); the roster keeps a draft for each (`ROSTER_SLOT_LIMIT`), and a mod has room for as many civs
 (`FORGE_CIV_LIMIT`). Two `_Static_assert`s, in `sync.c` and `dialogs.c`, stop the build while these three differ.
+
+### The unique unit and techs
+
+The panels under the lists of UU&UT, The selected unit, What the castle tech does and What the imperial tech does,
+are number panels like Chosen bonuses (`NumberPanel` in `number_edit.h`). Their first rows are a sheet
+(`number_unique.c`): the unit's name, its costs and its other stats, or a tech's name, the game's description, its
+costs and its research time. Each stat and tech value is a field of a number. A value typed is kept on Enter or on
+leaving the field if it lies in its range (`civ_stat_range` and `civ_tech_range` in `civ_design.c`); a value past it
+is refused, and the status line names the range. These fields have no card.
+
+A value kept is an override (`Override` in `civ_design.h`): the value and whether it is set. A stat or tech value not
+set is the game's, as the catalog gives it, and the panel shows that. So a Longbowman given 40 hit points keeps the
+game's cost of 35 wood and 40 gold. Picking another unit or tech clears its overrides and tech effects
+(`civ_design_pick_unit`, `civ_design_pick_tech`).
+
+Choose castle effects... and Choose imperial effects... (`dialogs_choose_effects` in `dialogs.c`) list the bonuses
+in the dialog of `text_dialog.c`, whose rows can be ticked when its `AskQuestion` has `ticks`. OK makes the ticked
+bonuses the tech effects (`effects` of `TechPick`, at most `CIV_TECH_EFFECT_CAPACITY`, 6) as one change
+(`history_replace`, from `choose_effects` in `sync.c`); Cancel changes nothing. A tech with tech effects does them
+instead of what its game tech does: its panel shows them in place of the game's description, each with the fields,
+card and slider of Chosen bonuses, and the mod describes the tech by them (`mod_tech_text` in `mod_text.c`). With
+none ticked, the tech does what its game tech does.
+
+When the mod is built (`unique_build_stats` in `unique_stats.c`, `recipe_add_unique_tech` in `unique_tech.c`):
+
+- each stat set of the unit is written into the copied unit, and the elite unit takes the same change unless a civ
+  file set its own: a Longbowman of 35 hit points set to 40 gives the Elite Longbowman 45 instead of 40;
+- the costs set fill the three slots of costs of the unit and of its elite unit. A cost in all four resources does not
+  fit, and a stat of the elite unit that the change takes past its range is not written; the build counts what it
+  left out (`unit_stats_skipped`), and its summary says so;
+- a tech's costs and research time set take the place of the game's;
+- a tech with tech effects gets one new effect instead of its game tech's: for each tech effect, the changes of the
+  game techs that its bonus names in `bonuses.txt`, then its lines in `bonus_effects.txt` (`bonus_build_lines`), each
+  scaled by its multiplier. A bonus's unit patches are left out, and the age of a line is not kept: every change comes
+  with the tech.
+
+In the civ file a stat is under `overrides` of `unique_unit`, such as `hp_base` and `hp_elite`; a tech's costs are
+under its `cost`, as `food`, `wood`, `stone` and `gold`, and its research time is `time`. A value not set is `null`,
+and a tech's cost of four zeros is read as not set. A tech with tech effects is written with `mode` `custom` and its
+`effects` as `id` and `multiplier`, the form of the original's custom tech.
 
 ### How a mod is built
 
@@ -407,9 +544,18 @@ What a civ keeps is decided in one place, for the dat file and the tech tree fil
 game's whole tree (`civ_design_tree_is_empty`), and every design keeps the Villager, both Town Centers, the Mill and
 the two camps, its list `ALWAYS_KEPT`. To keep another node always, add its id there.
 
+Unticking a node in the tech tree list unticks its descendants, every node that needs it directly or through others,
+as one change that one undo brings back (`tree_command` in `tree_command.c`, which gives `COMMAND_SET_TREE` with the
+whole tree). Unticking the Archer unticks the Crossbowman and the Arbalester; unticking the Archery Range unticks what
+it trains. A node needs its parent in `tree.txt`, the node of that id in the same building or else the building of
+that id, and a unit or a tech also needs the building it is made in; `catalog_tree_needs` in `catalog_lookup.c` gives
+both. A node of `ALWAYS_KEPT` is unticked alone and never by another, since every civ keeps it anyway. Ticking a node
+ticks every node it needs, directly or through others, in the same one change: ticking the Arbalester ticks the
+Crossbowman, the Archer, the Archery Range and the Barracks.
+
 What `recipe_apply` built and skipped comes back in a `RecipeReport`, which the window shows. A civ bonus whose line in
 `bonuses.txt` names techs is built by copying them. Its lines in `bonus_effects.txt`, if it has any, are built too and
-count once, as its techs do, whatever its multiplier: bonus 356 copies the game's pasture techs, and its line disables
+count as often as the bonus, as its techs do: bonus 356 copies the game's pasture techs, and its line disables
 the Farms and their upgrades at the Mill. One that names no techs is built from its lines in `bonus_effects.txt`: each
 entry becomes a new effect with those changes and a tech of the civ that fires it, free and by itself, once the techs
 the entry needs are researched. A `unit` line, a unit patch, sets one field of a unit of the civ in the dat file, so it
@@ -427,11 +573,16 @@ skipped bonus, add its techs to its line in `bonuses.txt`, or its changes or req
 
 A bonus's multiplier, read from the civ file, makes each of its changes count that many times, as the original does
 (`bonus_scale` in `bonus_scale.c`): an amount added is multiplied by it, a factor is raised to it, a spawn makes as
-many times the units, and armor or attack past 255, the most one change holds, is split into several changes. A
-change that sets a value, the spawn limit (resource 234) and the effect function (resource 33) are kept. A multiplier
-is 1 to 10 (`CIV_MULTIPLIER_LIMIT` in `civ_design.h`); the design refuses any other. It is applied to the bonuses
-built from changes and to the team bonus; a civ bonus made of the game's techs counts once, and the report counts it
-(`multipliers_skipped`).
+many times the units, rounded to the nearest whole for armor, attack and units, and armor or attack past 255, the most
+one change holds, is split into several changes. A change that sets a value, the spawn limit (resource 234) and the
+effect function (resource 33) are kept. A multiplier is from 1 to 10 (`CIV_MULTIPLIER_LIMIT` in `civ_design.h`) and
+may lie between, as 1.5: `Multiplier` keeps it in millionths, and the civ file writes it as a decimal, as
+`"multiplier": 1.5` (`json_write_decimal`; `json_decimal` reads it). The design refuses any other. It is applied
+to the bonuses built from changes, to the team bonus, and to the copy of each civ's tech that a civ bonus names:
+`recipe_plan_tech` in `recipe_copy.c` keeps the multiplier of each tech it plans for copying, and the techs it plans
+for requirements or for the unique unit count once. A tech that every civ of the game shares is only unlocked, not
+copied, so it counts once, and the report counts the bonus (`multipliers_skipped`). A bonus of requirements counts
+once.
 
 A unique tech is taken from another civ, so its effect is aimed at the civ's own unique unit (`unique_aim.c`). The
 other civ's unique unit is the `V` row of `units.txt` whose make-available tech belongs to that civ; the units
@@ -503,54 +654,73 @@ The code follows P10, Holzmann's ten rules for safety-critical code, wherever th
 
 ### Tests
 
-`build.exe` runs the tests; `build\tests.exe` runs them again without building. `tests/runner.c` runs the functional
-tests, then the accessibility tests (`tests/accessibility/`), then the maintainability tests
-(`tests/maintainability/` and `tests/rules/`), and numbers them as they run. [TESTS.md](TESTS.md) lists every test
-by that number. The redundancy tests of `tests/redundancy/` run after them only when asked, as in
-`build.exe quick redundancy`, and are numbered on their own, as "Redundancy test 3". They are there to catch mutants
-(Requirement 12) and to run code that only the crapper needs run (Requirement 10), so give the mutator's test command
-that word too.
+`build.exe` runs the tests; `build\tests.exe` runs them again without building. `tests/runner.c` runs them by
+category, each category in files of its own (Rule 34), and numbers them as they run; [TESTS.md](TESTS.md) lists every
+test by that number. First come the core tests of the requirements and bugs (`tests/requirements/`), then the
+accessibility tests (`tests/accessibility/`), then the core tests of the rules (`tests/maintainability/`), numbered
+together as "Test 12". The core tests may be no more than the requirements, rules and bugs together (Rule 31). The
+regression tests of `tests/regression/` run after them, every time, numbered on their own as "Regression test 1":
+each catches again a bug that the log names, or was asked for by a human (Rule 34). The redundancy tests run last,
+and only when asked, as in `build.exe quick redundancy`, numbered on their own as "Redundancy test 3": those of
+`redundancy_suite.c`, then those of `functional_suite.c` and its suites, those of the window (`shell_suite.c`), and
+those of the build program and the rules (`tests/redundancy/rules/rule_redundancy.c`). They are there to catch
+mutants (Requirement 12) and to run code that only the crapper needs run (Requirement 10), so give the mutator's test
+command that word too. The runner tries up to 1000 tests of a category; if a run says "A category holds more tests
+than CATEGORY_TEST_LIMIT", raise that number in `tests/runner.c`.
 
 | Folder | The tests it holds |
 | --- | --- |
-| `tests/functional/` | The design, commands and civ files, and `functional_suite.c`, which runs every functional test. |
-| `tests/suites/` | The later functional tests in five suites: the recipe and the looks (`build_suite.c`), the mod, its strings and its places (`mod_suite.c`), numbers, text, TSV and JSON (`core_suite.c`), commands, lists, the summary and the details (`model_suite.c`), and the window's dialogs (`shell_suite.c`). `suites.h` holds their sizes. |
+| `tests/requirements/` | The core tests of the requirements and the bugs (`requirement_tests.c`) and their suite (`requirement_suite.c`). |
+| `tests/functional/` | The design, commands and civ files, and `functional_suite.c`, which runs them and the suites of `tests/suites/` as redundancy tests. |
+| `tests/suites/` | Redundancy tests in five suites: the recipe and the looks (`build_suite.c`), the mod, its strings and its places (`mod_suite.c`), numbers, text, TSV and JSON (`core_suite.c`), commands, lists, the summary and the details (`model_suite.c`), and the window's dialogs (`shell_suite.c`). `suites.h` holds their sizes. |
 | `tests/core/`, `tests/pack/` | Reading numbers, UTF-8, TSV and JSON (`read_tests.c`), the text helpers (`text_tests.c`), writing JSON (`writer_tests.c`); unpacking and packing. |
-| `tests/dat/` | The data file and the recipe. `small_dat.c` builds a small data file in memory, `recipe_game.c` runs the recipe on it for eight civs and answers what the tests of `recipe_tests.c` ask. |
-| `tests/bonus/` | The changes of a bonus scaled by its multiplier (`scale_tests.c`). |
+| `tests/dat/` | The data file and the recipe. `small_dat.c` builds a small data file in memory, `recipe_game.c` runs the recipe on it for eight civs and answers what the tests of `recipe_tests.c` ask. With `small.elite` set to a unit's id, as the tests of `stat_build_tests.c` set it, the soldier of each civ also costs food, gold and population, has an attack bonus before its attack, and an elite unit of that id with its own hit points and reload time. |
+| `tests/bonus/` | The changes and the text of a bonus scaled by its multiplier (`scale_tests.c`). |
 | `tests/mod/`, `tests/places/`, `tests/look/`, `tests/base/` | A whole mod built from a small game under `build/test_game` into `build/test_mods`, its strings, finding the game and the mods folder under `build/`, the looks, and base civs. |
-| `tests/model/`, `tests/design/`, `tests/shell/` | What the lists and Finish show, which steps are done (`wizard_tests.c`), undo and redo (`history_tests.c`), the design and its saved text (`tests/design/`), and the window driven through its dialogs; how the lists scroll (`scroll_tests.c`) and the dropdowns open (`dropdown_tests.c`); the Hero box and Choose hero... (`hero_tests.c`); `window_fixture.c` opens and closes the window for a test, ticks and clicks its controls, and answers Choose hero.... |
+| `tests/model/`, `tests/design/`, `tests/shell/` | What the lists and Finish show, what unticking a node unticks with it (`tree_tests.c`), which steps are done (`wizard_tests.c`), undo and redo (`history_tests.c`), the design and its saved text (`tests/design/`), and the window driven through its dialogs; how the lists scroll (`scroll_tests.c`); the window and the dropdown that tests of other categories open, through the helpers named in `dialog_tests.h` (`dialog_tests.c`, `scroll_tests.c`, `dropdown_tests.c`); the Hero box, Choose hero... and the tick box of a question (`hero_tests.c`); the popup of the look choices, Civ to edit, Options..., the game read after the window opens, and the heights and the redrawing of the lists' rows (`change_tests.c`, with the tests of `dialog_tests.c` that the suite runs beside them); `window_fixture.c` opens and closes the window for a test, ticks and clicks its controls, and answers Choose hero.... |
 | `tests/reflow/` | The one column at a width of 320, scrolling, and the real window made narrow and short. |
-| `tests/redundancy/` | The redundancy tests: base civs, picks, which steps are done, the roster and how a civ is told from the civ of the game (`civ_tests.c`), the game's texts (`game_tests.c`), the civ to edit, Save civ, the name of a civ file, Build mod and the mod name, the caret of a field, the bonuses' filter and categories, the focus when the window opens, the steps of the menu Go, the wheel on the minimized window and the dialog of Choose hero... in the real window (`review_tests.c`), the compile command of the build program (`tools/plan_tests.c`), the patches of the dat file found again (`dat/patch_tests.c`), and the builds that are refused, the descriptions in the mod's strings and the room of a tech's requirements and of a description (`mod/built_mod_tests.c`); `redundancy_suite.c` runs them, those that open the window last. |
-| `tests/maintainability/`, `tests/rules/`, `tests/scan/` | The rules of the code and of the documents. `tests/scan/` reads the code for them; `gate_tests.c` shows each rule a text that breaks it, `tests/fixtures/broken_rules.txt`; `tool_tests.c` tests the build program's `source_list.c`. |
+| `tests/regression/` | The regression tests and their suite (`regression_suite.c`): of the design and the civ file (`design_regression.c`), of the mod (`mod_regression.c`) and of the window (`window_regression.c`). |
+| `tests/redundancy/` | The redundancy tests: base civs, picks, which steps are done, the roster and how a civ is told from the civ of the game (`civ_tests.c`), the game's texts (`game_tests.c`), the civ to edit, Save civ, the name of a civ file, Build mod and the mod name, the caret of a field, the bonuses' filter and categories, the focus when the window opens, the steps of the menu Go, the wheel on the minimized window and the dialog of Choose hero... in the real window (`review_tests.c`), the compile command of the build program (`tools/plan_tests.c`), the patches of the dat file found again (`dat/patch_tests.c`), and the builds that are refused, the descriptions in the mod's strings and the room of a tech's requirements and of a description (`mod/built_mod_tests.c`), the numbers of a bonus's text (`bonus/scaled_text_tests.c`), counts that are not whole and the decimals and multipliers that hold them (`bonus/between_tests.c`), the numbers to set and the values typed for them (`bonus/number_tests.c`), unticking and ticking a tree out of order, ticking into a full tree, a bonus not ticked and the report of a civ counted twice (`present/edit_tests.c`), a number's text in its field and with its unit, its range, the slider, the card's place and a row of Chosen bonuses cut and wrapped (`present/number_edit_tests.c`), and Chosen bonuses, its fields of numbers and the card in the real window (`chosen/chosen_tests.c`), the panels of the selected unit and techs and Choose castle effects... in the real window (`chosen/unit_panel_tests.c`), the overrides and tech effects of the unique unit and techs in the design, the civ file and the mod (`unique/stat_tests.c`, `unique/stat_build_tests.c`), the sheets of the unit and techs and the values typed into them (`unique/unit_number_tests.c`), and the catalog's numbers and nodes read from the test game (`dat/game_number_tests.c`); `redundancy_suite.c` runs them, those that open the window last. `rules/` holds four rules of P10, the rule against recursion, and `rule_redundancy.c`, which runs them with the tests of the build program and the gate tests. |
+| `tests/maintainability/`, `tests/rules/`, `tests/scan/` | The rules of the code and of the documents. Of these, the gate tests and the tests of the build program are redundancy tests. `tests/scan/` reads the code for them; `gate_tests.c` shows each rule a text that breaks it, `tests/fixtures/broken_rules.txt`; `tool_tests.c` tests the build program's `source_list.c`. |
 
 `build\tests.exe nowindow` leaves out the tests that open the real window, and `build\tests.exe norules` those of
 the rules and the documents, which read the documents and ask Git for the project's files; the tests of the build
-program still run. `build.exe` passes these words and `redundancy` on, as in `build.exe quick norules`.
+program still run. `build.exe` passes these words and `redundancy` on, as in `build.exe quick norules`. The tests
+are numbered as they run, so after a test left out the numbers of the report are not those of `TESTS.md`: look a
+test up there by its words.
 
 No test needs the game, and none writes outside `build/`. A window that a test opens without a script reads the
 game's texts if the game is installed; no test looks at them. A test of a dialog never shows one: it tells `ask_script`
 (`src/shell/ask.c`) what the user would answer, and reads what was asked with `ask_last_message`. Choose hero... is
 answered by `window_fixture_answer` in `tests/shell/window_fixture.c` instead: a hook on the test's thread picks the
 row, types the name and posts OK as the dialog starts (`WM_INITDIALOG`), far off the screen, so the dialog runs its
-loop of messages once and closes. `window_fixture_filter` has it type in the dialog's filter first.
+loop of messages once and closes. In a list that takes ticks, as that of Choose castle effects..., it ticks or
+unticks the row instead. `window_fixture_filter` has it type in the dialog's filter first.
 It keeps what the dialog showed, its rows, the label of its list and whether the list had the focus, for
 `window_fixture_asked`; after `window_fixture_refocus` it gives the list the focus again before OK.
 
 To add a test:
 
-1. **Write it** as `bool test_what_it_shows(void)` in the test file of its subject, with one check, and name it in
-   that file's header. It must cover a requirement or catch again a bug found before (Rules 5 and 24); a test that
-   only Rule 4 would justify is not written.
-2. **Give it a place.** Add a `case` for it to a group of its suite, with the words the report prints. A group is a
-   `switch` of at most eight tests; start a new group when one is full. In a suite of `tests/suites/` each group
-   has an `..._END` number at the top of the file, and the suite's size is in `suites.h`: raise both by one. In
-   `redundancy_suite.c` each group has a `..._GROUP_SIZE` at the top: raise it by one, and put a test that opens no
-   window in a group before those that `run_window_test` runs, since with `nowindow` the run stops at the first of
-   them. If a number is wrong, a test is skipped or the run stops early without a failure, so check that the "tests
-   run" of the report is the number of tests in `TESTS.md`.
-3. **See it fail.** Run `build.exe quick`, then break the code it guards, see the test fail and undo the break.
-4. **Document it** in `TESTS.md`, at its number, and renumber the tests after it. A bug found by a human is a
+1. **Choose its category.** A core test covers a requirement, a rule or a bug that has no core test yet, while the
+   core tests are fewer than the requirements, rules and bugs together (Rule 31). A regression test catches again a
+   bug that the log names, or covers what a human asked for (Rule 34). Any other test is a redundancy test, written
+   only for a mutant that survives or for code that the crapper needs run (Requirements 10 and 12).
+2. **Write it** as `bool test_what_it_shows(void)` in a test file of its category and subject, with one check, and
+   name it in that file's header. A test never shares a file with a test of another category (Rule 34); a helper it
+   needs from such a file is named in a header of that folder, its name starting with its file's subject, as
+   `mod_tests_named_civ` or `scroll_shown_list`.
+   It must cover a requirement or catch again a bug found before (Rules 5 and 24); a test that only Rule 4 would
+   justify is not written.
+3. **Give it a place.** Add a `case` for it to a group of its suite, with the words the report prints. A group is a
+   `switch` of at most eight tests; start a new group when one is full. In `requirement_suite.c` and
+   `regression_suite.c` the counts of the groups are at the top of the file: raise the count by one. In a suite of
+   `tests/suites/` each group has an `..._END` number at the top of the file, and the suite's size is in `suites.h`:
+   raise both by one. In `redundancy_suite.c` each group has a `..._GROUP_SIZE` at the top: raise it by one. In
+   every suite, put a test that opens no window in a group before those that `run_window_test` runs, since with
+   `nowindow` the run stops at the first of them. If a number is wrong, a test is skipped or the run stops early
+   without a failure, so check that the "tests run" of the report is the number of tests in `TESTS.md`.
+4. **See it fail.** Run `build.exe quick`, then break the code it guards, see the test fail and undo the break.
+5. **Document it** in `TESTS.md`, at its number, and renumber the tests after it. A bug found by a human is a
    row of `BUGS.md`, with the number of its test; when tests are renumbered, renumber it there too.
 
 The test program also holds `src/win/`, so a test can drive the real window: `tests/accessibility/window_tests.c` calls
@@ -600,7 +770,9 @@ When you add, change or remove a test, update `TESTS.md`.
   `..\mutator\mutator.cmd --use-existing-coverage --test-command ".\build.exe quick nowindow norules redundancy"
   src/model`, after
   the three steps above, so that it leaves out the lines no test runs. For `src/win/`, `src/view/`, `src/shell/`,
-  `src/present/` and `src/reflow/` leave `nowindow` out, so that the tests of the real window judge them. It prints
+  `src/present/`, `src/reflow/` and `src/chosen/` leave `nowindow` out, so that the tests of the real window judge
+  them, and add `--max-workers 1`: with a worker for each core, their windows got in each other's way and a test of
+  the window failed before the first mutant; with one, the 133 mutants of `chosen_window.c` took 85 minutes. It prints
   each mutant as `KILLED` or `SURVIVED` and a table by function, and writes `.metrics\mutate\`. Kill a survivor with a
   test of what the user would see, or take out the code that made it if nothing needs it. Each worker builds the
   whole project once in `target\mutation-workers\`, so a file takes a minute or more. Do not change the code while it

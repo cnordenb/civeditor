@@ -14,5 +14,6 @@ const char *check_last_failure(void);
 void check_forget_failures(void);
 bool check_is_among(int value, const int *values, int count);
 int check_index(int index, int count, int fallback);
+bool check_is_index(int index, int count);
 
 #endif

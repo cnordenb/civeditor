@@ -21,5 +21,11 @@ bool test_a_multiplied_attack_halfway_is_rounded_to_even(void);
 bool test_a_multiplied_attack_past_a_half_is_rounded_up(void);
 bool test_a_multiplied_attack_below_a_half_is_rounded_down(void);
 bool test_an_armor_added_to_255_is_one_change(void);
+bool test_a_cost_cut_by_half_that_counts_twice_is_cut_by_three_quarters(void);
+bool test_an_amount_added_that_counts_twice_is_added_twice(void);
+bool test_each_percent_of_a_list_that_counts_twice_is_scaled(void);
+bool test_a_twofold_amount_that_counts_twice_becomes_fourfold(void);
+bool test_a_percent_that_counts_twice_shows_one_decimal(void);
+bool test_a_percent_without_a_sign_before_faster_that_counts_twice_is_raised(void);
 
 #endif

@@ -3,10 +3,11 @@
 
 #include "../scan/source_scan.h"
 
+enum { PATTERN_WORD_WIDTH = 24, PATTERN_WORD_LIMIT = 11 };
+
+int pattern_line_at(const ScannedSource *source, int offset);
+int pattern_find_word(const ScannedSource *source, int from, const char *word);
+int pattern_first_word_line(const ScannedSource *source, const char words[][PATTERN_WORD_WIDTH], int count);
 int pattern_forbidden_flow_line(const ScannedSource *source);
-int pattern_allocation_line(const ScannedSource *source);
-int pattern_complex_directive_line(const ScannedSource *source);
-int pattern_deep_pointer_line(const ScannedSource *source);
-int pattern_function_pointer_line(const ScannedSource *source, const char *path);
 
 #endif

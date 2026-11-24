@@ -5,7 +5,7 @@
 #include "../../../src/present/binding.h"
 #include "../../../src/present/summary.h"
 
-enum { BRITONS = 1, FRANKS = 2, SPARTANS = 48, GROUP_SIZE = 12, NO_ROW = -1 };
+enum { BRITONS = 1, FRANKS = 2, SPARTANS = 48, GROUP_SIZE = 12, NO_ROW = -1, HIGH_WINDOW = 2000 };
 enum { SHEPHERDS = 100, CASTLES = 101, KNIGHTS = 102, RANGES = 200, SIGHT = 201 };
 enum { LONGBOWMAN = 0, AXEMAN = 1, JOAN = 7, YEOMEN = 2, WARWOLF = 3, BEARDED_AXE = 4, CHIVALRY = 5 };
 enum { AXEMAN_ROW = 1, BEARDED_AXE_ROW = 2, CHIVALRY_ROW = 3, SIGHT_ROW = 1 };
@@ -108,7 +108,7 @@ static int first_row(ControlId list, const char *filter)
 
 static bool whole_without(int skipped_field)
 {
-    RecipeReport report = { 2, 0, 0, 1, 0, 2, 2, 0, 0, false, false, false, { 0, 0 } };
+    RecipeReport report = { 2, 0, 0, 1, 0, 2, 2, 0, 0, 0, false, false, false, { 0, 0 } };
     BuiltCivs built = { { NULL }, NULL, 1 };
 
     report.team_bonuses_skipped = (skipped_field == 1) ? 1 : 0;
@@ -215,6 +215,11 @@ static TestOutcome run_ranked_test(int index)
     }
 }
 
+static int team_panel_height(int window_height)
+{
+    return layout_box(CONTROL_TEAM_INFO, STEP_BONUSES, LAYOUT_MIN_WIDTH, window_height).height;
+}
+
 static TestOutcome run_whole_test(int index)
 {
     switch (index) {
@@ -241,6 +246,9 @@ static TestOutcome run_whole_test(int index)
                                clears(1) && !civ_design_has_bonus(&design, SHEPHERDS));
     case 11:
         return test_outcome_of("the built mark takes no focus", !layout_is_focusable(CONTROL_BUILT));
+    case 12:
+        return test_outcome_of("the panel of the selected team bonus is no higher in a higher window",
+                               team_panel_height(HIGH_WINDOW) == team_panel_height(LAYOUT_MIN_HEIGHT));
     default:
         return test_outcome_missing();
     }

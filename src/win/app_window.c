@@ -81,7 +81,7 @@ static bool run_file_action(int action)
         return true;
     }
     if (action == ACTION_OPTIONS) {
-        (void)dialogs_options(&app);
+        dialogs_options(&app);
         return true;
     }
     return false;
@@ -279,6 +279,7 @@ static Handled handle_drawing(HWND window, UINT message, WPARAM wparam, LPARAM l
     if (is_color_message(message)) {
         return handled_with(color_control(wparam, lparam));
     }
+
     if (message == WM_DRAWITEM) {
         controls_draw_item(&app, (const DRAWITEMSTRUCT *)lparam);
         return handled_with(TRUE);
@@ -301,10 +302,15 @@ static Handled handle_frame(HWND window, UINT message, WPARAM wparam, LPARAM lpa
         controls_place(&app);
         return handled_with(0);
     }
+    if (message == APP_GAME_WANTED) {
+        dialogs_read_game(&app);
+        return handled_with(0);
+    }
     if ((message == WM_VSCROLL) || (message == WM_MOUSEWHEEL)) {
         assist_scroll(&app, message, wparam);
         return handled_with(0);
     }
+
     if (message == WM_GETMINMAXINFO) {
         limit_size((MINMAXINFO *)lparam);
         return handled_with(0);
@@ -321,7 +327,7 @@ static Handled handle_ending(HWND window, UINT message)
     }
     if (message == WM_DESTROY) {
         PostQuitMessage(0);
-    } else if (dialogs_may_discard(&app)) {
+    } else if (!options_ask_to_save() || dialogs_may_discard(&app)) {
         (void)DestroyWindow(window);
     }
     return handled_with(0);
@@ -364,23 +370,27 @@ static LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM wpara
     return handled.done ? handled.result : DefWindowProcW(window, message, wparam, lparam);
 }
 
+static bool register_one(WNDCLASSEXW *window_class, WNDPROC procedure, const wchar_t *name)
+{
+    window_class->lpfnWndProc = procedure;
+    window_class->lpszClassName = name;
+    return (RegisterClassExW(window_class) != 0) || (GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
+}
+
 static bool register_class(HINSTANCE instance)
 {
     WNDCLASSEXW window_class = { 0 };
 
     window_class.cbSize = sizeof window_class;
-    window_class.lpfnWndProc = window_procedure;
     window_class.hInstance = instance;
     window_class.hCursor = LoadCursorW(NULL, IDC_ARROW);
     window_class.hIcon = LoadIconW(NULL, IDI_APPLICATION);
-    window_class.lpszClassName = CLASS_NAME;
-    if ((RegisterClassExW(&window_class) == 0) && (GetLastError() != ERROR_CLASS_ALREADY_EXISTS)) {
+    if (!register_one(&window_class, window_procedure, CLASS_NAME)) {
         return false;
     }
-    window_class.lpfnWndProc = popup_procedure;
     window_class.hIcon = NULL;
-    window_class.lpszClassName = POPUP_CLASS_NAME;
-    return (RegisterClassExW(&window_class) != 0) || (GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
+    return register_one(&window_class, popup_procedure, POPUP_CLASS_NAME) &&
+           register_one(&window_class, chosen_procedure, CHOSEN_CLASS_NAME);
 }
 
 int app_run_messages(void)
@@ -405,6 +415,7 @@ HWND app_open(HINSTANCE instance)
         return NULL;
     }
     app.instance = instance;
+    chosen_start(&app);
     (void)SetProcessPreferredUILanguages(MUI_LANGUAGE_NAME, L"en-US\0", NULL);
     (void)CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     app.dpi = assist_dpi(NULL);
@@ -430,5 +441,6 @@ int app_run(HINSTANCE instance, int show)
     }
     (void)ShowWindow(app.window, show);
     (void)UpdateWindow(app.window);
+    (void)PostMessageW(app.window, APP_GAME_WANTED, 0, 0);
     return app_run_messages();
 }

@@ -5,6 +5,7 @@
 #include "../../src/core/check.h"
 #include "../../src/model/command.h"
 #include "../../src/present/binding.h"
+#include "../../src/present/details.h"
 #include "../../src/present/summary.h"
 #include "../dat/recipe_tests.h"
 
@@ -24,7 +25,7 @@ static bool applied(CommandKind kind, int field, int value)
 static bool row_gives(ControlId control, int row, CommandKind kind, int field, int value)
 {
     const ListItem item = { control, row };
-    Command command = list_item_command(recipe_game_catalog(), item);
+    Command command = list_item_command(recipe_game_catalog(), &own, item);
 
     if (!CHECK((int)control >= 0) || !CHECK(control < CONTROL_COUNT)) {
         return false;
@@ -67,7 +68,14 @@ bool test_a_command_to_tick_a_team_bonus_ticks_it(void)
 
 bool test_a_command_to_tick_a_node_ticks_it(void)
 {
-    return applied(COMMAND_TOGGLE_TREE, TREE_BUILDINGS, NODE) && civ_design_tree_has(&own, TREE_BUILDINGS, NODE);
+    static CivDesign ticked;
+    Command command;
+
+    civ_design_reset(&ticked);
+    (void)CHECK(civ_design_toggle_tree(&ticked, TREE_BUILDINGS, NODE));
+    command = command_set_tree(&ticked);
+    civ_design_reset(&own);
+    return command_apply(&own, &command) && civ_design_tree_has(&own, TREE_BUILDINGS, NODE);
 }
 
 bool test_a_command_to_set_a_choice_sets_it(void)
@@ -100,7 +108,12 @@ bool test_a_team_bonus_ticked_twice_is_no_longer_picked(void)
 
 bool test_a_row_of_the_tech_tree_gives_the_command_to_tick_its_node(void)
 {
-    return row_gives(CONTROL_TREE_LIST, FIRST_ROW, COMMAND_TOGGLE_TREE, TREE_UNITS, LACKED_UNIT);
+    const ListItem item = { CONTROL_TREE_LIST, FIRST_ROW };
+    Command command;
+
+    civ_design_reset(&own);
+    command = list_item_command(recipe_game_catalog(), &own, item);
+    return command_apply(&own, &command) && civ_design_tree_has(&own, TREE_UNITS, LACKED_UNIT);
 }
 
 bool test_a_row_of_the_civ_bonuses_gives_the_command_to_tick_its_bonus(void)
@@ -160,7 +173,7 @@ bool test_the_summary_names_the_unique_unit_and_the_unit_it_is_made_from(void)
 
 bool test_the_summary_lists_a_civ_bonus_by_its_description(void)
 {
-    return summary_holds(FULL_CIV, "- Infantry is stronger");
+    return summary_holds(FULL_CIV, "- Infantry +1 attack");
 }
 
 bool test_the_summary_names_a_civ_bonus_the_catalog_lacks_by_its_number(void)
@@ -183,10 +196,10 @@ bool test_the_summary_says_when_the_catalog_lacks_a_unique_tech(void)
     return summary_holds(BARE_CIV, "Castle tech: an unknown tech");
 }
 
-static const RecipeReport SKIPPED_BONUS = { 3, 1, 0, 0, 0, 0, 0, 0, 0, false, false, false, { 0, 0 } };
-static const RecipeReport SKIPPED_HERO = { 0, 0, 0, 0, 0, 0, 0, 0, 0, false, false, true, { 0, 0 } };
-static const RecipeReport WHOLE_CIV = { 2, 0, 0, 1, 0, 2, 2, 0, 0, false, false, false, { 0, 0 } };
-static const RecipeReport ONCE_ONLY = { 1, 0, 1, 0, 0, 0, 0, 0, 0, false, false, false, { 0, 0 } };
+static const RecipeReport SKIPPED_BONUS = { 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, false, false, false, { 0, 0 } };
+static const RecipeReport SKIPPED_HERO = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, false, true, { 0, 0 } };
+static const RecipeReport WHOLE_CIV = { 2, 0, 0, 1, 0, 2, 2, 0, 0, 0, false, false, false, { 0, 0 } };
+static const RecipeReport ONCE_ONLY = { 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, false, false, false, { 0, 0 } };
 
 static bool build_report_holds(const RecipeReport *report, const char *words)
 {
@@ -217,7 +230,7 @@ bool test_the_build_report_says_when_the_hero_was_not_built(void)
 
 bool test_the_build_report_says_when_a_bonus_counts_only_once(void)
 {
-    return build_report_holds(&ONCE_ONLY, "A bonus made of the game's techs counts only once.");
+    return build_report_holds(&ONCE_ONLY, "A tech that every civ of the game shares counts only once in a bonus.");
 }
 
 bool test_the_build_report_of_a_whole_civ_names_the_two_folders(void)
@@ -242,4 +255,9 @@ bool test_a_build_that_left_nothing_out_is_whole(void)
 bool test_a_build_that_skipped_a_civ_bonus_is_not_whole(void)
 {
     return !build_is_whole(&SKIPPED_BONUS);
+}
+
+bool test_the_summary_shows_a_bonus_as_it_counts(void)
+{
+    return summary_holds(MULTIPLIED_CIV, "- Infantry +2 attack");
 }

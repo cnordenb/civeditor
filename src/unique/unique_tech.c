@@ -1,5 +1,6 @@
 #include "../forge/recipe_parts.h"
 
+#include "../bonus/bonus_build.h"
 #include "../mod/mod_strings.h"
 
 enum { CASTLE_BUILDING = 82, DEFAULT_TECH_TIME = 60, PAID = 1, KEPT_CAPACITY = 512, UNIQUE_PASSES = 2, SWAP_PASS = 1 };
@@ -83,17 +84,6 @@ static int copy_unique_effect(const RecipeInput *input, DatEdit *edit, const Rec
     return fine ? added : DAT_NO_ID;
 }
 
-static bool any_cost(const TechPick *pick)
-{
-    bool chosen = false;
-    int resource;
-
-    for (resource = 0; resource < RESOURCE_KIND_COUNT; ++resource) {
-        chosen = chosen || (pick->cost[resource] > 0);
-    }
-    return chosen;
-}
-
 static void clear_costs(DatTech *tech)
 {
     int slot;
@@ -107,16 +97,16 @@ static void clear_costs(DatTech *tech)
 
 static void set_costs(DatTech *tech, const TechPick *pick, const TechEntry *entry)
 {
-    const int *costs;
     int resource;
     int slot = 0;
+    int cost;
 
-    costs = any_cost(pick) ? pick->cost : entry->cost;
     clear_costs(tech);
     for (resource = 0; (resource < RESOURCE_KIND_COUNT) && (slot < DAT_TECH_COST_SLOTS); ++resource) {
-        if (costs[resource] > 0) {
+        cost = civ_override_or(pick->values[resource], entry->cost[resource]);
+        if (cost > 0) {
             tech->costs[slot].type = resource;
-            tech->costs[slot].amount = costs[resource];
+            tech->costs[slot].amount = cost;
             tech->costs[slot].flag = PAID;
             ++slot;
         }
@@ -151,10 +141,7 @@ static void name_unique_tech(const RecipeInput *input, TechTier tier, DatTech *t
 
 static int research_time(const TechPick *pick, const TechEntry *entry)
 {
-    if (pick->time > 0) {
-        return pick->time;
-    }
-    return (entry->time > 0) ? entry->time : DEFAULT_TECH_TIME;
+    return civ_override_or(pick->values[TECH_VALUE_TIME], (entry->time > 0) ? entry->time : DEFAULT_TECH_TIME);
 }
 
 static bool shape_unique_tech(const RecipeInput *input, TechTier tier, DatTech *tech)
@@ -187,8 +174,48 @@ static bool shape_unique_tech(const RecipeInput *input, TechTier tier, DatTech *
     return true;
 }
 
+static bool copy_tech_effect(const RecipeInput *input, DatEdit *edit, int tech_id, double times)
+{
+    DatTech tech;
+    DatEffect effect;
+
+    return !recipe_read_tech(input, tech_id, &tech) || !recipe_read_effect(input, tech.effect_id, &effect) ||
+           recipe_copy_changes(input, edit, &effect, true, times);
+}
+
+static bool add_effect(const RecipeInput *input, DatEdit *edit, const BonusPick *pick)
+{
+    const Catalog *catalog = input->catalog;
+    int found = catalog_find_bonus(catalog, false, pick->id);
+    double times = civ_multiplier_times(pick->multiplier);
+    BonusBuild build = { catalog, { input->dat, input->map, edit, input->slot } };
+    int tech;
+    bool fine = true;
+
+    if (found == CATALOG_MISSING) {
+        return true;
+    }
+    for (tech = 0; fine && (tech < catalog->bonuses[found].effects.count); ++tech) {
+        fine = copy_tech_effect(input, edit, catalog->bonuses[found].effects.values[tech], times);
+    }
+    return fine && (bonus_build_lines(&build, pick->id, false, times) != BONUS_BUILD_FAILED);
+}
+
+static int build_effects(const RecipeInput *input, DatEdit *edit, const TechPick *pick)
+{
+    int added = dat_edit_add_effect(edit, "Unique tech effects");
+    int index;
+    bool fine = added != DAT_NO_ID;
+
+    for (index = 0; fine && (index < pick->effect_count); ++index) {
+        fine = add_effect(input, edit, &pick->effects[index]);
+    }
+    return fine ? added : DAT_NO_ID;
+}
+
 bool recipe_add_unique_tech(const RecipeInput *input, DatEdit *edit, RecipeReport *report, TechTier tier)
 {
+    const CivDesign *design = input->design;
     RecipeUniqueCopy copy;
     DatTech tech;
 
@@ -199,7 +226,9 @@ bool recipe_add_unique_tech(const RecipeInput *input, DatEdit *edit, RecipeRepor
     copy.effect_id = tech.effect_id;
     copy.swap = recipe_unique_swap(input, tech.civ);
     tech.civ = input->slot;
-    if (tech.effect_id >= 0) {
+    if (design->techs[tier].effect_count > 0) {
+        tech.effect_id = build_effects(input, edit, &design->techs[tier]);
+    } else if (tech.effect_id >= 0) {
         tech.effect_id = copy_unique_effect(input, edit, &copy);
     }
     report->unique_tech_ids[tier] = dat_edit_add_tech(edit, &tech);

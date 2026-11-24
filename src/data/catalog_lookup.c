@@ -65,6 +65,40 @@ int catalog_find(const Catalog *catalog, CatalogTable table, int kind, int id)
     return CATALOG_MISSING;
 }
 
+int catalog_find_unit(const Catalog *catalog, const UnitPick *pick)
+{
+    UnitRole role = (pick->origin == UNIT_ORIGIN_CUSTOM) ? UNIT_ROLE_CUSTOM : UNIT_ROLE_VANILLA;
+
+    return catalog_find(catalog, CATALOG_UNITS, (int)role, pick->id);
+}
+
+static int node_in_building(const Catalog *catalog, int id, int building)
+{
+    int index;
+
+    for (index = 0; index < catalog->tree_count; ++index) {
+        if ((catalog->tree[index].id == id) && (catalog->tree[index].building == building)) {
+            return index;
+        }
+    }
+    return CATALOG_MISSING;
+}
+
+TreeNeeds catalog_tree_needs(const Catalog *catalog, int node)
+{
+    const TreeEntry *entry = &catalog->tree[node];
+    TreeNeeds needs = { CATALOG_MISSING, CATALOG_MISSING };
+
+    needs.parent = node_in_building(catalog, entry->parent, entry->building);
+    if (needs.parent == CATALOG_MISSING) {
+        needs.parent = catalog_find(catalog, CATALOG_TREE, TREE_BUILDINGS, entry->parent);
+    }
+    if (entry->kind != TREE_BUILDINGS) {
+        needs.building = catalog_find(catalog, CATALOG_TREE, TREE_BUILDINGS, entry->building);
+    }
+    return needs;
+}
+
 const char *catalog_appearance_name(const Catalog *catalog, AppearanceKind kind, int id)
 {
     int found = catalog_find(catalog, CATALOG_APPEARANCES, (int)kind, id);

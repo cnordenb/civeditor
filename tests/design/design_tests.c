@@ -5,6 +5,9 @@
 
 enum { A_BONUS = 7, A_TEAM_BONUS = 3, FIRST_NODE = 5, SECOND_NODE = 9 };
 
+static const Multiplier PAST_TEN = { (CIV_MULTIPLIER_LIMIT * CIV_MILLIONTHS) + 1 };
+static const Multiplier BELOW_ONE = { CIV_MILLIONTHS - 1 };
+
 static CivDesign design;
 
 static CivDesign *fresh(void)
@@ -25,26 +28,27 @@ static void fill_tree(void)
 
 bool test_a_ticked_bonus_counts_once(void)
 {
-    return civ_design_toggle_bonus(fresh(), A_BONUS) && (design.bonuses[0].multiplier == 1);
+    return civ_design_toggle_bonus(fresh(), A_BONUS) && (design.bonuses[0].multiplier.millionths == CIV_MILLIONTHS);
 }
 
 bool test_a_picked_team_bonus_counts_once(void)
 {
-    return civ_design_toggle_team_bonus(fresh(), A_TEAM_BONUS) && (design.team_bonuses[0].multiplier == 1);
+    return civ_design_toggle_team_bonus(fresh(), A_TEAM_BONUS) &&
+           (design.team_bonuses[0].multiplier.millionths == CIV_MILLIONTHS);
 }
 
 bool test_a_multiplier_past_ten_is_refused(void)
 {
     (void)civ_design_toggle_bonus(fresh(), A_BONUS);
-    civ_design_set_multiplier(&design, false, A_BONUS, CIV_MULTIPLIER_LIMIT + 1);
-    return design.bonuses[0].multiplier == 1;
+    (void)civ_design_set_multiplier(&design, false, A_BONUS, PAST_TEN);
+    return design.bonuses[0].multiplier.millionths == CIV_MILLIONTHS;
 }
 
 bool test_a_multiplier_below_one_is_refused(void)
 {
     (void)civ_design_toggle_bonus(fresh(), A_BONUS);
-    civ_design_set_multiplier(&design, false, A_BONUS, 0);
-    return design.bonuses[0].multiplier == 1;
+    (void)civ_design_set_multiplier(&design, false, A_BONUS, BELOW_ONE);
+    return design.bonuses[0].multiplier.millionths == CIV_MILLIONTHS;
 }
 
 bool test_a_bonus_ticked_twice_is_not_chosen(void)

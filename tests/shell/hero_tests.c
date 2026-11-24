@@ -3,6 +3,7 @@
 #include <wchar.h>
 #include <windows.h>
 
+#include "../../src/shell/shell.h"
 #include "../../src/win/win_parts.h"
 #include "../accessibility/window_fixture.h"
 
@@ -70,4 +71,46 @@ bool test_a_hero_renamed_in_choose_hero_takes_the_new_name(void)
     window_fixture_answer(L"Saladin", L"Testhero");
     window_fixture_click(window, CONTROL_HERO_CHOOSE);
     return hero_named(window, L"Testhero");
+}
+
+static bool answered(const wchar_t *text, bool *tick)
+{
+    wchar_t answer[NAME_CAPACITY];
+    AskQuestion question = { L"A question", answer, NAME_CAPACITY, NULL, NULL, 0, -1, NULL, L"A choice", tick };
+
+    (void)lstrcpynW(answer, text, NAME_CAPACITY);
+    window_fixture_answer(NULL, NULL);
+    return text_dialog_show(NULL, &question);
+}
+
+static bool tick_after_a_click(bool before)
+{
+    bool tick = before;
+
+    window_fixture_toggle();
+    (void)answered(L"kept", &tick);
+    return tick;
+}
+
+bool test_a_question_with_a_tick_box_takes_an_empty_text(void)
+{
+    bool tick = false;
+
+    return answered(L"", &tick);
+}
+
+bool test_a_click_ticks_the_tick_box_of_a_question(void)
+{
+    return tick_after_a_click(false);
+}
+
+bool test_a_click_unticks_a_tick_box_given_as_ticked(void)
+{
+    return !tick_after_a_click(true);
+}
+
+bool test_the_tick_box_of_a_question_lies_above_its_buttons(void)
+{
+    (void)tick_after_a_click(false);
+    return window_fixture_asked()->check_above_buttons;
 }

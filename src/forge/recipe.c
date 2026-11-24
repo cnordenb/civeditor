@@ -22,7 +22,7 @@ typedef struct {
 
 static RecipeChanges tree;
 
-static bool plan_bonus_tech(const RecipeInput *input, int tech_id)
+static bool plan_bonus_tech(const RecipeInput *input, int tech_id, double times, bool *shared)
 {
     DatTech tech;
     DatChange unlock;
@@ -31,8 +31,9 @@ static bool plan_bonus_tech(const RecipeInput *input, int tech_id)
         return false;
     }
     if (tech.civ >= 0) {
-        return recipe_plan_tech(input, tech_id);
+        return recipe_plan_tech(input, tech_id, times);
     }
+    *shared = true;
     if (recipe_find_unlock(input, tech_id, &unlock)) {
         recipe_add_change(&tree, &unlock);
     }
@@ -50,13 +51,13 @@ static BonusBuild bonus_build_of(const RecipeRun *run)
     return build;
 }
 
-static bool plan_bonus_techs(const RecipeInput *input, const BonusEntry *entry)
+static bool plan_bonus_techs(const RecipeInput *input, const BonusEntry *entry, double times, bool *shared)
 {
     int effect;
     bool fine = true;
 
     for (effect = 0; fine && (effect < entry->effects.count) && (effect < TSV_LIST_LIMIT); ++effect) {
-        fine = plan_bonus_tech(input, entry->effects.values[effect]);
+        fine = plan_bonus_tech(input, entry->effects.values[effect], times, shared);
     }
     return fine;
 }
@@ -80,9 +81,9 @@ static int plan_bonus_requirements(const RecipeInput *input, int bonus_id)
     return planned;
 }
 
-static int build_bonus_lines(const RecipeRun *run, const BonusBuild *build, int bonus_id, int multiplier)
+static int build_bonus_lines(const RecipeRun *run, const BonusBuild *build, int bonus_id, double times)
 {
-    int built = bonus_build_civ(build, bonus_id, multiplier);
+    int built = bonus_build_civ(build, bonus_id, times);
     int required;
 
     if (built == BONUS_BUILD_FAILED) {
@@ -100,6 +101,9 @@ static bool plan_bonus(const RecipeRun *run, const BonusBuild *build, const Bonu
     const RecipeInput *input;
     const Catalog *catalog;
     RecipeReport *report;
+    double times = civ_multiplier_times(pick->multiplier);
+    bool shared = false;
+    bool planned;
     int found;
 
     input = run->input;
@@ -110,12 +114,13 @@ static bool plan_bonus(const RecipeRun *run, const BonusBuild *build, const Bonu
         return false;
     }
     if (catalog->bonuses[found].effects.count == 0) {
-        return build_bonus_lines(run, build, pick->id, pick->multiplier) > 0;
+        return build_bonus_lines(run, build, pick->id, times) > 0;
     }
-    if (pick->multiplier > 1) {
+    planned = plan_bonus_techs(input, &catalog->bonuses[found], times, &shared);
+    if (shared && (pick->multiplier.millionths > CIV_MILLIONTHS)) {
         ++report->multipliers_skipped;
     }
-    return plan_bonus_techs(input, &catalog->bonuses[found]) && (build_bonus_lines(run, build, pick->id, 1) >= 0);
+    return planned && (build_bonus_lines(run, build, pick->id, times) >= 0);
 }
 
 static void plan_bonuses(const RecipeRun *run)
@@ -140,8 +145,8 @@ static void plan_bonuses(const RecipeRun *run)
 
 static bool plan_unit_techs(const RecipeInput *input, const UnitEntry *entry)
 {
-    return recipe_plan_tech(input, entry->make_tech) &&
-           ((entry->elite_tech < 0) || recipe_plan_tech(input, entry->elite_tech));
+    return recipe_plan_tech(input, entry->make_tech, 1) &&
+           ((entry->elite_tech < 0) || recipe_plan_tech(input, entry->elite_tech, 1));
 }
 
 static void plan_unit(const RecipeInput *input, RecipeReport *report)
@@ -192,6 +197,7 @@ static void build_team_bonus_from_changes(const RecipeRun *run)
     const CivDesign *design;
     RecipeReport *report;
     BonusBuild build = bonus_build_of(run);
+    double times;
 
     input = run->input;
     design = input->design;
@@ -199,7 +205,8 @@ static void build_team_bonus_from_changes(const RecipeRun *run)
     if (design->team_bonus_count == 0) {
         return;
     }
-    if (bonus_build_team(&build, design->team_bonuses[0].id, design->team_bonuses[0].multiplier) > 0) {
+    times = civ_multiplier_times(design->team_bonuses[0].multiplier);
+    if (bonus_build_lines(&build, design->team_bonuses[0].id, true, times) > 0) {
         report->team_bonuses_built = 1;
     } else {
         report->team_bonuses_skipped = 1;
@@ -222,7 +229,8 @@ static bool add_team_bonus(RecipeRun *run)
     design = input->design;
     report = run->report;
     if (recipe_read_effect(input, team_source(input), &effect) && (effect.change_count > 0)) {
-        fine = recipe_copy_changes(input, run->edit, &effect, false, design->team_bonuses[0].multiplier);
+        fine = recipe_copy_changes(input, run->edit, &effect, false,
+                                   civ_multiplier_times(design->team_bonuses[0].multiplier));
         report->team_bonuses_built = 1;
     } else {
         build_team_bonus_from_changes(run);
@@ -346,15 +354,18 @@ static bool add_civ_techs(RecipeRun *run)
 
 static bool change_units(const RecipeRun *run)
 {
+    RecipeReport *report = run->report;
+
     if (!set_scout(run) || !recipe_name_unique_unit(run->input, run->edit) || !build_looks(run)) {
         return false;
     }
+    report->unit_stats_skipped = unique_build_stats(run->input, &run->target);
     return !run->has_hero || hero_build(&run->target, &run->hero);
 }
 
 bool recipe_apply(const RecipeInput *input, DatEdit *edit, RecipeReport *report)
 {
-    RecipeReport empty = { 0, 0, 0, 0, 0, 0, 0, 0, 0, false, false, false, { DAT_NO_ID, DAT_NO_ID } };
+    RecipeReport empty = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, false, false, { DAT_NO_ID, DAT_NO_ID } };
     RecipeRun run;
 
     if (!start_run(input, edit, &run)) {

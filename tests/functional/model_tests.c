@@ -7,8 +7,6 @@
 #include "../../src/view/layout.h"
 #include "../../src/view/wizard.h"
 
-enum { BONUS_LIMIT = 24 };
-
 static History history;
 static Catalog empty_catalog;
 static SummaryText summary;
@@ -18,15 +16,6 @@ static bool type_name(const char *name)
     Command command = command_set_text(TEXT_FIELD_NAME, name);
 
     return history_do(&history, &command);
-}
-
-bool test_undo_brings_back_the_civ_before_a_change(void)
-{
-    Command bonus = command_of(COMMAND_TOGGLE_BONUS, 0, 7);
-
-    history_start(&history);
-    (void)history_do(&history, &bonus);
-    return history_step(&history, true) && (history.present.bonus_count == 0);
 }
 
 bool test_typing_a_name_is_undone_at_once(void)
@@ -48,18 +37,6 @@ bool test_redo_makes_an_undone_change_again(void)
     return history_step(&history, false) && (history.present.unique_unit.id == 1263);
 }
 
-bool test_a_25th_bonus_is_refused(void)
-{
-    CivDesign design;
-    int bonus;
-
-    civ_design_reset(&design);
-    for (bonus = 0; bonus < BONUS_LIMIT; ++bonus) {
-        (void)civ_design_toggle_bonus(&design, bonus);
-    }
-    return !civ_design_toggle_bonus(&design, BONUS_LIMIT) && (design.bonus_count == BONUS_LIMIT);
-}
-
 bool test_next_walks_every_step_in_order(void)
 {
     WizardStep step = STEP_NAME_AND_TREE;
@@ -74,7 +51,7 @@ bool test_next_walks_every_step_in_order(void)
     return (step == STEP_FINISH) && (wizard_move(step, 1) == STEP_FINISH);
 }
 
-static bool summary_of_a_named_civ_holds(const char *words)
+bool model_tests_summary_holds(const char *words)
 {
     CivDesign design;
 
@@ -86,15 +63,5 @@ static bool summary_of_a_named_civ_holds(const char *words)
 
 bool test_summary_names_what_is_still_needed(void)
 {
-    return summary_of_a_named_civ_holds("Still needed before a mod can be built: a unique unit; a castle tech;");
-}
-
-bool test_summary_labels_the_name(void)
-{
-    return summary_of_a_named_civ_holds("Name: Vikings\r\n");
-}
-
-bool test_the_last_step_shows_no_next_button(void)
-{
-    return !layout_shows(CONTROL_NEXT, STEP_FINISH);
+    return model_tests_summary_holds("Still needed before a mod can be built: a unique unit; a castle tech;");
 }

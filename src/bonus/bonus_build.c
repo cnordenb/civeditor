@@ -18,7 +18,7 @@ typedef struct {
     const BonusChange *first;
     int effect_id;
     int made;
-    int multiplier;
+    double times;
 } BonusGroups;
 
 static DatChange change_of(const BonusChange *line)
@@ -166,7 +166,7 @@ static bool take_line(const BonusBuild *build, BonusGroups *groups, const BonusC
         groups->first = line;
         groups->effect_id = dat_edit_add_effect(build->target.edit, BONUS_NAME);
     }
-    return (groups->effect_id != DAT_NO_ID) && bonus_add_scaled(build->target.edit, &change, groups->multiplier);
+    return (groups->effect_id != DAT_NO_ID) && bonus_add_scaled(build->target.edit, &change, groups->times);
 }
 
 static bool take_lines(const BonusBuild *build, BonusGroups *groups, int bonus_id)
@@ -186,9 +186,9 @@ static bool take_lines(const BonusBuild *build, BonusGroups *groups, int bonus_i
     return fine;
 }
 
-int bonus_build_civ(const BonusBuild *build, int bonus_id, int multiplier)
+int bonus_build_civ(const BonusBuild *build, int bonus_id, double times)
 {
-    BonusGroups groups = { NULL, DAT_NO_ID, 0, multiplier };
+    BonusGroups groups = { NULL, DAT_NO_ID, 0, times };
     int patched;
 
     if (!take_lines(build, &groups, bonus_id) || !close_group(build, &groups)) {
@@ -198,7 +198,7 @@ int bonus_build_civ(const BonusBuild *build, int bonus_id, int multiplier)
     return (patched == BONUS_BUILD_FAILED) ? BONUS_BUILD_FAILED : groups.made + patched;
 }
 
-int bonus_build_team(const BonusBuild *build, int team_bonus_id, int multiplier)
+int bonus_build_lines(const BonusBuild *build, int bonus_id, bool team, double times)
 {
     const BonusChange *line;
     const Catalog *catalog;
@@ -210,11 +210,11 @@ int bonus_build_team(const BonusBuild *build, int team_bonus_id, int multiplier)
     catalog = build->catalog;
     for (index = 0; fine && (index < catalog->bonus_change_count) && (index < CATALOG_BONUS_CHANGE_CAPACITY); ++index) {
         line = &catalog->bonus_changes[index];
-        if (!line->team || (line->bonus_id != team_bonus_id)) {
+        if ((line->team != team) || (line->bonus_id != bonus_id)) {
             continue;
         }
         change = change_of(line);
-        fine = bonus_add_scaled(build->target.edit, &change, multiplier);
+        fine = bonus_add_scaled(build->target.edit, &change, times);
         ++added;
     }
     return fine ? added : BONUS_BUILD_FAILED;

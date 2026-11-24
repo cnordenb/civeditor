@@ -7,7 +7,7 @@
 # Civ Editor
 
 ## But why?
-For an simpler, lighter app with fewer steps.
+For a simpler, lighter app with fewer steps.
 
 ## Description
 

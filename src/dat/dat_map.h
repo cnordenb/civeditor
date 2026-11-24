@@ -38,7 +38,14 @@ enum {
     DAT_TASK_SIZE = 69,
     DAT_TASK_PROCEEDING_GRAPHIC_AT = 49,
     DAT_TASK_CARRYING_GRAPHIC_AT = 53,
-    DAT_BUILDING_SIZE = 98
+    DAT_BUILDING_SIZE = 98,
+    DAT_ATTACK_SIZE = 4,
+    DAT_COMBAT_RANGE_AT = 6,
+    DAT_COMBAT_RELOAD_AT = 14,
+    DAT_COMBAT_SHOWN_MELEE_ARMOR_AT = 48,
+    DAT_COMBAT_SHOWN_ATTACK_AT = 50,
+    DAT_COMBAT_SHOWN_RANGE_AT = 52,
+    DAT_COMBAT_SHOWN_RELOAD_AT = 56
 };
 
 typedef struct {
@@ -80,6 +87,13 @@ typedef struct {
     size_t tasks_at;
     int task_count;
     size_t attack_graphic_at;
+    size_t speed_at;
+    size_t attacks_at;
+    int attack_count;
+    size_t armours_at;
+    int armour_count;
+    size_t combat_at;
+    size_t shown_pierce_at;
     size_t costs_at;
     size_t train_locations_at;
     int train_location_count;

@@ -3,7 +3,7 @@
 
 #include "../../test_outcome.h"
 
-enum { FILTER_TEST_COUNT = 35 };
+enum { FILTER_TEST_COUNT = 36 };
 
 TestOutcome filter_tests_run(int index);
 

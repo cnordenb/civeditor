@@ -90,34 +90,6 @@ bool test_back_from_the_second_step_goes_to_the_first(void)
     return wizard_move(STEP_BONUSES, -1) == STEP_NAME_AND_TREE;
 }
 
-bool test_a_tree_that_swaps_a_node_of_the_base_civ_is_changed(void)
-{
-    (void)CHECK(civ_design_toggle_tree(fresh(), TREE_UNITS, A_UNIT));
-    (void)CHECK(civ_design_toggle_tree(&blank, TREE_UNITS, A_UNIT + 1));
-    return is_done(STEP_NAME_AND_TREE);
-}
-
-bool test_bonuses_that_swap_one_of_the_base_civ_are_changed(void)
-{
-    (void)CHECK(civ_design_toggle_bonus(fresh(), A_BONUS));
-    (void)CHECK(civ_design_toggle_bonus(&blank, A_BONUS + 1));
-    return is_done(STEP_BONUSES);
-}
-
-bool test_a_team_bonus_other_than_the_base_civs_is_a_change(void)
-{
-    (void)CHECK(civ_design_toggle_team_bonus(fresh(), A_TEAM_BONUS));
-    (void)CHECK(civ_design_toggle_team_bonus(&blank, A_TEAM_BONUS + 1));
-    return is_done(STEP_BONUSES);
-}
-
-bool test_the_base_civs_own_team_bonus_is_no_change(void)
-{
-    (void)CHECK(civ_design_toggle_team_bonus(fresh(), A_TEAM_BONUS));
-    (void)CHECK(civ_design_toggle_team_bonus(&blank, A_TEAM_BONUS));
-    return !is_done(STEP_BONUSES);
-}
-
 bool test_the_last_step_is_titled_finish(void)
 {
     return text_equal(wizard_page(STEP_FINISH)->title, "Finish");

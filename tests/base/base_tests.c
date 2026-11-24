@@ -32,41 +32,40 @@ static void make_bases(void)
     civ_design_reset(&based);
 }
 
-static bool apply_base(int base_id)
+bool base_tests_apply(int base_id)
 {
     make_bases();
     return base_civ_apply(&based, &bases, base_id);
 }
 
-bool test_a_new_civ_starts_with_the_tech_tree_of_its_civ(void)
+const CivDesign *base_tests_design(void)
 {
-    return apply_base(OTHER_CIV) && (based.tree[TREE_BUILDINGS].count == 1) &&
-           civ_design_tree_has(&based, TREE_BUILDINGS, BARRACKS);
+    return &based;
 }
 
 bool test_choosing_another_civ_takes_away_a_regional_node(void)
 {
-    (void)apply_base(BASE_CIV);
+    (void)base_tests_apply(BASE_CIV);
     return base_civ_apply(&based, &bases, OTHER_CIV) && !civ_design_tree_has(&based, TREE_UNITS, REGIONAL_UNIT);
 }
 
 bool test_a_base_civ_has_the_nodes_its_civ_has_in_the_game(void)
 {
-    return apply_base(BASE_CIV) && civ_design_tree_has(&based, TREE_UNITS, REGIONAL_UNIT);
+    return base_tests_apply(BASE_CIV) && civ_design_tree_has(&based, TREE_UNITS, REGIONAL_UNIT);
 }
 
 bool test_a_base_civ_gives_the_civ_exactly_its_bonuses(void)
 {
-    return apply_base(BASE_CIV) && (based.bonus_count == 1) && civ_design_has_bonus(&based, BASE_BONUS);
+    return base_tests_apply(BASE_CIV) && (based.bonus_count == 1) && civ_design_has_bonus(&based, BASE_BONUS);
 }
 
 bool test_a_base_civ_gives_the_civ_its_team_bonus(void)
 {
-    return apply_base(BASE_CIV) && civ_design_has_team_bonus(&based, BASE_TEAM_ID);
+    return base_tests_apply(BASE_CIV) && civ_design_has_team_bonus(&based, BASE_TEAM_ID);
 }
 
 bool test_a_base_civ_gives_the_civ_its_unique_unit(void)
 {
-    return apply_base(BASE_CIV) && (based.unique_unit.origin == UNIT_ORIGIN_VANILLA) &&
+    return base_tests_apply(BASE_CIV) && (based.unique_unit.origin == UNIT_ORIGIN_VANILLA) &&
            (based.unique_unit.id == BASE_UNIT_ID);
 }

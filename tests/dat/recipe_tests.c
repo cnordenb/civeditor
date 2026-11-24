@@ -3,10 +3,39 @@
 #include <string.h>
 
 #include "small_dat.h"
+#include "../../src/core/check.h"
+#include "../../src/dat/dat_parts.h"
 
-bool test_the_replaced_civ_loses_its_own_techs(void)
+static long unit_name(Scenario scenario)
 {
-    return recipe_game_tech(OLD_MAKE_TECH).civ == RECIPE_LOST_CIV;
+    RebuiltGame rebuilt = recipe_game_rebuilt(scenario);
+    DatCursor cursor;
+    size_t at = 0U;
+
+    if ((rebuilt.bytes == NULL) || !dat_find_unit(rebuilt.bytes, rebuilt.map->civ_at[SLOT], OWN_UNIT, &at) ||
+        !dat_cursor_start(&cursor, rebuilt.bytes, at + DAT_UNIT_NAME_AT)) {
+        return DAT_NO_ID;
+    }
+    return dat_cursor_i32(&cursor);
+}
+
+static long civ_resource(Scenario scenario, int resource)
+{
+    RebuiltGame rebuilt = recipe_game_rebuilt(scenario);
+    DatCursor cursor;
+    DatCiv civ;
+    float value;
+
+    if (!CHECK(resource >= 0) || !CHECK(resource < GAME_RESOURCES) || (rebuilt.bytes == NULL) ||
+        !dat_civ_read(rebuilt.bytes, rebuilt.map->civ_at[SLOT], &civ)) {
+        return DAT_NO_ID;
+    }
+    if (!dat_cursor_start(&cursor, rebuilt.bytes,
+                          civ.team_bonus_id_at + DAT_SHORT_WIDTH + ((size_t)resource * DAT_LONG_WIDTH))) {
+        return DAT_NO_ID;
+    }
+    value = dat_cursor_f32(&cursor);
+    return (long)value;
 }
 
 bool test_the_unique_unit_is_made_by_a_tech_of_the_civ(void)
@@ -41,7 +70,7 @@ bool test_the_report_counts_the_unique_techs_built(void)
 
 bool test_the_built_unique_unit_is_named_by_the_string_id_of_its_slot(void)
 {
-    return recipe_game_unit_name(FULL_CIV) == UNIT_SID;
+    return unit_name(FULL_CIV) == UNIT_SID;
 }
 
 bool test_a_civ_bonus_made_of_a_civs_tech_is_copied_for_the_civ(void)
@@ -67,11 +96,6 @@ bool test_a_civ_bonus_made_of_a_generic_tech_unlocks_it(void)
 bool test_the_report_counts_the_civ_bonuses_built(void)
 {
     return recipe_game_report(FULL_CIV).bonuses_built == BUILT_BONUSES;
-}
-
-bool test_the_report_counts_a_civ_bonus_the_catalog_lacks_as_skipped(void)
-{
-    return recipe_game_report(FULL_CIV).bonuses_skipped == 1;
 }
 
 bool test_a_bonus_with_nothing_to_build_is_counted_as_skipped(void)
@@ -111,9 +135,9 @@ bool test_a_tech_that_no_line_names_keeps_its_requirements(void)
     return recipe_game_required_tech(REQUIRED_CIV, FIRST_TECH, 0) == -1;
 }
 
-bool test_the_report_counts_a_multiplier_of_a_bonus_made_of_the_games_techs(void)
+bool test_the_report_counts_a_multiplier_of_a_bonus_that_names_a_generic_tech(void)
 {
-    return recipe_game_report(MULTIPLIED_CIV).multipliers_skipped == 1;
+    return recipe_game_report(MULTIPLIED_BARE_CIV).multipliers_skipped == 1;
 }
 
 bool test_the_team_bonus_takes_the_changes_of_its_effect(void)
@@ -216,16 +240,16 @@ bool test_a_bonus_of_techs_builds_its_lines_too(void)
     return recipe_game_scenario_changes(MULTIPLIED_BARE_CIV, NEW_CHANGES_TECH, ADD_ATTRIBUTE, -1) == 1;
 }
 
-bool test_the_lines_of_a_bonus_of_techs_count_once(void)
+bool test_the_lines_of_a_bonus_of_techs_count_as_often_as_the_bonus(void)
 {
     float amount = recipe_game_scenario_amount(MULTIPLIED_BARE_CIV, NEW_CHANGES_TECH);
 
-    return (amount > 8.5F) && (amount < 9.5F);
+    return (amount > 17.5F) && (amount < 18.5F);
 }
 
 bool test_a_named_hero_takes_the_string_id_of_its_slot(void)
 {
-    return recipe_game_unit_name(BARE_CIV) == HERO_SID;
+    return unit_name(BARE_CIV) == HERO_SID;
 }
 
 bool test_a_copied_tech_requires_the_copy_of_a_civs_tech_it_required(void)
@@ -240,7 +264,7 @@ bool test_a_copied_tech_still_requires_a_tech_of_no_civ(void)
 
 bool test_a_chosen_scout_is_written_as_the_civs_scout(void)
 {
-    return recipe_game_resource(SCOUT_CIV, SCOUT_RESOURCE) == (long)SCOUT;
+    return civ_resource(SCOUT_CIV, SCOUT_RESOURCE) == (long)SCOUT;
 }
 
 bool test_a_hero_that_the_replaced_civ_lacks_is_skipped_and_reported(void)

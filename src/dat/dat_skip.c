@@ -35,13 +35,13 @@ enum {
     DROP_SITE_SIZE = 2,
     BIRD_MIDDLE_SIZE = 14,
     COMBATANT_HEAD_SIZE = 2,
-    ATTACK_SIZE = 4,
     COMBATANT_TAIL_SIZE = 80,
     COMBATANT_TO_ATTACK_GRAPHIC = 46,
     PROJECTILE_SIZE = 9,
     CREATABLE_TAIL_SIZE = 97,
     CREATABLE_TO_HERO_MODE = 9,
     CREATABLE_TO_GARRISON_GRAPHIC = 10,
+    CREATABLE_TO_SHOWN_PIERCE_ARMOR = 95,
     CIV_IDS_SIZE = 4,
     RESOURCE_SIZE = 4,
     ICON_SET_SIZE = 1,
@@ -235,20 +235,26 @@ static bool skip_bird(DatCursor *cursor, DatUnit *unit)
            dat_cursor_skip_items(cursor, unit->task_count, DAT_TASK_SIZE);
 }
 
+static int skip_list(DatCursor *cursor, size_t *list_at, size_t item_size)
+{
+    int count = dat_cursor_i16(cursor);
+
+    *list_at = cursor->at;
+    (void)dat_cursor_skip_items(cursor, count, item_size);
+    return count;
+}
+
 static bool skip_combatant(DatCursor *cursor, DatUnit *unit)
 {
-    int attack_count;
-    int armour_count;
-
     if (!dat_cursor_skip(cursor, COMBATANT_HEAD_SIZE)) {
         return false;
     }
-    attack_count = dat_cursor_i16(cursor);
-    (void)dat_cursor_skip_items(cursor, attack_count, ATTACK_SIZE);
-    armour_count = dat_cursor_i16(cursor);
-    (void)dat_cursor_skip_items(cursor, armour_count, ATTACK_SIZE);
+    unit->attack_count = skip_list(cursor, &unit->attacks_at, DAT_ATTACK_SIZE);
+    unit->armour_count = skip_list(cursor, &unit->armours_at, DAT_ATTACK_SIZE);
+    unit->combat_at = cursor->at;
     unit->attack_graphic_at = cursor->at + COMBATANT_TO_ATTACK_GRAPHIC;
-    return CHECK(attack_count >= 0) && CHECK(armour_count >= 0) && dat_cursor_skip(cursor, COMBATANT_TAIL_SIZE);
+    return CHECK(unit->attack_count >= 0) && CHECK(unit->armour_count >= 0) &&
+           dat_cursor_skip(cursor, COMBATANT_TAIL_SIZE);
 }
 
 static bool skip_creatable(DatCursor *cursor, DatUnit *unit)
@@ -257,11 +263,10 @@ static bool skip_creatable(DatCursor *cursor, DatUnit *unit)
     if (!dat_cursor_skip(cursor, (size_t)DAT_UNIT_COST_SLOTS * DAT_UNIT_COST_SIZE)) {
         return false;
     }
-    unit->train_location_count = dat_cursor_i16(cursor);
-    unit->train_locations_at = cursor->at;
-    (void)dat_cursor_skip_items(cursor, unit->train_location_count, DAT_TRAIN_LOCATION_SIZE);
+    unit->train_location_count = skip_list(cursor, &unit->train_locations_at, DAT_TRAIN_LOCATION_SIZE);
     unit->hero_mode_at = cursor->at + CREATABLE_TO_HERO_MODE;
     unit->garrison_graphic_at = cursor->at + CREATABLE_TO_GARRISON_GRAPHIC;
+    unit->shown_pierce_at = cursor->at + CREATABLE_TO_SHOWN_PIERCE_ARMOR;
     return CHECK(unit->train_location_count >= 0) && dat_cursor_skip(cursor, CREATABLE_TAIL_SIZE);
 }
 
@@ -287,7 +292,7 @@ static void skip_unit_parts(DatCursor *cursor, DatUnit *unit, int type)
 
 bool dat_read_unit(DatCursor *cursor, DatUnit *unit)
 {
-    const DatUnit absent = { 0U, 0, 0, 0U, 0, 0U, 0U, 0U, 0, 0U, 0U, 0U, 0, 0U, 0U, 0U };
+    const DatUnit absent = { 0U, 0, 0, 0U, 0, 0U, 0U, 0U, 0, 0U, 0U, 0U, 0, 0U, 0, 0U, 0U, 0U, 0U, 0, 0U, 0U, 0U };
     int type;
 
     *unit = absent;
@@ -296,6 +301,7 @@ bool dat_read_unit(DatCursor *cursor, DatUnit *unit)
     if (!skip_unit_base(cursor, unit) || (type == TYPE_TREE) || (type < TYPE_FLAG)) {
         return cursor->fine;
     }
+    unit->speed_at = cursor->at;
     (void)dat_cursor_skip(cursor, SPEED_SIZE);
     if (type >= TYPE_DEAD_FISH) {
         unit->walking_graphic_at = cursor->at;

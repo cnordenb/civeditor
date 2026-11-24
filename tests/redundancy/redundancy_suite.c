@@ -7,11 +7,14 @@
 #include "game_tests.h"
 #include "review_tests.h"
 #include "present/filter_tests.h"
+#include "bonus/between_tests.h"
+#include "chosen/chosen_tests.h"
+#include "present/edit_tests.h"
 #include "tools/plan_tests.h"
 
 enum { CIV_GROUP_SIZE = 7, PICK_GROUP_SIZE = 7, SAVE_GROUP_SIZE = 4, ROSTER_GROUP_SIZE = 10, COMPARE_GROUP_SIZE = 3,
-       GAME_GROUP_SIZE = 7, CUT_GROUP_SIZE = 4, PLAN_GROUP_SIZE = 1, PATCH_GROUP_SIZE = 1, BUILT_GROUP_SIZE = 7,
-       ROOM_GROUP_SIZE = 2, REVIEW_GROUP_SIZE = 6, BUILD_GROUP_SIZE = 8 };
+       GAME_GROUP_SIZE = 7, CUT_GROUP_SIZE = 4, PLAN_GROUP_SIZE = 2, BUILT_GROUP_SIZE = 7,
+       ROOM_GROUP_SIZE = 2, REVIEW_GROUP_SIZE = 6, BUILD_GROUP_SIZE = 8, OPENED_GROUP_SIZE = 10 };
 enum {
     PICK_START = CIV_GROUP_SIZE,
     SAVE_START = PICK_START + PICK_GROUP_SIZE,
@@ -20,11 +23,12 @@ enum {
     GAME_START = COMPARE_START + COMPARE_GROUP_SIZE,
     CUT_START = GAME_START + GAME_GROUP_SIZE,
     PLAN_START = CUT_START + CUT_GROUP_SIZE,
-    PATCH_START = PLAN_START + PLAN_GROUP_SIZE,
-    BUILT_START = PATCH_START + PATCH_GROUP_SIZE,
+    BUILT_START = PLAN_START + PLAN_GROUP_SIZE,
     ROOM_START = BUILT_START + BUILT_GROUP_SIZE,
     FILTER_START = ROOM_START + ROOM_GROUP_SIZE,
-    REVIEW_START = FILTER_START + FILTER_TEST_COUNT,
+    SCALED_START = FILTER_START + FILTER_TEST_COUNT,
+    EDIT_START = SCALED_START + BONUS_TEST_COUNT,
+    REVIEW_START = EDIT_START + EDIT_TEST_COUNT,
     BUILD_START = REVIEW_START + REVIEW_GROUP_SIZE,
     OPENED_START = BUILD_START + BUILD_GROUP_SIZE
 };
@@ -232,18 +236,13 @@ static TestOutcome run_review_test(int index)
     }
 }
 
-static TestOutcome run_plan_test(int index)
+static TestOutcome run_plan_patch_test(int index)
 {
     if (index == 1) {
         return test_outcome_of("the analyzed build compiles with the analyzer",
                                test_the_analyzed_build_compiles_with_the_analyzer());
     }
-    return test_outcome_missing();
-}
-
-static TestOutcome run_patch_test(int index)
-{
-    if (index == 1) {
+    if (index == 2) {
         return test_outcome_of("an edit knows the first place it patched",
                                test_an_edit_knows_the_first_place_it_patched());
     }
@@ -355,7 +354,7 @@ static TestOutcome run_opened_test(int index)
         return test_outcome_of("a civ named with one letter is saved under that letter",
                                test_a_civ_named_with_one_letter_is_saved_under_that_letter());
     default:
-        return test_outcome_missing();
+        return chosen_tests_run(index - OPENED_GROUP_SIZE);
     }
 }
 
@@ -399,11 +398,8 @@ TestOutcome redundancy_suite_run(int index)
     if (index <= PLAN_START) {
         return run_cut_test(index - CUT_START);
     }
-    if (index <= PATCH_START) {
-        return run_plan_test(index - PLAN_START);
-    }
     if (index <= BUILT_START) {
-        return run_patch_test(index - PATCH_START);
+        return run_plan_patch_test(index - PLAN_START);
     }
     if (index <= ROOM_START) {
         return run_built_test(index - BUILT_START);
@@ -411,5 +407,11 @@ TestOutcome redundancy_suite_run(int index)
     if (index <= FILTER_START) {
         return run_room_test(index - ROOM_START);
     }
-    return (index <= REVIEW_START) ? filter_tests_run(index - FILTER_START) : run_window_test(index);
+    if (index <= SCALED_START) {
+        return filter_tests_run(index - FILTER_START);
+    }
+    if (index <= EDIT_START) {
+        return bonus_tests_run(index - SCALED_START);
+    }
+    return (index <= REVIEW_START) ? edit_tests_run(index - EDIT_START) : run_window_test(index);
 }

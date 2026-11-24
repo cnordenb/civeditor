@@ -1,0 +1,18 @@
+#ifndef REQUIREMENT_TESTS_H
+#define REQUIREMENT_TESTS_H
+
+#include <stdbool.h>
+
+bool test_the_local_mods_folder_of_a_profile_is_found(void);
+bool test_undo_brings_back_the_civ_before_a_change(void);
+bool test_a_25th_bonus_is_refused(void);
+bool test_the_mod_folder_name_is_made_from_the_mod_name(void);
+bool test_the_replaced_civ_loses_its_own_techs(void);
+bool test_the_report_counts_a_civ_bonus_the_catalog_lacks_as_skipped(void);
+bool test_a_new_civ_is_saved_as_civeditor_civ_by_default(void);
+bool test_a_wheel_turn_between_the_lists_redraws_nothing_when_the_step_fits(void);
+bool test_a_dropdown_opens_without_animation(void);
+bool test_a_number_of_the_team_bonus_is_set_in_its_field(void);
+bool test_a_list_that_is_erased_keeps_the_picture_of_its_rows(void);
+
+#endif

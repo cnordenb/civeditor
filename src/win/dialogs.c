@@ -3,6 +3,7 @@
 #include <commdlg.h>
 #include <wchar.h>
 
+#include "../base/base_civ.h"
 #include "../core/text.h"
 #include "../forge/forge.h"
 #include "../mod/mod_places.h"
@@ -13,12 +14,17 @@
 enum { FOLDER_TRIES = 3, NAME_LIMIT = 96, MESSAGE_CAPACITY = 2048, LIVE_REGION_CHANGED = 0x8019 };
 
 _Static_assert((int)FORGE_CIV_LIMIT == (int)ROSTER_SLOT_LIMIT, "a mod has room for every civ the roster holds");
+_Static_assert((int)ASK_ROW_WIDTH >= (int)CATALOG_TEXT_CAPACITY, "every text of the catalog fits a row of a dialog");
 
 static const wchar_t FILTER[] = L"Civ files (*.civeditor.json;*.civbuilder.json)\0*.json\0All files (*.*)\0*.*\0";
 static const wchar_t DATA_FOLDERS[FOLDER_TRIES][8] = { L"data", L"..\\data", L"" };
 static const wchar_t TITLE[] = L"civeditor";
 
+static const wchar_t *const EFFECT_LABELS[TECH_TIER_COUNT] = { L"Civ bonuses that the castle tech does",
+                                                               L"Civ bonuses that the imperial tech does" };
+
 static CivDesign opened;
+static wchar_t rows[LIST_ROW_CAPACITY][ASK_ROW_WIDTH];
 static wchar_t chosen_path[FILE_PATH_CAPACITY];
 static ForgeResult built;
 static wchar_t wide_message[MESSAGE_CAPACITY];
@@ -211,24 +217,46 @@ static bool is_folder(const wchar_t *path)
     return (attributes != INVALID_FILE_ATTRIBUTES) && ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0U);
 }
 
-bool dialogs_options(AppState *app)
+void dialogs_read_game(AppState *app)
+{
+    wchar_t game[FILE_PATH_CAPACITY];
+    CivDesign *design = &app->history.present;
+
+    if (!ask_folder(ASKED_GAME_FOLDER, game) || !forge_read_game(&app->catalog, game)) {
+        return;
+    }
+    if (!app->unsaved && (app->file_path[0] == L'\0')) {
+        (void)base_civ_apply(design, &app->catalog, design->choices[CHOICE_REPLACE]);
+    }
+    sync_design(app, false);
+}
+
+void dialogs_options(AppState *app)
 {
     static wchar_t folder[FILE_PATH_CAPACITY];
+    bool ask = options_ask_to_save();
+    AskQuestion question = { L"The game's local mods folder, where Build mod writes. Correct it if it is wrong.",
+                             folder, FILE_PATH_CAPACITY, NULL, NULL, 0, -1, NULL,
+                             L"Ask to save the civ before exiting", &ask };
 
     (void)knows_mods_folder(app);
     (void)lstrcpynW(folder, app->mods_folder, FILE_PATH_CAPACITY);
-    if (!ask_text(app->window, L"The game's local mods folder, where Build mod writes. Correct it if it is wrong.",
-                  folder, FILE_PATH_CAPACITY)) {
-        dialogs_status(app, "The mods folder was left as it was.");
-        return false;
+    if (!ask_question(app->window, &question)) {
+        dialogs_status(app, "The options were left as they were.");
+        return;
+    }
+    options_set_ask_to_save(ask);
+    if (wcscmp(folder, app->mods_folder) == 0) {
+        dialogs_status(app, "The options were kept.");
+        return;
     }
     if (!is_folder(folder)) {
         dialogs_status(app, "The mods folder was left as it was.");
-        return tell(app, "That folder does not exist, so the mods folder was left as it was.", MB_ICONERROR);
+        (void)tell(app, "That folder does not exist, so the mods folder was left as it was.", MB_ICONERROR);
+        return;
     }
     (void)lstrcpynW(app->mods_folder, folder, FILE_PATH_CAPACITY);
     dialogs_status(app, "Build mod now writes into the mods folder given.");
-    return true;
 }
 
 static bool can_build(AppState *app, BuildPlaces *places, ForgeJob *job)
@@ -310,7 +338,7 @@ bool dialogs_may_discard(AppState *app)
     return answer == IDNO;
 }
 
-static int list_heroes(AppState *app, wchar_t rows[LIST_ROW_CAPACITY][ASK_ROW_WIDTH])
+static int list_heroes(AppState *app)
 {
     ListQuery query = { CONTROL_HERO_CHOOSE, "", LIST_ALL_CATEGORIES };
     ListItem item = { CONTROL_HERO_CHOOSE, 0 };
@@ -328,18 +356,67 @@ static int list_heroes(AppState *app, wchar_t rows[LIST_ROW_CAPACITY][ASK_ROW_WI
 
 bool dialogs_choose_hero(AppState *app, Command *command)
 {
-    static wchar_t rows[LIST_ROW_CAPACITY][ASK_ROW_WIDTH];
     static wchar_t name[CIV_NAME_CAPACITY];
-    AskQuestion question = { L"Name of the hero", name, CIV_NAME_CAPACITY, L"Heroes", rows, 0, -1 };
+    AskQuestion question = { L"Name of the hero", name, CIV_NAME_CAPACITY, L"Heroes", rows, 0, -1, NULL, NULL, NULL };
     ListItem item = { CONTROL_HERO_CHOOSE, 0 };
 
-    question.row = list_heroes(app, rows);
+    question.row = list_heroes(app);
     question.row_count = app->lists[CONTROL_HERO_CHOOSE].count;
     if (!dialogs_widen(civ_design_text(&app->history.present, TEXT_FIELD_HERO_NAME), name, CIV_NAME_CAPACITY) ||
         !text_dialog_show(app->window, &question) || (question.row < 0) || (question.row >= question.row_count)) {
         return false;
     }
     item.item = app->lists[CONTROL_HERO_CHOOSE].items[question.row];
-    *command = list_item_command(&app->catalog, item);
+    *command = list_item_command(&app->catalog, &app->history.present, item);
     return dialogs_narrow(name, command->text, (int)sizeof command->text);
+}
+
+static int list_effects(const AppState *app, TechTier tier, bool *ticks)
+{
+    const Catalog *catalog = &app->catalog;
+    int count = (catalog->bonus_count < LIST_ROW_CAPACITY) ? catalog->bonus_count : LIST_ROW_CAPACITY;
+    int row;
+
+    for (row = 0; row < count; ++row) {
+        (void)dialogs_widen(catalog->bonuses[row].description, rows[row], ASK_ROW_WIDTH);
+        ticks[row] = civ_design_has_tech_effect(&app->history.present, tier, catalog->bonuses[row].id);
+    }
+    return count;
+}
+
+static bool take_ticks(AppState *app, TechTier tier, const bool *ticks, int count, CivDesign *chosen)
+{
+    bool changed = false;
+    bool refused = false;
+    bool toggled;
+    int id;
+    int row;
+
+    *chosen = app->history.present;
+    for (row = 0; row < count; ++row) {
+        id = app->catalog.bonuses[row].id;
+        if (ticks[row] != civ_design_has_tech_effect(chosen, tier, id)) {
+            toggled = civ_design_toggle_tech_effect(chosen, tier, id);
+            changed = changed || toggled;
+            refused = refused || !toggled;
+        }
+    }
+    if (refused) {
+        dialogs_status(app, "The tech has no room for more effects; the rest were not ticked.");
+    }
+    return changed;
+}
+
+bool dialogs_choose_effects(AppState *app, TechTier tier, CivDesign *chosen)
+{
+    static bool ticks[LIST_ROW_CAPACITY];
+    static wchar_t unused[2];
+    AskQuestion question = { L"", unused, 2U, EFFECT_LABELS[tier], rows, 0, -1, ticks, NULL, NULL };
+
+    if (app->history.present.techs[tier].km_index == CIV_NO_CHOICE) {
+        dialogs_status(app, "A tech must be picked before its effects are chosen.");
+        return false;
+    }
+    question.row_count = list_effects(app, tier, ticks);
+    return text_dialog_show(app->window, &question) && take_ticks(app, tier, ticks, question.row_count, chosen);
 }

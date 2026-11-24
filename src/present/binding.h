@@ -62,7 +62,8 @@ const Binding *binding_of(ControlId control);
 bool list_model_fill(ListModel *model, const Catalog *catalog, const ListQuery *query);
 RowText list_item_text(const Catalog *catalog, ListItem item);
 bool list_item_is_chosen(const Catalog *catalog, const CivDesign *design, ListItem item);
-Command list_item_command(const Catalog *catalog, ListItem item);
+Command list_item_command(const Catalog *catalog, const CivDesign *design, ListItem item);
+Command tree_command(const Catalog *catalog, const CivDesign *design, int node);
 Command hero_box_command(const Catalog *catalog, bool ticked);
 ControlId binding_filtered_list(ControlId filter);
 

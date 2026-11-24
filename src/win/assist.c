@@ -7,27 +7,48 @@
 #include "../core/check.h"
 #include "../shell/shell.h"
 
-enum { LIVE_POLITE = 1, TEXT_PERCENT_PLAIN = 100, FRAME_REACH = 3, FRAME_WIDTH = 2, FRAME_LIMIT = 64 };
-enum { WHEEL_LINES = 3, BAR_MOVES = 4, ROW_TEXT_ROOM = 512, ROW_PAD = 12, ROW_MOST = 255 };
+enum { LIVE_POLITE = 1, TEXT_PERCENT_PLAIN = 100, FRAME_REACH = 3, FRAME_WIDTH = 2, FRAME_LIMIT = 64, NESTING = 3 };
+enum { WHEEL_LINES = 3, BAR_MOVES = 4, ROW_TEXT_ROOM = 512, ROW_MOST = 255 };
 
 typedef struct {
     int index;
     int width;
 } RowPlace;
 
-void assist_mark_live(HWND status)
+static IAccPropServices *open_service(void)
 {
     static const CLSID SERVICE = { 0xb5f8350bUL, 0x0548, 0x48b1, { 0xa6, 0xee, 0x88, 0xbd, 0x00, 0xb4, 0xa5, 0xe7 } };
     static const IID PROPERTIES = { 0x6e26e776UL, 0x04f0, 0x495d, { 0x80, 0xe4, 0x33, 0x30, 0x35, 0x2e, 0x31, 0x69 } };
-    static const GUID LIVE = { 0xc12bcd8eUL, 0x2a8e, 0x4950, { 0x8a, 0xe7, 0x36, 0x25, 0x11, 0x1d, 0x58, 0xeb } };
     void *object = NULL;
-    IAccPropServices *service;
-    VARIANT polite;
 
-    if (CoCreateInstance(&SERVICE, NULL, CLSCTX_INPROC_SERVER, &PROPERTIES, &object) != S_OK) {
+    return (CoCreateInstance(&SERVICE, NULL, CLSCTX_INPROC_SERVER, &PROPERTIES, &object) == S_OK) ? object : NULL;
+}
+
+void assist_annotate(HWND control, AssistProperty property, const wchar_t *text)
+{
+    static const GUID PROPERTIES_OF[ASSIST_PROPERTY_COUNT] = {
+        { 0x608d3df8UL, 0x8128, 0x4aa7, { 0xa4, 0x28, 0xf5, 0x5e, 0x49, 0x26, 0x72, 0x91 } },
+        { 0x123fe443UL, 0x211a, 0x4615, { 0x95, 0x27, 0xc4, 0x5a, 0x7e, 0x93, 0x71, 0x7a } }
+    };
+    IAccPropServices *service = open_service();
+
+    if (service == NULL) {
         return;
     }
-    service = object;
+    (void)IAccPropServices_SetHwndPropStr(service, control, (DWORD)OBJID_CLIENT, CHILDID_SELF, PROPERTIES_OF[property],
+                                          text);
+    (void)IAccPropServices_Release(service);
+}
+
+void assist_mark_live(HWND status)
+{
+    static const GUID LIVE = { 0xc12bcd8eUL, 0x2a8e, 0x4950, { 0x8a, 0xe7, 0x36, 0x25, 0x11, 0x1d, 0x58, 0xeb } };
+    IAccPropServices *service = open_service();
+    VARIANT polite;
+
+    if (service == NULL) {
+        return;
+    }
     VariantInit(&polite);
     polite.vt = VT_I4;
     polite.lVal = LIVE_POLITE;
@@ -62,6 +83,11 @@ int assist_dpi(HWND window)
     return layout_text_dpi(dpi, text_percent());
 }
 
+int assist_scaled(const AppState *app, int units)
+{
+    return MulDiv(units, app->dpi, LAYOUT_BASE_DPI);
+}
+
 void assist_move_focus(AppState *app, WPARAM wparam, LPARAM lparam)
 {
     HWND target;
@@ -72,11 +98,27 @@ void assist_move_focus(AppState *app, WPARAM wparam, LPARAM lparam)
     }
 }
 
+static int holding_control(HWND window)
+{
+    HWND at = window;
+    int control;
+    int depth;
+
+    for (depth = 0; (depth < NESTING) && (at != NULL); ++depth) {
+        control = GetDlgCtrlID(at) - CONTROL_ID_BASE;
+        if ((control >= 0) && (control < CONTROL_COUNT)) {
+            return control;
+        }
+        at = GetParent(at);
+    }
+    return -1;
+}
+
 void assist_show_help(AppState *app)
 {
-    int control = GetDlgCtrlID(GetFocus()) - CONTROL_ID_BASE;
+    int control = holding_control(GetFocus());
 
-    if ((control >= 0) && (control < CONTROL_COUNT) && (layout_help((ControlId)control)[0] != '\0')) {
+    if ((control >= 0) && (layout_help((ControlId)control)[0] != '\0')) {
         dialogs_status(app, layout_help((ControlId)control));
     } else {
         dialogs_status(app, wizard_page(app->step)->help);
@@ -85,8 +127,6 @@ void assist_show_help(AppState *app)
 
 static bool focus_ring(const AppState *app, HWND control, RECT *ring)
 {
-    int reach;
-
     if ((control == NULL) || (GetParent(control) != app->window)) {
         return false;
     }
@@ -94,8 +134,6 @@ static bool focus_ring(const AppState *app, HWND control, RECT *ring)
         return false;
     }
     (void)MapWindowPoints(NULL, app->window, (POINT *)ring, 2);
-    reach = MulDiv(FRAME_REACH, app->dpi, LAYOUT_BASE_DPI);
-    (void)InflateRect(ring, reach, reach);
     return true;
 }
 
@@ -144,22 +182,22 @@ void assist_make_bar(AppState *app)
                                app->instance, NULL);
 }
 
-static int bar_target(const AppState *app, int code, int view)
+int assist_bar_target(HWND window, int bar, BarMove move)
 {
-    static const int MOVES[BAR_MOVES] = { -REFLOW_LINE, REFLOW_LINE, -1, 1 };
-    SCROLLINFO bar;
+    static const int MOVES[BAR_MOVES] = { -1, 1, -1, 1 };
+    SCROLLINFO track;
 
-    if (code > SB_THUMBTRACK) {
-        return app->scroll;
+    if (move.code > SB_THUMBTRACK) {
+        return move.scroll;
     }
-    if (code < BAR_MOVES) {
-        return app->scroll + (MOVES[code] * ((code < SB_PAGEUP) ? 1 : view));
+    if (move.code < BAR_MOVES) {
+        return move.scroll + (MOVES[move.code] * ((move.code < SB_PAGEUP) ? move.line : move.view));
     }
-    bar.cbSize = sizeof bar;
-    bar.fMask = SIF_TRACKPOS;
-    bar.nTrackPos = app->scroll;
-    (void)GetScrollInfo(app->bar, SB_CTL, &bar);
-    return bar.nTrackPos;
+    track.cbSize = sizeof track;
+    track.fMask = SIF_TRACKPOS;
+    track.nTrackPos = move.scroll;
+    (void)GetScrollInfo(window, bar, &track);
+    return track.nTrackPos;
 }
 
 static int page_height(const AppState *app)
@@ -193,7 +231,9 @@ void assist_scroll(AppState *app, UINT message, WPARAM wparam)
     if (message == WM_MOUSEWHEEL) {
         scroll_to(app, app->scroll - MulDiv(GET_WHEEL_DELTA_WPARAM(wparam), WHEEL_LINES * REFLOW_LINE, WHEEL_DELTA));
     } else {
-        scroll_to(app, bar_target(app, (int)LOWORD(wparam), view));
+        BarMove move = { (int)LOWORD(wparam), app->scroll, REFLOW_LINE, view };
+
+        scroll_to(app, assist_bar_target(app->bar, SB_CTL, move));
     }
 }
 
@@ -201,12 +241,13 @@ void assist_run_message(AppState *app, MSG *message)
 {
     HWND dialog = (GetActiveWindow() == app->popup) ? app->popup : app->window;
 
-    if (list_scroll_takes(message) || (TranslateAcceleratorW(app->window, app->accelerators, message) != 0) ||
-        (IsDialogMessageW(dialog, message) != 0)) {
-        return;
+    if (!chosen_take_message(app, message) && !list_scroll_takes(message) &&
+        (TranslateAcceleratorW(app->window, app->accelerators, message) == 0) &&
+        (IsDialogMessageW(dialog, message) == 0)) {
+        (void)TranslateMessage(message);
+        (void)DispatchMessageW(message);
     }
-    (void)TranslateMessage(message);
-    (void)DispatchMessageW(message);
+    chosen_follow_focus(app);
 }
 
 void assist_plain_bar(HWND control)
@@ -222,8 +263,7 @@ static void show_focus(AppState *app, HWND focus)
     Box box = { 0, 0, 0, 0 };
     RECT place;
 
-    if ((focus == NULL) || (GetParent(focus) != app->window) ||
-        (GetWindowRect(focus, &place) == 0)) {
+    if ((focus == NULL) || (IsChild(app->window, focus) == 0) || (GetWindowRect(focus, &place) == 0)) {
         return;
     }
     (void)MapWindowPoints(NULL, app->window, (POINT *)&place, 2);
@@ -239,7 +279,7 @@ UINT assist_row_format(const AppState *app, const DRAWITEMSTRUCT *item, const wc
     if (item->CtlType == ODT_COMBOBOX) {
         return DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX;
     }
-    area->right -= MulDiv(TEXT_INSET, app->dpi, LAYOUT_BASE_DPI);
+    area->right -= assist_scaled(app, TEXT_INSET);
     lines = *area;
     (void)DrawTextW(item->hDC, text, -1, &lines, DT_CALCRECT | DT_WORDBREAK | DT_NOPREFIX);
     if (lines.bottom < area->bottom) {
@@ -261,9 +301,25 @@ static int row_height(const AppState *app, HWND list, HDC context, RowPlace row)
     (void)SendMessageW(list, LB_GETTEXT, (WPARAM)row.index, (LPARAM)text);
     lines.right = row.width;
     (void)DrawTextW(context, text, -1, &lines, DT_CALCRECT | DT_WORDBREAK | DT_NOPREFIX);
-    height = lines.bottom + MulDiv(ROW_PAD, app->dpi, LAYOUT_BASE_DPI);
+    height = lines.bottom + assist_scaled(app, ROW_PAD);
     height = (height < least) ? least : height;
     return (height > ROW_MOST) ? ROW_MOST : height;
+}
+
+static int kept_height(AppState *app, ControlId control, HDC context, RowPlace row)
+{
+    const ListModel *model = &app->lists[control];
+    short *kept = (row.index < model->count) ? &app->wrapped[control].heights[model->items[row.index]] : NULL;
+    int height;
+
+    if ((kept != NULL) && (*kept > 0)) {
+        return *kept;
+    }
+    height = row_height(app, app->controls[control], context, row);
+    if (kept != NULL) {
+        *kept = (short)height;
+    }
+    return height;
 }
 
 static int row_text_width(const AppState *app, HWND list, bool boxed)
@@ -273,10 +329,10 @@ static int row_text_width(const AppState *app, HWND list, bool boxed)
     int bar = ((GetWindowLongPtrW(list, GWL_STYLE) & WS_VSCROLL) != 0) ? 0 : GetSystemMetrics(SM_CXVSCROLL);
 
     (void)GetClientRect(list, &client);
-    return client.right - bar - MulDiv(taken, app->dpi, LAYOUT_BASE_DPI);
+    return client.right - bar - assist_scaled(app, taken);
 }
 
-void assist_wrap_rows(const AppState *app, ControlId control)
+void assist_wrap_rows(AppState *app, ControlId control)
 {
     WidgetKind kind = layout_spec(control).kind;
     RowPlace row = { 0, 0 };
@@ -293,54 +349,92 @@ void assist_wrap_rows(const AppState *app, ControlId control)
     before = SelectObject(context, app->font);
     count = (int)SendMessageW(list, LB_GETCOUNT, 0, 0);
     row.width = row_text_width(app, list, kind == WIDGET_CHECKLIST);
-    for (row.index = 0; (row.index < count) && (row.index < LIST_ROW_CAPACITY); ++row.index) {
-        (void)SendMessageW(list, LB_SETITEMHEIGHT, (WPARAM)row.index, (LPARAM)row_height(app, list, context, row));
+    if (app->wrapped[control].width != row.width) {
+        (void)memset(&app->wrapped[control], 0, sizeof app->wrapped[control]);
+        app->wrapped[control].width = row.width;
     }
+    (void)SendMessageW(list, WM_SETREDRAW, FALSE, 0);
+    for (row.index = 0; (row.index < count) && (row.index < LIST_ROW_CAPACITY); ++row.index) {
+        (void)SendMessageW(list, LB_SETITEMHEIGHT, (WPARAM)row.index, (LPARAM)kept_height(app, control, context, row));
+    }
+    (void)SendMessageW(list, WM_SETREDRAW, TRUE, 0);
     (void)SelectObject(context, before);
     (void)ReleaseDC(list, context);
     (void)InvalidateRect(list, NULL, TRUE);
 }
 
-void assist_placed(const AppState *app)
+void assist_forget_rows(AppState *app)
 {
     int control;
 
     for (control = 0; control < CONTROL_COUNT; ++control) {
-        assist_wrap_rows(app, (ControlId)control);
+        app->wrapped[control].width = 0;
+    }
+}
+
+static bool is_wrapped(const AppState *app, ControlId control)
+{
+    WidgetKind kind = layout_spec(control).kind;
+
+    return app->wrapped[control].width == row_text_width(app, app->controls[control], kind == WIDGET_CHECKLIST);
+}
+
+void assist_placed(AppState *app)
+{
+    int control;
+
+    for (control = 0; control < CONTROL_COUNT; ++control) {
+        if (layout_shows((ControlId)control, app->step) && !is_wrapped(app, (ControlId)control)) {
+            assist_wrap_rows(app, (ControlId)control);
+        }
     }
     (void)InvalidateRect(app->window, NULL, TRUE);
+}
+
+static void redraw_ring(const AppState *app, HWND control)
+{
+    RECT ring;
+    int reach = assist_scaled(app, FRAME_REACH);
+
+    if (focus_ring(app, control, &ring)) {
+        (void)InflateRect(&ring, reach, reach);
+        (void)InvalidateRect(app->window, &ring, TRUE);
+    }
 }
 
 void assist_follow_focus(AppState *app)
 {
     HWND focus = GetFocus();
-    RECT ring;
 
+    chosen_follow_focus(app);
     if (focus == app->framed) {
         return;
     }
-    if (focus_ring(app, app->framed, &ring)) {
-        (void)InvalidateRect(app->window, &ring, TRUE);
-    }
+    redraw_ring(app, app->framed);
     show_focus(app, focus);
-    if (focus_ring(app, focus, &ring)) {
-        (void)InvalidateRect(app->window, &ring, TRUE);
-    }
+    redraw_ring(app, focus);
     app->framed = focus;
+}
+
+void assist_draw_ring(const AppState *app, HDC context, RECT control)
+{
+    RECT ring = control;
+    int reach = assist_scaled(app, FRAME_REACH);
+    int width = assist_scaled(app, FRAME_WIDTH);
+    int drawn;
+
+    (void)InflateRect(&ring, reach, reach);
+    for (drawn = 0; (drawn < width) && (drawn < FRAME_LIMIT); ++drawn) {
+        (void)FrameRect(context, &ring, app->chosen_brush);
+        (void)InflateRect(&ring, -1, -1);
+    }
 }
 
 void assist_draw_focus(const AppState *app, HDC context)
 {
-    RECT ring;
-    int width;
-    int drawn;
+    RECT place;
 
-    if (!focus_ring(app, GetFocus(), &ring)) {
-        return;
-    }
-    width = MulDiv(FRAME_WIDTH, app->dpi, LAYOUT_BASE_DPI);
-    for (drawn = 0; (drawn < width) && (drawn < FRAME_LIMIT); ++drawn) {
-        (void)FrameRect(context, &ring, app->chosen_brush);
-        (void)InflateRect(&ring, -1, -1);
+    if (focus_ring(app, GetFocus(), &place)) {
+        assist_draw_ring(app, context, place);
     }
 }

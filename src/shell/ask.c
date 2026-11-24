@@ -5,12 +5,15 @@
 #include "../core/check.h"
 #include "../mod/mod_places.h"
 
+enum { OPTIONS_ROOM = 4, ASKED = '1', NOT_ASKED = '0' };
+
+static const wchar_t OPTIONS_FILE[] = L"civeditor_options.txt";
 static AskScript script;
 static wchar_t last_message[ASK_MESSAGE_CAPACITY];
 
 void ask_script(const AskScript *answers)
 {
-    static const AskScript NONE = { false, 0, NULL, NULL, NULL, NULL, NULL };
+    static const AskScript NONE = { false, 0, NULL, NULL, NULL, NULL, NULL, false };
 
     script = (answers == NULL) ? NONE : *answers;
     last_message[0] = L'\0';
@@ -32,17 +35,50 @@ int ask_message(HWND owner, const wchar_t *text, const wchar_t *title, UINT flag
     return script.answer;
 }
 
-bool ask_text(HWND owner, const wchar_t *question, wchar_t *answer, size_t capacity)
+bool ask_question(HWND owner, AskQuestion *question)
 {
-    AskQuestion asked = { question, answer, capacity, NULL, NULL, 0, -1 };
-
     if (!script.active) {
-        return text_dialog_show(owner, &asked);
+        return text_dialog_show(owner, question);
     }
     if (script.text != NULL) {
-        (void)lstrcpynW(answer, script.text, (int)capacity);
+        (void)lstrcpynW(question->answer, script.text, (int)question->capacity);
     }
-    return (script.answer == IDOK) && (answer[0] != L'\0');
+    if (question->check != NULL) {
+        *question->check = script.tick;
+    }
+    return (script.answer == IDOK) && (question->answer[0] != L'\0');
+}
+
+bool ask_text(HWND owner, const wchar_t *question, wchar_t *answer, size_t capacity)
+{
+    AskQuestion asked = { question, answer, capacity, NULL, NULL, 0, -1, NULL, NULL, NULL };
+
+    return ask_question(owner, &asked);
+}
+
+static bool options_path(wchar_t *path)
+{
+    const wchar_t *home = script.active ? script.home : _wgetenv(L"APPDATA");
+
+    return (home != NULL) && file_join_path(path, FILE_PATH_CAPACITY, home, OPTIONS_FILE);
+}
+
+bool options_ask_to_save(void)
+{
+    wchar_t path[FILE_PATH_CAPACITY];
+    char kept[OPTIONS_ROOM] = "";
+
+    return !options_path(path) || !file_read_all(path, kept, sizeof kept).succeeded || (kept[0] != NOT_ASKED);
+}
+
+void options_set_ask_to_save(bool ask)
+{
+    wchar_t path[FILE_PATH_CAPACITY];
+    char kept = ask ? ASKED : NOT_ASKED;
+
+    if (options_path(path)) {
+        (void)file_write_all(path, &kept, 1U);
+    }
 }
 
 static bool scripted_file(OPENFILENAMEW *dialog, bool saving)

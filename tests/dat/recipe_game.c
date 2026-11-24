@@ -19,7 +19,7 @@ static const DatTech GAME_TECH = {
     .effect_id = -1,
     .name = "Game",
     .research_location_count = 1,
-    .research_locations = { { 109, 25, 6, 18022L } }
+    .research_locations = { { 109, GAME_TIME, 6, 18022L } }
 };
 
 static const int GAME_TECH_CIVS[GAME_TECHS] = { NO_CIV,    SLOT,   SLOT,      SLOT,   OTHER_CIV, NO_CIV,
@@ -49,6 +49,7 @@ static const GameChange GAME_CHANGES[GAME_CHANGE_COUNT] = {
 };
 
 static const DatChange GENERIC_CHANGE = { RECIPE_ENABLE_UNIT, KEPT_UNIT, 1, -1, 0.0F };
+static const Multiplier TWICE = { 2 * CIV_MILLIONTHS };
 
 static Catalog game_catalog;
 static CivDesign design;
@@ -100,7 +101,7 @@ static bool add_game_tech(int index)
 static bool make_game(DatBytes *game)
 {
     const SmallUnit building = small.unit;
-    const SmallUnit soldier = { OWN_UNIT, INFANTRY_CLASS, SMALL_CREATABLE_TYPE, 0 };
+    const SmallUnit soldier = { OWN_UNIT, INFANTRY_CLASS, SMALL_CREATABLE_TYPE, 0, true };
     bool fine;
     int index;
 
@@ -131,7 +132,8 @@ static void fill_bonuses(void)
     game_catalog.bonuses[1].effects = (TsvNumberList){ { GENERIC_TECH }, 1 };
     game_catalog.bonuses[2].id = CHANGES_BONUS;
     game_catalog.bonuses[BUILT_BONUSES].id = EMPTY_BONUS;
-    (void)text_copy(game_catalog.bonuses[0].description, CATALOG_TEXT_CAPACITY, "Infantry is stronger");
+    (void)text_copy(game_catalog.bonuses[0].description, CATALOG_TEXT_CAPACITY, "Infantry +1 attack");
+    (void)text_copy(game_catalog.bonuses[BUILT_BONUSES + 3].description, CATALOG_TEXT_CAPACITY, "Infantry +9 armor");
     game_catalog.bonuses[BUILT_BONUSES + 1].id = REQUIRE_BONUS;
     game_catalog.bonuses[BUILT_BONUSES + 2].id = NO_ROOM_BONUS;
     game_catalog.bonuses[BUILT_BONUSES + 3].id = MIXED_BONUS;
@@ -170,6 +172,7 @@ static void fill_catalog(void)
     game_catalog.units[2] = HERO;
     game_catalog.unit_count = 3;
     game_catalog.techs[0].tier = TECH_TIER_CASTLE;
+    game_catalog.techs[0].cost[GOLD] = GAME_GOLD;
     game_catalog.techs[0].effects = (TsvNumberList){ { CASTLE_SOURCE }, 1 };
     game_catalog.techs[1].tier = TECH_TIER_IMPERIAL;
     game_catalog.techs[1].effects = (TsvNumberList){ { IMPERIAL_SOURCE }, 1 };
@@ -189,10 +192,11 @@ static void fill_catalog(void)
 
 static bool fill_full_design(void)
 {
-    design.techs[TECH_TIER_CASTLE].cost[WOOD] = CHOSEN_WOOD;
     return CHECK(civ_design_set_text(&design, TEXT_FIELD_UNIT_NAME, "Tester")) &&
            CHECK(civ_design_pick_unit(&design, UNIT_ORIGIN_VANILLA, OWN_PICK)) &&
            CHECK(civ_design_pick_tech(&design, TECH_TIER_CASTLE, PICKED_TECH)) &&
+           CHECK(civ_design_set_tech_value(&design, TECH_TIER_CASTLE, TECH_VALUE_WOOD, CHOSEN_WOOD)) &&
+           CHECK(civ_design_set_tech_value(&design, TECH_TIER_CASTLE, TECH_VALUE_TIME, CHOSEN_TIME)) &&
            CHECK(civ_design_pick_tech(&design, TECH_TIER_IMPERIAL, PICKED_TECH)) &&
            CHECK(civ_design_toggle_tree(&design, TREE_UNITS, KEPT_UNIT)) &&
            CHECK(civ_design_toggle_bonus(&design, TECH_BONUS)) &&
@@ -216,9 +220,25 @@ static bool fill_multiplied_design(bool bare)
 {
     bool filled = bare ? (fill_bare_design() && civ_design_toggle_bonus(&design, MIXED_BONUS)) : fill_full_design();
 
-    civ_design_set_multiplier(&design, false, bare ? MIXED_BONUS : TECH_BONUS, 2);
-    civ_design_set_multiplier(&design, true, bare ? CHANGES_TEAM_BONUS : EFFECT_TEAM_BONUS, 2);
+    (void)civ_design_set_multiplier(&design, false, bare ? MIXED_BONUS : TECH_BONUS, TWICE);
+    (void)civ_design_set_multiplier(&design, true, bare ? CHANGES_TEAM_BONUS : EFFECT_TEAM_BONUS, TWICE);
     return filled;
+}
+
+static bool fill_stats(bool costly)
+{
+    static const int STATS[UNIT_STAT_COUNT] = { BUILT_FOOD,   BUILT_WOOD,  BUILT_STONE,       BUILT_GOLD,
+                                                BUILT_HP,     BUILT_ATTACK, BUILT_MELEE_ARMOR, BUILT_PIERCE_ARMOR,
+                                                BUILT_RANGE,  BUILT_SPEED,  BUILT_RELOAD };
+    bool fine = fill_full_design() && CHECK(civ_design_toggle_tech_effect(&design, TECH_TIER_CASTLE, MIXED_BONUS)) &&
+                CHECK(civ_design_set_tech_effect(&design, TECH_TIER_CASTLE, MIXED_BONUS, TWICE));
+    int stat;
+
+    for (stat = 0; fine && (stat < (int)UNIT_STAT_COUNT); ++stat) {
+        fine = ((stat == (int)UNIT_STAT_GOLD) && !costly) ||
+               CHECK(civ_design_set_unit_stat(&design, UNIT_RANK_BASE, (UnitStat)stat, STATS[stat]));
+    }
+    return fine;
 }
 
 static bool fill_design(Scenario scenario)
@@ -245,6 +265,9 @@ static bool fill_design(Scenario scenario)
                CHECK(civ_design_toggle_bonus(&design, EMPTY_BONUS));
     case SCOUT_CIV:
         return fill_full_design() && CHECK(civ_design_set_choice(&design, CHOICE_SCOUT, SCOUT));
+    case STATS_CIV:
+    case COSTLY_CIV:
+        return fill_stats(scenario == COSTLY_CIV);
     case FULL_CIV:
     default:
         return fill_full_design();
@@ -355,16 +378,12 @@ DatChange recipe_game_tree_last(Scenario scenario, int type, int key)
     return last_of(civ_effect(scenario, false), type, key);
 }
 
-long recipe_game_unit_name(Scenario scenario)
+RebuiltGame recipe_game_rebuilt(Scenario scenario)
 {
-    DatCursor cursor;
-    size_t at = 0U;
+    const RebuiltGame failed = { NULL, NULL };
+    const RebuiltGame rebuilt_game = { &rebuilt_bytes, &rebuilt_map };
 
-    if (!recipe_game_build(scenario) || !dat_find_unit(&rebuilt_bytes, rebuilt_map.civ_at[SLOT], OWN_UNIT, &at) ||
-        !dat_cursor_start(&cursor, &rebuilt_bytes, at + DAT_UNIT_NAME_AT)) {
-        return DAT_NO_ID;
-    }
-    return dat_cursor_i32(&cursor);
+    return recipe_game_build(scenario) ? rebuilt_game : failed;
 }
 
 DatChange recipe_game_team_last(Scenario scenario)
@@ -413,27 +432,9 @@ int recipe_game_team_changes(int type, int key)
 RecipeReport recipe_game_report(Scenario scenario)
 {
     const RecipeReport failed = { NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH, NO_TECH,
-                                  false,   false,   false,   { NO_TECH, NO_TECH } };
+                                  NO_TECH, false,   false,   false,   { NO_TECH, NO_TECH } };
 
     return recipe_game_build(scenario) ? report : failed;
-}
-
-long recipe_game_resource(Scenario scenario, int resource)
-{
-    DatCursor cursor;
-    DatCiv civ;
-    float value;
-
-    if (!CHECK(resource >= 0) || !CHECK(resource < GAME_RESOURCES) || !recipe_game_build(scenario) ||
-        !dat_civ_read(&rebuilt_bytes, rebuilt_map.civ_at[SLOT], &civ)) {
-        return DAT_NO_ID;
-    }
-    if (!dat_cursor_start(&cursor, &rebuilt_bytes,
-                          civ.team_bonus_id_at + DAT_SHORT_WIDTH + ((size_t)resource * DAT_LONG_WIDTH))) {
-        return DAT_NO_ID;
-    }
-    value = dat_cursor_f32(&cursor);
-    return (long)value;
 }
 
 const CivDesign *recipe_game_design(Scenario scenario)

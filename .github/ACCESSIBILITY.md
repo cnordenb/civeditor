@@ -86,14 +86,18 @@ An unticked box says how civeditor meets the criterion, or would meet it, and wh
 - [x] **1.4.12 Text Spacing (AA).** Code: the criterion is about content made in a markup language that lets the
   spacing of text be set; the window is made of the controls of Windows, not of markup.
   Human review needed.
-- [x] **1.4.13 Content on Hover or Focus (AA).** Code: civeditor shows nothing on hover or focus, no tooltip.
+- [x] **1.4.13 Content on Hover or Focus (AA).** Test: Esc in the field of a number hides its slider, and the slider
+  is hidden when the focus leaves the fields. Code: nothing is shown on hover, no tooltip; the card with the slider
+  is shown while the field of a number has the focus, stays until the focus leaves the field and its slider, and Esc
+  hides it without moving the focus (`chosen_edit.c`).
   Human review needed.
 
 ## 2. Operable
 
 - [x] **2.1.1 Keyboard (A).** Test: the Tab key reaches every control of every step, in the real window. Code: every
   command is in the menu (Alt) and has a shortcut (`make_menu` and `make_accelerators` in `app_window.c`), and
-  the controls are the standard ones of Windows, which the keyboard works: arrows pick, Space ticks a row.
+  the controls are the standard ones of Windows, which the keyboard works: arrows pick, Space ticks a row. In
+  Chosen bonuses a value is typed into the field of each number, and Tab goes from the field to its slider.
 - [x] **2.1.2 No Keyboard Trap (A).** Test: the Tab key leaves every control. The test found the fields of several
   lines, such as Description, holding the Tab key; the window now moves the focus on when such a field asks it to
   (`move_focus` in `app_window.c`). The dialogs are Windows' own.
@@ -114,7 +118,7 @@ An unticked box says how civeditor meets the criterion, or would meet it, and wh
 - [x] **2.4.2 Page Titled (A).** Test: the window's title names the civ and the step, such as "Testonia - Step 2
   of 4: Bonuses - civeditor", and "A new civ" before the civ has a name.
 - [x] **2.4.3 Focus Order (A).** Test: the Tab key follows the order in which a step is read: the list of steps,
-  each column from the top, then Back and Next.
+  each column from the top, then Back and Next; in Chosen bonuses, the fields of numbers row by row, from the left.
 - [x] **2.4.4 Link Purpose (In Context) (A).** Code: civeditor has no links.
   Human review needed.
 - [x] **2.4.5 Multiple Ways (AA).** Test: the list of steps shows the current step as the chosen one; the list of
@@ -125,7 +129,10 @@ An unticked box says how civeditor meets the criterion, or would meet it, and wh
   description" and "Its base unit", were made "Description of the unique unit" and "The selected unit".
 - [x] **2.4.7 Focus Visible (AA).** Test: the control in focus has a solid frame at least two pixels thick. The
   window draws the frame itself around whichever control has the focus (`assist_draw_focus` in `assist.c`); a
-  row in focus has its own frame inside a list. Not looked at with the eyes.
+  row in focus has its own frame inside a list, and the field of a number in Chosen bonuses has its frame drawn by
+  its label (`assist_draw_ring`); a change that takes away the field in focus gives the focus to the list of civ
+  bonuses (`give_up_field` in `chosen_edit.c`), so that it is never left on a hidden field. Not looked at with the
+  eyes.
   Human review needed.
 - [x] **2.4.11 Focus Not Obscured (Minimum) (AA).** Test: no two controls of a step overlap, even in the smallest
   window.
@@ -138,10 +145,11 @@ An unticked box says how civeditor meets the criterion, or would meet it, and wh
 - [x] **2.5.4 Motion Actuation (A).** Code: nothing reacts to the motion of the device.
   Human review needed.
 - [x] **2.5.7 Dragging Movements (AA).** Code: nothing needs dragging; a scroll bar can also be moved by its arrows
-  and by the keyboard.
+  and by the keyboard, and the value that the slider of a number sets can be typed into the field of the number.
   Human review needed.
 - [x] **2.5.8 Target Size (Minimum) (AA).** Test: every control one acts on is at least 44 by 44, more than the 24
-  by 24 asked here.
+  by 24 asked here. The fields of numbers in Chosen bonuses stand in the text of a bonus, which the criterion leaves
+  out as inline; each is still at least 24 by 24 (`CHOSEN_FIELD_LEAST`), and the card of the slider is 44 high.
 
 ## 3. Understandable
 
@@ -168,10 +176,12 @@ An unticked box says how civeditor meets the criterion, or would meet it, and wh
   help is in the same places on every step: the F1 key, the menu Help, the status line and the line under the title.
 - [x] **3.3.1 Error Identification (A).** Test: the summary names what is still needed. Read, 2026-11-10: each thing
   that can go wrong is said in words, in the status line or a message box: a file that is not a civ file, a file
-  that cannot be written, a change that cannot be made, a mod that cannot be built and why.
+  that cannot be written, a change that cannot be made, a mod that cannot be built and why. Test: a value typed past
+  the most of a number is answered in the status line.
 - [x] **3.3.2 Labels or Instructions (A).** Test: every input has a visible label.
 - [x] **3.3.3 Error Suggestion (AA).** Test: the summary names what is still needed: the review says what to add,
-  a name, a unique unit, a castle tech, an imperial tech or a name for the hero.
+  a name, a unique unit, a castle tech, an imperial tech or a name for the hero; a value typed past the most of a
+  number is answered with its range, as "Type a value from -50% to -99.9%."
 - [x] **3.3.4 Error Prevention (Legal, Financial, Data) (AA).** Test: undo brings back the civ before a change, and
   redo makes an undone change again; Build asks before it writes, and unsaved changes are asked about.
 - [x] **3.3.7 Redundant Entry (A).** Code: the design keeps everything entered; nothing is asked twice.
@@ -184,7 +194,10 @@ An unticked box says how civeditor meets the criterion, or would meet it, and wh
 - [x] **4.1.2 Name, Role, Value (A).** Test: every control tells a screen reader a name that begins with its label,
   asked of Windows' accessibility interface as a screen reader asks it. Code: the controls are the standard
   controls of Windows, which report their roles, values and states themselves; the owner-drawn lists keep their
-  texts (`LBS_HASSTRINGS`). Not tried with a screen reader.
+  texts (`LBS_HASSTRINGS`). In Chosen bonuses each bonus is a label that keeps its text; the panel, the fields of
+  numbers and the slider are named through Windows' annotations (`assist_annotate` in `assist.c`): the panel by its
+  label, each field by the text of its bonus, the slider by its range, with the value it sets. Not tried with a
+  screen reader.
   Human review needed.
 - [x] **4.1.3 Status Messages (AA).** Test: the status line is a live region that a screen reader is told of. The
   status line is marked as a polite live region (`mark_live` in `controls.c`), and each change of its text raises

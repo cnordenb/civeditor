@@ -2,6 +2,7 @@
 #define ACCESS_TESTS_H
 
 #include <stdbool.h>
+#include <windows.h>
 
 bool test_every_text_contrasts_four_and_a_half_to_one(void);
 bool test_every_input_has_a_visible_label(void);
@@ -24,5 +25,6 @@ bool test_the_layout_grows_with_the_text_size_of_windows(void);
 bool test_the_control_in_focus_has_a_solid_frame(void);
 bool test_a_ticked_row_is_drawn_with_a_check(void);
 bool test_an_undone_choice_shows_the_designs_value_again(void);
+bool access_frame_shows(HWND window, HWND target);
 
 #endif
